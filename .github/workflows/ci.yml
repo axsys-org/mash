@@ -172,12 +172,19 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Exactly the command in vercel.json, run against exactly as cold a tree
-      # as Vercel's builder gets. Building the packages in a separate step
-      # first would defeat the point: the deployment failure this guards
-      # against was precisely the catalog being built before its dependencies.
-      - name: Build catalog
-        run: pnpm run build:catalog
+      # Exactly the command in vercel.json, from exactly the directory Vercel
+      # runs it in, against as cold a tree as Vercel's builder gets.
+      #
+      # All three of those details have broken a deployment. Vercel's project
+      # Root Directory is apps/catalog, so its commands run there and not at
+      # the repository root — which is why the command is `-w` prefixed, and
+      # why this job reproduces the working directory rather than assuming it.
+      # Building the packages in a separate step first would defeat the point
+      # entirely: the failure being guarded against is the catalog being built
+      # before its dependencies exist.
+      - name: Build catalog (as Vercel does)
+        working-directory: apps/catalog
+        run: pnpm -w run build:catalog
 
       - name: Check the build emitted what it should
         run: |

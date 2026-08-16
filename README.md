@@ -292,29 +292,43 @@ address (or press **copy link** next to the component name) and paste it into yo
 ```jsonc
 {
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm run build:catalog",
-  "outputDirectory": "apps/catalog/dist",
+  "buildCommand": "pnpm -w run build:catalog",
+  "outputDirectory": "dist",
   "rewrites": [{ "source": "/components/:path*", "destination": "/index.html" }],
 }
 ```
 
-`build:catalog` is `pnpm --filter "@mash/catalog..." run build`. The trailing `...` selects the
-catalog **and its workspace dependencies**, so one command builds tokens → `@mash/ui` →
+Two details in there are load-bearing, and both are consequences of the same fact:
+
+**The Vercel project's Root Directory is `apps/catalog`.** `vercel.json` is read from the repository
+root, but the commands in it **run in the Root Directory**. So:
+
+- `pnpm -w` targets the workspace root explicitly. Without it, `pnpm run build:catalog` looks only
+  at `apps/catalog/package.json` — which has no such script — and a bare `pnpm run build` is worse,
+  because it silently resolves to the catalog's own `vite build` and tries to bundle against
+  packages that have not been built yet.
+- `outputDirectory` is `dist`, resolved relative to the Root Directory — so `apps/catalog/dist`.
+
+Install still covers the whole workspace: pnpm walks up to `pnpm-workspace.yaml` and links all
+seven projects, which is what makes `@mash/tokens` and `@mash/ui` resolve from source.
+
+`build:catalog` itself is `pnpm --filter "@mash/catalog..." run build`. The trailing `...` selects
+the catalog **and its workspace dependencies**, so one command builds tokens → `@mash/ui` →
 `@mash/shrine` → catalog in dependency order from a completely cold tree. That ordering is a real
 dependency — the catalog imports `@mash/tokens/tokens.css` and each package's
 `custom-elements.json`, which do not exist until those packages are built — and it belongs in the
-dependency graph rather than in a sequence of commands someone has to remember to chain. Vercel, CI
-and a developer all run the identical command.
+dependency graph rather than in a sequence of commands someone has to remember to chain.
 
 If Vite is ever run against a cold tree anyway, a `buildStart` guard in `apps/catalog/vite.config.ts`
 names the missing artifacts and the command to fix it, instead of failing with a bare "failed to
 resolve import" for a specifier that is spelled correctly.
 
-The Vercel project's **Root Directory** is the repository root, not `apps/catalog` — the catalog is
-built from the workspace packages beside it, and pnpm has to install the whole workspace for those
-links to exist. The preview therefore always contains the PR's exact `packages/tokens`,
-`packages/components` and `apps/catalog`; there is no second token pipeline, no second component
-build, and no preview-only application. Designers review the same artifacts consumers get.
+The CI `Catalog build` job runs this exact command from this exact directory, so a mismatch between
+what CI proves and what Vercel does surfaces on the PR rather than in the deployment log.
+
+The preview therefore always contains the PR's exact `packages/tokens`, `packages/components` and
+`apps/catalog`; there is no second token pipeline, no second component build, and no preview-only
+application. Designers review the same artifacts consumers get.
 
 The rewrite exists because `/components/ui-button` is a real address the app routes client-side.
 Static files still win, so `/stage.html` and `/assets/*` are served directly.
