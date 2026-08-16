@@ -1,0 +1,96 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "The semantic colour layer for the dark theme.\n\nThis file defines exactly the same token names as themes/light.json — the build fails if the two ever diverge. Note the two structural inversions the dark theme makes: elevation reads as *lighter* surfaces rather than shadow, and interaction states step *up* the ramp (hover is lighter) instead of down.",
+
+    "canvas": {
+      "$value": "{color.reference.neutral.950}",
+      "$description": "The page behind everything. Never put text directly on it without a surface."
+    },
+    "surface": {
+      "$value": "{color.reference.neutral.900}",
+      "$description": "Default raised content surface: cards, panels, sheets."
+    },
+    "surfaceRaised": {
+      "$value": "{color.reference.neutral.800}",
+      "$description": "A surface above another surface. Shadow barely reads on a dark canvas, so elevation is carried by lightness instead."
+    },
+    "surfaceSunken": {
+      "$value": "{color.reference.neutral.950}",
+      "$description": "A recessed well inside a surface: code blocks, inset lists, track backgrounds."
+    },
+
+    "text": {
+      "$value": "{color.reference.neutral.100}",
+      "$description": "Primary body and heading text. Not pure white — full-contrast white on a dark field haloes."
+    },
+    "textMuted": {
+      "$value": "{color.reference.neutral.400}",
+      "$description": "Secondary text: captions, help text, metadata."
+    },
+    "textDisabled": {
+      "$value": "{color.reference.neutral.600}",
+      "$description": "Text in a disabled control. Deliberately low contrast."
+    },
+
+    "border": {
+      "$value": "{color.reference.neutral.800}",
+      "$description": "Default separator and control outline."
+    },
+    "borderStrong": {
+      "$value": "{color.reference.neutral.700}",
+      "$description": "Emphasised outline: hovered controls, active field borders."
+    },
+    "focusRing": {
+      "$value": "{color.reference.violet.400}",
+      "$description": "Keyboard focus indicator. Lighter than the light theme's so it separates from the canvas."
+    },
+    "shadow": {
+      "$value": "{color.reference.shadow.strong}",
+      "$description": "Elevation shadow colour. Much stronger than the light theme's: a soft shadow is invisible against a dark canvas, which is why the dark theme also steps surfaces lighter."
+    },
+
+    "action": {
+      "$value": "{color.reference.violet.400}",
+      "$description": "The accent tone. Lighter than in the light theme so it carries dark foreground text."
+    },
+    "actionHover": { "$value": "{color.reference.violet.300}" },
+    "actionPressed": { "$value": "{color.reference.violet.200}" },
+    "onAction": {
+      "$value": "{color.reference.neutral.1000}",
+      "$description": "Dark foreground: the dark theme's action colour is a light fill."
+    },
+
+    "neutral": {
+      "$value": "{color.reference.neutral.800}",
+      "$description": "The neutral tone. Secondary buttons and low-emphasis fills."
+    },
+    "neutralHover": { "$value": "{color.reference.neutral.700}" },
+    "neutralPressed": { "$value": "{color.reference.neutral.600}" },
+    "onNeutral": { "$value": "{color.reference.neutral.100}" },
+
+    "positive": {
+      "$value": "{color.reference.green.400}",
+      "$description": "The positive tone. Success, confirmation, safe-to-proceed."
+    },
+    "positiveHover": { "$value": "{color.reference.green.300}" },
+    "positivePressed": { "$value": "{color.reference.green.200}" },
+    "onPositive": { "$value": "{color.reference.neutral.1000}" },
+
+    "warning": {
+      "$value": "{color.reference.amber.400}",
+      "$description": "The warning tone. Needs attention but is not an error."
+    },
+    "warningHover": { "$value": "{color.reference.amber.300}" },
+    "warningPressed": { "$value": "{color.reference.amber.200}" },
+    "onWarning": { "$value": "{color.reference.neutral.1000}" },
+
+    "critical": {
+      "$value": "{color.reference.red.400}",
+      "$description": "The critical tone. Errors and destructive actions."
+    },
+    "criticalHover": { "$value": "{color.reference.red.300}" },
+    "criticalPressed": { "$value": "{color.reference.red.200}" },
+    "onCritical": { "$value": "{color.reference.neutral.1000}" }
+  }
+}

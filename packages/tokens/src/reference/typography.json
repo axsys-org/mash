@@ -1,0 +1,79 @@
+{
+  "fontFamily": {
+    "$type": "fontFamily",
+    "reference": {
+      "$description": "Font stacks. Authored as DTCG fontFamily arrays; the first entry is the preferred face and the rest are the fallback chain.",
+      "sans": {
+        "$value": [
+          "Inter",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif"
+        ]
+      },
+      "mono": {
+        "$value": [
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          "monospace"
+        ]
+      }
+    }
+  },
+
+  "fontSize": {
+    "$type": "dimension",
+    "reference": {
+      "$description": "Type scale, in rem so it respects the user's root font size.",
+      "100": {
+        "$value": { "value": 0.75, "unit": "rem" },
+        "$description": "12px"
+      },
+      "200": {
+        "$value": { "value": 0.875, "unit": "rem" },
+        "$description": "14px"
+      },
+      "300": {
+        "$value": { "value": 1, "unit": "rem" },
+        "$description": "16px"
+      },
+      "400": {
+        "$value": { "value": 1.125, "unit": "rem" },
+        "$description": "18px"
+      },
+      "500": {
+        "$value": { "value": 1.375, "unit": "rem" },
+        "$description": "22px"
+      },
+      "600": {
+        "$value": { "value": 1.75, "unit": "rem" },
+        "$description": "28px"
+      }
+    }
+  },
+
+  "fontWeight": {
+    "$type": "fontWeight",
+    "reference": {
+      "$description": "DTCG fontWeight tokens. Numeric so they interpolate predictably on variable fonts.",
+      "regular": { "$value": 400 },
+      "medium": { "$value": 500 },
+      "semibold": { "$value": 600 }
+    }
+  },
+
+  "lineHeight": {
+    "$type": "number",
+    "reference": {
+      "$description": "Unitless line heights, so they multiply against whatever font size inherits.",
+      "tight": { "$value": 1.2 },
+      "normal": { "$value": 1.5 },
+      "relaxed": { "$value": 1.7 }
+    }
+  }
+}

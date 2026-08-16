@@ -1,0 +1,39 @@
+{
+  "name": "@mash/tokens",
+  "version": "0.0.0",
+  "description": "DTCG design tokens for the mash design system, compiled to CSS custom properties by Style Dictionary.",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/tokens.d.ts",
+      "import": "./dist/tokens.js"
+    },
+    "./reference.css": "./dist/reference.css",
+    "./semantic.css": "./dist/semantic.css",
+    "./theme-light.css": "./dist/theme-light.css",
+    "./theme-dark.css": "./dist/theme-dark.css",
+    "./tokens.css": "./dist/tokens.css",
+    "./tokens.json": "./dist/tokens.json",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "validate": "node scripts/validate.mjs",
+    "//check:types": "The tokens package has no TypeScript sources; graph validation is its equivalent correctness gate.",
+    "check:types": "node scripts/validate.mjs",
+    "dev": "node scripts/watch.mjs",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "style-dictionary": "5.5.1"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "radius": {
+    "$type": "dimension",
+    "$description": "Theme-independent shape semantics. Two radii carry almost the whole system: one for controls, one for containers.",
+
+    "control": {
+      "$value": "{radius.reference.3}",
+      "$description": "Corner radius for interactive controls: buttons, inputs, chips."
+    },
+    "container": {
+      "$value": "{radius.reference.5}",
+      "$description": "Corner radius for surfaces that contain other content: cards, panels, dialogs."
+    },
+    "pill": {
+      "$value": "{radius.reference.full}",
+      "$description": "Fully rounded. For badges and toggles whose shape is part of their meaning."
+    }
+  },
+
+  "border": {
+    "$type": "dimension",
+    "$description": "Border widths. Authored in px because a hairline should stay a hairline.",
+    "hairline": { "$value": { "value": 1, "unit": "px" } },
+    "strong": { "$value": { "value": 2, "unit": "px" } },
+    "focusRing": {
+      "$value": { "value": 2, "unit": "px" },
+      "$description": "Thickness of the focus indicator. Paired with color.focusRing."
+    },
+    "focusRingOffset": {
+      "$value": { "value": 2, "unit": "px" },
+      "$description": "Gap between the control's edge and its focus ring."
+    }
+  }
+}

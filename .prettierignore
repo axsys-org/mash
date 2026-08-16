@@ -1,0 +1,8 @@
+dist/
+node_modules/
+pnpm-lock.yaml
+
+# Generated. Formatting is the generator's job, and reformatting it here would
+# create spurious diffs on every build.
+packages/tokens/dist/
+packages/components/custom-elements.json

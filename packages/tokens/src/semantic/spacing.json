@@ -1,0 +1,47 @@
+{
+  "space": {
+    "$type": "dimension",
+    "$description": "Theme-independent spacing semantics. These names describe the *role* a gap plays, so a component can ask for 'the inline padding of a control' without knowing which step of the scale that currently is.",
+
+    "controlInline": {
+      "$value": "{space.reference.3}",
+      "$description": "Inline (left/right) padding inside an interactive control at the default size."
+    },
+    "controlBlock": {
+      "$value": "{space.reference.2}",
+      "$description": "Block (top/bottom) padding inside an interactive control at the default size."
+    },
+
+    "controlInlineSmall": { "$value": "{space.reference.2}" },
+    "controlBlockSmall": { "$value": "{space.reference.1}" },
+    "controlInlineLarge": { "$value": "{space.reference.4}" },
+    "controlBlockLarge": { "$value": "{space.reference.3}" },
+
+    "controlGap": {
+      "$value": "{space.reference.2}",
+      "$description": "Gap between a control's own parts, e.g. between a button's icon and its label."
+    },
+
+    "containerInline": {
+      "$value": "{space.reference.5}",
+      "$description": "Inline padding inside a surface container such as a card."
+    },
+    "containerBlock": {
+      "$value": "{space.reference.5}",
+      "$description": "Block padding inside a surface container such as a card."
+    },
+    "containerGap": {
+      "$value": "{space.reference.4}",
+      "$description": "Gap between sibling regions inside a container, e.g. a card's header and its content."
+    },
+
+    "stack": {
+      "$value": "{space.reference.4}",
+      "$description": "Default vertical rhythm between stacked blocks."
+    },
+    "inline": {
+      "$value": "{space.reference.3}",
+      "$description": "Default horizontal gap between inline siblings."
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  // The emit configuration: this is what produces the published package.
+  //
+  // Separate from tsconfig.json so that type-checking can cover tests and
+  // tooling config, while `dist/` contains only the component module graph —
+  // no test files, no fixture helpers, and a `rootDir` that keeps the output
+  // topology identical to `src/`.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "types": []
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/test-support"]
+}

@@ -1,0 +1,125 @@
+{
+  "type": {
+    "$description": "Theme-independent typography semantics.\n\nAuthored as groups of individual DTCG tokens (fontFamily / fontSize / fontWeight / lineHeight) rather than as composite `typography` tokens. Composite tokens compile either to a lossy CSS `font` shorthand — which silently drops letter-spacing — or to an expanded form that loses the per-field type information. Individual tokens keep every field independently addressable and keep the generated CSS obvious.",
+
+    "body": {
+      "$description": "Default running text.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.300}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.normal}"
+      }
+    },
+
+    "label": {
+      "$description": "Text inside controls: button labels, form labels, table headers. Slightly heavier and tighter than body so it holds its shape at small sizes.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.200}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.medium}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.tight}"
+      }
+    },
+
+    "labelSmall": {
+      "$description": "Label type for compact controls.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.100}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.medium}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.tight}"
+      }
+    },
+
+    "labelLarge": {
+      "$description": "Label type for prominent controls.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.300}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.medium}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.tight}"
+      }
+    },
+
+    "heading": {
+      "$description": "Section headings.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.500}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.semibold}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.tight}"
+      }
+    },
+
+    "code": {
+      "$description": "Inline and block code.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.mono}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.200}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.normal}"
+      }
+    }
+  }
+}

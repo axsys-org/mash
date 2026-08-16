@@ -1,0 +1,22 @@
+{
+  "name": "@mash/integration-tests",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Playwright integration tests for composed behaviour: theme nesting, RTL, forced colors, reduced motion, keyboard-only interaction.",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "install-browsers": "playwright install --with-deps chromium firefox webkit",
+    "check:types": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf test-results playwright-report"
+  },
+  "devDependencies": {
+    "@mash/tokens": "workspace:*",
+    "@mash/ui": "workspace:*",
+    "@playwright/test": "1.62.1",
+    "@types/node": "26.2.0",
+    "typescript": "7.0.2",
+    "vite": "8.2.1"
+  }
+}

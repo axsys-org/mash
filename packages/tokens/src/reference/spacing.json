@@ -1,0 +1,34 @@
+{
+  "space": {
+    "$type": "dimension",
+    "reference": {
+      "$description": "A 4px-based spacing scale, authored in rem against a 16px root so that spacing scales with the user's font size preference. The numeric key is the step, not the pixel value: step 3 is 0.75rem / 12px.",
+
+      "0": { "$value": { "value": 0, "unit": "rem" }, "$description": "0px" },
+      "1": {
+        "$value": { "value": 0.25, "unit": "rem" },
+        "$description": "4px"
+      },
+      "2": { "$value": { "value": 0.5, "unit": "rem" }, "$description": "8px" },
+      "3": {
+        "$value": { "value": 0.75, "unit": "rem" },
+        "$description": "12px"
+      },
+      "4": { "$value": { "value": 1, "unit": "rem" }, "$description": "16px" },
+      "5": {
+        "$value": { "value": 1.25, "unit": "rem" },
+        "$description": "20px"
+      },
+      "6": {
+        "$value": { "value": 1.5, "unit": "rem" },
+        "$description": "24px"
+      },
+      "8": { "$value": { "value": 2, "unit": "rem" }, "$description": "32px" },
+      "10": {
+        "$value": { "value": 2.5, "unit": "rem" },
+        "$description": "40px"
+      },
+      "12": { "$value": { "value": 3, "unit": "rem" }, "$description": "48px" }
+    }
+  }
+}

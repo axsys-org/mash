@@ -1,0 +1,450 @@
+/**
+ * Catalog chrome.
+ *
+ * Deliberately plain, and deliberately *not* built from the design tokens. The
+ * catalog is a tool for inspecting the design system, not an example of it —
+ * if the chrome used the same tokens, a broken token would break the tool that
+ * is supposed to show you it is broken, and switching the theme would restyle
+ * the whole page instead of the component under test.
+ *
+ * The one exception is the stage, which carries [data-theme] so the component
+ * inside it resolves real theme variables.
+ */
+
+:root {
+  --chrome-bg: #ffffff;
+  --chrome-fg: #1a1a1f;
+  --chrome-muted: #61616b;
+  --chrome-line: #e4e4ea;
+  --chrome-accent: #5b3fd4;
+  --chrome-code-bg: #f6f6f9;
+  --chrome-font:
+    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --chrome-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --chrome-bg: #131317;
+    --chrome-fg: #ececf1;
+    --chrome-muted: #9a9aa6;
+    --chrome-line: #2a2a33;
+    --chrome-accent: #a48bff;
+    --chrome-code-bg: #1b1b21;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--chrome-bg);
+  color: var(--chrome-fg);
+  font-family: var(--chrome-font);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+code,
+pre {
+  font-family: var(--chrome-mono);
+  font-size: 13px;
+}
+
+/* --- masthead ------------------------------------------------------------ */
+
+.masthead {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--chrome-line);
+}
+
+.masthead h1 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+
+.masthead p {
+  margin: 4px 0 0;
+  color: var(--chrome-muted);
+  font-size: 13px;
+}
+
+/* --- layout -------------------------------------------------------------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  padding: 20px 16px;
+  border-right: 1px solid var(--chrome-line);
+}
+
+.sidebar h2 {
+  margin: 0 0 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--chrome-muted);
+}
+
+.sidebar ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-item {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-family: var(--chrome-mono);
+  font-size: 13px;
+  text-align: start;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background: var(--chrome-code-bg);
+}
+
+.nav-item.is-active {
+  background: var(--chrome-accent);
+  color: #fff;
+}
+
+.content {
+  min-width: 0;
+  padding: 24px 28px 80px;
+}
+
+.component-title {
+  margin: 0;
+  font-family: var(--chrome-mono);
+  font-size: 24px;
+}
+
+.summary {
+  margin: 6px 0 0;
+  font-size: 16px;
+}
+
+.description,
+.note {
+  color: var(--chrome-muted);
+  font-size: 13px;
+}
+
+.description {
+  margin: 8px 0 0;
+  max-width: 70ch;
+  white-space: pre-line;
+}
+
+/* --- panels -------------------------------------------------------------- */
+
+.panel {
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 10px;
+}
+
+.panel > h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--chrome-muted);
+}
+
+/* --- controls ------------------------------------------------------------ */
+
+.controls {
+  display: grid;
+  gap: 16px;
+}
+
+.control {
+  display: grid;
+  gap: 6px;
+}
+
+.control-label {
+  font-family: var(--chrome-mono);
+  font-size: 12px;
+  color: var(--chrome-muted);
+}
+
+.control-hint {
+  font-size: 12px;
+  color: var(--chrome-muted);
+  max-width: 70ch;
+}
+
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.segment {
+  padding: 5px 12px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.segment:hover {
+  border-color: var(--chrome-accent);
+}
+
+.segment.is-active {
+  background: var(--chrome-accent);
+  border-color: var(--chrome-accent);
+  color: #fff;
+}
+
+.toggle {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.slot-toggles {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.text-input {
+  padding: 5px 9px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 6px;
+  background: var(--chrome-bg);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  max-width: 320px;
+}
+
+/* --- stage --------------------------------------------------------------- */
+
+/* The only element that opts into the design system's own theme variables. */
+.stage {
+  margin-top: 28px;
+  padding: 56px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--chrome-line);
+  border-radius: 10px;
+  background: var(--color-canvas);
+  color: var(--color-text);
+}
+
+.slot-fill {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1em;
+  block-size: 1em;
+  border: 1px dashed currentColor;
+  border-radius: 3px;
+  font-size: 9px;
+  opacity: 0.7;
+  overflow: hidden;
+}
+
+/* --- code ---------------------------------------------------------------- */
+
+.code {
+  margin: 0 0 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--chrome-code-bg);
+  overflow-x: auto;
+}
+
+/* --- api ----------------------------------------------------------------- */
+
+.api-block {
+  margin-top: 18px;
+}
+
+.api-block h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.api-block-empty .note {
+  margin: 0;
+}
+
+.api-block table {
+  width: 100%;
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+
+.api-block th,
+.api-block td {
+  padding: 6px 10px 6px 0;
+  border-bottom: 1px solid var(--chrome-line);
+  text-align: start;
+  vertical-align: top;
+  font-size: 13px;
+}
+
+.api-block th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--chrome-muted);
+}
+
+.api-block .type {
+  color: var(--chrome-accent);
+}
+
+.api-block dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(80px, auto) 1fr;
+  gap: 6px 16px;
+}
+
+.api-block dt {
+  font-family: var(--chrome-mono);
+}
+
+.api-block dd {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* --- token provenance ---------------------------------------------------- */
+
+.token-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 14px;
+}
+
+.provenance {
+  padding: 12px 14px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 8px;
+}
+
+.provenance-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.token-var {
+  font-weight: 600;
+}
+
+.token-value {
+  color: var(--chrome-muted);
+  font-family: var(--chrome-mono);
+  font-size: 12px;
+}
+
+.swatch {
+  inline-size: 15px;
+  block-size: 15px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 4px;
+}
+
+.provenance-chain {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.provenance-chain li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.provenance-chain li + li::before {
+  content: "→";
+  color: var(--chrome-muted);
+  margin-inline-end: 4px;
+}
+
+.layer {
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--chrome-code-bg);
+  color: var(--chrome-muted);
+}
+
+.layer-reference {
+  background: #ede8ff;
+  color: #4a2fc0;
+}
+
+.layer-theme {
+  background: #e2f4ec;
+  color: #1d6b4b;
+}
+
+@media (prefers-color-scheme: dark) {
+  .layer-reference {
+    background: #2c2450;
+    color: #c3b2ff;
+  }
+
+  .layer-theme {
+    background: #17342a;
+    color: #7fd8b0;
+  }
+}
+
+.token-description {
+  margin: 8px 0 0;
+  color: var(--chrome-muted);
+  font-size: 12px;
+  max-width: 80ch;
+}

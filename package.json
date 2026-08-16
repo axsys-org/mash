@@ -1,0 +1,31 @@
+{
+  "name": "mash",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A standards-oriented Web Components design system: DTCG tokens -> Style Dictionary -> CSS; TypeScript -> tsc -> ES modules + custom-elements.json.",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "//build": "Order is a real dependency, not a preference: components consume the token CSS, and the manifest is generated from the compiled components.",
+    "build": "pnpm --filter @mash/tokens build && pnpm --filter @mash/ui build",
+    "//dev": "Build once so nothing starts against a missing dist/, then watch tokens, components and the manifest alongside the catalog.",
+    "dev": "pnpm run build && pnpm -r --parallel run dev",
+    "check": "pnpm run check:format && pnpm run check:types && pnpm run check:lint && pnpm run check:exports",
+    "check:types": "pnpm -r --parallel run check:types",
+    "check:lint": "oxlint",
+    "check:format": "prettier --check .",
+    "check:exports": "node scripts/check-exports.mjs",
+    "format": "prettier --write .",
+    "test": "pnpm --filter @mash/ui test",
+    "test:integration": "pnpm --filter @mash/integration-tests test",
+    "clean": "pnpm -r run clean && rm -rf node_modules/.vite"
+  },
+  "devDependencies": {
+    "oxlint": "1.78.0",
+    "prettier": "3.9.6",
+    "typescript": "7.0.2"
+  }
+}

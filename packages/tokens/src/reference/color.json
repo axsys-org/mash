@@ -1,0 +1,187 @@
+{
+  "color": {
+    "$type": "color",
+    "reference": {
+      "$description": "Raw colour primitives. These are the only place a literal colour is authored. Nothing outside the semantic layer may reference them, and components must never reference them at all. Authored in OKLCH so that lightness steps are perceptually even and chroma stays consistent across hues.",
+
+      "neutral": {
+        "$description": "Cool-tinted grey ramp. Carries surfaces, text and borders in both themes; the dark theme reads the ramp in reverse.",
+        "0": { "$value": { "colorSpace": "oklch", "components": [1, 0, 0] } },
+        "50": {
+          "$value": { "colorSpace": "oklch", "components": [0.985, 0.002, 285] }
+        },
+        "100": {
+          "$value": { "colorSpace": "oklch", "components": [0.967, 0.004, 285] }
+        },
+        "200": {
+          "$value": { "colorSpace": "oklch", "components": [0.925, 0.006, 285] }
+        },
+        "300": {
+          "$value": { "colorSpace": "oklch", "components": [0.87, 0.008, 285] }
+        },
+        "400": {
+          "$value": { "colorSpace": "oklch", "components": [0.75, 0.012, 285] }
+        },
+        "500": {
+          "$value": { "colorSpace": "oklch", "components": [0.62, 0.014, 285] }
+        },
+        "600": {
+          "$value": { "colorSpace": "oklch", "components": [0.5, 0.014, 285] }
+        },
+        "700": {
+          "$value": { "colorSpace": "oklch", "components": [0.4, 0.013, 285] }
+        },
+        "800": {
+          "$value": { "colorSpace": "oklch", "components": [0.29, 0.012, 285] }
+        },
+        "900": {
+          "$value": { "colorSpace": "oklch", "components": [0.21, 0.011, 285] }
+        },
+        "950": {
+          "$value": { "colorSpace": "oklch", "components": [0.155, 0.01, 285] }
+        },
+        "1000": { "$value": { "colorSpace": "oklch", "components": [0, 0, 0] } }
+      },
+
+      "violet": {
+        "$description": "Accent ramp. Drives the primary action colour.",
+        "100": {
+          "$value": { "colorSpace": "oklch", "components": [0.95, 0.03, 285] }
+        },
+        "200": {
+          "$value": { "colorSpace": "oklch", "components": [0.9, 0.06, 285] }
+        },
+        "300": {
+          "$value": { "colorSpace": "oklch", "components": [0.82, 0.1, 285] }
+        },
+        "400": {
+          "$value": { "colorSpace": "oklch", "components": [0.72, 0.15, 285] }
+        },
+        "500": {
+          "$value": { "colorSpace": "oklch", "components": [0.63, 0.19, 285] }
+        },
+        "600": {
+          "$value": { "colorSpace": "oklch", "components": [0.55, 0.21, 285] }
+        },
+        "700": {
+          "$value": { "colorSpace": "oklch", "components": [0.48, 0.2, 285] }
+        },
+        "800": {
+          "$value": { "colorSpace": "oklch", "components": [0.41, 0.17, 285] }
+        },
+        "900": {
+          "$value": { "colorSpace": "oklch", "components": [0.34, 0.13, 285] }
+        }
+      },
+
+      "green": {
+        "$description": "Positive / success ramp.",
+        "100": {
+          "$value": { "colorSpace": "oklch", "components": [0.95, 0.04, 150] }
+        },
+        "200": {
+          "$value": { "colorSpace": "oklch", "components": [0.89, 0.08, 150] }
+        },
+        "300": {
+          "$value": { "colorSpace": "oklch", "components": [0.83, 0.12, 150] }
+        },
+        "400": {
+          "$value": { "colorSpace": "oklch", "components": [0.76, 0.16, 150] }
+        },
+        "500": {
+          "$value": { "colorSpace": "oklch", "components": [0.68, 0.16, 150] }
+        },
+        "600": {
+          "$value": { "colorSpace": "oklch", "components": [0.6, 0.15, 150] }
+        },
+        "700": {
+          "$value": { "colorSpace": "oklch", "components": [0.52, 0.13, 150] }
+        },
+        "800": {
+          "$value": { "colorSpace": "oklch", "components": [0.44, 0.11, 150] }
+        }
+      },
+
+      "amber": {
+        "$description": "Warning ramp. Low lightness steps are deliberately dark enough to carry white text.",
+        "100": {
+          "$value": { "colorSpace": "oklch", "components": [0.96, 0.05, 75] }
+        },
+        "200": {
+          "$value": { "colorSpace": "oklch", "components": [0.92, 0.09, 75] }
+        },
+        "300": {
+          "$value": { "colorSpace": "oklch", "components": [0.88, 0.12, 75] }
+        },
+        "400": {
+          "$value": { "colorSpace": "oklch", "components": [0.84, 0.15, 75] }
+        },
+        "500": {
+          "$value": { "colorSpace": "oklch", "components": [0.78, 0.16, 75] }
+        },
+        "600": {
+          "$value": { "colorSpace": "oklch", "components": [0.7, 0.15, 75] }
+        },
+        "700": {
+          "$value": { "colorSpace": "oklch", "components": [0.6, 0.13, 75] }
+        },
+        "800": {
+          "$value": { "colorSpace": "oklch", "components": [0.5, 0.11, 75] }
+        }
+      },
+
+      "shadow": {
+        "$description": "Translucent blacks for elevation. Alpha lives in the primitive because a shadow's transparency is the value, not a component's styling choice.",
+        "soft": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0, 0, 0],
+            "alpha": 0.08
+          }
+        },
+        "medium": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0, 0, 0],
+            "alpha": 0.12
+          }
+        },
+        "strong": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0, 0, 0],
+            "alpha": 0.4
+          }
+        }
+      },
+
+      "red": {
+        "$description": "Critical / destructive ramp.",
+        "100": {
+          "$value": { "colorSpace": "oklch", "components": [0.95, 0.03, 25] }
+        },
+        "200": {
+          "$value": { "colorSpace": "oklch", "components": [0.89, 0.07, 25] }
+        },
+        "300": {
+          "$value": { "colorSpace": "oklch", "components": [0.8, 0.14, 25] }
+        },
+        "400": {
+          "$value": { "colorSpace": "oklch", "components": [0.71, 0.2, 25] }
+        },
+        "500": {
+          "$value": { "colorSpace": "oklch", "components": [0.63, 0.22, 25] }
+        },
+        "600": {
+          "$value": { "colorSpace": "oklch", "components": [0.56, 0.21, 25] }
+        },
+        "700": {
+          "$value": { "colorSpace": "oklch", "components": [0.48, 0.18, 25] }
+        },
+        "800": {
+          "$value": { "colorSpace": "oklch", "components": [0.4, 0.15, 25] }
+        }
+      }
+    }
+  }
+}

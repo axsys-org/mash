@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>mash integration fixture</title>
+  </head>
+  <body>
+    <!--
+      A harness for composed behaviour, not a catalog.
+
+      Each section sets up one situation that only appears when components are
+      combined with each other and with the environment: themes nested inside
+      themes, a form spanning several shadow roots, a right-to-left subtree.
+      The specs in ../specs drive these.
+    -->
+
+    <main>
+      <section id="theme-nesting">
+        <h2>Theme nesting</h2>
+        <div data-theme="light">
+          <ui-button data-testid="outer-light">Outer light</ui-button>
+
+          <div data-theme="dark">
+            <ui-button data-testid="inner-dark">Inner dark</ui-button>
+
+            <div data-theme="light">
+              <ui-button data-testid="innermost-light">Innermost light</ui-button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="composed-form">
+        <h2>Form composition</h2>
+        <!-- The buttons live in a card's footer, two shadow roots away from
+             the form element they operate on. -->
+        <form id="signup" data-testid="form">
+          <ui-card elevation="raised">
+            <h3 slot="header">Sign up</h3>
+
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" value="" />
+
+            <div slot="footer">
+              <ui-button data-testid="reset" type="reset" variant="quiet">Reset</ui-button>
+              <ui-button data-testid="submit" type="submit">Submit</ui-button>
+            </div>
+          </ui-card>
+        </form>
+        <p data-testid="form-status">idle</p>
+      </section>
+
+      <section id="rtl" dir="rtl">
+        <h2>Right to left</h2>
+        <ui-button data-testid="rtl-button">
+          <span slot="prefix" data-testid="rtl-prefix">*</span>
+          ابدأ
+        </ui-button>
+      </section>
+
+      <section id="ltr" dir="ltr">
+        <ui-button data-testid="ltr-button">
+          <span slot="prefix" data-testid="ltr-prefix">*</span>
+          Start
+        </ui-button>
+      </section>
+
+      <section id="tab-baseline">
+        <!-- Measures whether this engine puts buttons in the tab order at all.
+             WebKit on macOS does not by default, so the keyboard specs compare
+             against this native baseline rather than assuming one. -->
+        <input id="probe-input" />
+        <button id="probe-native" type="button">probe</button>
+        <input id="probe-after" />
+      </section>
+
+      <section id="keyboard">
+        <h2>Keyboard only</h2>
+        <ui-button data-testid="kb-first">First</ui-button>
+        <ui-button data-testid="kb-disabled" disabled>Disabled</ui-button>
+        <ui-button data-testid="kb-last">Last</ui-button>
+        <p data-testid="kb-log"></p>
+      </section>
+
+      <section id="motion">
+        <h2>Motion</h2>
+        <ui-button data-testid="motion-button" loading>Loading</ui-button>
+      </section>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

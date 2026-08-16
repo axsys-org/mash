@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Generated build artifacts that are checked by CI but not committed.
+packages/components/custom-elements.json
+
+# Test / tooling output
+test-results/
+playwright-report/
+blob-report/
+.vite/

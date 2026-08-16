@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    // --- Output shape -------------------------------------------------
+    // ES2022 is the baseline: it is where class static blocks, `ElementInternals`
+    // and the rest of the platform features these components rely on are already
+    // universally available. Emitting ES2022 keeps the compiled JS a near 1:1
+    // mirror of the source, which is the whole point of using tsc directly.
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+
+    // Relative imports must carry explicit `.js` extensions. This is what makes
+    // the emitted output runnable in a browser with no resolution step.
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+
+    // Lit's documented TypeScript guidance. Keeps class field semantics as
+    // assignments rather than `defineProperty`, which is what Lit's reactive
+    // property accessors expect.
+    "useDefineForClassFields": false,
+
+    // --- Emit ----------------------------------------------------------
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false,
+
+    // --- Correctness ---------------------------------------------------
+    "strict": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

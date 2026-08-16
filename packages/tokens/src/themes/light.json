@@ -1,0 +1,99 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "The semantic colour layer for the light theme.\n\nSemantic colour lives in the theme files rather than in semantic/, because every semantic colour is theme-dependent by definition — there is no theme-neutral value for `color.canvas`. Splitting it into a semantic file plus per-theme overrides would mean writing each name twice and inventing precedence rules. Instead each theme states the whole colour contract once. The token build enforces that every theme defines exactly the same set of names, so the two files cannot drift.",
+
+    "canvas": {
+      "$value": "{color.reference.neutral.100}",
+      "$description": "The page behind everything. Never put text directly on it without a surface."
+    },
+    "surface": {
+      "$value": "{color.reference.neutral.0}",
+      "$description": "Default raised content surface: cards, panels, sheets."
+    },
+    "surfaceRaised": {
+      "$value": "{color.reference.neutral.0}",
+      "$description": "A surface above another surface. In the light theme elevation reads through shadow, so this matches `surface`; in the dark theme it steps lighter instead."
+    },
+    "surfaceSunken": {
+      "$value": "{color.reference.neutral.200}",
+      "$description": "A recessed well inside a surface: code blocks, inset lists, track backgrounds."
+    },
+
+    "text": {
+      "$value": "{color.reference.neutral.900}",
+      "$description": "Primary body and heading text."
+    },
+    "textMuted": {
+      "$value": "{color.reference.neutral.600}",
+      "$description": "Secondary text: captions, help text, metadata. Still meets 4.5:1 on `surface`."
+    },
+    "textDisabled": {
+      "$value": "{color.reference.neutral.400}",
+      "$description": "Text in a disabled control. Deliberately below 4.5:1 — disabled content is exempt, and the low contrast is the affordance."
+    },
+
+    "border": {
+      "$value": "{color.reference.neutral.200}",
+      "$description": "Default separator and control outline."
+    },
+    "borderStrong": {
+      "$value": "{color.reference.neutral.300}",
+      "$description": "Emphasised outline: hovered controls, active field borders."
+    },
+    "focusRing": {
+      "$value": "{color.reference.violet.600}",
+      "$description": "Keyboard focus indicator. Paired with border.focusRing / border.focusRingOffset."
+    },
+    "shadow": {
+      "$value": "{color.reference.shadow.medium}",
+      "$description": "Elevation shadow colour. Components own the shadow's geometry; the theme owns its colour, because how much a shadow reads depends entirely on what it sits on."
+    },
+
+    "action": {
+      "$value": "{color.reference.violet.600}",
+      "$description": "The accent tone. Primary buttons, links, selected state."
+    },
+    "actionHover": { "$value": "{color.reference.violet.700}" },
+    "actionPressed": { "$value": "{color.reference.violet.800}" },
+    "onAction": {
+      "$value": "{color.reference.neutral.0}",
+      "$description": "Foreground for content sitting on `action`."
+    },
+
+    "neutral": {
+      "$value": "{color.reference.neutral.200}",
+      "$description": "The neutral tone. Secondary buttons and low-emphasis fills."
+    },
+    "neutralHover": { "$value": "{color.reference.neutral.300}" },
+    "neutralPressed": { "$value": "{color.reference.neutral.400}" },
+    "onNeutral": { "$value": "{color.reference.neutral.900}" },
+
+    "positive": {
+      "$value": "{color.reference.green.600}",
+      "$description": "The positive tone. Success, confirmation, safe-to-proceed."
+    },
+    "positiveHover": { "$value": "{color.reference.green.700}" },
+    "positivePressed": { "$value": "{color.reference.green.800}" },
+    "onPositive": { "$value": "{color.reference.neutral.0}" },
+
+    "warning": {
+      "$value": "{color.reference.amber.600}",
+      "$description": "The warning tone. Needs attention but is not an error."
+    },
+    "warningHover": { "$value": "{color.reference.amber.700}" },
+    "warningPressed": { "$value": "{color.reference.amber.800}" },
+    "onWarning": {
+      "$value": "{color.reference.neutral.900}",
+      "$description": "Dark rather than light: amber is too bright to carry white text at 4.5:1."
+    },
+
+    "critical": {
+      "$value": "{color.reference.red.600}",
+      "$description": "The critical tone. Errors and destructive actions."
+    },
+    "criticalHover": { "$value": "{color.reference.red.700}" },
+    "criticalPressed": { "$value": "{color.reference.red.800}" },
+    "onCritical": { "$value": "{color.reference.neutral.0}" }
+  }
+}

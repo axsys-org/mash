@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "ignorePatterns": ["**/dist/**", "**/node_modules/**", "**/*.json"],
+  "rules": {
+    "no-console": "off",
+
+    // A leading underscore is this system's documented marker for an internal,
+    // matching the `--_foo` convention in CSS. The manifest build strips
+    // `_`-prefixed members so they never reach the public schema.
+    "no-underscore-dangle": "off",
+
+    // Every `.sort()` in this repo is on an array that was just constructed
+    // from a spread or a `.map()`, so there is nothing to mutate.
+    "unicorn/no-array-sort": "off",
+
+    // Small helpers defined next to their single call site read better than
+    // the same helpers hoisted away from it.
+    "unicorn/consistent-function-scoping": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "tests/**/*.ts", "packages/tokens/scripts/**"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "duration": {
+    "$type": "duration",
+    "$description": "Theme-independent motion semantics.",
+    "control": {
+      "$value": "{duration.reference.fast}",
+      "$description": "State transitions on an interactive control: hover, press, focus."
+    },
+    "surface": {
+      "$value": "{duration.reference.normal}",
+      "$description": "Surfaces entering or leaving: popovers, dialogs, disclosure."
+    }
+  },
+
+  "easing": {
+    "$type": "cubicBezier",
+    "$description": "Theme-independent easing semantics.",
+    "control": { "$value": "{easing.reference.standard}" },
+    "surface": { "$value": "{easing.reference.emphasized}" }
+  }
+}
