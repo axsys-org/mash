@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import process from "node:process";
 
 import { defineConfig } from "vite";
 
@@ -7,9 +8,50 @@ import { defineConfig } from "vite";
  *
  * The component package is compiled by tsc into a plain ES module graph and
  * never goes through a bundler, so nothing here affects what ships. Vite's job
- * is purely to serve the catalog during development.
+ * is to serve the catalog during development, and to emit the static bundle
+ * that Vercel serves as the per-PR preview.
  */
+
+/**
+ * Deployment metadata, read once, here.
+ *
+ * This is the *only* place the build reads the environment. Vercel exposes the
+ * git context to the build as `VERCEL_*`; GitHub Actions exposes its own set.
+ * Both are optional — a local `vite build` gets nulls, and src/build-info.ts
+ * renders "local development".
+ *
+ * https://vercel.com/docs/environment-variables/system-environment-variables
+ */
+function buildInfo() {
+  const env = process.env;
+
+  // On a pull request GITHUB_REF_NAME is "184/merge", which is not a branch
+  // anyone recognises; GITHUB_HEAD_REF is the source branch.
+  const branch = env.VERCEL_GIT_COMMIT_REF ?? env.GITHUB_HEAD_REF ?? env.GITHUB_REF_NAME ?? null;
+
+  const repo =
+    env.GITHUB_REPOSITORY ??
+    (env.VERCEL_GIT_REPO_OWNER && env.VERCEL_GIT_REPO_SLUG
+      ? `${env.VERCEL_GIT_REPO_OWNER}/${env.VERCEL_GIT_REPO_SLUG}`
+      : null);
+
+  return {
+    env: env.VERCEL_ENV ?? (env.CI ? "ci" : "local"),
+    branch: branch || null,
+    sha: env.VERCEL_GIT_COMMIT_SHA ?? env.GITHUB_SHA ?? null,
+    pr: env.VERCEL_GIT_PULL_REQUEST_ID ?? null,
+    repo: repo || null,
+  };
+}
+
 export default defineConfig({
+  // Frozen into the bundle at build time. Vite's own `import.meta.env` would
+  // require every variable to be renamed with a VITE_ prefix in the deployment
+  // platform; one define keeps the platform's names where they are documented.
+  define: {
+    __BUILD_INFO__: JSON.stringify(buildInfo()),
+  },
+
   // Two pages: the catalog itself, and the preview frame it embeds. The frame
   // needs to be a real document rather than a srcdoc blob so that its module
   // imports resolve the same way the catalog's do.
@@ -37,6 +79,6 @@ export default defineConfig({
   // into .vite/deps, and rebuilding @mash/ui would leave the catalog serving a
   // stale copy until the cache was manually cleared.
   optimizeDeps: {
-    exclude: ["@mash/ui", "@mash/tokens"],
+    exclude: ["@mash/ui", "@mash/shrine", "@mash/tokens"],
   },
 });

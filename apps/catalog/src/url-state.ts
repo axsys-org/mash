@@ -1,0 +1,135 @@
+/**
+ * The URL *is* the catalog's state.
+ *
+ * The point is a review workflow: a designer configures a component in a
+ * preview deployment, copies the address bar, and pastes it into a PR comment.
+ * Whoever opens that link sees exactly what they saw.
+ *
+ *   /components/ui-button?variant=quiet&size=small&theme=dark
+ *   /components/ui-tree-item?expanded=true&selected=true&theme=dark
+ *
+ * This is deliberately not a state framework. It is two pure functions over
+ * `URL` and `State`, plus the twenty lines in main.ts that call them. Rules:
+ *
+ * - only values that differ from the component's own defaults are written, so
+ *   the common case stays short and the link is readable in a comment;
+ * - anything unrecognised — unknown component, unknown attribute, an enum
+ *   value that is not one of the documented options — falls back to the
+ *   default rather than throwing. Links outlive the code they were copied
+ *   from, and a stale link should degrade, not break.
+ */
+
+import { initialState, type State } from "./app.js";
+import { controlsFor } from "./controls.js";
+import { components, themes, type ComponentSchema } from "./schema.js";
+
+/** Route prefix. `/components/ui-button`. */
+const ROUTE = "/components/";
+
+/**
+ * Query key for the example picker. `?example=controls` selects the
+ * controls-driven preview over the component's first `@example`.
+ */
+const CONTROLS = "controls";
+
+/** Reserved keys, so a component attribute called `theme` cannot collide. */
+const RESERVED = new Set(["theme", "example", "label", "slots"]);
+
+// ---------------------------------------------------------------------------
+// Reading
+// ---------------------------------------------------------------------------
+
+/** The component a path names, or null when the path names none. */
+export function componentFromPath(pathname: string): ComponentSchema | null {
+  if (!pathname.startsWith(ROUTE)) return null;
+  const tagName = decodeURIComponent(pathname.slice(ROUTE.length).replace(/\/+$/, ""));
+  return components.find((entry) => entry.tagName === tagName) ?? null;
+}
+
+function parseBoolean(raw: string): boolean {
+  return raw === "" || raw === "true" || raw === "1";
+}
+
+/**
+ * Rebuild the full application state from a URL.
+ *
+ * Starts from the component's documented defaults and applies only the
+ * parameters that are valid, which is what makes truncated or hand-edited
+ * links behave sensibly.
+ */
+export function stateFromUrl(url: URL, fallback: ComponentSchema): State {
+  const component = componentFromPath(url.pathname) ?? fallback;
+  const state = initialState(component);
+  const params = url.searchParams;
+
+  const theme = params.get("theme");
+  if (theme && themes.includes(theme)) state.theme = theme;
+
+  const example = params.get("example");
+  if (example === CONTROLS) {
+    state.example = null;
+  } else if (example && component.examples.some((entry) => entry.name === example)) {
+    state.example = example;
+  }
+
+  const label = params.get("label");
+  if (label !== null) state.label = label;
+
+  const slotNames = new Set(component.slots.map((slot) => slot.name).filter(Boolean));
+  for (const name of (params.get("slots") ?? "").split(",")) {
+    if (slotNames.has(name)) state.slots[name] = true;
+  }
+
+  for (const control of controlsFor(component)) {
+    if (RESERVED.has(control.attribute)) continue;
+    const raw = params.get(control.attribute);
+    if (raw === null) continue;
+
+    if (control.kind === "enum") {
+      if (control.options.includes(raw)) state.attrs[control.attribute] = raw;
+    } else if (control.kind === "boolean") {
+      state.attrs[control.attribute] = parseBoolean(raw);
+    } else {
+      state.attrs[control.attribute] = raw;
+    }
+  }
+
+  return state;
+}
+
+// ---------------------------------------------------------------------------
+// Writing
+// ---------------------------------------------------------------------------
+
+/** The canonical URL for a state: route plus the parameters that differ from default. */
+export function urlForState(state: State): string {
+  const component = components.find((entry) => entry.tagName === state.tagName);
+  if (!component) return "/";
+
+  const defaults = initialState(component);
+  const params = new URLSearchParams();
+
+  if (state.theme !== defaults.theme) params.set("theme", state.theme);
+
+  if (state.example !== defaults.example) {
+    params.set("example", state.example ?? CONTROLS);
+  }
+
+  if (state.label !== defaults.label) params.set("label", state.label);
+
+  const filled = Object.entries(state.slots)
+    .filter(([, on]) => on)
+    .map(([name]) => name)
+    .sort();
+  if (filled.length > 0) params.set("slots", filled.join(","));
+
+  for (const control of controlsFor(component)) {
+    if (RESERVED.has(control.attribute)) continue;
+    const value = state.attrs[control.attribute];
+    if (value === undefined || value === control.fallback) continue;
+    params.set(control.attribute, String(value));
+  }
+
+  const query = params.toString();
+  return `${ROUTE}${component.tagName}${query ? `?${query}` : ""}`;
+}

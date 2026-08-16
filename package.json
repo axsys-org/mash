@@ -11,6 +11,13 @@
   "scripts": {
     "//build": "Order is a real dependency, not a preference: components consume the token CSS, and @mash/shrine composes @mash/ui. `pnpm -r` runs in workspace-dependency order, so declaring the dependency in package.json is what sequences the build — there is no order list here to fall out of date.",
     "build": "pnpm -r --filter \"./packages/*\" run build",
+    "//build:parts": "The same work as `build`, addressable one stage at a time. CI names these so a failure reads as `tokens` or `manifest` rather than as a line inside one long log.",
+    "tokens": "pnpm --filter @mash/tokens run build",
+    "components": "pnpm -r --filter \"./packages/*\" --filter \"!@mash/tokens\" run build:js",
+    "cem": "pnpm -r --filter \"./packages/*\" run build:manifest",
+    "//build:catalog": "The artifact Vercel serves as the PR preview. It consumes the built workspace packages, so `build` has to have run first.",
+    "build:catalog": "pnpm --filter @mash/catalog run build",
+    "preview:catalog": "pnpm --filter @mash/catalog run preview",
     "//dev": "Build once so nothing starts against a missing dist/, then watch tokens, components and the manifest alongside the catalog.",
     "dev": "pnpm run build && pnpm -r --parallel run dev",
     "check": "pnpm run check:format && pnpm run check:types && pnpm run check:lint && pnpm run check:exports",
@@ -22,7 +29,11 @@
     "//new:component": "Scaffolds a component and wires it into the package's barrels and exports map. Usage: pnpm new:component <package> <tag-name>",
     "new:component": "node scripts/new-component.mjs",
     "test": "pnpm -r --filter \"./packages/*\" run test",
+    "//test:browser": "An alias for `test`, named for what it is: component tests in a real browser. CI uses the explicit name.",
+    "test:browser": "pnpm run test",
     "test:integration": "pnpm --filter @mash/integration-tests test",
+    "//test:visual": "Screenshot baselines are platform-specific; see tests/visual/README.md before running this outside CI.",
+    "test:visual": "pnpm --filter @mash/visual-tests test",
     "clean": "pnpm -r run clean && rm -rf node_modules/.vite"
   },
   "devDependencies": {

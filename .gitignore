@@ -12,3 +12,7 @@ test-results/
 playwright-report/
 blob-report/
 .vite/
+
+# Visual baselines are platform-specific and not yet committed; see
+# tests/visual/README.md.
+tests/visual/snapshots/

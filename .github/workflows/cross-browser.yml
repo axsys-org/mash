@@ -1,0 +1,79 @@
+name: Cross-browser
+
+# ---------------------------------------------------------------------------
+# The full browser matrix, kept off the pull request path.
+#
+# Web Components lean hard on parts of the platform that still differ between
+# engines — :state(), delegatesFocus, ElementInternals form association,
+# forced-colors — so main and release tags get all three. Pull requests stay on
+# Chromium, because three engines on every push to every branch buys a signal
+# that is almost always identical to the one Chromium already gave, at three
+# times the wall clock.
+#
+# Also available on demand, for when a PR touches something engine-sensitive
+# and you want the matrix before merging rather than after.
+# ---------------------------------------------------------------------------
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright
+
+jobs:
+  matrix:
+    name: ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install ${{ matrix.browser }}
+        run: pnpm --filter @mash/ui exec playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Component tests
+        run: pnpm run test:browser
+        env:
+          BROWSERS: ${{ matrix.browser }}
+
+      - name: Integration tests
+        run: pnpm --filter @mash/integration-tests exec playwright test --project=${{ matrix.browser }}
+        env:
+          ALL_BROWSERS: "1"
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: tests/integration/playwright-report/
+          retention-days: 7

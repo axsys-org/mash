@@ -1,0 +1,20 @@
+{
+  "name": "@mash/visual-tests",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Visual regression baselines for a small set of canonical component states, taken against the catalog's production build.",
+  "scripts": {
+    "test": "playwright test",
+    "//test:update": "Re-take every baseline for the current platform. Review the diff before committing it.",
+    "test:update": "playwright test --update-snapshots",
+    "check:types": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf test-results playwright-report"
+  },
+  "devDependencies": {
+    "@mash/catalog": "workspace:*",
+    "@playwright/test": "1.62.1",
+    "@types/node": "26.2.0",
+    "typescript": "7.0.2"
+  }
+}

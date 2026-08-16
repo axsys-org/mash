@@ -9,27 +9,42 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# ---------------------------------------------------------------------------
+# Job layout
+#
+# Three checks run on every pull request, split along the lines a reviewer
+# actually reasons about rather than one per build step:
+#
+#   build           does the source compile, and do the generated schemas and
+#                   the static checks agree with it?
+#   browser-tests   do the components behave in a real browser?
+#   catalog         does the artifact designers review still build?
+#
+# The underlying build is about three seconds, so splitting it further would
+# buy nothing but runner startup: tokens, components and the manifest are named
+# steps inside `build`, and a failure in any of them is legible from the step
+# name in the checks UI.
+#
+# `catalog` is separate on purpose. It is the same build Vercel runs for the PR
+# preview, and it is deliberately independent of the tests — a failing browser
+# test must not be able to imply the preview is broken. Vercel builds from its
+# own Git integration regardless of what happens here; this job only tells us
+# whether that build is likely to succeed.
+# ---------------------------------------------------------------------------
+
 env:
   # Playwright downloads browsers here; the path is the cache key target.
   PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright
 
 jobs:
-  # ---------------------------------------------------------------------------
-  # The main gate. Deliberately one job running plain package scripts in
-  # dependency order, rather than a matrix of clever partial builds: each step
-  # consumes the previous step's artifact, so splitting them across jobs would
-  # only add cache plumbing to reproduce what a single machine already has.
-  # ---------------------------------------------------------------------------
   build:
-    name: Build and test
+    name: Build and checks
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -44,16 +59,19 @@ jobs:
       - name: Validate token graph
         run: pnpm --filter @mash/tokens validate
 
-      # The full build must precede the checks, not follow them. Generated
-      # artifacts are inputs to the checks: the catalog imports each package's
-      # custom-elements.json, and check:exports reads dist/. Type-checking a
-      # cold checkout before building fails on modules that do not exist yet.
-      #
-      # Build order within this step is the workspace dependency graph:
-      # tokens -> @mash/ui -> @mash/shrine.
-      - name: Build
-        run: pnpm run build
+      - name: Build tokens
+        run: pnpm run tokens
 
+      - name: Build components
+        run: pnpm run components
+
+      - name: Generate custom elements manifests
+        run: pnpm run cem
+
+      # The build must precede the checks, not follow them. Generated artifacts
+      # are inputs to the checks: the catalog imports each package's
+      # custom-elements.json, and check:exports reads dist/. Type-checking a
+      # cold checkout fails on modules that do not exist yet.
       - name: Type check
         run: pnpm run check:types
 
@@ -63,65 +81,40 @@ jobs:
       - name: Check formatting
         run: pnpm run check:format
 
+      # Catches broken `exports` maps, missing emitted files, extensionless
+      # relative imports, and `sideEffects` drifting away from the modules that
+      # actually register elements.
       - name: Check package exports
         run: pnpm run check:exports
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - name: Install Chromium
-        run: pnpm --filter @mash/ui exec playwright install --with-deps chromium
-
-      - name: Component tests (Chromium)
-        run: pnpm run test
-
-      - name: Integration tests (Chromium)
-        run: pnpm run test:integration
-
-      - name: Verify the catalog builds against the real packages
-        run: pnpm --filter @mash/catalog build
-
       # A build that is not reproducible is a build nobody can review. The
-      # token output is a pure function of the token sources, so rebuilding
+      # token output is a pure function of the token sources, so building twice
       # must not change a single byte.
+      #
+      # This is a content comparison rather than `git diff --exit-code`:
+      # packages/*/dist and custom-elements.json are gitignored here — they are
+      # produced during build and publication, never committed — so a dirty-tree
+      # check against them would always pass and prove nothing.
       - name: Check generated output is reproducible
         run: |
-          pnpm --filter @mash/tokens build
-          pnpm --filter @mash/ui build
-          if ! git diff --quiet -- packages/tokens/dist; then
-            echo "::error::Rebuilding tokens changed the generated output. It must be deterministic."
-            git diff --stat -- packages/tokens/dist
+          hash_generated() {
+            find packages -type f \( -path '*/dist/*' -o -name custom-elements.json \) \
+              -not -path '*/node_modules/*' | sort | xargs sha256sum
+          }
+          before=$(hash_generated)
+          pnpm run tokens && pnpm run components && pnpm run cem
+          after=$(hash_generated)
+          if [ "$before" != "$after" ]; then
+            echo "::error::Rebuilding changed the generated output. It must be deterministic."
+            diff <(echo "$before") <(echo "$after") || true
             exit 1
           fi
+          echo "generated output is byte-identical across two builds"
 
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-report
-          path: tests/integration/playwright-report/
-          retention-days: 7
-
-  # ---------------------------------------------------------------------------
-  # The full browser matrix. Web Components lean hard on parts of the platform
-  # that still differ between engines — :state(), delegatesFocus,
-  # ElementInternals form association, forced-colors — so main and releases get
-  # all three engines. Pull requests stay on Chromium to keep the loop fast.
-  # ---------------------------------------------------------------------------
-  cross-browser:
-    name: Cross-browser (${{ matrix.browser }})
+  browser-tests:
+    name: Browser tests (Chromium)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs: build
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
-
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chromium, firefox, webkit]
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
@@ -137,22 +130,107 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      - name: Install ${{ matrix.browser }}
-        run: pnpm --filter @mash/ui exec playwright install --with-deps ${{ matrix.browser }}
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      # Chromium only on pull requests. Web Components do lean on parts of the
+      # platform that still differ between engines, but paying for all three on
+      # every push would make the loop too slow to be useful; `cross-browser`
+      # covers them on main and tags.
+      - name: Install Chromium
+        run: pnpm --filter @mash/ui exec playwright install --with-deps chromium
 
       - name: Component tests
-        run: pnpm run test
-        env:
-          BROWSERS: ${{ matrix.browser }}
+        run: pnpm run test:browser
 
       - name: Integration tests
-        run: pnpm --filter @mash/integration-tests exec playwright test --project=${{ matrix.browser }}
-        env:
-          ALL_BROWSERS: "1"
+        run: pnpm run test:integration
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report-${{ matrix.browser }}
+          name: playwright-report
           path: tests/integration/playwright-report/
           retention-days: 7
+
+  catalog:
+    name: Catalog build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm run build
+
+      # The same command Vercel runs. If this passes, the PR preview builds.
+      - name: Build catalog
+        run: pnpm run build:catalog
+
+      - name: Check the build emitted what it should
+        run: |
+          test -f apps/catalog/dist/index.html
+          test -f apps/catalog/dist/stage.html
+          test -d apps/catalog/dist/assets
+          echo "catalog build ok"
+
+  # ---------------------------------------------------------------------------
+  # Non-blocking while tests/visual/snapshots is empty: the first run on a
+  # platform creates its baselines and Playwright reports that run as a
+  # failure, having had nothing to compare against. See tests/visual/README.md
+  # for how to promote this to a required check.
+  # ---------------------------------------------------------------------------
+  visual:
+    name: Visual regression (scaffold)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build && pnpm run build:catalog
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Chromium
+        run: pnpm --filter @mash/visual-tests exec playwright install --with-deps chromium
+
+      - name: Screenshot canonical states
+        run: pnpm run test:visual
+
+      # Download this from a main run to seed the committed Linux baselines.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-snapshots
+          path: |
+            tests/visual/snapshots/
+            tests/visual/test-results/
+          retention-days: 7
+          if-no-files-found: ignore

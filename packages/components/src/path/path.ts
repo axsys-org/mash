@@ -18,7 +18,7 @@ export class UIPath extends LitElement {
   //
   static override properties = {
     path: { type: String },
-    lede: { type: String }
+    lede: { type: String },
   };
   //
   /** Path to namespace */
@@ -26,6 +26,13 @@ export class UIPath extends LitElement {
 
   /** optional pretty title */
   declare lede?: string;
+
+  constructor() {
+    super();
+    // Reactive fields declared with `declare` are not initialised by the class
+    // body, so without this `this.path` is undefined on the first render.
+    this.path = "";
+  }
 
   static override styles = css`
     :host {
@@ -53,14 +60,11 @@ export class UIPath extends LitElement {
   `;
 
   private isRaw() {
-    return !(this.lede?.length);
+    return !this.lede?.length;
   }
 
   protected override render(): TemplateResult {
-    return html`<div part="root">
-    ${
-      this.isRaw() ? this.renderRaw() : this.renderLede()
-    }</div>`;
+    return html`<div part="root">${this.isRaw() ? this.renderRaw() : this.renderLede()}</div>`;
   }
 
   private renderLede(): TemplateResult {
@@ -68,20 +72,17 @@ export class UIPath extends LitElement {
   }
 
   private renderRaw(): TemplateResult {
-    const segments = this.path.split('/').filter(Boolean);
+    const segments = this.path.split("/").filter(Boolean);
 
     return html`
       <div class="segments">
-              ${segments.map(
-          (segment, i) => html`
+        ${segments.map(
+          (segment) => html`
             <span part="separator">/</span>
-            <span part="segment">
-              ${segment}
-            </span>
+            <span part="segment"> ${segment} </span>
           `,
         )}
       </div>
-
-    `
+    `;
   }
 }

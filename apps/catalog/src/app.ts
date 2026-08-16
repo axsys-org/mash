@@ -1,3 +1,4 @@
+import { buildBadge } from "./build-info.js";
 import { controlsFor, defaultState, type Control } from "./controls.js";
 import { el } from "./dom.js";
 import {
@@ -422,6 +423,39 @@ export interface AppCallbacks {
   setAttr(attribute: string, value: string | boolean): void;
 }
 
+/**
+ * Copy the current address.
+ *
+ * The whole reason the controls are reflected in the URL is so a reviewer can
+ * paste one into a PR comment; this saves them a trip to the address bar.
+ * `navigator.clipboard` is unavailable on insecure origins, so the button
+ * simply reports that rather than failing silently.
+ */
+function copyLinkButton(): HTMLElement {
+  const button = el("button", {
+    type: "button",
+    class: "copy-link",
+    text: "copy link",
+    title: "Copy a link that reproduces this component and its current state",
+  });
+
+  button.addEventListener("click", () => {
+    const restore = () => globalThis.setTimeout(() => (button.textContent = "copy link"), 1200);
+    navigator.clipboard?.writeText(location.href).then(
+      () => {
+        button.textContent = "copied";
+        restore();
+      },
+      () => {
+        button.textContent = "copy failed";
+        restore();
+      },
+    );
+  });
+
+  return button;
+}
+
 /** Everything above the stage: heading and controls. Rebuilt on every change. */
 function aboveStage(
   component: ComponentSchema,
@@ -437,6 +471,7 @@ function aboveStage(
       { class: "component-heading" },
       el("h2", { class: "component-title", text: component.tagName }),
       el("span", { class: "package-badge", text: component.packageName }),
+      copyLinkButton(),
     ),
     component.summary ? el("p", { class: "summary", text: component.summary }) : null,
     component.description ? el("p", { class: "description", text: component.description }) : null,
@@ -646,8 +681,15 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
     el(
       "header",
       { class: "masthead" },
-      el("h1", { text: "mash" }),
-      el("p", { text: "Design system catalog — everything below is read from generated schemas." }),
+      el(
+        "div",
+        { class: "masthead-text" },
+        el("h1", { text: "mash" }),
+        el("p", {
+          text: "Design system catalog — everything below is read from generated schemas.",
+        }),
+      ),
+      buildBadge(),
     ),
 
     el(

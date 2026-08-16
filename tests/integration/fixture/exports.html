@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>package export consumption</title>
+  </head>
+  <body>
+    <!--
+      A page whose only job is to import the packages the way a consumer does.
+
+      scripts/check-exports.mjs proves the `exports` map and the emitted graph
+      agree *on paper*. This proves a browser can actually follow them: that
+      every subpath resolves, that the classes are really exported under those
+      names, and that importing a definition still registers nothing.
+    -->
+    <script type="module" src="./exports.ts"></script>
+  </body>
+</html>

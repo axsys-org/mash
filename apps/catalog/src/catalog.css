@@ -56,6 +56,11 @@ pre {
 /* --- masthead ------------------------------------------------------------ */
 
 .masthead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
   padding: 20px 28px;
   border-bottom: 1px solid var(--chrome-line);
 }
@@ -70,6 +75,31 @@ pre {
   margin: 4px 0 0;
   color: var(--chrome-muted);
   font-size: 13px;
+}
+
+/* Which commit is on screen. Muted on purpose: needed when reviewing a preview
+   deployment, invisible the rest of the time. */
+.build-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 0;
+  font-family: var(--chrome-mono);
+  font-size: 11px;
+  color: var(--chrome-muted);
+}
+
+.build-sha {
+  padding: 2px 6px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 4px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.build-sha:hover {
+  color: var(--chrome-accent);
+  border-color: currentColor;
 }
 
 /* --- layout -------------------------------------------------------------- */
@@ -156,6 +186,24 @@ pre {
   font-family: var(--chrome-mono);
   font-size: 11px;
   color: var(--chrome-muted);
+}
+
+/* Copies the address bar, which carries the whole preview state. */
+.copy-link {
+  margin-inline-start: auto;
+  padding: 3px 10px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 999px;
+  background: none;
+  color: var(--chrome-muted);
+  font-family: var(--chrome-mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.copy-link:hover {
+  color: var(--chrome-accent);
+  border-color: currentColor;
 }
 
 .summary {

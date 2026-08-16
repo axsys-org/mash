@@ -67,6 +67,19 @@ pnpm dev
 | `pnpm check`            | Formatting, types, lint and package export checks                 |
 | `pnpm clean`            | Remove build output                                               |
 
+The stages of `pnpm build` are also addressable one at a time, which is what CI names so that a
+failure reads as `tokens` or `manifest` rather than as a line in one long log:
+
+| Command                | What it does                                                   |
+| ---------------------- | -------------------------------------------------------------- |
+| `pnpm tokens`          | Style Dictionary — DTCG sources to CSS, JSON and TS            |
+| `pnpm components`      | `tsc` for every component package                              |
+| `pnpm cem`             | Custom Elements Manifest for every component package           |
+| `pnpm build:catalog`   | The catalog's production build — the artifact Vercel serves    |
+| `pnpm preview:catalog` | Serve that build locally                                       |
+| `pnpm test:browser`    | Alias for `pnpm test`, named for what it is                    |
+| `pnpm test:visual`     | Screenshot the canonical states (see `tests/visual/README.md`) |
+
 Cross-browser runs: `BROWSERS=chromium,firefox,webkit pnpm test`, and
 `ALL_BROWSERS=1 pnpm test:integration`. CI runs the matrix on `main` and tags.
 
@@ -211,6 +224,99 @@ That last one is the beginning of the provenance explorer:
 
 Adding a component or a token makes it appear in the catalog with no catalog changes.
 
+### The URL is the state
+
+Every catalog route is a real address, and the controls are reflected in the query string:
+
+```text
+/components/ui-button?variant=quiet&size=small&theme=dark
+/components/ui-tree-item?theme=dark&label=src
+```
+
+Configure a component, copy the address, paste it into a PR comment: whoever opens it sees exactly
+what you saw. `apps/catalog/src/url-state.ts` is the whole mechanism — two pure functions over
+`URL` and the app state, plus the calls in `main.ts`. Only values that differ from the component's
+documented defaults are written, so links stay short; anything unrecognised (an unknown component,
+an enum value that is not one of the documented options) falls back to the default rather than
+throwing, because links outlive the code they were copied from.
+
+Choosing a component pushes a history entry; nudging a control replaces one. Otherwise trying four
+variants would cost four presses of Back to leave the page.
+
+## Pull requests
+
+```text
+push branch
+     ↓
+open PR
+     ├── GitHub Actions ── build and checks
+     │                     browser tests (Chromium)
+     │                     catalog build
+     │                     visual regression (non-blocking scaffold)
+     │
+     └── Vercel ────────── preview deployment
+                                ↓
+                          designer opens the catalog, navigates to the changed
+                          component, changes theme/variant/size/state, copies
+                          the URL into a review comment
+```
+
+The two halves answer different questions and are deliberately independent:
+
+- **CI** answers _should this commit merge?_
+- **the preview** answers _what does this commit look like?_
+
+A failing browser test does not prevent the preview from existing. Vercel builds from its own Git
+integration and does not wait on GitHub Actions, which is the point — a preview is most useful
+precisely when something is not yet right.
+
+### For reviewers
+
+Open the Vercel **View deployment** link on the PR. The masthead shows which commit you are
+looking at:
+
+```text
+PR #184 · feat/tree-item          a83cf4d
+```
+
+Review the actual browser component, not a screenshot of one. When something is wrong, copy the
+address (or press **copy link** next to the component name) and paste it into your comment:
+
+> selected tree item is too low contrast here:
+> `<preview-url>/components/ui-tree-item?theme=dark&selected=true`
+
+### Deployment
+
+`vercel.json` at the repository root is the whole configuration:
+
+```jsonc
+{
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm run build && pnpm run build:catalog",
+  "outputDirectory": "apps/catalog/dist",
+  "rewrites": [{ "source": "/components/:path*", "destination": "/index.html" }],
+}
+```
+
+The Vercel project's **Root Directory** is the repository root, not `apps/catalog` — the catalog is
+built from the workspace packages beside it, and pnpm has to install the whole workspace for those
+links to exist. The preview therefore always contains the PR's exact `packages/tokens`,
+`packages/components` and `apps/catalog`; there is no second token pipeline, no second component
+build, and no preview-only application. Designers review the same artifacts consumers get.
+
+The rewrite exists because `/components/ui-button` is a real address the app routes client-side.
+Static files still win, so `/stage.html` and `/assets/*` are served directly.
+
+Nothing account-specific is committed: no project id, no org id, no token, no deployment URL. The
+git metadata the badge displays arrives as Vercel's own `VERCEL_*` build variables, read in exactly
+one place (`buildInfo()` in `apps/catalog/vite.config.ts`) and frozen into the bundle by Vite's
+`define`. Locally the badge reads `local development`.
+
+**If the design system is not meant to be public, turn on Vercel Deployment Protection** for the
+project. The catalog is a static bundle with no backend, no secrets and no runtime APIs, so access
+control belongs at the deployment platform rather than in the application — there is deliberately
+no application-level authentication to configure or bypass.
+
 ## Testing
 
 Component tests run in a real browser via Vitest Browser Mode with Playwright. jsdom is not used
@@ -222,15 +328,29 @@ approximated there, so a green jsdom suite would prove very little.
 the environment — themes nested inside themes, a form spanning several shadow roots, RTL, reduced
 motion, forced colors, keyboard-only interaction.
 
+`tests/visual` photographs six canonical states through the catalog's **production** build, each
+reached by its deep link — so the URL contract is part of what is under test. It is a scaffold: the
+mechanism works, but screenshot baselines are not portable across operating systems, so no baselines
+are committed yet and the CI job is non-blocking. `tests/visual/README.md` explains the constraint
+and how to promote it to a required check.
+
+Pull requests run Chromium only. `.github/workflows/cross-browser.yml` runs Chromium, Firefox and
+WebKit on `main`, on `v*` tags, and on demand — three engines on every push to every branch buys a
+signal that is almost always identical to the one Chromium already gave, at three times the wall
+clock.
+
 ## Layout
 
 ```text
 packages/tokens             DTCG sources, Style Dictionary config, generated CSS + schemas
 packages/components         @mash/ui — ui-button, ui-card
 packages/shrine-components  @mash/shrine — composed components built on @mash/ui
-apps/catalog                Vite development catalog
+apps/catalog                Vite catalog — dev tool and PR preview deployment
 tests/integration           Playwright composed-behaviour tests
+tests/visual                Playwright screenshot baselines (scaffold)
 scripts/                    repo-level checks and shared build config
+.github/workflows/          ci.yml (every PR) and cross-browser.yml (main, tags)
+vercel.json                 how Vercel builds the catalog from the monorepo
 ```
 
 One package per layer, not one per component.
