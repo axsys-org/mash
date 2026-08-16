@@ -172,10 +172,10 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Build workspace packages
-        run: pnpm run build
-
-      # The same command Vercel runs. If this passes, the PR preview builds.
+      # Exactly the command in vercel.json, run against exactly as cold a tree
+      # as Vercel's builder gets. Building the packages in a separate step
+      # first would defeat the point: the deployment failure this guards
+      # against was precisely the catalog being built before its dependencies.
       - name: Build catalog
         run: pnpm run build:catalog
 
@@ -210,7 +210,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: pnpm run build && pnpm run build:catalog
+        run: pnpm run build:catalog
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4

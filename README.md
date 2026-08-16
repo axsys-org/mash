@@ -292,11 +292,23 @@ address (or press **copy link** next to the component name) and paste it into yo
 ```jsonc
 {
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm run build && pnpm run build:catalog",
+  "buildCommand": "pnpm run build:catalog",
   "outputDirectory": "apps/catalog/dist",
   "rewrites": [{ "source": "/components/:path*", "destination": "/index.html" }],
 }
 ```
+
+`build:catalog` is `pnpm --filter "@mash/catalog..." run build`. The trailing `...` selects the
+catalog **and its workspace dependencies**, so one command builds tokens → `@mash/ui` →
+`@mash/shrine` → catalog in dependency order from a completely cold tree. That ordering is a real
+dependency — the catalog imports `@mash/tokens/tokens.css` and each package's
+`custom-elements.json`, which do not exist until those packages are built — and it belongs in the
+dependency graph rather than in a sequence of commands someone has to remember to chain. Vercel, CI
+and a developer all run the identical command.
+
+If Vite is ever run against a cold tree anyway, a `buildStart` guard in `apps/catalog/vite.config.ts`
+names the missing artifacts and the command to fix it, instead of failing with a bare "failed to
+resolve import" for a specifier that is spelled correctly.
 
 The Vercel project's **Root Directory** is the repository root, not `apps/catalog` — the catalog is
 built from the workspace packages beside it, and pnpm has to install the whole workspace for those
