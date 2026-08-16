@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>stage</title>
+  </head>
+  <body>
+    <!--
+      The preview surface, loaded into an iframe by the catalog.
+
+      It exists as a separate document so that a component can be full-page
+      without fighting the catalog's own layout: inside this frame `100dvh`
+      means the frame's height, and `position: fixed` is bounded by it. The
+      catalog reaches in through `contentDocument` (same origin) to swap the
+      preview and the theme, so there is no message protocol to keep in sync.
+    -->
+    <script type="module" src="/src/stage.ts"></script>
+  </body>
+</html>

@@ -1,3 +1,5 @@
+import { resolve } from "node:path";
+
 import { defineConfig } from "vite";
 
 /**
@@ -8,6 +10,18 @@ import { defineConfig } from "vite";
  * is purely to serve the catalog during development.
  */
 export default defineConfig({
+  // Two pages: the catalog itself, and the preview frame it embeds. The frame
+  // needs to be a real document rather than a srcdoc blob so that its module
+  // imports resolve the same way the catalog's do.
+  build: {
+    rollupOptions: {
+      input: {
+        index: resolve(import.meta.dirname, "index.html"),
+        stage: resolve(import.meta.dirname, "stage.html"),
+      },
+    },
+  },
+
   server: {
     port: 5173,
 

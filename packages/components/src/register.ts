@@ -8,3 +8,6 @@
 
 import "./button/register.js";
 import "./card/register.js";
+import "./path/register.js";
+import "./tree/register.js";
+import "./tree-item/register.js";

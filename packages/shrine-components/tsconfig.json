@@ -1,0 +1,13 @@
+{
+  // The type-checking configuration. Covers everything in the package,
+  // including tests and tooling config, and emits nothing.
+  // The published output is built by tsconfig.build.json instead.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // Node types are needed here for vitest.config.ts, which reads env vars.
+    // tsconfig.build.json deliberately keeps `types: []`.
+    "types": ["node"]
+  },
+  "include": ["src", "vitest.config.ts"]
+}

@@ -12,7 +12,8 @@
 
 // Import attributes are required for JSON under `module: nodenext`, and are
 // what the platform itself specifies — Vite honours them too.
-import rawManifest from "@mash/ui/custom-elements.json" with { type: "json" };
+import rawUiManifest from "@mash/ui/custom-elements.json" with { type: "json" };
+import rawShrineManifest from "@mash/shrine/custom-elements.json" with { type: "json" };
 import rawTokens from "@mash/tokens/tokens.json" with { type: "json" };
 
 // --- Custom Elements Manifest ---------------------------------------------
@@ -42,6 +43,19 @@ export interface EventInfo extends Described {
   type?: TypeInfo;
 }
 
+/**
+ * A canonical demo, captured from the component's `@example` JSDoc.
+ *
+ * Examples live in the manifest rather than in the catalog because they are
+ * part of what a component is — the intended way to compose its slots. Keeping
+ * them here means the catalog renders them without knowing anything about any
+ * particular component, and a docs site or an agent reads the same markup.
+ */
+export interface Example {
+  name: string;
+  code: string;
+}
+
 export interface ComponentSchema {
   tagName: string;
   className: string;
@@ -53,10 +67,13 @@ export interface ComponentSchema {
   cssProperties: CssProperty[];
   cssStates: Described[];
   events: EventInfo[];
+  examples: Example[];
   /** Module that defines the class, e.g. `dist/button/button.js`. */
   modulePath: string;
   /** Module that registers the tag, e.g. `dist/button/register.js`. */
   registerPath?: string;
+  /** The npm package the component ships in, e.g. `@mash/ui`. */
+  packageName: string;
 }
 
 interface ManifestExport {
@@ -78,6 +95,7 @@ interface ManifestDeclaration {
   cssProperties?: CssProperty[];
   cssStates?: Described[];
   events?: EventInfo[];
+  examples?: Example[];
 }
 
 interface ManifestModule {
@@ -90,7 +108,18 @@ interface Manifest {
   modules: ManifestModule[];
 }
 
-const manifest = rawManifest as unknown as Manifest;
+/**
+ * Every component package in the workspace, each with the manifest it emits.
+ *
+ * The catalog reads them as one list. Because all packages emit manifests
+ * through the same shared analyzer config, the schemas are interchangeable in
+ * shape — the only thing the catalog needs to keep track of is which package a
+ * component came from, so it can show the right import.
+ */
+const sources: ReadonlyArray<{ packageName: string; manifest: Manifest }> = [
+  { packageName: "@mash/ui", manifest: rawUiManifest as unknown as Manifest },
+  { packageName: "@mash/shrine", manifest: rawShrineManifest as unknown as Manifest },
+];
 
 /**
  * Which module registers each tag.
@@ -102,32 +131,38 @@ const manifest = rawManifest as unknown as Manifest;
  * the exact import a consumer needs rather than guessing at a convention.
  */
 const registrationModules = new Map<string, string>();
-for (const mod of manifest.modules) {
-  for (const entry of mod.exports ?? []) {
-    if (entry.kind === "custom-element-definition") {
-      registrationModules.set(entry.name, mod.path);
+for (const { manifest } of sources) {
+  for (const mod of manifest.modules) {
+    for (const entry of mod.exports ?? []) {
+      if (entry.kind === "custom-element-definition") {
+        registrationModules.set(entry.name, mod.path);
+      }
     }
   }
 }
 
-export const components: ComponentSchema[] = manifest.modules
-  .flatMap((mod) =>
-    (mod.declarations ?? [])
-      .filter((declaration) => declaration.customElement && declaration.tagName)
-      .map((declaration) => ({
-        tagName: declaration.tagName!,
-        className: declaration.name,
-        summary: declaration.summary,
-        description: declaration.description,
-        attributes: declaration.attributes ?? [],
-        slots: declaration.slots ?? [],
-        cssParts: declaration.cssParts ?? [],
-        cssProperties: declaration.cssProperties ?? [],
-        cssStates: declaration.cssStates ?? [],
-        events: declaration.events ?? [],
-        modulePath: mod.path,
-        registerPath: registrationModules.get(declaration.tagName!),
-      })),
+export const components: ComponentSchema[] = sources
+  .flatMap(({ packageName, manifest }) =>
+    manifest.modules.flatMap((mod) =>
+      (mod.declarations ?? [])
+        .filter((declaration) => declaration.customElement && declaration.tagName)
+        .map((declaration) => ({
+          packageName,
+          tagName: declaration.tagName!,
+          className: declaration.name,
+          summary: declaration.summary,
+          description: declaration.description,
+          attributes: declaration.attributes ?? [],
+          slots: declaration.slots ?? [],
+          cssParts: declaration.cssParts ?? [],
+          cssProperties: declaration.cssProperties ?? [],
+          cssStates: declaration.cssStates ?? [],
+          events: declaration.events ?? [],
+          examples: declaration.examples ?? [],
+          modulePath: mod.path,
+          registerPath: registrationModules.get(declaration.tagName!),
+        })),
+    ),
   )
   .sort((a, b) => a.tagName.localeCompare(b.tagName));
 

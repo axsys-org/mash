@@ -12,6 +12,7 @@
     "clean": "rm -rf dist .vite"
   },
   "dependencies": {
+    "@mash/shrine": "workspace:*",
     "@mash/tokens": "workspace:*",
     "@mash/ui": "workspace:*"
   },

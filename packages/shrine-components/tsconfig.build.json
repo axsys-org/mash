@@ -1,0 +1,12 @@
+{
+  // The emit configuration: this is what produces the published package.
+  // `rootDir` keeps the output topology identical to `src/`.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "types": []
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/test-support"]
+}

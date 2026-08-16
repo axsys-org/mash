@@ -1,0 +1,109 @@
+/**
+ * Styles for the preview frame.
+ *
+ * Two jobs, kept strictly apart:
+ *
+ *   1. A neutral canvas, painted from the theme tokens, so a preview sits on
+ *      the same surface an application would give it.
+ *
+ *   2. The `.demo` helpers used by `@example` markup. These are catalog
+ *      scaffolding, not part of the design system — they exist so a layout
+ *      component's examples can show *where* its regions are without shipping
+ *      a pile of fake content. They are built from semantic tokens so the
+ *      placeholder blocks still look like they belong to the system.
+ */
+
+/* Without this, `.demo { block-size: 100% }` plus padding overflows its grid
+   region — content-box adds the padding on top of the 100%. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  block-size: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--type-body-font-family);
+  font-size: var(--type-body-font-size);
+  line-height: var(--type-body-line-height);
+}
+
+/* The layout mode is set on the root element rather than on <body>, because
+   `overflow` only propagates from <body> to the viewport when the root's own
+   overflow is visible *and* its height is auto. This document gives <html> an
+   explicit 100% height, so the root has to carry the rule itself. */
+
+/* The centred surface used for ordinary, self-sized components. */
+html[data-layout="center"] body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+/* A component that fills the frame owns the viewport, exactly as an application
+   shell does — so the frame itself must not scroll. Without this, whitespace
+   between elements in the example markup is slotted as text nodes, adds line
+   boxes, and gives the shell a stray ~70px scrollbar. Real applications set the
+   same rule for the same reason. */
+html[data-layout="fill"] {
+  overflow: hidden;
+}
+
+html[data-layout="fill"] body {
+  padding: 0;
+}
+
+/* Placeholder for a named slot in the controls-driven preview. Deliberately
+   tiny — it exists to show that a slot is filled, not to look like content. */
+.slot-fill {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1em;
+  block-size: 1em;
+  border: 1px dashed currentColor;
+  border-radius: 3px;
+  font-size: 9px;
+  opacity: 0.7;
+  overflow: hidden;
+}
+
+/* --- @example placeholders ------------------------------------------------ */
+
+.demo {
+  display: grid;
+  place-items: center;
+  block-size: 100%;
+  min-block-size: 0;
+  padding: var(--space-control-block) var(--space-control-inline);
+
+  background: color-mix(in oklab, var(--color-action) 8%, var(--color-surface));
+  border: var(--border-hairline) dashed
+    color-mix(in oklab, var(--color-action) 35%, var(--color-border-strong));
+  border-radius: var(--radius-control);
+
+  color: var(--color-text-muted);
+  font-family: var(--type-code-font-family);
+  font-size: var(--type-code-font-size);
+}
+
+/* Chrome strips — locator bars, drawers — read as quieter than content regions. */
+.demo-quiet {
+  background: var(--color-surface-sunken);
+  border-style: solid;
+  border-color: var(--color-border);
+}
+
+.demo-main {
+  background: var(--color-surface);
+  border-style: solid;
+  border-color: var(--color-border);
+  color: var(--color-text);
+}

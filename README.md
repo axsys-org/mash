@@ -5,13 +5,14 @@ A standards-oriented Web Components design system.
 The goal is a design language that machines can read without scraping documentation prose. Two
 generated schemas carry it:
 
-| Artifact                                   | Describes                                                    | Generated from     |
-| ------------------------------------------ | ------------------------------------------------------------ | ------------------ |
-| `packages/tokens/dist/tokens.json`         | the token graph — names, values, provenance per theme        | DTCG sources       |
-| `packages/components/custom-elements.json` | component schemas — attributes, slots, parts, states, events | TypeScript sources |
+| Artifact                           | Describes                                                    | Generated from     |
+| ---------------------------------- | ------------------------------------------------------------ | ------------------ |
+| `packages/tokens/dist/tokens.json` | the token graph — names, values, provenance per theme        | DTCG sources       |
+| `<package>/custom-elements.json`   | component schemas — attributes, slots, parts, states, events | TypeScript sources |
 
-Everything downstream — the catalog, editor tooling, future React wrappers, Figma bridges, coding
-agents — reads those two files rather than the source.
+Every component package emits a manifest, all through the same analyzer config, so they are
+interchangeable in shape. Everything downstream — the catalog, editor tooling, future React
+wrappers, Figma bridges, coding agents — reads those schemas rather than the source.
 
 ## Architecture
 
@@ -59,14 +60,14 @@ pnpm dev
 
 | Command                 | What it does                                                      |
 | ----------------------- | ----------------------------------------------------------------- |
-| `pnpm build`            | Tokens → components → manifest, in dependency order               |
+| `pnpm build`            | Every package, in workspace-dependency order                      |
 | `pnpm dev`              | Watch everything and serve the catalog                            |
 | `pnpm test`             | Component tests in a real browser (Vitest Browser Mode, Chromium) |
 | `pnpm test:integration` | Composed-behaviour tests (Playwright)                             |
 | `pnpm check`            | Formatting, types, lint and package export checks                 |
 | `pnpm clean`            | Remove build output                                               |
 
-Cross-browser runs: `BROWSERS=chromium,firefox,webkit pnpm --filter @mash/ui test`, and
+Cross-browser runs: `BROWSERS=chromium,firefox,webkit pnpm test`, and
 `ALL_BROWSERS=1 pnpm test:integration`. CI runs the matrix on `main` and tags.
 
 ## The token layer
@@ -224,14 +225,49 @@ motion, forced colors, keyboard-only interaction.
 ## Layout
 
 ```text
-packages/tokens        DTCG sources, Style Dictionary config, generated CSS + schemas
-packages/components    ui-button, ui-card, tsc build, custom-elements.json
-apps/catalog           Vite development catalog
-tests/integration      Playwright composed-behaviour tests
-scripts/               repo-level checks
+packages/tokens             DTCG sources, Style Dictionary config, generated CSS + schemas
+packages/components         @mash/ui — ui-button, ui-card
+packages/shrine-components  @mash/shrine — composed components built on @mash/ui
+apps/catalog                Vite development catalog
+tests/integration           Playwright composed-behaviour tests
+scripts/                    repo-level checks and shared build config
 ```
 
 One package per layer, not one per component.
+
+## Component packages
+
+```text
+@mash/tokens
+   └── @mash/ui          primitives: ui-button, ui-card
+        └── @mash/shrine  patterns: shrine-confirm
+```
+
+`@mash/ui` holds the primitives — the elements that own colour, spacing and
+interaction, built directly from the semantic tokens. `@mash/shrine` holds patterns
+composed from those primitives: it owns the layout _between_ parts and nothing else.
+`shrine-confirm` adds no colours, radii or control styling of its own, and a test
+asserts the host stays transparent so that stays true.
+
+Both packages share one architecture, and both generate their manifest through the
+same analyzer config in `scripts/cem-plugins.mjs`. That sharing is deliberate: a
+consumer reading two manifests should not have to know which package emitted which.
+If one expanded union types and the other did not, the schema would stop being a
+contract and become a per-package dialect.
+
+Adding another component package means: create it, declare its workspace
+dependencies, and add it to the catalog's `sources` list in `apps/catalog/src/schema.ts`.
+Build order, export checks and CI pick it up on their own — `pnpm -r` sequences by the
+dependency graph, and `check-exports` discovers packages rather than reading a list.
+
+A composed component's registration module registers what it composes:
+
+```ts
+import "@mash/shrine/confirm/register"; // also registers ui-card and ui-button
+```
+
+Definition modules stay pure either way — importing `@mash/shrine/confirm` registers
+nothing.
 
 ## Notes on tool choices
 

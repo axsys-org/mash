@@ -18,3 +18,6 @@ export type { ButtonSize, ButtonTone, ButtonType, ButtonVariant } from "./button
 
 export { UICard } from "./card/card.js";
 export type { CardElevation } from "./card/card.js";
+export { UIPath } from "./path/path.js";
+export { UITree } from "./tree/tree.js";
+export { UITreeItem } from "./tree-item/tree-item.js";

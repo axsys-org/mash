@@ -38,13 +38,21 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Tokens first: the components' CSS resolves against these, and an
-      # invalid token graph should fail before anything else runs.
+      # Tokens are validated on their own first, so an invalid token graph
+      # fails with its own precise report rather than as a build error further
+      # down. The build re-runs this, which is cheap and keeps the signal clear.
       - name: Validate token graph
         run: pnpm --filter @mash/tokens validate
 
-      - name: Build tokens
-        run: pnpm --filter @mash/tokens build
+      # The full build must precede the checks, not follow them. Generated
+      # artifacts are inputs to the checks: the catalog imports each package's
+      # custom-elements.json, and check:exports reads dist/. Type-checking a
+      # cold checkout before building fails on modules that do not exist yet.
+      #
+      # Build order within this step is the workspace dependency graph:
+      # tokens -> @mash/ui -> @mash/shrine.
+      - name: Build
+        run: pnpm run build
 
       - name: Type check
         run: pnpm run check:types
@@ -54,11 +62,6 @@ jobs:
 
       - name: Check formatting
         run: pnpm run check:format
-
-      # Compiles the ES module graph, then generates custom-elements.json from
-      # it. The manifest step fails if a component is missing required metadata.
-      - name: Build components and manifest
-        run: pnpm --filter @mash/ui build
 
       - name: Check package exports
         run: pnpm run check:exports
@@ -138,7 +141,7 @@ jobs:
         run: pnpm --filter @mash/ui exec playwright install --with-deps ${{ matrix.browser }}
 
       - name: Component tests
-        run: pnpm --filter @mash/ui test
+        run: pnpm run test
         env:
           BROWSERS: ${{ matrix.browser }}
 

@@ -20,6 +20,9 @@ importers:
 
   apps/catalog:
     dependencies:
+      '@mash/shrine':
+        specifier: workspace:*
+        version: link:../../packages/shrine-components
       '@mash/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
@@ -36,6 +39,46 @@ importers:
 
   packages/components:
     dependencies:
+      lit:
+        specifier: 3.3.3
+        version: 3.3.3
+    devDependencies:
+      '@custom-elements-manifest/analyzer':
+        specifier: 0.11.0
+        version: 0.11.0
+      '@mash/tokens':
+        specifier: workspace:*
+        version: link:../tokens
+      '@types/node':
+        specifier: 26.2.0
+        version: 26.2.0
+      '@vitest/browser':
+        specifier: 4.1.10
+        version: 4.1.10(vite@8.2.1(@types/node@26.2.0))(vitest@4.1.10)
+      '@vitest/browser-playwright':
+        specifier: 4.1.10
+        version: 4.1.10(playwright@1.62.1)(vite@8.2.1(@types/node@26.2.0))(vitest@4.1.10)
+      concurrently:
+        specifier: 10.0.5
+        version: 10.0.5
+      playwright:
+        specifier: 1.62.1
+        version: 1.62.1
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+      vite:
+        specifier: 8.2.1
+        version: 8.2.1(@types/node@26.2.0)
+      vitest:
+        specifier: 4.1.10
+        version: 4.1.10(@types/node@26.2.0)(@vitest/browser-playwright@4.1.10)(vite@8.2.1(@types/node@26.2.0))
+
+  packages/shrine-components:
+    dependencies:
+      '@mash/ui':
+        specifier: workspace:*
+        version: link:../components
       lit:
         specifier: 3.3.3
         version: 3.3.3

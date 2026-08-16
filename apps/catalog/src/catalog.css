@@ -136,10 +136,26 @@ pre {
   padding: 24px 28px 80px;
 }
 
+.component-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .component-title {
   margin: 0;
   font-family: var(--chrome-mono);
   font-size: 24px;
+}
+
+.package-badge {
+  padding: 2px 8px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 999px;
+  font-family: var(--chrome-mono);
+  font-size: 11px;
+  color: var(--chrome-muted);
 }
 
 .summary {
@@ -254,29 +270,28 @@ pre {
 
 /* --- stage --------------------------------------------------------------- */
 
-/* The only element that opts into the design system's own theme variables. */
-.stage {
-  margin-top: 28px;
-  padding: 56px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--chrome-line);
-  border-radius: 10px;
-  background: var(--color-canvas);
-  color: var(--color-text);
+.stack {
+  display: contents;
 }
 
-.slot-fill {
-  display: inline-grid;
-  place-items: center;
-  inline-size: 1em;
-  block-size: 1em;
-  border: 1px dashed currentColor;
-  border-radius: 3px;
-  font-size: 9px;
-  opacity: 0.7;
+/* The preview runs in its own document (see stage.html) so that a full-page
+   component gets a real viewport. Resizable, because "does this layout hold
+   up at a different height?" is the main thing you want to ask a shell. */
+.stage-shell {
+  margin-top: 28px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 10px;
   overflow: hidden;
+  resize: vertical;
+  block-size: 520px;
+  min-block-size: 180px;
+}
+
+.stage-frame {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  border: 0;
 }
 
 /* --- code ---------------------------------------------------------------- */

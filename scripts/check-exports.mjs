@@ -20,7 +20,25 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const PACKAGES = ["packages/tokens", "packages/components"];
+
+/**
+ * Discovered rather than listed, so a new package is covered the moment it
+ * exists. A hardcoded list is exactly the kind of thing that silently stops
+ * being complete.
+ */
+async function findPackages() {
+  const dir = path.join(ROOT, "packages");
+  const entries = await readdir(dir, { withFileTypes: true });
+  const found = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    if (await exists(path.join(dir, entry.name, "package.json"))) {
+      found.push(`packages/${entry.name}`);
+    }
+  }
+  return found.sort();
+}
 
 const problems = [];
 const fail = (pkg, message) => problems.push(`${pkg}: ${message}`);
@@ -136,7 +154,10 @@ async function checkPackage(relativeDir) {
   }
 
   // --- 6. side effects are exactly the registration modules ---------------
-  if (relativeDir.endsWith("components")) {
+  // Gated on the package declaring a manifest rather than on its directory
+  // name: what makes these checks apply is that the package ships custom
+  // elements, not what it happens to be called.
+  if (pkg.customElements) {
     // A module is side-effectful if it registers an element itself, or if it
     // bare-imports a module that does. The `register.js` barrel is the second
     // kind: it contains no `define` call of its own but importing it still
@@ -232,8 +253,10 @@ async function checkPackage(relativeDir) {
 
 // ---------------------------------------------------------------------------
 
+const packages = await findPackages();
+
 let checked = 0;
-for (const pkg of PACKAGES) {
+for (const pkg of packages) {
   checked += (await checkPackage(pkg)) ?? 0;
 }
 
@@ -244,4 +267,4 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
-console.log(`exports: ok — ${checked} export targets across ${PACKAGES.length} packages`);
+console.log(`exports: ok — ${checked} export targets across ${packages.length} packages`);

@@ -9,6 +9,7 @@
 
 import "@mash/tokens/tokens.css";
 import "@mash/ui/register";
+import "@mash/shrine/register";
 
 import "./catalog.css";
 

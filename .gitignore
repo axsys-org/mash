@@ -3,7 +3,9 @@ dist/
 *.tsbuildinfo
 
 # Generated build artifacts that are checked by CI but not committed.
-packages/components/custom-elements.json
+# Globbed rather than listed per package, so a new component package is covered
+# the moment it exists.
+packages/*/custom-elements.json
 
 # Test / tooling output
 test-results/
