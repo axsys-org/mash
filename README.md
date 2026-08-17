@@ -88,7 +88,7 @@ Cross-browser runs: `BROWSERS=chromium,firefox,webkit pnpm test`, and
 Tokens are authored in the current [DTCG](https://tr.designtokens.org/) format, in three layers.
 
 ```text
-reference   color.reference.violet.600     literal values, authored in OKLCH
+reference   color.reference.blue.600       literal values, authored in OKLCH
     ↓
 semantic    space.controlInline            roles, theme-independent
     ↓
@@ -105,7 +105,7 @@ about which names exist.
 CSS names are stable and human-readable, and the layer a token belongs to is visible in its name:
 
 ```css
---ref-color-violet-600 /* primitive — inspectable, not the public API */
+--ref-color-blue-600 /* primitive — inspectable, not the public API */
 --color-action /* semantic — what components use */
 --space-control-inline
 --radius-control
@@ -118,7 +118,7 @@ description is emitted above it:
 :root,
 [data-theme="light"] {
   /* The accent tone. Primary buttons, links, selected state. */
-  --color-action: var(--ref-color-violet-600);
+  --color-action: var(--ref-color-blue-600);
 }
 ```
 
@@ -218,8 +218,8 @@ It derives its content from the two generated schemas:
 That last one is the beginning of the provenance explorer:
 
 ```text
---color-action  →  color.action (theme)  →  color.reference.violet.600 (reference)
-                                         →  oklch(0.5500 0.2100 285.00)
+--color-action  →  color.action (theme)  →  color.reference.blue.600 (reference)
+                                         →  oklch(0.6711 0.1572 251.18)
 ```
 
 Adding a component or a token makes it appear in the catalog with no catalog changes.

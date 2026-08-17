@@ -43,34 +43,61 @@
         "1000": { "$value": { "colorSpace": "oklch", "components": [0, 0, 0] } }
       },
 
-      "violet": {
-        "$description": "Accent ramp. Drives the primary action colour.",
+      "blue": {
+        "$description": "Accent ramp. Anchored at #3F99F2 for 600; the lighter and darker steps are perceptual OKLCH mixes toward white and black.",
         "100": {
-          "$value": { "colorSpace": "oklch", "components": [0.95, 0.03, 285] }
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0.9507, 0.0236, 251.18]
+          }
         },
         "200": {
-          "$value": { "colorSpace": "oklch", "components": [0.9, 0.06, 285] }
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0.9013, 0.0472, 251.18]
+          }
         },
         "300": {
-          "$value": { "colorSpace": "oklch", "components": [0.82, 0.1, 285] }
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0.852, 0.0707, 251.18]
+          }
         },
         "400": {
-          "$value": { "colorSpace": "oklch", "components": [0.72, 0.15, 285] }
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0.8026, 0.0943, 251.18]
+          }
         },
         "500": {
-          "$value": { "colorSpace": "oklch", "components": [0.63, 0.19, 285] }
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0.7369, 0.1258, 251.18]
+          }
         },
         "600": {
-          "$value": { "colorSpace": "oklch", "components": [0.55, 0.21, 285] }
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0.6711, 0.1572, 251.18]
+          }
         },
         "700": {
-          "$value": { "colorSpace": "oklch", "components": [0.48, 0.2, 285] }
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0.5905, 0.1383, 251.18]
+          }
         },
         "800": {
-          "$value": { "colorSpace": "oklch", "components": [0.41, 0.17, 285] }
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0.4899, 0.1148, 251.18]
+          }
         },
         "900": {
-          "$value": { "colorSpace": "oklch", "components": [0.34, 0.13, 285] }
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0.3892, 0.0912, 251.18]
+          }
         }
       },
 

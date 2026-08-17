@@ -42,7 +42,7 @@
       "$description": "Emphasised outline: hovered controls, active field borders."
     },
     "focusRing": {
-      "$value": "{color.reference.violet.600}",
+      "$value": "{color.reference.blue.600}",
       "$description": "Keyboard focus indicator. Paired with border.focusRing / border.focusRingOffset."
     },
     "shadow": {
@@ -51,11 +51,11 @@
     },
 
     "action": {
-      "$value": "{color.reference.violet.600}",
+      "$value": "{color.reference.blue.600}",
       "$description": "The accent tone. Primary buttons, links, selected state."
     },
-    "actionHover": { "$value": "{color.reference.violet.700}" },
-    "actionPressed": { "$value": "{color.reference.violet.800}" },
+    "actionHover": { "$value": "{color.reference.blue.700}" },
+    "actionPressed": { "$value": "{color.reference.blue.800}" },
     "onAction": {
       "$value": "{color.reference.neutral.0}",
       "$description": "Foreground for content sitting on `action`."

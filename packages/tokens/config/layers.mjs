@@ -22,7 +22,7 @@ const posix = (p) => String(p ?? "").replace(/\\/g, "/");
 
 /**
  * A token is a reference primitive iff its id is `<category>.reference.<...>`,
- * e.g. `color.reference.violet.600`. That shape is deliberate: it makes the
+ * e.g. `color.reference.blue.600`. That shape is deliberate: it makes the
  * layer visible in the token id itself, so a reviewer reading a diff can tell
  * a primitive from a semantic token without opening another file.
  */
@@ -53,11 +53,11 @@ export const kebab = (segment) =>
  *
  * Style Dictionary's own `name/kebab` would flatten the full path, which would
  * leak the `reference` path segment into the public API as
- * `--color-reference-violet-600`. Instead primitives get a short, obviously
+ * `--color-reference-blue-600`. Instead primitives get a short, obviously
  * namespaced `--ref-*` prefix and the semantic layer gets the clean names that
  * components and consumers actually write against:
  *
- *   color.reference.violet.600  ->  --ref-color-violet-600
+ *   color.reference.blue.600    ->  --ref-color-blue-600
  *   color.actionHover           ->  --color-action-hover
  *   space.controlInline         ->  --space-control-inline
  *   type.body.fontSize          ->  --type-body-font-size

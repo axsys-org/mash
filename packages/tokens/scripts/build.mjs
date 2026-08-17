@@ -56,8 +56,8 @@ const aliasTarget = (value) =>
 
 /**
  * Follow a token's alias chain down to the primitive that holds the literal.
- * `color.action -> color.reference.violet.600` becomes
- * `["color.action", "color.reference.violet.600"]`.
+ * `color.action -> color.reference.blue.600` becomes
+ * `["color.action", "color.reference.blue.600"]`.
  */
 function resolveChain(token, byId) {
   const chain = [token.id];

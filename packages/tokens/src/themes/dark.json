@@ -42,7 +42,7 @@
       "$description": "Emphasised outline: hovered controls, active field borders."
     },
     "focusRing": {
-      "$value": "{color.reference.violet.400}",
+      "$value": "{color.reference.blue.400}",
       "$description": "Keyboard focus indicator. Lighter than the light theme's so it separates from the canvas."
     },
     "shadow": {
@@ -51,11 +51,11 @@
     },
 
     "action": {
-      "$value": "{color.reference.violet.400}",
+      "$value": "{color.reference.blue.400}",
       "$description": "The accent tone. Lighter than in the light theme so it carries dark foreground text."
     },
-    "actionHover": { "$value": "{color.reference.violet.300}" },
-    "actionPressed": { "$value": "{color.reference.violet.200}" },
+    "actionHover": { "$value": "{color.reference.blue.300}" },
+    "actionPressed": { "$value": "{color.reference.blue.200}" },
     "onAction": {
       "$value": "{color.reference.neutral.1000}",
       "$description": "Dark foreground: the dark theme's action colour is a light fill."
