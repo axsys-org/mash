@@ -16,7 +16,8 @@
   --chrome-fg: #1a1a1f;
   --chrome-muted: #61616b;
   --chrome-line: #e4e4ea;
-  --chrome-accent: #5b3fd4;
+  --chrome-accent: #3f99f2;
+  --chrome-on-accent: #1a1a1f;
   --chrome-code-bg: #f6f6f9;
   --chrome-font:
     ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -29,7 +30,8 @@
     --chrome-fg: #ececf1;
     --chrome-muted: #9a9aa6;
     --chrome-line: #2a2a33;
-    --chrome-accent: #a48bff;
+    --chrome-accent: #91c3fa;
+    --chrome-on-accent: #131317;
     --chrome-code-bg: #1b1b21;
   }
 }
@@ -158,7 +160,7 @@ pre {
 
 .nav-item.is-active {
   background: var(--chrome-accent);
-  color: #fff;
+  color: var(--chrome-on-accent);
 }
 
 .content {
@@ -288,7 +290,7 @@ pre {
 .segment.is-active {
   background: var(--chrome-accent);
   border-color: var(--chrome-accent);
-  color: #fff;
+  color: var(--chrome-on-accent);
 }
 
 .toggle {
@@ -484,8 +486,8 @@ pre {
 }
 
 .layer-reference {
-  background: #ede8ff;
-  color: #4a2fc0;
+  background: #e4f0ff;
+  color: #26639f;
 }
 
 .layer-theme {
@@ -495,8 +497,8 @@ pre {
 
 @media (prefers-color-scheme: dark) {
   .layer-reference {
-    background: #2c2450;
-    color: #c3b2ff;
+    background: #194774;
+    color: #add2fc;
   }
 
   .layer-theme {

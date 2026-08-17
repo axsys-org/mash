@@ -203,7 +203,6 @@ jobs:
     name: Visual regression (scaffold)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -230,6 +229,10 @@ jobs:
 
       - name: Screenshot canonical states
         run: pnpm run test:visual
+        # Missing baselines are expected while this job is a scaffold. Keep the
+        # job green, but continue to the artifact upload so the generated Linux
+        # snapshots can be reviewed and committed later.
+        continue-on-error: true
 
       # Download this from a main run to seed the committed Linux baselines.
       - uses: actions/upload-artifact@v4
