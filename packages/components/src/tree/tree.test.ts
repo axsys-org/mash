@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fixture, inShadow } from "../test-support/fixture.js";
+import { fixture, inShadow, shadow } from "../test-support/fixture.js";
 import { UITree } from "./tree.js";
 import "./register.js";
 
@@ -25,5 +25,13 @@ describe("ui-tree", () => {
         .map((node) => node.textContent?.trim())
         .join(""),
     ).toBe("content");
+  });
+
+  it("exposes a labelled tree region", async () => {
+    const el = await fixture<UITree>(`<ui-tree label="Namespaces"></ui-tree>`);
+    const root = shadow(el).querySelector('[part="root"]')!;
+
+    expect(root.getAttribute("role")).toBe("tree");
+    expect(root.getAttribute("aria-label")).toBe("Namespaces");
   });
 });
