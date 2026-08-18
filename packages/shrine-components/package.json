@@ -52,6 +52,14 @@
       "types": "./dist/locator/register.d.ts",
       "import": "./dist/locator/register.js"
     },
+    "./myth": {
+      "types": "./dist/myth/myth.d.ts",
+      "import": "./dist/myth/myth.js"
+    },
+    "./myth/register": {
+      "types": "./dist/myth/register.d.ts",
+      "import": "./dist/myth/register.js"
+    },
     "./custom-elements.json": "./custom-elements.json",
     "./package.json": "./package.json"
   },

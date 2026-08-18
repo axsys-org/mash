@@ -12,3 +12,5 @@ export { ShrineConfirm } from "./confirm/confirm.js";
 export type { ConfirmTone } from "./confirm/confirm.js";
 export { ShrineTriptych } from "./triptych/triptych.js";
 export { ShrineLocator } from "./locator/locator.js";
+export { ShrineMyth } from "./myth/myth.js";
+export type { MythEntry } from "./myth/myth.js";
