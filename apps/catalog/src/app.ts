@@ -591,7 +591,7 @@ function aboveStage(
           ),
           el("span", {
             class: "control-hint",
-            text: "Applied to the preview frame's root, which is also how theme nesting works.",
+            text: "Applied to the catalog and preview roots; nested components can still override it.",
           }),
         ),
       ),
@@ -738,6 +738,12 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
 export function render(root: HTMLElement, state: State, callbacks: AppCallbacks): void {
   const component = components.find((c) => c.tagName === state.tagName);
   if (!component) throw new Error(`unknown component ${state.tagName}`);
+
+  // Keep the catalog chrome and the isolated preview on the same explicit
+  // theme. Without this, a light preview on a dark-system device still leaves
+  // the masthead, controls and API panels on the dark media-query theme, which
+  // makes the selected light mode look like a partial or inverted mapping.
+  document.documentElement.dataset.theme = state.theme;
 
   if (!mounted || mounted.root !== root || mounted.tagName !== state.tagName) {
     mounted = mountShell(root, state, callbacks);
