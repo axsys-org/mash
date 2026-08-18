@@ -1,39 +1,22 @@
 /**
  * Catalog chrome.
  *
- * Deliberately plain, and deliberately *not* built from the design tokens. The
- * catalog is a tool for inspecting the design system, not an example of it —
- * if the chrome used the same tokens, a broken token would break the tool that
- * is supposed to show you it is broken, and switching the theme would restyle
- * the whole page instead of the component under test.
- *
- * The one exception is the stage, which carries [data-theme] so the component
- * inside it resolves real theme variables.
+ * The catalog is part of the design-system surface: its chrome consumes the
+ * same semantic color and typography tokens as the components it previews.
+ * Layout-specific spacing stays local so the inspector can remain compact and
+ * readable while the Paper light/dark contract remains visible end to end.
  */
 
 :root {
-  --chrome-bg: #ffffff;
-  --chrome-fg: #1a1a1f;
-  --chrome-muted: #61616b;
-  --chrome-line: #e4e4ea;
-  --chrome-accent: #3f99f2;
-  --chrome-on-accent: #1a1a1f;
-  --chrome-code-bg: #f6f6f9;
-  --chrome-font:
-    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  --chrome-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --chrome-bg: #131317;
-    --chrome-fg: #ececf1;
-    --chrome-muted: #9a9aa6;
-    --chrome-line: #2a2a33;
-    --chrome-accent: #91c3fa;
-    --chrome-on-accent: #131317;
-    --chrome-code-bg: #1b1b21;
-  }
+  --chrome-bg: var(--color-canvas);
+  --chrome-fg: var(--color-text);
+  --chrome-muted: var(--color-text-muted);
+  --chrome-line: var(--color-border);
+  --chrome-accent: var(--color-action);
+  --chrome-on-accent: var(--color-on-action);
+  --chrome-code-bg: var(--color-surface-sunken);
+  --chrome-font: var(--type-body-font-family);
+  --chrome-mono: var(--type-code-font-family);
 }
 
 * {
@@ -45,14 +28,14 @@ body {
   background: var(--chrome-bg);
   color: var(--chrome-fg);
   font-family: var(--chrome-font);
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: var(--type-body-font-size);
+  line-height: var(--type-body-line-height);
 }
 
 code,
 pre {
   font-family: var(--chrome-mono);
-  font-size: 13px;
+  font-size: var(--type-code-font-size);
 }
 
 /* --- masthead ------------------------------------------------------------ */
@@ -486,25 +469,13 @@ pre {
 }
 
 .layer-reference {
-  background: #e4f0ff;
-  color: #26639f;
+  background: color-mix(in srgb, var(--color-action) 14%, var(--chrome-bg));
+  color: var(--color-action);
 }
 
 .layer-theme {
-  background: #e2f4ec;
-  color: #1d6b4b;
-}
-
-@media (prefers-color-scheme: dark) {
-  .layer-reference {
-    background: #194774;
-    color: #add2fc;
-  }
-
-  .layer-theme {
-    background: #17342a;
-    color: #7fd8b0;
-  }
+  background: color-mix(in srgb, var(--color-positive) 14%, var(--chrome-bg));
+  color: var(--color-positive);
 }
 
 .token-description {

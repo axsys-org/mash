@@ -5,7 +5,7 @@
       "$description": "Font stacks. Authored as DTCG fontFamily arrays; the first entry is the preferred face and the rest are the fallback chain.",
       "sans": {
         "$value": [
-          "Inter",
+          "SF Pro",
           "-apple-system",
           "BlinkMacSystemFont",
           "Segoe UI",
@@ -62,8 +62,9 @@
     "reference": {
       "$description": "DTCG fontWeight tokens. Numeric so they interpolate predictably on variable fonts.",
       "regular": { "$value": 400 },
-      "medium": { "$value": 500 },
-      "semibold": { "$value": 600 }
+      "medium": { "$value": 510 },
+      "semibold": { "$value": 590 },
+      "bold": { "$value": 700 }
     }
   },
 

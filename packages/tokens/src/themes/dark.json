@@ -4,7 +4,7 @@
     "$description": "The semantic colour layer for the dark theme.\n\nThis file defines exactly the same token names as themes/light.json — the build fails if the two ever diverge. Note the two structural inversions the dark theme makes: elevation reads as *lighter* surfaces rather than shadow, and interaction states step *up* the ramp (hover is lighter) instead of down.",
 
     "canvas": {
-      "$value": "{color.reference.neutral.950}",
+      "$value": "{color.reference.neutral.1000}",
       "$description": "The page behind everything. Never put text directly on it without a surface."
     },
     "surface": {
@@ -12,33 +12,33 @@
       "$description": "Default raised content surface: cards, panels, sheets."
     },
     "surfaceRaised": {
-      "$value": "{color.reference.neutral.800}",
+      "$value": "{color.reference.neutral.850}",
       "$description": "A surface above another surface. Shadow barely reads on a dark canvas, so elevation is carried by lightness instead."
     },
     "surfaceSunken": {
-      "$value": "{color.reference.neutral.950}",
+      "$value": "{color.reference.neutral.1000}",
       "$description": "A recessed well inside a surface: code blocks, inset lists, track backgrounds."
     },
 
     "text": {
-      "$value": "{color.reference.neutral.100}",
-      "$description": "Primary body and heading text. Not pure white — full-contrast white on a dark field haloes."
+      "$value": "{color.reference.neutral.0}",
+      "$description": "Primary body and heading text. Paper uses pure white here; keep it reserved for text on the dark canvas."
     },
     "textMuted": {
-      "$value": "{color.reference.neutral.400}",
+      "$value": "{color.reference.neutral.300}",
       "$description": "Secondary text: captions, help text, metadata."
     },
     "textDisabled": {
-      "$value": "{color.reference.neutral.600}",
+      "$value": "{color.reference.neutral.500}",
       "$description": "Text in a disabled control. Deliberately low contrast."
     },
 
     "border": {
-      "$value": "{color.reference.neutral.800}",
+      "$value": "{color.reference.neutral.700}",
       "$description": "Default separator and control outline."
     },
     "borderStrong": {
-      "$value": "{color.reference.neutral.700}",
+      "$value": "{color.reference.neutral.500}",
       "$description": "Emphasised outline: hovered controls, active field borders."
     },
     "focusRing": {
@@ -54,8 +54,8 @@
       "$value": "{color.reference.blue.400}",
       "$description": "The accent tone. Lighter than in the light theme so it carries dark foreground text."
     },
-    "actionHover": { "$value": "{color.reference.blue.300}" },
-    "actionPressed": { "$value": "{color.reference.blue.200}" },
+    "actionHover": { "$value": "{color.reference.blue.500}" },
+    "actionPressed": { "$value": "{color.reference.blue.600}" },
     "onAction": {
       "$value": "{color.reference.neutral.1000}",
       "$description": "Dark foreground: the dark theme's action colour is a light fill."

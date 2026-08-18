@@ -2,49 +2,89 @@
   "color": {
     "$type": "color",
     "reference": {
-      "$description": "Raw colour primitives. These are the only place a literal colour is authored. Nothing outside the semantic layer may reference them, and components must never reference them at all. Authored in OKLCH so that lightness steps are perceptually even and chroma stays consistent across hues.",
+      "$description": "Raw colour primitives. These are the only place a literal colour is authored. Nothing outside the semantic layer may reference them, and components must never reference them at all. Shared values mirror the Paper foundation palette; the build serializes them to CSS OKLCH.",
 
       "neutral": {
         "$description": "Cool-tinted grey ramp. Carries surfaces, text and borders in both themes; the dark theme reads the ramp in reverse.",
         "0": { "$value": { "colorSpace": "oklch", "components": [1, 0, 0] } },
         "50": {
-          "$value": { "colorSpace": "oklch", "components": [0.985, 0.002, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.956863, 0.956863, 0.968627]
+          }
         },
         "100": {
-          "$value": { "colorSpace": "oklch", "components": [0.967, 0.004, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.901961, 0.901961, 0.917647]
+          }
         },
         "200": {
-          "$value": { "colorSpace": "oklch", "components": [0.925, 0.006, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.803922, 0.803922, 0.827451]
+          }
         },
         "300": {
-          "$value": { "colorSpace": "oklch", "components": [0.87, 0.008, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.678431, 0.678431, 0.709804]
+          }
         },
         "400": {
-          "$value": { "colorSpace": "oklch", "components": [0.75, 0.012, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.576471, 0.576471, 0.615686]
+          }
         },
         "500": {
-          "$value": { "colorSpace": "oklch", "components": [0.62, 0.014, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.454902, 0.454902, 0.486275]
+          }
         },
         "600": {
-          "$value": { "colorSpace": "oklch", "components": [0.5, 0.014, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.384314, 0.384314, 0.419608]
+          }
         },
         "700": {
-          "$value": { "colorSpace": "oklch", "components": [0.4, 0.013, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.294118, 0.294118, 0.329412]
+          }
         },
         "800": {
-          "$value": { "colorSpace": "oklch", "components": [0.29, 0.012, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.192157, 0.192157, 0.223529]
+          }
+        },
+        "850": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.137255, 0.137255, 0.160784]
+          },
+          "$description": "Dark raised-surface neutral."
         },
         "900": {
-          "$value": { "colorSpace": "oklch", "components": [0.21, 0.011, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.094118, 0.094118, 0.113725]
+          }
         },
         "950": {
-          "$value": { "colorSpace": "oklch", "components": [0.155, 0.01, 285] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.043137, 0.043137, 0.062745]
+          }
         },
         "1000": { "$value": { "colorSpace": "oklch", "components": [0, 0, 0] } }
       },
 
       "blue": {
-        "$description": "Accent ramp. Anchored at #3F99F2 for 600; the lighter and darker steps are perceptual OKLCH mixes toward white and black.",
+        "$description": "Accent ramp mirrored from Paper. Blue 500 is the primary action, 600 is hover, 700 is pressed, and 400 is the dark-theme action.",
         "100": {
           "$value": {
             "colorSpace": "oklch",
@@ -65,26 +105,26 @@
         },
         "400": {
           "$value": {
-            "colorSpace": "oklch",
-            "components": [0.8026, 0.0943, 251.18]
+            "colorSpace": "srgb",
+            "components": [0.388235, 0.690196, 1]
           }
         },
         "500": {
           "$value": {
-            "colorSpace": "oklch",
-            "components": [0.7369, 0.1258, 251.18]
+            "colorSpace": "srgb",
+            "components": [0.247059, 0.6, 0.94902]
           }
         },
         "600": {
           "$value": {
-            "colorSpace": "oklch",
-            "components": [0.6711, 0.1572, 251.18]
+            "colorSpace": "srgb",
+            "components": [0.14902, 0.498039, 0.839216]
           }
         },
         "700": {
           "$value": {
-            "colorSpace": "oklch",
-            "components": [0.5905, 0.1383, 251.18]
+            "colorSpace": "srgb",
+            "components": [0.090196, 0.407843, 0.709804]
           }
         },
         "800": {
@@ -119,13 +159,22 @@
           "$value": { "colorSpace": "oklch", "components": [0.68, 0.16, 150] }
         },
         "600": {
-          "$value": { "colorSpace": "oklch", "components": [0.6, 0.15, 150] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.145098, 0.596078, 0.301961]
+          }
         },
         "700": {
-          "$value": { "colorSpace": "oklch", "components": [0.52, 0.13, 150] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.113725, 0.494118, 0.247059]
+          }
         },
         "800": {
-          "$value": { "colorSpace": "oklch", "components": [0.44, 0.11, 150] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.078431, 0.356863, 0.176471]
+          }
         }
       },
 
@@ -147,13 +196,22 @@
           "$value": { "colorSpace": "oklch", "components": [0.78, 0.16, 75] }
         },
         "600": {
-          "$value": { "colorSpace": "oklch", "components": [0.7, 0.15, 75] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.831373, 0.556863, 0]
+          }
         },
         "700": {
-          "$value": { "colorSpace": "oklch", "components": [0.6, 0.13, 75] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.682353, 0.447059, 0]
+          }
         },
         "800": {
-          "$value": { "colorSpace": "oklch", "components": [0.5, 0.11, 75] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.494118, 0.317647, 0]
+          }
         }
       },
 
@@ -161,24 +219,40 @@
         "$description": "Translucent blacks for elevation. Alpha lives in the primitive because a shadow's transparency is the value, not a component's styling choice.",
         "soft": {
           "$value": {
-            "colorSpace": "oklch",
+            "colorSpace": "srgb",
             "components": [0, 0, 0],
             "alpha": 0.08
           }
         },
         "medium": {
           "$value": {
-            "colorSpace": "oklch",
+            "colorSpace": "srgb",
             "components": [0, 0, 0],
-            "alpha": 0.12
+            "alpha": 0.14
           }
         },
         "strong": {
           "$value": {
-            "colorSpace": "oklch",
+            "colorSpace": "srgb",
             "components": [0, 0, 0],
-            "alpha": 0.4
+            "alpha": 0.22
           }
+        },
+        "elevated": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.122
+          },
+          "$description": "Paper's soft elevation shadow color used by cards and material recipes."
+        },
+        "overlay": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.2
+          },
+          "$description": "Paper's overlay shadow color used by material recipes."
         }
       },
 
@@ -200,13 +274,22 @@
           "$value": { "colorSpace": "oklch", "components": [0.63, 0.22, 25] }
         },
         "600": {
-          "$value": { "colorSpace": "oklch", "components": [0.56, 0.21, 25] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.831373, 0.129412, 0.176471]
+          }
         },
         "700": {
-          "$value": { "colorSpace": "oklch", "components": [0.48, 0.18, 25] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.67451, 0.098039, 0.133333]
+          }
         },
         "800": {
-          "$value": { "colorSpace": "oklch", "components": [0.4, 0.15, 25] }
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.52549, 0.066667, 0.094118]
+          }
         }
       }
     }

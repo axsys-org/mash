@@ -4,7 +4,7 @@
     "$description": "The semantic colour layer for the light theme.\n\nSemantic colour lives in the theme files rather than in semantic/, because every semantic colour is theme-dependent by definition — there is no theme-neutral value for `color.canvas`. Splitting it into a semantic file plus per-theme overrides would mean writing each name twice and inventing precedence rules. Instead each theme states the whole colour contract once. The token build enforces that every theme defines exactly the same set of names, so the two files cannot drift.",
 
     "canvas": {
-      "$value": "{color.reference.neutral.100}",
+      "$value": "{color.reference.neutral.50}",
       "$description": "The page behind everything. Never put text directly on it without a surface."
     },
     "surface": {
@@ -16,7 +16,7 @@
       "$description": "A surface above another surface. In the light theme elevation reads through shadow, so this matches `surface`; in the dark theme it steps lighter instead."
     },
     "surfaceSunken": {
-      "$value": "{color.reference.neutral.200}",
+      "$value": "{color.reference.neutral.100}",
       "$description": "A recessed well inside a surface: code blocks, inset lists, track backgrounds."
     },
 
@@ -29,44 +29,44 @@
       "$description": "Secondary text: captions, help text, metadata. Still meets 4.5:1 on `surface`."
     },
     "textDisabled": {
-      "$value": "{color.reference.neutral.400}",
+      "$value": "{color.reference.neutral.300}",
       "$description": "Text in a disabled control. Deliberately below 4.5:1 — disabled content is exempt, and the low contrast is the affordance."
     },
 
     "border": {
-      "$value": "{color.reference.neutral.200}",
+      "$value": "{color.reference.neutral.100}",
       "$description": "Default separator and control outline."
     },
     "borderStrong": {
-      "$value": "{color.reference.neutral.300}",
+      "$value": "{color.reference.neutral.200}",
       "$description": "Emphasised outline: hovered controls, active field borders."
     },
     "focusRing": {
-      "$value": "{color.reference.blue.600}",
+      "$value": "{color.reference.blue.500}",
       "$description": "Keyboard focus indicator. Paired with border.focusRing / border.focusRingOffset."
     },
     "shadow": {
-      "$value": "{color.reference.shadow.medium}",
+      "$value": "{color.reference.shadow.soft}",
       "$description": "Elevation shadow colour. Components own the shadow's geometry; the theme owns its colour, because how much a shadow reads depends entirely on what it sits on."
     },
 
     "action": {
-      "$value": "{color.reference.blue.600}",
+      "$value": "{color.reference.blue.500}",
       "$description": "The accent tone. Primary buttons, links, selected state."
     },
-    "actionHover": { "$value": "{color.reference.blue.700}" },
-    "actionPressed": { "$value": "{color.reference.blue.800}" },
+    "actionHover": { "$value": "{color.reference.blue.600}" },
+    "actionPressed": { "$value": "{color.reference.blue.700}" },
     "onAction": {
-      "$value": "{color.reference.neutral.0}",
-      "$description": "Foreground for content sitting on `action`."
+      "$value": "{color.reference.neutral.900}",
+      "$description": "Ink foreground for content sitting on `action`; the Paper primary blue does not carry white text at accessible body sizes."
     },
 
     "neutral": {
-      "$value": "{color.reference.neutral.200}",
+      "$value": "{color.reference.neutral.100}",
       "$description": "The neutral tone. Secondary buttons and low-emphasis fills."
     },
-    "neutralHover": { "$value": "{color.reference.neutral.300}" },
-    "neutralPressed": { "$value": "{color.reference.neutral.400}" },
+    "neutralHover": { "$value": "{color.reference.neutral.200}" },
+    "neutralPressed": { "$value": "{color.reference.neutral.300}" },
     "onNeutral": { "$value": "{color.reference.neutral.900}" },
 
     "positive": {
