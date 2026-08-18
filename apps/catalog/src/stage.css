@@ -107,3 +107,102 @@ html[data-layout="fill"] body {
   border-color: var(--color-border);
   color: var(--color-text);
 }
+
+/* Button examples ---------------------------------------------------------
+
+   These classes are deliberately catalog-only composition helpers. They let
+   the component's documented examples read like the Paper foundation sheet
+   while keeping the button itself responsible only for its own tokens. */
+
+.button-showcase {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: var(--space-control-gap);
+  overflow: auto;
+
+  inline-size: min(100%, 760px);
+
+  padding: clamp(var(--space-control-block), 4vw, var(--space-8))
+    clamp(var(--space-control-inline), 6vw, var(--space-10));
+
+  background: var(--color-surface);
+  border-style: solid;
+  border-color: var(--color-border);
+  color: var(--color-text);
+  font-family: var(--type-body-font-family);
+  font-size: var(--type-body-font-size);
+}
+
+.button-showcase-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-control-gap);
+  color: var(--color-text);
+}
+
+.button-showcase-heading strong {
+  font-family: var(--type-label-font-family);
+  font-size: var(--type-label-font-size);
+  font-weight: var(--type-label-font-weight);
+  line-height: var(--type-label-line-height);
+}
+
+.button-showcase-heading span {
+  color: var(--color-text-muted);
+  font-size: var(--type-body-font-size);
+  text-align: end;
+}
+
+.button-showcase-grid {
+  display: grid;
+  grid-template-columns: minmax(64px, 0.55fr) repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: var(--space-control-gap) var(--space-3);
+}
+
+.button-showcase-grid ui-button {
+  justify-self: start;
+}
+
+.button-showcase-label {
+  color: var(--color-text-muted);
+  font-family: var(--type-code-font-family);
+  font-size: var(--type-code-font-size);
+  text-transform: lowercase;
+}
+
+.button-showcase-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-control-gap);
+}
+
+.button-showcase-rule {
+  block-size: var(--border-hairline);
+  margin-block: var(--space-2);
+  background: var(--color-border);
+}
+
+.button-showcase-compact {
+  gap: var(--space-5);
+}
+
+@media (max-width: 560px) {
+  .button-showcase-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .button-showcase-heading span {
+    text-align: start;
+  }
+
+  .button-showcase-grid {
+    grid-template-columns: minmax(58px, 0.5fr) repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+}

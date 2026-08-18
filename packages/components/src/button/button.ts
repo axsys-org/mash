@@ -33,6 +33,69 @@ export type ButtonType = "button" | "submit" | "reset";
  * @tag ui-button
  * @summary Triggers an action. The primary interactive control of the system.
  *
+ * @example Foundation matrix
+ * <div class="demo button-showcase">
+ *   <div class="button-showcase-heading">
+ *     <strong>Emphasis × meaning</strong>
+ *     <span>Every tone composes with every variant.</span>
+ *   </div>
+ *   <div class="button-showcase-grid">
+ *     <span class="button-showcase-label">accent</span>
+ *     <ui-button size="small">Primary</ui-button>
+ *     <ui-button variant="secondary" size="small">Secondary</ui-button>
+ *     <ui-button variant="quiet" size="small">Quiet</ui-button>
+ *     <span class="button-showcase-label">neutral</span>
+ *     <ui-button tone="neutral" size="small">Primary</ui-button>
+ *     <ui-button tone="neutral" variant="secondary" size="small">Secondary</ui-button>
+ *     <ui-button tone="neutral" variant="quiet" size="small">Quiet</ui-button>
+ *     <span class="button-showcase-label">positive</span>
+ *     <ui-button tone="positive" size="small">Primary</ui-button>
+ *     <ui-button tone="positive" variant="secondary" size="small">Secondary</ui-button>
+ *     <ui-button tone="positive" variant="quiet" size="small">Quiet</ui-button>
+ *     <span class="button-showcase-label">warning</span>
+ *     <ui-button tone="warning" size="small">Primary</ui-button>
+ *     <ui-button tone="warning" variant="secondary" size="small">Secondary</ui-button>
+ *     <ui-button tone="warning" variant="quiet" size="small">Quiet</ui-button>
+ *     <span class="button-showcase-label">critical</span>
+ *     <ui-button tone="critical" size="small">Primary</ui-button>
+ *     <ui-button tone="critical" variant="secondary" size="small">Secondary</ui-button>
+ *     <ui-button tone="critical" variant="quiet" size="small">Quiet</ui-button>
+ *   </div>
+ *   <div class="button-showcase-rule"></div>
+ *   <div class="button-showcase-heading">
+ *     <strong>Size</strong>
+ *     <span>Use the same action at three physical scales.</span>
+ *   </div>
+ *   <div class="button-showcase-row">
+ *     <ui-button size="small">Small</ui-button>
+ *     <ui-button>Medium</ui-button>
+ *     <ui-button size="large">Large</ui-button>
+ *   </div>
+ * </div>
+ *
+ * @example Content variants
+ * <div class="demo button-showcase button-showcase-compact">
+ *   <div class="button-showcase-heading">
+ *     <strong>Content is a slot</strong>
+ *     <span>Prefix and suffix content keeps the action legible.</span>
+ *   </div>
+ *   <div class="button-showcase-row">
+ *     <ui-button><span slot="prefix" aria-hidden="true">+</span>Create</ui-button>
+ *     <ui-button variant="secondary"><span slot="prefix" aria-hidden="true">□</span>Save draft</ui-button>
+ *     <ui-button variant="quiet"><span slot="suffix" aria-hidden="true">→</span>View details</ui-button>
+ *   </div>
+ *   <div class="button-showcase-rule"></div>
+ *   <div class="button-showcase-heading">
+ *     <strong>States</strong>
+ *     <span>Inert states preserve the same geometry and hierarchy.</span>
+ *   </div>
+ *   <div class="button-showcase-row">
+ *     <ui-button disabled>Disabled</ui-button>
+ *     <ui-button loading>Loading</ui-button>
+ *     <ui-button tone="critical" variant="secondary">Delete</ui-button>
+ *   </div>
+ * </div>
+ *
  * @slot - The button's label.
  * @slot prefix - Content placed before the label, typically an icon. Hidden while loading.
  * @slot suffix - Content placed after the label, typically a chevron or badge.
