@@ -146,7 +146,7 @@ The Interzone Paper foundation is tracked by the reviewed contract at
 the semantic aliases Mash is expected to preserve. `pnpm run check:paper` compares
 that contract with the generated token graph and fails when a Paper-aligned alias
 drifts. See `docs/paper-sync.md` for the supervised design-to-code workflow and
-the PR preview handoff.
+the PR preview handoff; synchronized changes are recorded in `CHANGELOG.md`.
 
 ## The component layer
 

@@ -1,0 +1,25 @@
+# Changelog
+
+All notable Mash and Paper-foundation changes are recorded here. Entries are
+written when a change is reviewed and synchronized; this file is not generated
+from resolved token values.
+
+## Unreleased
+
+### Paper foundation sync
+
+- Added the reviewed Interzone foundation contract at
+  `packages/tokens/src/paper-contract.json`.
+- Added `pnpm run check:paper` and the matching CI guardrail so Paper aliases
+  cannot drift from Mash's generated token graph.
+- Added the supervised Paper → Mash → catalog-preview handoff in
+  `docs/paper-sync.md`.
+- Kept event-driven branch/PR automation deferred until Paper exposes a stable
+  change event and conflict-resolution boundary.
+
+### Shrine primitives
+
+- Added the reusable `ui-path` preview primitive for raw paths and pretty titles,
+  including small/medium presentations, icon slots, state, and overflow rules.
+- Added compositional `ui-tree` and `ui-tree-item` primitives for deeply nested
+  Shrine namespaces and explicit empty intermediate nodes.

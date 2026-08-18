@@ -24,13 +24,16 @@ The contract check compares alias targets, not copied color literals. That keeps
 Paper's semantic intent visible while preserving Mash's own reference ramp and
 provenance graph.
 
-## What is intentionally not automatic yet
+## Changelog and automation boundary
 
-The Paper connector currently exposes token and node reads/writes, but no
-continuous Git webhook or conflict resolver. A Paper edit therefore still needs
-an explicit sync request so a human can review whether it changes the shared
-semantic contract, a platform-specific adapter, or only a local composition.
+Every synchronized Paper change is recorded in the root `CHANGELOG.md` alongside
+the reviewed contract and the catalog-preview handoff. The Paper connector
+currently exposes token and node reads/writes, but no continuous Git webhook or
+conflict resolver. A Paper edit therefore still needs an explicit sync request
+so a human can review whether it changes the shared semantic contract, a
+platform-specific adapter, or only a local composition.
 
-The next automation step can call this same workflow from a Paper change event,
-open a branch, and attach the generated catalog preview to the PR. The checked-in
-contract and CI check are the guardrail that makes that future automation safe.
+Event-driven branch/PR automation remains intentionally deferred until Paper can
+provide a stable change event and reconciliation boundary. The checked-in
+contract, changelog entry, and CI check are the guardrails for the supervised
+workflow today.
