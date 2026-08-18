@@ -14,6 +14,61 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe("theme nesting", () => {
+  test("light primary action keeps readable foreground text", async ({ page }) => {
+    const pair = await page.evaluate(async () => {
+      const host = document.createElement("div");
+      host.dataset.theme = "light";
+      host.innerHTML = `<ui-button>Primary</ui-button>`;
+      document.body.append(host);
+      await customElements.whenDefined("ui-button");
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const control = host.firstElementChild!.shadowRoot!.querySelector("button")!;
+      const styles = getComputedStyle(control);
+      const result = { background: styles.backgroundColor, foreground: styles.color };
+      host.remove();
+      return result;
+    });
+
+    const luminance = (value: string) => {
+      const oklch = value.match(/oklch\(([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)/);
+      if (oklch) {
+        const lightness = Number(oklch[1]);
+        const chroma = Number(oklch[2]);
+        const hue = Number(oklch[3]);
+        const radians = (hue * Math.PI) / 180;
+        const a = chroma * Math.cos(radians);
+        const b = chroma * Math.sin(radians);
+        const l = Math.pow(lightness + 0.3963377774 * a + 0.2158037573 * b, 3);
+        const m = Math.pow(lightness - 0.1055613458 * a - 0.0638541728 * b, 3);
+        const s = Math.pow(lightness - 0.0894841775 * a - 1.291485548 * b, 3);
+        return (
+          0.2126 * (4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s) +
+          0.7152 * (-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s) +
+          0.0722 * (-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s)
+        );
+      }
+
+      const channels = value
+        .match(/[\d.]+/g)!
+        .slice(0, 3)
+        .map(Number);
+      const rgb = channels.map((channel) => {
+        const normalized = channel / 255;
+        return normalized <= 0.03928
+          ? normalized / 12.92
+          : Math.pow((normalized + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * (rgb[0] ?? 0) + 0.7152 * (rgb[1] ?? 0) + 0.0722 * (rgb[2] ?? 0);
+    };
+
+    const background = luminance(pair.background);
+    const foreground = luminance(pair.foreground);
+    const contrast =
+      (Math.max(background, foreground) + 0.05) / (Math.min(background, foreground) + 0.05);
+
+    expect(contrast).toBeGreaterThanOrEqual(4.5);
+  });
+
   test("each nested [data-theme] scope re-resolves the tokens beneath it", async ({ page }) => {
     const outerLight = await controlBackground(page, "outer-light");
     const innerDark = await controlBackground(page, "inner-dark");

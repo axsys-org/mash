@@ -222,7 +222,7 @@ export interface ProvenanceStep {
  * Walk a token back to the primitive that holds its literal value.
  *
  * This is what turns "the button's background" into
- * `color.action -> color.reference.violet.600 -> oklch(0.55 0.21 285)`.
+ * `color.action -> color.reference.blue.500 -> oklch(0.6711 0.1572 251.18)`.
  */
 export function provenance(token: TokenEntry, theme: string): ProvenanceStep[] {
   const chain = Array.isArray(token.chain) ? token.chain : (token.chain?.[theme] ?? [token.id]);

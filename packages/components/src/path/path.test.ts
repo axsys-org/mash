@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fixture, inShadow } from "../test-support/fixture.js";
+import { fixture, shadow } from "../test-support/fixture.js";
 import { UIPath } from "./path.js";
 import "./register.js";
 
@@ -13,17 +13,12 @@ describe("ui-path", () => {
     expect(el.shadowRoot).not.toBeNull();
   });
 
-  it("projects its default slot", async () => {
-    const el = await fixture<UIPath>(`<ui-path>content</ui-path>`);
-    // `slot:not([name])` rather than `slot` — a component with named slots may
-    // well render one of those first.
-    const slot = inShadow<HTMLSlotElement>(el, "slot:not([name])");
+  it("renders the path as segments", async () => {
+    const el = await fixture<UIPath>(`<ui-path path="/foo/bar/baz"></ui-path>`);
+    const segments = [...shadow(el).querySelectorAll('[part="segment"]')].map((segment) =>
+      segment.textContent?.trim(),
+    );
 
-    expect(
-      slot
-        .assignedNodes({ flatten: true })
-        .map((node) => node.textContent?.trim())
-        .join(""),
-    ).toBe("content");
+    expect(segments).toEqual(["foo", "bar", "baz"]);
   });
 });
