@@ -8,11 +8,25 @@ repository = "https://github.com/axsys-org/mash"
 keywords = ["design-system", "gpui", "tokens", "mash"]
 categories = ["gui"]
 
+[lib]
+crate-type = ["rlib", "cdylib"]
+
 [dependencies]
-# Keep this pin aligned with the GPUI revision locked by longbridge/gpui-component.
-# The adapter depends on GPUI directly so Mash remains the presentation owner;
-# products may compose gpui-component behaviour above these primitives.
-gpui = { git = "https://github.com/zed-industries/zed", rev = "cc053a4a6fa2fd0e8793201ed9099466af1be0b1" }
+# The lockfile pins the Zed revision shared by longbridge/gpui-component.
+# Keeping the source declaration identical lets Cargo use one GPUI type graph
+# for both Mash primitives and the GPUI Component runtime shell.
+gpui = { version = "0.2.2", git = "https://github.com/zed-industries/zed" }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+# gpui-component supplies the top-level WebAssembly host (Root, focus and
+# overlays). Mash continues to render its own semantic primitives inside it.
+gpui-component = { git = "https://github.com/longbridge/gpui-component", rev = "f3ba893bd6a996ab0699266ba774b5bbb7f0ca1c", default-features = false }
+gpui_platform = { git = "https://github.com/zed-industries/zed" }
+console_error_panic_hook = "0.1"
+console_log = "1.0"
+log = "0.4"
+tracing-wasm = "0.2"
+wasm-bindgen = "=0.2.121"
 
 [dev-dependencies]
-gpui_platform = { git = "https://github.com/zed-industries/zed", rev = "cc053a4a6fa2fd0e8793201ed9099466af1be0b1", features = ["font-kit", "wayland", "x11"] }
+gpui_platform = { git = "https://github.com/zed-industries/zed", features = ["font-kit", "wayland", "x11"] }

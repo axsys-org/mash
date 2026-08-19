@@ -111,9 +111,9 @@ jobs:
           fi
           echo "generated output is byte-identical across two builds"
 
-  # This is intentionally its own native job. The web build must stay usable
-  # without a Rust toolchain, while a Mash token change must not silently leave
-  # the checked-in GPUI table stale or break native compilation.
+  # This is intentionally its own native-and-Wasm job. The ordinary web
+  # component build remains usable without Rust, while a Mash token change must
+  # not silently leave either GPUI target stale or unbuildable.
   gpui:
     name: GPUI adapter
     runs-on: ubuntu-latest
@@ -133,6 +133,17 @@ jobs:
       - name: Install Rust 1.95
         run: rustup toolchain install 1.95.0 --profile minimal
 
+      # GPUI's browser renderer currently uses a Wasm atomics feature gate, so
+      # the WebAssembly target needs nightly even though native Mash GPUI stays
+      # on the adapter's pinned 1.95 toolchain.
+      - name: Install Rust nightly for GPUI WebAssembly
+        run: |
+          rustup toolchain install nightly --profile minimal
+          rustup target add wasm32-unknown-unknown --toolchain nightly
+
+      - name: Install wasm-bindgen CLI
+        run: cargo install wasm-bindgen-cli --version 0.2.121 --locked
+
       - name: Install GPUI Linux headers
         run: sudo apt-get update && sudo apt-get install --yes libwayland-dev libxkbcommon-dev
 
@@ -141,6 +152,9 @@ jobs:
 
       - name: Verify native token table and compile adapter
         run: pnpm run check:gpui
+
+      - name: Verify GPUI Component browser host
+        run: pnpm run check:gpui-web
 
   browser-tests:
     name: Browser tests (Chromium)

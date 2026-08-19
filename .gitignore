@@ -1,6 +1,7 @@
 node_modules/
 dist/
 adapters/gpui/target/
+adapters/gpui/www/src/wasm/
 *.tsbuildinfo
 
 # Generated build artifacts that are checked by CI but not committed.

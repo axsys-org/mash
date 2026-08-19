@@ -1,0 +1,35 @@
+@import "@mash/tokens/reference.css";
+@import "@mash/tokens/semantic.css";
+@import "@mash/tokens/theme-light.css";
+@import "@mash/tokens/theme-dark.css" (prefers-color-scheme: dark);
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  block-size: 100%;
+  inline-size: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--type-body-font-family);
+}
+
+.boot {
+  display: grid;
+  min-block-size: 100%;
+  place-items: center;
+  margin: 0;
+  padding: var(--space-container-block) var(--space-container-inline);
+  color: var(--color-text-muted);
+}
+
+.boot-error {
+  color: var(--color-critical);
+}

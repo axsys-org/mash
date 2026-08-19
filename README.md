@@ -33,7 +33,10 @@ DTCG design tokens                         TypeScript Web Components
                     GPUI typed token table
                               │
                               ▼
-                    Native Mash primitives
+             Mash primitives (native + WebAssembly)
+                              │
+                              ▼
+          GPUI Component browser window and interaction host
 ```
 
 No bundler touches the published packages. `tsc` emits an ES module graph that mirrors `src/`
@@ -79,15 +82,19 @@ failure reads as `tokens` or `manifest` rather than as a line in one long log:
 | `pnpm build:catalog`     | The catalog's production build — the artifact Vercel serves    |
 | `pnpm build:gpui-tokens` | Rebuild the Rust token table after a token-only change         |
 | `pnpm check:gpui`        | Compile Mash's GPUI adapter and examples                       |
+| `pnpm build:gpui-web`    | Build the GPUI Component browser foundations bundle            |
+| `pnpm dev:gpui-web`      | Serve the GPUI Component browser foundations bundle            |
+| `pnpm check:gpui-web`    | Check, bind and bundle the WebAssembly adapter                 |
 | `pnpm preview:catalog`   | Serve that build locally                                       |
 | `pnpm test:browser`      | Alias for `pnpm test`, named for what it is                    |
 | `pnpm test:visual`       | Screenshot the canonical states (see `tests/visual/README.md`) |
 
 ## GPUI adapter
 
-`adapters/gpui` is Mash’s first native target. It compiles the same resolved
-`tokens.json` contract used by CSS into typed Rust values for every token in
-both modes. It does not duplicate a palette or parse generated CSS.
+`adapters/gpui` is Mash’s first native and WebAssembly target. It compiles the
+same resolved `tokens.json` contract used by CSS into typed Rust values for
+every token in both modes. It does not duplicate a palette or parse generated
+CSS.
 
 ```bash
 cd adapters/gpui
@@ -96,10 +103,19 @@ cargo run --example foundations
 
 The demo opens a native foundations window. Its theme control updates canvas,
 surface, text, borders, and all button states from the generated light/dark
-tables. The adapter is pinned to the same GPUI revision and Rust toolchain as
-the compatible `gpui-component` checkout, but uses GPUI directly so Mash keeps
-ownership of visual presentation. Applications can layer `gpui-component`
-behaviour above these primitives without making it a second token system.
+tables.
+
+```bash
+pnpm build:gpui-web
+pnpm preview:gpui-web
+```
+
+The browser build runs that exact same `Foundations` view inside
+`gpui-component::Root` at <http://127.0.0.1:4174>. Mash keeps ownership of
+visual presentation and token resolution; GPUI Component supplies the browser
+window lifecycle, focus and overlay mechanics. The browser renderer currently
+requires Rust nightly for its Wasm atomics support, while the native adapter
+continues to use its pinned stable toolchain.
 
 `MashButton` is intentionally the first bounded primitive slice: its semantic
 variant, size, disabled, hover, and pressed states all resolve through Mash

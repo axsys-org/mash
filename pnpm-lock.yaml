@@ -18,6 +18,16 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
+  adapters/gpui/www:
+    dependencies:
+      '@mash/tokens':
+        specifier: workspace:*
+        version: link:../../../packages/tokens
+    devDependencies:
+      vite:
+        specifier: 8.2.1
+        version: 8.2.1(@types/node@26.2.0)
+
   apps/catalog:
     dependencies:
       '@mash/shrine':

@@ -1,0 +1,18 @@
+{
+  "name": "@mash/gpui-web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser host for Mash's GPUI Component foundations proof.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mash/tokens": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "8.2.1"
+  }
+}
