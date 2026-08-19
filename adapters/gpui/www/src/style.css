@@ -21,6 +21,15 @@ body {
   font-family: var(--type-body-font-family);
 }
 
+/* GPUI owns a document-level canvas and appends it after the HTML boot shell.
+ * Take it out of normal document flow so it occupies this viewport, rather
+ * than beginning below the one-viewport loading placeholder. */
+body > canvas {
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+}
+
 .boot {
   display: grid;
   min-block-size: 100%;
