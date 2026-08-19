@@ -1,0 +1,4 @@
+[toolchain]
+# Match the toolchain committed by the compatible gpui-component checkout.
+channel = "1.95.0"
+profile = "minimal"

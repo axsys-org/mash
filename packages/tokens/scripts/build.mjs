@@ -12,9 +12,10 @@
  *
  * Steps 4 and 5 are what make the design language machine-readable. tokens.json
  * records, for every token, what it is called in CSS, what it aliases, the full
- * chain down to the primitive, and what that primitive resolves to in each
- * theme. That is enough to answer "where does this button's background come
- * from?" without parsing CSS or reading documentation prose.
+ * chain down to the primitive, and both its CSS value and literal DTCG value in
+ * each theme. That is enough to answer "where does this button's background
+ * come from?" without parsing CSS or reading documentation prose — and lets
+ * non-CSS targets compile the same source of truth without reverse-parsing CSS.
  *
  * Nothing here writes a timestamp. The output is a pure function of the input,
  * so rebuilding without changing tokens produces a zero-line diff.
@@ -99,6 +100,7 @@ function buildGraph({ base, themes }) {
 
   for (const token of base) {
     const chain = resolveChain(token, baseById);
+    const literal = baseById.get(chain.at(-1))?.originalValue;
     graph[token.id] = {
       id: token.id,
       layer: token.layer,
@@ -107,6 +109,7 @@ function buildGraph({ base, themes }) {
       ...(token.description ? { description: token.description } : {}),
       ...(chain.length > 1 ? { aliasOf: chain[1], chain } : {}),
       value: token.value,
+      ...(literal !== undefined ? { literal } : {}),
       source: token.source,
     };
   }
@@ -124,6 +127,7 @@ function buildGraph({ base, themes }) {
       aliasOf: {},
       chain: {},
       values: {},
+      literalValues: {},
       source: token.source,
     };
 
@@ -135,6 +139,8 @@ function buildGraph({ base, themes }) {
       if (!themeToken) continue;
       const chain = resolveChain(themeToken, byId);
       entry.values[theme] = themeToken.value;
+      const literal = byId.get(chain.at(-1))?.originalValue;
+      if (literal !== undefined) entry.literalValues[theme] = literal;
       entry.chain[theme] = chain;
       if (chain.length > 1) entry.aliasOf[theme] = chain[1];
     }

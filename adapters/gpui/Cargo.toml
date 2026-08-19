@@ -1,0 +1,18 @@
+[package]
+name = "mash-gpui"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Mash design-token and primitive adapter for GPUI."
+repository = "https://github.com/axsys-org/mash"
+keywords = ["design-system", "gpui", "tokens", "mash"]
+categories = ["gui"]
+
+[dependencies]
+# Keep this pin aligned with the GPUI revision locked by longbridge/gpui-component.
+# The adapter depends on GPUI directly so Mash remains the presentation owner;
+# products may compose gpui-component behaviour above these primitives.
+gpui = { git = "https://github.com/zed-industries/zed", rev = "cc053a4a6fa2fd0e8793201ed9099466af1be0b1" }
+
+[dev-dependencies]
+gpui_platform = { git = "https://github.com/zed-industries/zed", rev = "cc053a4a6fa2fd0e8793201ed9099466af1be0b1", features = ["font-kit", "wayland", "x11"] }

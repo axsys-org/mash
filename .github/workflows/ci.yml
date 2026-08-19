@@ -111,6 +111,37 @@ jobs:
           fi
           echo "generated output is byte-identical across two builds"
 
+  # This is intentionally its own native job. The web build must stay usable
+  # without a Rust toolchain, while a Mash token change must not silently leave
+  # the checked-in GPUI table stale or break native compilation.
+  gpui:
+    name: GPUI adapter
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # Match adapters/gpui/rust-toolchain.toml and the GPUI revision currently
+      # locked by gpui-component. The adapter itself is platform-neutral; this
+      # check exercises its Linux GPUI backend without needing a display server.
+      - name: Install Rust 1.95
+        run: rustup toolchain install 1.95.0 --profile minimal
+
+      - name: Install GPUI Linux headers
+        run: sudo apt-get update && sudo apt-get install --yes libwayland-dev libxkbcommon-dev
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify native token table and compile adapter
+        run: pnpm run check:gpui
+
   browser-tests:
     name: Browser tests (Chromium)
     runs-on: ubuntu-latest

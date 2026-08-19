@@ -1,5 +1,6 @@
 node_modules/
 dist/
+adapters/gpui/target/
 *.tsbuildinfo
 
 # Generated build artifacts that are checked by CI but not committed.

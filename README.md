@@ -1,14 +1,15 @@
 # mash
 
-A standards-oriented Web Components design system.
+A design system with standards-oriented Web Components and native adapters.
 
-The goal is a design language that machines can read without scraping documentation prose. Two
-generated schemas carry it:
+The goal is a design language that machines can read without scraping documentation prose. Three
+generated artifacts carry it:
 
-| Artifact                           | Describes                                                    | Generated from     |
-| ---------------------------------- | ------------------------------------------------------------ | ------------------ |
-| `packages/tokens/dist/tokens.json` | the token graph — names, values, provenance per theme        | DTCG sources       |
-| `<package>/custom-elements.json`   | component schemas — attributes, slots, parts, states, events | TypeScript sources |
+| Artifact                                | Describes                                                      | Generated from       |
+| --------------------------------------- | -------------------------------------------------------------- | -------------------- |
+| `packages/tokens/dist/tokens.json`      | the token graph — names, CSS values, DTCG literals, provenance | DTCG sources         |
+| `<package>/custom-elements.json`        | component schemas — attributes, slots, parts, states, events   | TypeScript sources   |
+| `adapters/gpui/src/generated_tokens.rs` | native, typed values for every Mash token and theme            | resolved token graph |
 
 Every component package emits a manifest, all through the same analyzer config, so they are
 interchangeable in shape. Everything downstream — the catalog, editor tooling, future React
@@ -22,17 +23,17 @@ DTCG design tokens                         TypeScript Web Components
         ▼                                            ▼
  Style Dictionary                                  tsc
         │                                            │
-        ├── reference.css                           ├── ES modules (preserved graph)
-        ├── semantic.css                            └── .d.ts + source maps
-        ├── theme-light.css / theme-dark.css              │
-        ├── tokens.json  (graph + provenance)             ▼
-        └── tokens.js / tokens.d.ts            Custom Elements Manifest
-                                                          │
-                                                          ▼
-                                                custom-elements.json
-                         │
-                         ▼
-              Vite catalog + browser tests
+        ├── CSS (reference / semantic / theme)     └── Custom Elements Manifest
+        │             │                                      │
+        │             └──────── Vite catalog + browser tests ┘
+        │
+        └── tokens.json (CSS values + DTCG literals + provenance)
+                              │
+                              ▼
+                    GPUI typed token table
+                              │
+                              ▼
+                    Native Mash primitives
 ```
 
 No bundler touches the published packages. `tsc` emits an ES module graph that mirrors `src/`
@@ -70,15 +71,40 @@ pnpm dev
 The stages of `pnpm build` are also addressable one at a time, which is what CI names so that a
 failure reads as `tokens` or `manifest` rather than as a line in one long log:
 
-| Command                | What it does                                                   |
-| ---------------------- | -------------------------------------------------------------- |
-| `pnpm tokens`          | Style Dictionary — DTCG sources to CSS, JSON and TS            |
-| `pnpm components`      | `tsc` for every component package                              |
-| `pnpm cem`             | Custom Elements Manifest for every component package           |
-| `pnpm build:catalog`   | The catalog's production build — the artifact Vercel serves    |
-| `pnpm preview:catalog` | Serve that build locally                                       |
-| `pnpm test:browser`    | Alias for `pnpm test`, named for what it is                    |
-| `pnpm test:visual`     | Screenshot the canonical states (see `tests/visual/README.md`) |
+| Command                  | What it does                                                   |
+| ------------------------ | -------------------------------------------------------------- |
+| `pnpm tokens`            | Style Dictionary — DTCG sources to CSS, JSON and TS            |
+| `pnpm components`        | `tsc` for every component package                              |
+| `pnpm cem`               | Custom Elements Manifest for every component package           |
+| `pnpm build:catalog`     | The catalog's production build — the artifact Vercel serves    |
+| `pnpm build:gpui-tokens` | Rebuild the Rust token table after a token-only change         |
+| `pnpm check:gpui`        | Compile Mash's GPUI adapter and examples                       |
+| `pnpm preview:catalog`   | Serve that build locally                                       |
+| `pnpm test:browser`      | Alias for `pnpm test`, named for what it is                    |
+| `pnpm test:visual`       | Screenshot the canonical states (see `tests/visual/README.md`) |
+
+## GPUI adapter
+
+`adapters/gpui` is Mash’s first native target. It compiles the same resolved
+`tokens.json` contract used by CSS into typed Rust values for every token in
+both modes. It does not duplicate a palette or parse generated CSS.
+
+```bash
+cd adapters/gpui
+cargo run --example foundations
+```
+
+The demo opens a native foundations window. Its theme control updates canvas,
+surface, text, borders, and all button states from the generated light/dark
+tables. The adapter is pinned to the same GPUI revision and Rust toolchain as
+the compatible `gpui-component` checkout, but uses GPUI directly so Mash keeps
+ownership of visual presentation. Applications can layer `gpui-component`
+behaviour above these primitives without making it a second token system.
+
+`MashButton` is intentionally the first bounded primitive slice: its semantic
+variant, size, disabled, hover, and pressed states all resolve through Mash
+roles. More native primitives should extend that shared token contract, rather
+than introduce component-local visual constants.
 
 Cross-browser runs: `BROWSERS=chromium,firefox,webkit pnpm test`, and
 `ALL_BROWSERS=1 pnpm test:integration`. CI runs the matrix on `main` and tags.
