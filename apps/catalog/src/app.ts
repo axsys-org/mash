@@ -15,10 +15,8 @@ export interface State {
   tagName: string;
   attrs: Record<string, string | boolean>;
   theme: string;
-  /** Which named slots are currently filled with placeholder content. */
-  slots: Record<string, boolean>;
-  /** Text projected into the default slot. */
-  label: string;
+  /** Content projected into each declared slot, including the default `""` slot. */
+  slots: Record<string, string>;
   /**
    * Name of the `@example` being shown, or null for the controls-driven
    * preview. Components that ship examples open on their first one, since a
@@ -32,13 +30,14 @@ export function initialState(component: ComponentSchema): State {
     tagName: component.tagName,
     attrs: defaultState(component),
     theme: themes[0] ?? "light",
-    slots: {},
-    label: defaultLabel(component),
+    slots: Object.fromEntries(
+      component.slots.map((slot) => [slot.name, slot.name ? "" : defaultSlotContent(component)]),
+    ),
     example: component.examples[0]?.name ?? null,
   };
 }
 
-function defaultLabel(component: ComponentSchema): string {
+function defaultSlotContent(component: ComponentSchema): string {
   const bare = component.tagName.replace(/^[a-z]+-/, "");
   return bare.charAt(0).toUpperCase() + bare.slice(1);
 }
@@ -63,7 +62,7 @@ const exampleNamed = (component: ComponentSchema, name: string | null) =>
  * Takes the target `Document` because the preview lives inside the stage
  * iframe: nodes have to be created by the document that will own them.
  */
-function buildPreview(doc: Document, component: ComponentSchema, state: State): HTMLElement {
+export function buildPreview(doc: Document, component: ComponentSchema, state: State): HTMLElement {
   const node = doc.createElement(component.tagName);
 
   for (const [name, value] of Object.entries(state.attrs)) {
@@ -71,14 +70,19 @@ function buildPreview(doc: Document, component: ComponentSchema, state: State): 
     node.setAttribute(name, value === true ? "" : String(value));
   }
 
-  if (state.label) node.append(doc.createTextNode(state.label));
-
   for (const slot of component.slots) {
-    if (!slot.name || !state.slots[slot.name]) continue;
+    const content = state.slots[slot.name];
+    if (!content) continue;
+
+    if (!slot.name) {
+      node.append(doc.createTextNode(content));
+      continue;
+    }
+
     const fill = doc.createElement("span");
     fill.slot = slot.name;
     fill.className = "slot-fill";
-    fill.textContent = slot.name;
+    fill.textContent = content;
     node.append(fill);
   }
 
@@ -86,7 +90,7 @@ function buildPreview(doc: Document, component: ComponentSchema, state: State): 
 }
 
 /** The markup a consumer would write to reproduce what is on the stage. */
-function markupFor(component: ComponentSchema, state: State): string {
+export function markupFor(component: ComponentSchema, state: State): string {
   const example = exampleNamed(component, state.example);
   if (example) return example.code;
 
@@ -99,12 +103,13 @@ function markupFor(component: ComponentSchema, state: State): string {
     });
 
   const open = [component.tagName, ...attrs].join(attrs.length > 1 ? "\n  " : " ");
-  const children = [
-    ...component.slots
-      .filter((slot) => slot.name && state.slots[slot.name])
-      .map((slot) => `  <span slot="${slot.name}">${slot.name}</span>`),
-    state.label ? `  ${state.label}` : "",
-  ].filter(Boolean);
+  const children = component.slots
+    .filter((slot) => state.slots[slot.name])
+    .map((slot) =>
+      slot.name
+        ? `  <span slot="${slot.name}">${state.slots[slot.name]}</span>`
+        : `  ${state.slots[slot.name]}`,
+    );
 
   return `<${open}>\n${children.join("\n")}\n</${component.tagName}>`;
 }
@@ -462,7 +467,6 @@ function aboveStage(
   state: State,
   callbacks: AppCallbacks,
 ): (HTMLElement | null)[] {
-  const namedSlots = component.slots.filter((slot) => slot.name);
   const showingExample = exampleNamed(component, state.example) !== null;
 
   return [
@@ -528,49 +532,31 @@ function aboveStage(
                 controlField(control, state, callbacks.setAttr),
               ),
 
-              el(
-                "div",
-                { class: "control" },
-                el("span", { class: "control-label", text: "label" }),
-                el("input", {
-                  type: "text",
-                  class: "text-input",
-                  value: state.label,
-                  oninput: (event: Event) =>
-                    callbacks.update({ label: (event.target as HTMLInputElement).value }),
-                }),
-                el("span", { class: "control-hint", text: "Content for the default slot." }),
+              ...component.slots.map((slot) =>
+                el(
+                  "div",
+                  { class: "control" },
+                  el("span", {
+                    class: "control-label",
+                    text: slot.name ? `${slot.name} slot` : "default slot",
+                  }),
+                  el("input", {
+                    type: "text",
+                    class: "text-input",
+                    value: state.slots[slot.name] ?? "",
+                    oninput: (event: Event) =>
+                      callbacks.update({
+                        slots: {
+                          ...state.slots,
+                          [slot.name]: (event.target as HTMLInputElement).value,
+                        },
+                      }),
+                  }),
+                  slot.description
+                    ? el("span", { class: "control-hint", text: slot.description })
+                    : null,
+                ),
               ),
-
-              namedSlots.length > 0
-                ? el(
-                    "div",
-                    { class: "control" },
-                    el("span", { class: "control-label", text: "slots" }),
-                    el(
-                      "div",
-                      { class: "slot-toggles" },
-                      ...namedSlots.map((slot) =>
-                        el(
-                          "label",
-                          { class: "toggle" },
-                          el("input", {
-                            type: "checkbox",
-                            checked: state.slots[slot.name] === true,
-                            onchange: (event: Event) =>
-                              callbacks.update({
-                                slots: {
-                                  ...state.slots,
-                                  [slot.name]: (event.target as HTMLInputElement).checked,
-                                },
-                              }),
-                          }),
-                          el("span", { text: slot.name }),
-                        ),
-                      ),
-                    ),
-                  )
-                : null,
             ]),
 
         el(

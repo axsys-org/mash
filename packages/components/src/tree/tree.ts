@@ -8,14 +8,14 @@ import { baseStyles } from "../internal/base-styles.js";
  * The tree is intentionally compositional: direct children are
  * `<ui-tree-item>` elements, and an item can own another level through its
  * `children` slot. That keeps deeply nested structures and empty intermediate
- * namespaces explicit instead of flattening paths into a presentation-only
- * list.
+ * namespaces explicit instead of flattening them into a presentation-only
+ * list. Individual item state remains parent-controlled.
  *
  * @tag ui-tree
- * @summary Groups expandable Shrine tree items.
+ * @summary Groups expandable Shrine tree items into an accessible hierarchy.
  *
  * @slot - Tree items.
- * @csspart root - The tree region.
+ * @csspart root - The semantic tree container.
  *
  * @example Shrine hierarchy
  * <ui-tree label="Shrine namespaces">
@@ -65,10 +65,6 @@ export class UITree extends LitElement {
       ::slotted(ui-tree-item) {
         display: block;
       }
-
-      /* Style from semantic tokens only; indentation belongs to each item's
-         explicit children group so depth remains legible on arbitrarily deep
-         trees. */
     `,
   ];
 

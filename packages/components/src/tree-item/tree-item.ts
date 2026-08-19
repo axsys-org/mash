@@ -2,27 +2,52 @@ import { LitElement, css, html, nothing, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
+/** The physical scale of a tree item row. */
+export type TreeItemSize = "small" | "medium";
+
 /**
- * One expandable node in a Shrine tree.
+ * An expandable row inside `ui-tree`.
  *
- * Set `path` for the canonical namespace label, or `title` for a pretty label
- * while keeping the path as the accessible name. Put child items in the
- * `children` slot. Empty intermediate nodes stay visible because the tree is
- * structural rather than a flattened path string.
+ * Set `path` for the canonical Shrine namespace label, or `title` for a
+ * human-readable label. Without either, the default slot becomes the label.
+ * Child `ui-tree-item` elements belong in the `children` slot, which keeps
+ * deep and sparse hierarchies structural rather than flattening them into a
+ * path string.
+ *
+ * `expanded`, `selected`, and `current` are deliberately reflected rather
+ * than owned by the tree: a consuming application chooses selection,
+ * persistence, and navigation while this primitive supplies the interaction
+ * surface.
  *
  * @tag ui-tree-item
- * @summary Renders one expandable Shrine tree node.
+ * @summary A selectable tree row with optional nested children and path labels.
  *
- * @slot - Fallback label content when no path or title is supplied.
- * @slot icon - Optional leading icon, passed to `ui-path` when a path is shown.
- * @slot children - Nested `ui-tree-item` elements.
- * @csspart root - The node region.
- * @csspart row - The node's disclosure and label row.
- * @csspart disclosure - The expand/collapse button.
- * @csspart label - The fallback label region.
- * @csspart children - The nested node group.
+ * @example Shrine hierarchy
+ * <ui-tree label="Shrine namespaces">
+ *   <ui-tree-item path="/shrine" expanded>
+ *     <ui-tree-item slot="children" path="/shrine/axiomatic" title="Axiomatic"></ui-tree-item>
+ *   </ui-tree-item>
+ * </ui-tree>
+ *
+ * @slot - Fallback item label when no path or title is supplied.
+ * @slot icon - Optional leading glyph or icon.
+ * @slot children - Nested `ui-tree-item` elements belonging to this branch.
+ *
+ * @csspart control - The native button carrying tree-item semantics.
+ * @csspart disclosure - The branch disclosure indicator.
+ * @csspart icon - The wrapper around the fallback `icon` slot.
+ * @csspart label - The wrapper around the fallback default slot.
+ * @csspart children - The nested child group.
+ *
+ * @fires {CustomEvent<{ expanded: boolean }>} ui-tree-item-toggle - Emitted after a branch opens or closes.
+ * @fires {CustomEvent<void>} ui-tree-item-select - Emitted when the row is activated. Selection remains parent-owned.
  */
 export class UITreeItem extends LitElement {
+  static override shadowRootOptions: ShadowRootInit = {
+    ...LitElement.shadowRootOptions,
+    delegatesFocus: true,
+  };
+
   static override properties = {
     path: { type: String, reflect: true },
     title: { type: String, reflect: true },
@@ -30,26 +55,24 @@ export class UITreeItem extends LitElement {
     current: { type: Boolean, reflect: true },
     selected: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
+    size: { type: String, reflect: true },
     _hasChildren: { type: Boolean, state: true },
   };
 
   /** Canonical Shrine namespace path. */
   declare path: string;
-
-  /** Pretty textual label, passed to `ui-path`. */
+  /** Human-readable label, rendered by `ui-path` with a path. */
   declare title: string;
-
-  /** Whether the nested children group is open. */
+  /** Whether the nested child group is visible. Meaningful only when the `children` slot is filled. */
   declare expanded: boolean;
-
-  /** Marks this node as the current location. */
+  /** Whether this node identifies the current location. */
   declare current: boolean;
-
-  /** Marks this node as selected. */
+  /** Whether the parent workflow has selected this item. */
   declare selected: boolean;
-
-  /** Prevents disclosure and dims the node. */
+  /** Prevents activation and disclosure. */
   declare disabled: boolean;
+  /** Physical scale. */
+  declare size: TreeItemSize;
 
   declare private _hasChildren: boolean;
 
@@ -61,6 +84,7 @@ export class UITreeItem extends LitElement {
     this.current = false;
     this.selected = false;
     this.disabled = false;
+    this.size = "medium";
     this._hasChildren = false;
   }
 
@@ -69,90 +93,103 @@ export class UITreeItem extends LitElement {
     css`
       :host {
         display: block;
-        max-inline-size: 100%;
-
-        color: var(--color-text);
-        font-family: var(--type-body-font-family);
-        font-size: var(--type-body-font-size);
-        line-height: var(--type-body-line-height);
-      }
-
-      .root {
-        display: block;
         min-inline-size: 0;
+
+        --_padding-block: var(--space-control-block-small);
+        --_padding-inline: var(--space-control-inline-small);
+        --_font-size: var(--type-label-font-size);
+        --_line-height: var(--type-label-line-height);
+        --_background: transparent;
+        --_foreground: var(--color-text);
       }
 
-      .row {
-        display: flex;
+      :host([size="small"]) {
+        --_padding-block: var(--border-hairline);
+        --_padding-inline: var(--space-control-block-small);
+        --_font-size: var(--type-label-small-font-size);
+        --_line-height: var(--type-label-small-line-height);
+      }
+
+      :host([current]),
+      :host([selected]) {
+        --_background: color-mix(in oklab, var(--color-action) 14%, transparent);
+        --_foreground: var(--color-action);
+      }
+
+      :host([disabled]) {
+        --_foreground: var(--color-text-disabled);
+      }
+
+      .control {
+        display: grid;
+        grid-template-columns: auto auto minmax(0, 1fr);
         align-items: center;
+        inline-size: 100%;
         min-inline-size: 0;
-        gap: var(--space-control-gap);
-        padding: var(--space-control-block-small) var(--space-control-inline);
-        border-radius: var(--radius-control);
-        transition:
-          background-color var(--duration-control) var(--easing-control),
-          color var(--duration-control) var(--easing-control);
-      }
-
-      .row:hover {
-        background: color-mix(in oklab, var(--color-action) 8%, var(--color-surface));
-      }
-
-      :host([current]) .row,
-      :host([selected]) .row {
-        background: color-mix(in oklab, var(--color-action) 12%, var(--color-surface));
-      }
-
-      :host([disabled]) .row {
-        color: var(--color-text-disabled);
-        pointer-events: none;
-      }
-
-      .disclosure {
-        display: inline-grid;
-        flex: 0 0 auto;
-        place-items: center;
-        inline-size: 1.5rem;
-        block-size: 1.5rem;
-        padding: 0;
-
-        appearance: none;
-        background: transparent;
+        margin: 0;
         border: 0;
         border-radius: var(--radius-control);
-        color: var(--color-text-muted);
+        padding: var(--_padding-block) var(--_padding-inline);
+        background: var(--_background);
+        color: var(--_foreground);
+        font-family: var(--type-label-font-family);
+        font-size: var(--_font-size);
+        font-weight: var(--type-label-font-weight);
+        line-height: var(--_line-height);
+        text-align: start;
         cursor: pointer;
-        font: inherit;
-        transition:
-          background-color var(--duration-control) var(--easing-control),
-          color var(--duration-control) var(--easing-control),
-          transform var(--duration-control) var(--easing-control);
       }
 
-      .disclosure:hover {
-        background: color-mix(in oklab, var(--color-action) 12%, var(--color-surface));
-        color: var(--color-text);
+      .control:hover:not(:disabled) {
+        background: color-mix(in oklab, var(--color-action) 8%, transparent);
       }
 
-      .disclosure:focus-visible {
+      :host([current]) .control:hover:not(:disabled),
+      :host([selected]) .control:hover:not(:disabled) {
+        background: color-mix(in oklab, var(--color-action) 20%, transparent);
+      }
+
+      .control:focus-visible {
         outline: var(--border-focus-ring) solid var(--color-focus-ring);
         outline-offset: var(--border-focus-ring-offset);
       }
 
-      .chevron {
-        display: block;
-        transform: rotate(0deg);
+      .control:disabled {
+        cursor: not-allowed;
+      }
+
+      .disclosure {
+        display: inline-grid;
+        place-items: center;
+        inline-size: var(--space-control-inline-small);
+        block-size: var(--space-control-inline-small);
+        color: var(--color-text-muted);
         transition: transform var(--duration-control) var(--easing-control);
       }
 
-      :host([expanded]) .chevron {
+      :host([expanded]) .disclosure {
         transform: rotate(90deg);
       }
 
+      .disclosure[hidden] {
+        visibility: hidden;
+      }
+
+      .icon,
       .label,
       ui-path {
         min-inline-size: 0;
-        flex: 1 1 auto;
+      }
+
+      .icon {
+        display: inline-flex;
+        margin-inline-start: var(--space-control-gap);
+        margin-inline-end: var(--space-control-gap);
+        color: var(--color-text-muted);
+      }
+
+      ui-path {
+        grid-column: 2 / -1;
       }
 
       .label {
@@ -162,10 +199,12 @@ export class UITreeItem extends LitElement {
       }
 
       .children {
+        display: grid;
+        gap: var(--space-control-gap);
         min-inline-size: 0;
-        margin-inline-start: calc(1.5rem + var(--space-control-gap));
-        padding-inline-start: var(--space-control-gap);
+        margin-inline-start: var(--space-container-inline);
         border-inline-start: var(--border-hairline) solid var(--color-border);
+        padding-inline-start: var(--space-control-inline-small);
       }
 
       .children[hidden] {
@@ -173,26 +212,51 @@ export class UITreeItem extends LitElement {
       }
 
       @media (forced-colors: active) {
-        .row:hover,
-        :host([current]) .row,
-        :host([selected]) .row {
+        :host([current]) .control,
+        :host([selected]) .control {
           outline: var(--border-hairline) solid CanvasText;
         }
       }
 
-      /* The named children slot is the only nesting escape hatch: it keeps
-         the indentation rule stable for both deep and sparse trees. */
+      @media (prefers-reduced-motion: reduce) {
+        .disclosure {
+          transition: none;
+        }
+      }
     `,
   ];
 
-  #onChildrenSlotChange = (event: Event): void => {
+  #onChildrenChange = (event: Event): void => {
     const slot = event.target as HTMLSlotElement;
     this._hasChildren = slot.assignedElements({ flatten: true }).length > 0;
   };
 
-  #toggle = (): void => {
-    if (!this._hasChildren || this.disabled) return;
+  #toggle(): void {
+    if (this.disabled || !this._hasChildren) return;
     this.expanded = !this.expanded;
+    this.dispatchEvent(
+      new CustomEvent<{ expanded: boolean }>("ui-tree-item-toggle", {
+        bubbles: true,
+        composed: true,
+        detail: { expanded: this.expanded },
+      }),
+    );
+  }
+
+  #onActivate = (): void => {
+    if (this.disabled) return;
+    this.#toggle();
+    this.dispatchEvent(new CustomEvent("ui-tree-item-select", { bubbles: true, composed: true }));
+  };
+
+  #onKeydown = (event: KeyboardEvent): void => {
+    if (event.key === "ArrowRight" && this._hasChildren && !this.expanded) {
+      event.preventDefault();
+      this.#toggle();
+    } else if (event.key === "ArrowLeft" && this.expanded) {
+      event.preventDefault();
+      this.#toggle();
+    }
   };
 
   private renderLabel(): TemplateResult {
@@ -210,44 +274,35 @@ export class UITreeItem extends LitElement {
       `;
     }
 
-    return html`<span part="label" class="label"><slot></slot></span>`;
+    return html`
+      <span part="icon" class="icon"><slot name="icon"></slot></span>
+      <span part="label" class="label"><slot></slot></span>
+    `;
   }
 
   protected override render(): TemplateResult {
-    const hasDisclosure = this._hasChildren;
-    const label = this.path || this.title || "Shrine node";
+    const visibleChildren = this._hasChildren && this.expanded;
 
     return html`
-      <div
-        part="root"
-        class="root"
+      <button
+        part="control"
+        class="control"
+        type="button"
         role="treeitem"
         aria-current=${this.current ? "page" : nothing}
-        aria-selected=${this.selected ? "true" : nothing}
-        aria-expanded=${hasDisclosure ? String(this.expanded) : nothing}
+        aria-expanded=${this._hasChildren ? String(this.expanded) : nothing}
+        aria-selected=${this.selected ? "true" : "false"}
+        ?disabled=${this.disabled}
+        @click=${this.#onActivate}
+        @keydown=${this.#onKeydown}
       >
-        <div part="row" class="row">
-          <button
-            part="disclosure"
-            class="disclosure"
-            type="button"
-            ?hidden=${!hasDisclosure}
-            ?disabled=${this.disabled}
-            aria-label=${this.expanded ? `Collapse ${label}` : `Expand ${label}`}
-            @click=${this.#toggle}
-          >
-            <span class="chevron" aria-hidden="true">›</span>
-          </button>
-          ${this.renderLabel()}
-        </div>
-        <div
-          part="children"
-          class="children"
-          role="group"
-          ?hidden=${!hasDisclosure || !this.expanded}
+        <span part="disclosure" class="disclosure" aria-hidden="true" ?hidden=${!this._hasChildren}
+          >▸</span
         >
-          <slot name="children" @slotchange=${this.#onChildrenSlotChange}></slot>
-        </div>
+        ${this.renderLabel()}
+      </button>
+      <div part="children" class="children" role="group" ?hidden=${!visibleChildren}>
+        <slot name="children" @slotchange=${this.#onChildrenChange}></slot>
       </div>
     `;
   }
