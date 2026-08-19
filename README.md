@@ -117,10 +117,14 @@ window lifecycle, focus and overlay mechanics. The browser renderer currently
 requires Rust nightly for its Wasm atomics support, while the native adapter
 continues to use its pinned stable toolchain.
 
-`MashButton` is intentionally the first bounded primitive slice: its semantic
-variant, size, disabled, hover, and pressed states all resolve through Mash
-roles. More native primitives should extend that shared token contract, rather
-than introduce component-local visual constants.
+`MashButton` began the bounded primitive slice: its semantic variant, size,
+disabled, hover, and pressed states all resolve through Mash roles. The native
+family now also includes `MashBadge`, `MashPath`, `MashAvatar`,
+`MashTree`/`MashTreeItem`, and the composed Shrine
+`MashMyth`/`MashLimb` surface. Each extends the shared token contract rather
+than introducing component-local visual constants; see
+[the GPUI component contract](./adapters/gpui/COMPONENTS.md) for the Web↔GPUI
+mapping and ownership boundary.
 
 Cross-browser runs: `BROWSERS=chromium,firefox,webkit pnpm test`, and
 `ALL_BROWSERS=1 pnpm test:integration`. CI runs the matrix on `main` and tags.

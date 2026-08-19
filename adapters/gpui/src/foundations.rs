@@ -6,7 +6,11 @@
 
 use gpui::{Context, IntoElement, Render, Window, div, prelude::*, px};
 
-use crate::{MashButton, MashButtonSize, MashButtonVariant, MashTheme, MashThemeMode};
+use crate::{
+    MashAvatar, MashAvatarSize, MashBadge, MashBadgeTone, MashButton, MashButtonSize,
+    MashButtonVariant, MashLimb, MashMyth, MashPath, MashPathSize, MashTheme, MashThemeMode,
+    MashTree, MashTreeItem,
+};
 
 /// A small interactive proof that the generated Mash token graph works in a
 /// GPUI renderer. Products compose their own views from the same primitives.
@@ -100,7 +104,7 @@ impl Render for Foundations {
                     .child(
                         div()
                             .text_color(colors.text_muted.gpui())
-                            .child("Semantic buttons"),
+                            .child("MashButton"),
                     )
                     .child(
                         div()
@@ -138,6 +142,98 @@ impl Render for Foundations {
                                     .disabled(true)
                                     .element(theme),
                             ),
+                    ),
+            )
+            .child(
+                div()
+                    .flex()
+                    .flex_col()
+                    .gap(px(gap))
+                    .p(px(inset))
+                    .rounded(px(theme
+                        .dimension("radius.container")
+                        .expect("Mash tokens include container radius")
+                        .to_px(16.0)))
+                    .bg(colors.surface.gpui())
+                    .border_1()
+                    .border_color(colors.border.gpui())
+                    .child(
+                        div()
+                            .text_color(colors.text_muted.gpui())
+                            .child("Native Mash primitives"),
+                    )
+                    .child(
+                        div()
+                            .flex()
+                            .flex_wrap()
+                            .items_center()
+                            .gap(px(gap))
+                            .child(MashAvatar::new("AX").element(theme))
+                            .child(
+                                MashAvatar::new("M")
+                                    .size(MashAvatarSize::Small)
+                                    .element(theme),
+                            )
+                            .child(
+                                MashAvatar::new("✦")
+                                    .size(MashAvatarSize::Large)
+                                    .element(theme),
+                            )
+                            .child(MashBadge::new("Project").element(theme))
+                            .child(
+                                MashBadge::new("Active")
+                                    .tone(MashBadgeTone::Positive)
+                                    .element(theme),
+                            )
+                            .child(
+                                MashBadge::new("Review")
+                                    .tone(MashBadgeTone::Warning)
+                                    .element(theme),
+                            ),
+                    )
+                    .child(
+                        MashPath::new("/rec/project/billing-migration")
+                            .title("Billing Migration")
+                            .icon("◆")
+                            .size(MashPathSize::Medium)
+                            .current(true)
+                            .element(theme),
+                    ),
+            )
+            .child(
+                div()
+                    .flex()
+                    .gap(px(gap))
+                    .child(
+                        div().flex_1().child(
+                            MashTree::new("Shrine namespaces")
+                                .item(
+                                    MashTreeItem::new("shrine", "Shrine")
+                                        .path("/shrine")
+                                        .expanded(true)
+                                        .child(
+                                            MashTreeItem::new("axiomatic", "Axiomatic")
+                                                .path("/shrine/axiomatic")
+                                                .expanded(true)
+                                                .child(
+                                                    MashTreeItem::new("foundry", "Foundry")
+                                                        .path("/shrine/axiomatic/foundry")
+                                                        .current(true),
+                                                ),
+                                        ),
+                                )
+                                .element(theme),
+                        ),
+                    )
+                    .child(
+                        div().flex_1().child(
+                            MashMyth::new("Billing Migration")
+                                .kind("Project")
+                                .path("/rec/project/billing-migration")
+                                .limb(MashLimb::field("status", "active"))
+                                .limb(MashLimb::field("goal", "replace legacy invoicer"))
+                                .element(theme),
+                        ),
                     ),
             )
     }

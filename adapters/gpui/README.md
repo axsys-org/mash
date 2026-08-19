@@ -44,6 +44,11 @@ The crate lockfile pins the exact GPUI revision currently locked by
 roles; `gpui-component` is the browser host that provides interaction and
 window mechanics without becoming a second source of visual tokens.
 
+The first parallel component family is now present: `MashBadge`, `MashPath`,
+`MashAvatar`, `MashTree`/`MashTreeItem`, and the composed Shrine
+`MashMyth`/`MashLimb` surface. Their Web↔GPUI correspondence and ownership
+rules live in [COMPONENTS.md](./COMPONENTS.md).
+
 ## Development
 
 From the repository root:
