@@ -34,3 +34,4 @@ export { UISpinner } from "./spinner/spinner.js";
 export type { SpinnerSize } from "./spinner/spinner.js";
 export { UITree } from "./tree/tree.js";
 export { UITreeItem } from "./tree-item/tree-item.js";
+export type { TreeItemSize } from "./tree-item/tree-item.js";

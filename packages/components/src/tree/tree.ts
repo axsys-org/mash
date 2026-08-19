@@ -1,43 +1,64 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, css, html, nothing, type TemplateResult } from "lit";
+
+import { baseStyles } from "../internal/base-styles.js";
 
 /**
- * TODO: what this component is for, and when to reach for it.
+ * A semantic container for a hierarchy of `ui-tree-item` elements.
+ *
+ * The tree owns the collection boundary and accessible name. Tree item state
+ * belongs to each `ui-tree-item`, so domain selection and loading rules can
+ * remain in the application rather than accumulating in the shared primitive.
  *
  * @tag ui-tree
- * @summary TODO: one line describing what it does.
+ * @summary Groups expandable tree items into an accessible hierarchy.
  *
- * @slot - TODO: describe the default slot.
- * @csspart root - The outermost element.
+ * @example Workspace tree
+ * <ui-tree label="Workspace files">
+ *   <ui-tree-item expanded>
+ *     <span slot="icon" aria-hidden="true">▣</span>src
+ *     <ui-tree-item slot="children"><span slot="icon" aria-hidden="true">•</span>main.ts</ui-tree-item>
+ *     <ui-tree-item slot="children"><span slot="icon" aria-hidden="true">•</span>styles.css</ui-tree-item>
+ *   </ui-tree-item>
+ * </ui-tree>
+ *
+ * @slot - One or more `ui-tree-item` elements.
+ *
+ * @csspart root - The semantic tree container.
  */
 export class UITree extends LitElement {
-  // Reactive properties go here, as a plain object — this system uses no
-  // decorators. Declare the matching fields with `declare` and assign their
-  // defaults in a constructor. Every attribute needs a JSDoc description, or
-  // the manifest build fails.
-  //
-  // static override properties = {
-  //   tone: { type: String, reflect: true },
-  // };
-  //
-  // /** TODO: describe this attribute. */
-  // declare tone: UITreeTone;
+  static override properties = {
+    label: { type: String, reflect: true },
+  };
 
-  static override styles = css`
-    :host {
-      display: block;
-      box-sizing: border-box;
-    }
+  /** Accessible name for the tree. */
+  declare label: string;
 
-    :host([hidden]) {
-      display: none !important;
-    }
+  constructor() {
+    super();
+    this.label = "";
+  }
 
-    /* Style from the semantic tokens (--color-*, --space-*, --radius-*).
-       Never reference --ref-* primitives, and keep anything you compute in a
-       private --_* variable rather than exposing it. */
-  `;
+  static override styles = [
+    baseStyles,
+    css`
+      :host {
+        display: block;
+        min-inline-size: 0;
+      }
+
+      .tree {
+        display: grid;
+        gap: var(--space-control-gap);
+        min-inline-size: 0;
+      }
+    `,
+  ];
 
   protected override render(): TemplateResult {
-    return html`<div part="root"><slot></slot></div>`;
+    return html`
+      <div part="root" class="tree" role="tree" aria-label=${this.label || nothing}>
+        <slot></slot>
+      </div>
+    `;
   }
 }

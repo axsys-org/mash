@@ -1,29 +1,29 @@
 import { describe, expect, it } from "vitest";
 
-import { fixture, inShadow } from "../test-support/fixture.js";
+import { fixture, inShadow, settled } from "../test-support/fixture.js";
 import { UITree } from "./tree.js";
 import "./register.js";
 
 describe("ui-tree", () => {
-  it("registers and upgrades", async () => {
+  it("registers, upgrades and exposes a labelled tree landmark", async () => {
     expect(customElements.get("ui-tree")).toBe(UITree);
 
-    const el = await fixture<UITree>(`<ui-tree>content</ui-tree>`);
-    expect(el).toBeInstanceOf(UITree);
-    expect(el.shadowRoot).not.toBeNull();
+    const tree = await fixture<UITree>(`<ui-tree label="Workspace files">content</ui-tree>`);
+    const root = inShadow<HTMLElement>(tree, '[part="root"]');
+
+    expect(tree).toBeInstanceOf(UITree);
+    expect(root.getAttribute("role")).toBe("tree");
+    expect(root.getAttribute("aria-label")).toBe("Workspace files");
   });
 
-  it("projects its default slot", async () => {
-    const el = await fixture<UITree>(`<ui-tree>content</ui-tree>`);
-    // `slot:not([name])` rather than `slot` — a component with named slots may
-    // well render one of those first.
-    const slot = inShadow<HTMLSlotElement>(el, "slot:not([name])");
+  it("reflects its accessible name and projects tree items", async () => {
+    const tree = await fixture<UITree>(`<ui-tree><ui-tree-item>src</ui-tree-item></ui-tree>`);
+    const slot = inShadow<HTMLSlotElement>(tree, "slot:not([name])");
 
-    expect(
-      slot
-        .assignedNodes({ flatten: true })
-        .map((node) => node.textContent?.trim())
-        .join(""),
-    ).toBe("content");
+    tree.label = "Project files";
+    await settled(tree.parentElement!);
+
+    expect(tree.getAttribute("label")).toBe("Project files");
+    expect(slot.assignedElements().map((item) => item.localName)).toEqual(["ui-tree-item"]);
   });
 });

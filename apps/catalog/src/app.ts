@@ -103,15 +103,13 @@ export function markupFor(component: ComponentSchema, state: State): string {
     });
 
   const open = [component.tagName, ...attrs].join(attrs.length > 1 ? "\n  " : " ");
-  const children = [
-    ...component.slots
-      .filter((slot) => state.slots[slot.name])
-      .map((slot) =>
-        slot.name
-          ? `  <span slot="${slot.name}">${state.slots[slot.name]}</span>`
-          : `  ${state.slots[slot.name]}`,
-      ),
-  ].filter(Boolean);
+  const children = component.slots
+    .filter((slot) => state.slots[slot.name])
+    .map((slot) =>
+      slot.name
+        ? `  <span slot="${slot.name}">${state.slots[slot.name]}</span>`
+        : `  ${state.slots[slot.name]}`,
+    );
 
   return `<${open}>\n${children.join("\n")}\n</${component.tagName}>`;
 }
