@@ -60,6 +60,14 @@
       "types": "./dist/card/register.d.ts",
       "import": "./dist/card/register.js"
     },
+    "./input": {
+      "types": "./dist/input/input.d.ts",
+      "import": "./dist/input/input.js"
+    },
+    "./input/register": {
+      "types": "./dist/input/register.d.ts",
+      "import": "./dist/input/register.js"
+    },
     "./kbd": {
       "types": "./dist/kbd/kbd.d.ts",
       "import": "./dist/kbd/kbd.js"

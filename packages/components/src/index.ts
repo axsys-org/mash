@@ -22,6 +22,8 @@ export { UIBadge } from "./badge/badge.js";
 export type { BadgeSize, BadgeTone } from "./badge/badge.js";
 export { UICard } from "./card/card.js";
 export type { CardElevation } from "./card/card.js";
+export { UIInput } from "./input/input.js";
+export type { InputSize, InputType } from "./input/input.js";
 export { UIKbd } from "./kbd/kbd.js";
 export { UIPath } from "./path/path.js";
 export { UIProgress } from "./progress/progress.js";

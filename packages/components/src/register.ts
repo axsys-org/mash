@@ -10,6 +10,7 @@ import "./avatar/register.js";
 import "./badge/register.js";
 import "./button/register.js";
 import "./card/register.js";
+import "./input/register.js";
 import "./kbd/register.js";
 import "./path/register.js";
 import "./progress/register.js";
