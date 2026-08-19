@@ -263,7 +263,10 @@ function createRequireElementMetadata(tagPrefix) {
 export function mashManifestConfig({ tagPrefix }) {
   return {
     globs: ["src/**/*.ts"],
-    exclude: ["src/**/*.test.ts", "src/test-support/**"],
+    // Internal implementation modules can define reusable Lit base classes,
+    // but they are not custom-element contracts and must never become catalog
+    // entries or generated wrapper targets.
+    exclude: ["src/**/*.test.ts", "src/test-support/**", "src/internal/**"],
     outdir: ".",
     litelement: true,
     // Order matters: internals are removed before the metadata gate runs, so

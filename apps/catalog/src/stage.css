@@ -191,6 +191,171 @@ html[data-layout="fill"] body {
   gap: var(--space-5);
 }
 
+/* System compositions -----------------------------------------------------
+
+   These classes are only the page context around the public components. They
+   deliberately use the same tokens as product UI, while layout belongs here
+   rather than leaking spacing or content decisions into a primitive. */
+
+.catalog-example {
+  display: block;
+  inline-size: min(100%, 680px);
+  color: var(--color-text);
+}
+
+.catalog-example-card {
+  inline-size: min(100%, 680px);
+}
+
+.example-stack,
+.example-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-control-gap);
+  padding: var(--space-container-block) var(--space-container-inline);
+  border: var(--border-hairline) solid var(--color-border);
+  border-radius: var(--radius-container);
+  background: var(--color-surface);
+}
+
+.example-stack > *,
+.example-form > * {
+  max-inline-size: 100%;
+}
+
+.example-eyebrow {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-family: var(--type-label-font-family);
+  font-size: var(--type-label-font-size);
+  font-weight: var(--type-label-font-weight);
+  line-height: var(--type-label-line-height);
+}
+
+.example-support,
+.example-dialog-copy p,
+.example-popover-content p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.example-card-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-control-gap);
+}
+
+.example-card-heading > div {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.example-card-heading strong,
+.example-dialog-copy h2,
+.example-popover-content strong {
+  font-family: var(--type-label-font-family);
+  font-size: var(--type-label-font-size);
+  font-weight: var(--type-label-font-weight);
+  line-height: var(--type-label-line-height);
+}
+
+.example-card-heading span {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--type-label-small-font-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.example-actions,
+.example-toolbar,
+.example-navigation {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-control-gap);
+}
+
+.example-field {
+  inline-size: min(100%, 440px);
+}
+
+.example-form ui-fieldset,
+.example-stack ui-fieldset {
+  inline-size: 100%;
+}
+
+.example-tabs {
+  padding: var(--space-container-block) var(--space-container-inline);
+  border: var(--border-hairline) solid var(--color-border);
+  border-radius: var(--radius-container);
+  background: var(--color-surface);
+}
+
+.example-tabs ui-tab-panel {
+  display: block;
+  padding-block-start: var(--space-container-block);
+}
+
+.example-dialog-copy,
+.example-popover-content {
+  display: grid;
+  gap: var(--space-control-gap);
+}
+
+.example-dialog-copy h2 {
+  margin: 0;
+}
+
+.example-popover-content {
+  min-inline-size: 240px;
+}
+
+.example-context-target {
+  inline-size: min(100%, 440px);
+}
+
+.example-context-target ui-card {
+  cursor: context-menu;
+}
+
+.example-context-target p,
+.example-activity ol {
+  margin: 0;
+}
+
+.example-activity {
+  display: block;
+  max-block-size: 190px;
+}
+
+.example-activity ol {
+  display: grid;
+  gap: var(--space-3);
+  padding-inline-start: var(--space-6);
+}
+
+.example-navigation {
+  padding: var(--space-control-block) var(--space-control-inline);
+  border: var(--border-hairline) solid var(--color-border);
+  border-radius: var(--radius-container);
+  background: var(--color-surface);
+}
+
+.example-navigation a,
+ui-preview-card a {
+  color: var(--color-action);
+  text-decoration: none;
+}
+
+.example-navigation a:hover,
+ui-preview-card a:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 560px) {
   .button-showcase-heading {
     align-items: flex-start;
@@ -204,5 +369,14 @@ html[data-layout="fill"] body {
   .button-showcase-grid {
     grid-template-columns: minmax(58px, 0.5fr) repeat(3, minmax(0, 1fr));
     gap: var(--space-2);
+  }
+
+  .example-card-heading {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .example-card-heading ui-badge {
+    grid-column: 2;
+    justify-self: start;
   }
 }

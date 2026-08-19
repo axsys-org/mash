@@ -1,0 +1,634 @@
+/**
+ * Mash's first component recipe catalogue.
+ *
+ * Import this stylesheet once at an application boundary, then opt a subtree
+ * in with `data-mash-catalogue="mash"`:
+ *
+ *   import "@mash/tokens/tokens.css";
+ *   import "@mash/ui/catalogue/mash.css";
+ *
+ *   <main data-mash-catalogue="mash">…</main>
+ *
+ * The components themselves own accessible native controls, reflected state,
+ * events, slots, and parts. This file owns Mash's visual interpretation of
+ * those contracts. A future Shrine, Interzone, or product catalogue can target
+ * the same parts without forking component behaviour.
+ */
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(root),
+  :where([data-mash-catalogue="mash"]) ui-switch::part(root) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-control-gap);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(control),
+  :where([data-mash-catalogue="mash"]) ui-switch::part(control) {
+    flex: none;
+    inline-size: calc(var(--space-control-block) + var(--space-control-block));
+    block-size: calc(var(--space-control-block) + var(--space-control-block));
+    margin: 0;
+    accent-color: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-switch::part(control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox[disabled]::part(root),
+  :where([data-mash-catalogue="mash"]) ui-switch[disabled]::part(root) {
+    color: var(--color-text-disabled);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toggle::part(control) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: calc(var(--space-container-inline) + var(--space-control-inline));
+    border: var(--border-hairline) solid var(--color-border-strong);
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--type-label-font-family);
+    font-size: var(--type-label-font-size);
+    font-weight: var(--type-label-font-weight);
+    line-height: var(--type-label-line-height);
+    transition:
+      background-color var(--duration-control) var(--easing-control),
+      border-color var(--duration-control) var(--easing-control),
+      color var(--duration-control) var(--easing-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toggle:hover:not([disabled])::part(control) {
+    border-color: var(--color-action-hover);
+    color: var(--color-action-hover);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toggle[pressed]::part(control) {
+    border-color: var(--color-action);
+    background: var(--color-action);
+    color: var(--color-on-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toggle[pressed]:hover:not([disabled])::part(control) {
+    border-color: var(--color-action-hover);
+    background: var(--color-action-hover);
+    color: var(--color-on-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toggle::part(control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toggle[disabled]::part(control) {
+    border-color: var(--color-border);
+    background: var(--color-surface-sunken);
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox-group::part(root),
+  :where([data-mash-catalogue="mash"]) ui-radio-group::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox-group[orientation="horizontal"]::part(root),
+  :where([data-mash-catalogue="mash"]) ui-radio-group[orientation="horizontal"]::part(root),
+  :where([data-mash-catalogue="mash"]) ui-toggle-group[orientation="horizontal"]::part(root),
+  :where([data-mash-catalogue="mash"]) ui-toolbar[orientation="horizontal"]::part(root) {
+    grid-auto-flow: column;
+    justify-content: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-radio::part(root) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-control-gap);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-radio::part(control) {
+    flex: none;
+    inline-size: calc(var(--space-control-block) + var(--space-control-block));
+    block-size: calc(var(--space-control-block) + var(--space-control-block));
+    margin: 0;
+    accent-color: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-radio::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-slider::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-collapsible::part(trigger):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-accordion-item::part(trigger):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-tab::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-scroll-area::part(viewport):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-radio[disabled]::part(root) {
+    color: var(--color-text-disabled);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toggle-group::part(root),
+  :where([data-mash-catalogue="mash"]) ui-toolbar::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    align-items: center;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toggle-group[orientation="vertical"]::part(root),
+  :where([data-mash-catalogue="mash"]) ui-toolbar[orientation="vertical"]::part(root) {
+    justify-items: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-collapsible,
+  :where([data-mash-catalogue="mash"]) ui-accordion-item {
+    display: block;
+    border: var(--border-hairline) solid var(--color-border);
+    border-radius: var(--radius-container);
+    background: var(--color-surface);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-collapsible::part(trigger),
+  :where([data-mash-catalogue="mash"]) ui-accordion-item::part(trigger) {
+    inline-size: 100%;
+    border: 0;
+    border-radius: calc(var(--radius-container) - var(--border-hairline));
+    padding: var(--space-control-block-large) var(--space-container-inline);
+    background: transparent;
+    color: var(--color-text);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+    text-align: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-collapsible::part(trigger):hover:not(:disabled),
+  :where([data-mash-catalogue="mash"]) ui-accordion-item::part(trigger):hover:not(:disabled) {
+    background: var(--color-surface-sunken);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-collapsible::part(content),
+  :where([data-mash-catalogue="mash"]) ui-accordion-item::part(content) {
+    padding: 0 var(--space-container-inline) var(--space-container-block);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-accordion::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-tabs::part(list) {
+    display: flex;
+    gap: var(--space-control-gap);
+    border-block-end: var(--border-hairline) solid var(--color-border);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-tab::part(control) {
+    border: 0;
+    border-block-end: var(--border-strong) solid transparent;
+    padding: var(--space-control-block-large) var(--space-control-inline);
+    background: transparent;
+    color: var(--color-text-muted);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-tab::part(control):hover:not(:disabled) {
+    color: var(--color-text);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-tab[selected]::part(control) {
+    border-block-end-color: var(--color-action);
+    color: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-tabs::part(panels) {
+    padding-block-start: var(--space-container-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-tab-panel::part(root) {
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    color: var(--color-text);
+    font-family: var(--type-label-font-family);
+    font-size: var(--type-label-font-size);
+    font-weight: var(--type-label-font-weight);
+    line-height: var(--type-label-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(control) {
+    inline-size: 100%;
+    accent-color: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-meter::part(root) {
+    inline-size: 100%;
+    block-size: var(--space-control-block);
+    accent-color: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area::part(viewport) {
+    display: block;
+    overflow: auto;
+    max-block-size: calc(var(--space-container-block) * 12);
+    border: var(--border-hairline) solid var(--color-border);
+    border-radius: var(--radius-container);
+    padding: var(--space-container-block) var(--space-container-inline);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field::part(label),
+  :where([data-mash-catalogue="mash"]) ui-fieldset::part(legend),
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(label),
+  :where([data-mash-catalogue="mash"]) ui-otp-field::part(label) {
+    color: var(--color-text);
+    font-family: var(--type-label-font-family);
+    font-size: var(--type-label-font-size);
+    font-weight: var(--type-label-font-weight);
+    line-height: var(--type-label-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field::part(description) {
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+    line-height: var(--type-label-small-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field::part(error) {
+    color: var(--color-critical);
+    font-size: var(--type-label-small-font-size);
+    line-height: var(--type-label-small-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-fieldset::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    margin: 0;
+    border: var(--border-hairline) solid var(--color-border);
+    border-radius: var(--radius-container);
+    padding: var(--space-container-block) var(--space-container-inline);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-fieldset::part(legend) {
+    padding-inline: var(--space-control-block);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-form::part(root) {
+    display: grid;
+    gap: var(--space-stack);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement),
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment) {
+    min-inline-size: calc(var(--space-container-inline) + var(--space-control-inline));
+    min-block-size: calc(var(--space-container-inline) + var(--space-control-inline));
+    border: var(--border-hairline) solid var(--color-border-strong);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement) {
+    border-radius: var(--radius-control) 0 0 var(--radius-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment) {
+    border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(control) {
+    min-block-size: calc(var(--space-container-inline) + var(--space-control-inline));
+    min-inline-size: calc(var(--space-container-inline) + var(--space-container-inline));
+    border: var(--border-hairline) solid var(--color-border-strong);
+    border-inline: 0;
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-otp-field::part(cell):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-otp-field::part(root) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-control-gap);
+    align-items: center;
+    color: var(--color-text);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-otp-field::part(label) {
+    flex-basis: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-otp-field::part(cell) {
+    inline-size: calc(var(--space-container-inline) + var(--space-control-inline));
+    block-size: calc(var(--space-container-inline) + var(--space-control-inline));
+    border: var(--border-hairline) solid var(--color-border-strong);
+    border-radius: var(--radius-control);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: var(--type-heading-font-weight) var(--type-heading-font-size) /
+      var(--type-heading-line-height) var(--type-heading-font-family);
+    text-align: center;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-popover::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-menu::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-tooltip::part(backdrop) {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: var(--space-container-inline);
+  }
+
+  /* `display: grid` above is an authored declaration and therefore wins over
+     the browser's weak `[hidden]` rule. Key visibility off the reflected
+     component state as well, otherwise a closed overlay leaves an invisible
+     full-viewport layer in front of its trigger. */
+  :where([data-mash-catalogue="mash"]) ui-dialog:not([open])::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog:not([open])::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-drawer:not([open])::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-popover:not([open])::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-menu:not([open])::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:not([open])::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-preview-card:not([open])::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-tooltip:not([open])::part(backdrop) {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(backdrop) {
+    background: color-mix(in oklab, var(--color-text) 28%, transparent);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-popover::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-menu::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-tooltip::part(popup) {
+    max-inline-size: min(100%, calc(var(--space-container-inline) * 18));
+    border: var(--border-hairline) solid var(--color-border);
+    border-radius: var(--radius-container);
+    padding: var(--space-container-block) var(--space-container-inline);
+    background: var(--color-surface-raised);
+    box-shadow: 0 4px 12px var(--color-shadow);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(backdrop) {
+    justify-items: end;
+    padding: 0;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer[side="start"]::part(backdrop) {
+    justify-items: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer[side="top"]::part(backdrop) {
+    align-items: start;
+    justify-items: stretch;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer[side="bottom"]::part(backdrop) {
+    align-items: end;
+    justify-items: stretch;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(popup) {
+    min-block-size: 100%;
+    max-inline-size: min(100%, calc(var(--space-container-inline) * 16));
+    border-radius: 0;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer[side="top"]::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-drawer[side="bottom"]::part(popup) {
+    min-block-size: auto;
+    max-inline-size: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-popover::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-menu::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(backdrop) {
+    align-items: start;
+    justify-items: start;
+    background: transparent;
+    padding: calc(var(--space-container-block) * 2);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-tooltip::part(backdrop) {
+    pointer-events: none;
+    background: transparent;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-tooltip::part(popup) {
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--color-text);
+    color: var(--color-surface);
+    font-family: var(--type-label-font-family);
+    font-size: var(--type-label-small-font-size);
+    line-height: var(--type-label-small-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(popup) {
+    display: grid;
+    min-inline-size: calc(var(--space-container-inline) * 6);
+    gap: var(--border-hairline);
+    padding: var(--space-control-block);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(control) {
+    inline-size: 100%;
+    border: 0;
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: transparent;
+    color: var(--color-text);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+    text-align: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(control):hover:not(:disabled),
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(control):focus-visible {
+    background: var(--color-neutral-hover);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menubar::part(root),
+  :where([data-mash-catalogue="mash"]) ui-navigation-menu::part(root) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-control-gap);
+    align-items: center;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-navigation-menu::part(root) {
+    color: var(--color-text);
+    font-family: var(--type-label-font-family);
+    font-size: var(--type-label-font-size);
+    font-weight: var(--type-label-font-weight);
+    line-height: var(--type-label-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(trigger),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(control) {
+    min-block-size: calc(var(--space-container-inline) + var(--space-control-inline));
+    min-inline-size: calc(var(--space-container-inline) * 4);
+    border: var(--border-hairline) solid var(--color-border-strong);
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+    text-align: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(trigger):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-option::part(control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(listbox),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(listbox) {
+    display: grid;
+    gap: var(--border-hairline);
+    margin-block-start: var(--space-control-gap);
+    border: var(--border-hairline) solid var(--color-border);
+    border-radius: var(--radius-container);
+    padding: var(--space-control-block);
+    background: var(--color-surface-raised);
+    box-shadow: 0 4px 12px var(--color-shadow);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-option::part(control) {
+    inline-size: 100%;
+    border: 0;
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: transparent;
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+    text-align: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-option[selected]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-option::part(control):hover:not(:disabled) {
+    background: var(--color-neutral-hover);
+    color: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toast::part(root) {
+    display: flex;
+    gap: var(--space-control-gap);
+    align-items: center;
+    max-inline-size: calc(var(--space-container-inline) * 14);
+    border: var(--border-hairline) solid var(--color-border);
+    border-radius: var(--radius-container);
+    padding: var(--space-control-block-large) var(--space-container-inline);
+    background: var(--color-surface-raised);
+    box-shadow: 0 4px 12px var(--color-shadow);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toast[tone="positive"]::part(root) {
+    border-color: var(--color-positive);
+  }
+  :where([data-mash-catalogue="mash"]) ui-toast[tone="warning"]::part(root) {
+    border-color: var(--color-warning);
+  }
+  :where([data-mash-catalogue="mash"]) ui-toast[tone="critical"]::part(root) {
+    border-color: var(--color-critical);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toast::part(close) {
+    margin-inline-start: auto;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) ui-toggle::part(control) {
+      transition: none;
+    }
+  }
+}

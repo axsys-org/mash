@@ -8,6 +8,7 @@
  */
 
 import "@mash/tokens/tokens.css";
+import "@mash/ui/catalogue/mash.css";
 import "@mash/ui/register";
 import "@mash/shrine/register";
 
@@ -19,6 +20,11 @@ import { stateFromUrl, urlForState } from "./url-state.js";
 
 const root = document.querySelector<HTMLElement>("#app");
 if (!root) throw new Error("#app not found");
+
+// The catalog demonstrates the default Mash recipe explicitly. Components
+// remain behaviour-only without this opt-in, so another product can load a
+// different catalogue without changing the component module.
+document.documentElement.dataset.mashCatalogue = "mash";
 
 const first = components[0];
 if (!first) throw new Error("custom-elements.json contains no custom elements");

@@ -20,7 +20,10 @@ import { defineConfig, devices } from "@playwright/test";
  * See ./README.md for the platform constraint on baselines.
  */
 
-const PORT = 5175;
+// Worktree reviews often keep another catalog preview on the default port.
+// Let an explicit run select a clean port, while CI and ordinary local review
+// retain the documented default address.
+const PORT = Number(process.env.MASH_CATALOG_PORT ?? 5175);
 const isCI = Boolean(process.env.CI);
 
 export default defineConfig({

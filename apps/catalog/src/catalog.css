@@ -116,6 +116,25 @@ pre {
   color: var(--chrome-muted);
 }
 
+.component-family + .component-family {
+  margin-top: 20px;
+}
+
+.family-title {
+  margin: 0;
+  color: var(--chrome-fg);
+  font-family: var(--chrome-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.family-description {
+  margin: 4px 0 8px;
+  color: var(--chrome-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .sidebar ul {
   margin: 0;
   padding: 0;
