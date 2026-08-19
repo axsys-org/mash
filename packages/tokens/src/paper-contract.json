@@ -1,0 +1,61 @@
+{
+  "$schema": "https://paper.design/token-contract.schema.json",
+  "source": {
+    "product": "Paper",
+    "fileId": "01M0B428BR58QAJNKKH46MHS7P",
+    "contentHash": "f44e128c",
+    "scope": "Interzone foundations"
+  },
+  "mappings": {
+    "light": {
+      "--color-canvas": "color.reference.neutral.50",
+      "--color-surface": "color.reference.neutral.0",
+      "--color-surface-raised": "color.reference.neutral.0",
+      "--color-surface-sunken": "color.reference.neutral.100",
+      "--color-text": "color.reference.neutral.900",
+      "--color-text-muted": "color.reference.neutral.600",
+      "--color-text-disabled": "color.reference.neutral.300",
+      "--color-border": "color.reference.neutral.100",
+      "--color-border-strong": "color.reference.neutral.200",
+      "--color-focus-ring": "color.reference.blue.500",
+      "--color-shadow": "color.reference.shadow.soft",
+      "--color-action": "color.reference.blue.500",
+      "--color-action-hover": "color.reference.blue.600",
+      "--color-action-pressed": "color.reference.blue.700",
+      "--color-on-action": "color.reference.neutral.900",
+      "--color-neutral": "color.reference.neutral.100",
+      "--color-neutral-hover": "color.reference.neutral.200",
+      "--color-neutral-pressed": "color.reference.neutral.300",
+      "--color-on-neutral": "color.reference.neutral.900",
+      "--color-positive": "color.reference.green.600",
+      "--color-positive-hover": "color.reference.green.700",
+      "--color-positive-pressed": "color.reference.green.800",
+      "--color-on-positive": "color.reference.neutral.0",
+      "--color-warning": "color.reference.amber.600",
+      "--color-warning-hover": "color.reference.amber.700",
+      "--color-warning-pressed": "color.reference.amber.800",
+      "--color-on-warning": "color.reference.neutral.900",
+      "--color-critical": "color.reference.red.600",
+      "--color-critical-hover": "color.reference.red.700",
+      "--color-critical-pressed": "color.reference.red.800",
+      "--color-on-critical": "color.reference.neutral.0"
+    },
+    "dark": {
+      "--color-dark-canvas": "color.reference.neutral.1000",
+      "--color-dark-surface": "color.reference.neutral.900",
+      "--color-dark-surface-raised": "color.reference.neutral.850",
+      "--color-dark-surface-sunken": "color.reference.neutral.1000",
+      "--color-dark-text": "color.reference.neutral.0",
+      "--color-dark-text-muted": "color.reference.neutral.300",
+      "--color-dark-text-disabled": "color.reference.neutral.500",
+      "--color-dark-border": "color.reference.neutral.700",
+      "--color-dark-border-strong": "color.reference.neutral.500",
+      "--color-dark-action": "color.reference.blue.400",
+      "--color-dark-on-action": "color.reference.neutral.1000"
+    }
+  },
+  "notes": [
+    "Mappings are aliases, not copied color literals; the reference ramp remains Mash's DTCG source.",
+    "Only explicit Paper light roles and dark-prefixed roles are checked. Mash may carry additional semantic roles where Paper does not expose a mode-specific alias."
+  ]
+}

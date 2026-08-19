@@ -139,6 +139,15 @@ provenance is visible in the browser inspector as well as in `tokens.json`.
 After the build, the generated CSS is re-checked against itself: every `var()` it emits must be
 defined by one of the generated stylesheets.
 
+### Paper synchronization
+
+The Interzone Paper foundation is tracked by the reviewed contract at
+`packages/tokens/src/paper-contract.json`. It records the Paper content hash and
+the semantic aliases Mash is expected to preserve. `pnpm run check:paper` compares
+that contract with the generated token graph and fails when a Paper-aligned alias
+drifts. See `docs/paper-sync.md` for the supervised design-to-code workflow and
+the PR preview handoff; synchronized changes are recorded in `CHANGELOG.md`.
+
 ## The component layer
 
 Components are Lit-based but expose no Lit-specific consumer API — they are custom elements, and
