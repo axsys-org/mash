@@ -26,4 +26,11 @@ describe("ui-tree", () => {
     expect(tree.getAttribute("label")).toBe("Project files");
     expect(slot.assignedElements().map((item) => item.localName)).toEqual(["ui-tree-item"]);
   });
+
+  it("uses a descriptive accessible name when no label is supplied", async () => {
+    const tree = await fixture<UITree>(`<ui-tree>content</ui-tree>`);
+    const root = inShadow<HTMLElement>(tree, '[part="root"]');
+
+    expect(root.getAttribute("aria-label")).toBe("Shrine tree");
+  });
 });

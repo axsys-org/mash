@@ -1,41 +1,42 @@
-import { LitElement, css, html, nothing, type TemplateResult } from "lit";
+import { LitElement, css, html, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
 /**
- * A semantic container for a hierarchy of `ui-tree-item` elements.
+ * A navigable Shrine tree surface.
  *
- * The tree owns the collection boundary and accessible name. Tree item state
- * belongs to each `ui-tree-item`, so domain selection and loading rules can
- * remain in the application rather than accumulating in the shared primitive.
+ * The tree is intentionally compositional: direct children are
+ * `<ui-tree-item>` elements, and an item can own another level through its
+ * `children` slot. That keeps deeply nested structures and empty intermediate
+ * namespaces explicit instead of flattening them into a presentation-only
+ * list. Individual item state remains parent-controlled.
  *
  * @tag ui-tree
- * @summary Groups expandable tree items into an accessible hierarchy.
+ * @summary Groups expandable Shrine tree items into an accessible hierarchy.
  *
- * @example Workspace tree
- * <ui-tree label="Workspace files">
- *   <ui-tree-item expanded>
- *     <span slot="icon" aria-hidden="true">▣</span>src
- *     <ui-tree-item slot="children"><span slot="icon" aria-hidden="true">•</span>main.ts</ui-tree-item>
- *     <ui-tree-item slot="children"><span slot="icon" aria-hidden="true">•</span>styles.css</ui-tree-item>
+ * @slot - Tree items.
+ * @csspart root - The semantic tree container.
+ *
+ * @example Shrine hierarchy
+ * <ui-tree label="Shrine namespaces">
+ *   <ui-tree-item path="/shrine" expanded>
+ *     <ui-tree-item slot="children" path="/shrine/axiomatic" expanded>
+ *       <ui-tree-item slot="children" path="/shrine/axiomatic/foundry"></ui-tree-item>
+ *     </ui-tree-item>
  *   </ui-tree-item>
  * </ui-tree>
- *
- * @slot - One or more `ui-tree-item` elements.
- *
- * @csspart root - The semantic tree container.
  */
 export class UITree extends LitElement {
   static override properties = {
     label: { type: String, reflect: true },
   };
 
-  /** Accessible name for the tree. */
+  /** Accessible name for the tree region. */
   declare label: string;
 
   constructor() {
     super();
-    this.label = "";
+    this.label = "Shrine tree";
   }
 
   static override styles = [
@@ -43,20 +44,33 @@ export class UITree extends LitElement {
     css`
       :host {
         display: block;
-        min-inline-size: 0;
+        max-inline-size: 100%;
+
+        color: var(--color-text);
+        font-family: var(--type-body-font-family);
+        font-size: var(--type-body-font-size);
+        line-height: var(--type-body-line-height);
       }
 
-      .tree {
-        display: grid;
-        gap: var(--space-control-gap);
+      .root {
+        display: block;
         min-inline-size: 0;
+        padding: var(--space-control-block) 0;
+
+        background: var(--color-surface);
+        border: var(--border-hairline) solid var(--color-border);
+        border-radius: var(--radius-container);
+      }
+
+      ::slotted(ui-tree-item) {
+        display: block;
       }
     `,
   ];
 
   protected override render(): TemplateResult {
     return html`
-      <div part="root" class="tree" role="tree" aria-label=${this.label || nothing}>
+      <div part="root" class="root" role="tree" aria-label=${this.label}>
         <slot></slot>
       </div>
     `;
