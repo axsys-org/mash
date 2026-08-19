@@ -17,8 +17,19 @@ describe("ui-avatar", () => {
     ).toEqual(expect.arrayContaining(["root", "image", "fallback"]));
   });
 
-  it("uses the fallback when an image is absent or fails", async () => {
-    const avatar = await fixture<UIAvatar>(`<ui-avatar src="/missing.png">AX</ui-avatar>`);
+  it("uses the fallback when an image is absent", async () => {
+    const avatar = await fixture<UIAvatar>(`<ui-avatar>AX</ui-avatar>`);
+    const image = inShadow<HTMLImageElement>(avatar, "img");
+
+    expect(image.hidden).toBe(true);
+    const fallbackSlot = inShadow<HTMLSlotElement>(avatar, '[part="fallback"] slot');
+    expect(fallbackSlot.assignedNodes().map((node) => node.textContent?.trim())).toContain("AX");
+  });
+
+  it("uses the fallback after an image fails", async () => {
+    const avatar = await fixture<UIAvatar>(
+      `<ui-avatar src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E">AX</ui-avatar>`,
+    );
     const image = inShadow<HTMLImageElement>(avatar, "img");
 
     expect(image.hidden).toBe(false);
