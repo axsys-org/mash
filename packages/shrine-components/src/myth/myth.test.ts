@@ -5,61 +5,69 @@ import { ShrineMyth } from "./myth.js";
 import "./register.js";
 
 describe("sh-myth", () => {
-  it("registers and upgrades", async () => {
+  const projectRecord = `
+    <sh-myth kind="Project" title="Billing Migration" path="/rec/project/billing-migration">
+      <sh-limb>
+        <sh-slot slot="slot" title="status"></sh-slot>
+        <sh-pail slot="value" text="active"></sh-pail>
+      </sh-limb>
+      <sh-limb>
+        <sh-slot slot="slot" title="goal"></sh-slot>
+        <sh-pail slot="value" text="replace legacy invoicer"></sh-pail>
+      </sh-limb>
+    </sh-myth>
+  `;
+
+  it("registers the full composed record anatomy", async () => {
+    const el = await fixture<ShrineMyth>(projectRecord);
+
     expect(customElements.get("sh-myth")).toBe(ShrineMyth);
-
-    const el = await fixture<ShrineMyth>(`<sh-myth></sh-myth>`);
-    expect(el).toBeInstanceOf(ShrineMyth);
-    expect(el.shadowRoot).not.toBeNull();
-    expect(el.label).toBe("Myth");
-    expect(el.entries).toEqual([]);
-  });
-
-  it("registers and upgrades the path and card elements it composes", async () => {
-    const el = await fixture<ShrineMyth>(`<sh-myth></sh-myth>`);
-
+    expect(customElements.get("sh-limb")).toBeDefined();
+    expect(customElements.get("sh-slot")).toBeDefined();
+    expect(customElements.get("sh-pail")).toBeDefined();
     expect(customElements.get("ui-card")).toBeDefined();
-    expect(customElements.get("ui-path")).toBeDefined();
+    expect(customElements.get("ui-badge")).toBeDefined();
     expect(inShadow(el, "ui-card").shadowRoot).not.toBeNull();
   });
 
-  it("renders declarative JSON as slot paths and code blocks", async () => {
-    const el = await fixture<ShrineMyth>(`
-      <sh-myth label="Observed mapping" data='[
-        {"slot":"/shrine/alpha","title":"Alpha","value":{"kind":"leaf","count":2}},
-        {"slot":"/shrine/beta","value":"line one\\nline two"}
-      ]'></sh-myth>
-    `);
+  it("renders the record identity and uses the existing UI badge for kind", async () => {
+    const el = await fixture<ShrineMyth>(projectRecord);
 
-    const entries = shadow(el).querySelectorAll<HTMLElement>("[part=entry]");
-    expect(entries).toHaveLength(2);
-    expect(shadow(el).querySelector("[part=heading]")?.textContent).toBe("Observed mapping");
+    expect(inShadow(el, "[part=title]").textContent).toBe("Billing Migration");
+    expect(inShadow(el, "[part=path]").textContent).toBe("/rec/project/billing-migration");
 
-    const paths = shadow(el).querySelectorAll<HTMLElement>("ui-path");
-    expect(paths).toHaveLength(2);
-    expect(paths[0]!.getAttribute("path")).toBe("/shrine/alpha");
-    expect(paths[0]!.getAttribute("title")).toBe("Alpha");
-
-    const blocks = shadow(el).querySelectorAll("pre code");
-    expect(blocks[0]!.textContent).toContain('"kind": "leaf"');
-    expect(blocks[0]!.textContent).toContain('"count": 2');
-    expect(blocks[1]!.textContent).toBe("line one\nline two");
+    const badge = inShadow<HTMLElement>(el, "ui-badge");
+    expect(badge.getAttribute("part")).toBe("kind");
+    expect(badge.textContent).toBe("Project");
   });
 
-  it("renders structured entries and pretty-prints non-string values", async () => {
-    const el = await fixture<ShrineMyth>(`<sh-myth></sh-myth>`);
+  it("keeps labels and values owned by the projected limb anatomy", async () => {
+    const el = await fixture<ShrineMyth>(projectRecord);
+    const limbs = el.querySelectorAll("sh-limb");
+    expect(limbs).toHaveLength(2);
 
-    el.entries = [{ slot: "/runtime/value", value: { ready: true, depth: 3 } }];
-    await settled(el.parentElement!);
-
-    expect(inShadow(el, "ui-path").getAttribute("path")).toBe("/runtime/value");
-    expect(inShadow(el, "pre code").textContent).toContain('"ready": true');
+    await settled(el);
+    const firstLimb = limbs[0]!;
+    const secondLimb = limbs[1]!;
+    expect(inShadow<HTMLSlotElement>(firstLimb, "slot[name=slot]").assignedElements()).toHaveLength(
+      1,
+    );
+    expect(
+      inShadow<HTMLSlotElement>(firstLimb, "slot[name=value]").assignedElements(),
+    ).toHaveLength(1);
+    expect(inShadow(firstLimb.querySelector("sh-slot")!, "[part=root]").textContent).toBe("status");
+    expect(inShadow(firstLimb.querySelector("sh-pail")!, "[part=root]").textContent).toBe("active");
+    expect(inShadow(secondLimb.querySelector("sh-slot")!, "[part=root]").textContent).toBe("goal");
+    expect(inShadow(secondLimb.querySelector("sh-pail")!, "[part=root]").textContent).toBe(
+      "replace legacy invoicer",
+    );
   });
 
-  it("shows a bounded empty state for invalid or empty input", async () => {
-    const el = await fixture<ShrineMyth>(`<sh-myth data="not-json"></sh-myth>`);
+  it("renders a bounded identity when optional metadata is absent", async () => {
+    const el = await fixture<ShrineMyth>(`<sh-myth title="Untitled record"></sh-myth>`);
 
-    expect(inShadow(el, "[part=empty]").textContent).toBe("No mappings.");
-    expect(shadow(el).querySelectorAll("[part=entry]")).toHaveLength(0);
+    expect(inShadow(el, "[part=title]").textContent).toBe("Untitled record");
+    expect(shadow(el).querySelector("[part=kind]")).toBeNull();
+    expect(shadow(el).querySelector("[part=path]")).toBeNull();
   });
 });
