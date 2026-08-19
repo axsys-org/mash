@@ -131,7 +131,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: pnpm run build
+        run: pnpm run build:catalog
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -176,7 +176,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # Exactly the command in vercel.json, from exactly the directory Vercel
-      # runs it in, against as cold a tree as Vercel's builder gets.
+      # runs it in, against as cold a tree as Vercel's builder gets. Blob
+      # publication is gated on VERCEL=1, so this proves the deterministic
+      # build without giving an ordinary CI job deployment credentials.
       #
       # All three of those details have broken a deployment. Vercel's project
       # Root Directory is apps/catalog, so its commands run there and not at
@@ -185,14 +187,15 @@ jobs:
       # Building the packages in a separate step first would defeat the point
       # entirely: the failure being guarded against is the catalog being built
       # before its dependencies exist.
-      - name: Build catalog (as Vercel does)
+      - name: Build catalog and browser bundle (as Vercel does)
         working-directory: apps/catalog
-        run: pnpm -w run build:catalog
+        run: pnpm -w run build:vercel
 
       - name: Check the build emitted what it should
         run: |
           test -f apps/catalog/dist/index.html
           test -f apps/catalog/dist/stage.html
+          test -f apps/catalog/dist/mash.js
           test -d apps/catalog/dist/assets
           echo "catalog build ok"
 

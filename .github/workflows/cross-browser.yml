@@ -50,7 +50,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: pnpm run build
+        run: pnpm run build:catalog
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4

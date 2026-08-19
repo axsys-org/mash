@@ -1,17 +1,18 @@
-import { existsSync } from "node:fs";
-import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import process from "node:process";
 
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig } from "vite";
+
+import { requireBuiltPackages } from "./vite.shared.js";
 
 /**
- * The catalog is the *only* place Vite is used in this repo.
+ * `apps/catalog` is the *only* place Vite is used in this repo.
  *
  * The component package is compiled by tsc into a plain ES module graph and
- * never goes through a bundler, so nothing here affects what ships. Vite's job
- * is to serve the catalog during development, and to emit the static bundle
- * that Vercel serves as the per-PR preview.
+ * never goes through a bundler, so nothing here affects the canonical package
+ * artifacts. Vite serves the catalog during development and emits the static
+ * catalog Vercel serves; vite.iife.config.ts produces the explicitly secondary
+ * single-file browser distribution.
  */
 
 /**
@@ -43,53 +44,6 @@ function buildInfo() {
     sha: env.VERCEL_GIT_COMMIT_SHA ?? env.GITHUB_SHA ?? null,
     pr: env.VERCEL_GIT_PULL_REQUEST_ID ?? null,
     repo: repo || null,
-  };
-}
-
-/**
- * Fail early, and say why.
- *
- * The catalog imports generated artifacts — `@mash/tokens/tokens.css`, each
- * package's `custom-elements.json` — that only exist after those packages have
- * been built. Run Vite against a cold tree and the first symptom is a Rolldown
- * "failed to resolve import" for a specifier that is spelled perfectly
- * correctly, which sends you looking at the exports map instead of at the
- * build order. That failure mode cost a Vercel deployment once already.
- *
- * `pnpm build:catalog` makes it structurally impossible by building the
- * dependencies first; this is the backstop for anyone running `vite build`
- * directly.
- */
-function requireBuiltPackages(): Plugin {
-  const require = createRequire(import.meta.url);
-
-  const required = [
-    "@mash/tokens/tokens.css",
-    "@mash/ui/custom-elements.json",
-    "@mash/shrine/custom-elements.json",
-  ];
-
-  return {
-    name: "mash:require-built-packages",
-    enforce: "pre",
-    buildStart() {
-      const missing = required.filter((specifier) => {
-        try {
-          return !existsSync(require.resolve(specifier));
-        } catch {
-          return true;
-        }
-      });
-
-      if (missing.length > 0) {
-        this.error(
-          `the catalog consumes generated artifacts that do not exist yet:\n` +
-            missing.map((specifier) => `  ${specifier}`).join("\n") +
-            `\n\nBuild the workspace packages first. From the repository root:\n` +
-            `  pnpm build:catalog    (builds tokens, components and the catalog in order)`,
-        );
-      }
-    },
   };
 }
 

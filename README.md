@@ -75,7 +75,7 @@ failure reads as `tokens` or `manifest` rather than as a line in one long log:
 | `pnpm tokens`          | Style Dictionary — DTCG sources to CSS, JSON and TS            |
 | `pnpm components`      | `tsc` for every component package                              |
 | `pnpm cem`             | Custom Elements Manifest for every component package           |
-| `pnpm build:catalog`   | The catalog's production build — the artifact Vercel serves    |
+| `pnpm build:catalog`   | The catalog and single-file browser distribution               |
 | `pnpm preview:catalog` | Serve that build locally                                       |
 | `pnpm test:browser`    | Alias for `pnpm test`, named for what it is                    |
 | `pnpm test:visual`     | Screenshot the canonical states (see `tests/visual/README.md`) |
@@ -301,7 +301,7 @@ address (or press **copy link** next to the component name) and paste it into yo
 ```jsonc
 {
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm -w run build:catalog",
+  "buildCommand": "pnpm -w run build:vercel",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/components/:path*", "destination": "/index.html" }],
 }
@@ -312,7 +312,7 @@ Two details in there are load-bearing, and both are consequences of the same fac
 **The Vercel project's Root Directory is `apps/catalog`.** `vercel.json` is read from the repository
 root, but the commands in it **run in the Root Directory**. So:
 
-- `pnpm -w` targets the workspace root explicitly. Without it, `pnpm run build:catalog` looks only
+- `pnpm -w` targets the workspace root explicitly. Without it, `pnpm run build:vercel` looks only
   at `apps/catalog/package.json` — which has no such script — and a bare `pnpm run build` is worse,
   because it silently resolves to the catalog's own `vite build` and tries to bundle against
   packages that have not been built yet.
@@ -321,12 +321,17 @@ root, but the commands in it **run in the Root Directory**. So:
 Install still covers the whole workspace: pnpm walks up to `pnpm-workspace.yaml` and links all
 seven projects, which is what makes `@mash/tokens` and `@mash/ui` resolve from source.
 
+`build:vercel` wraps the deterministic `build:catalog` and then publishes the browser IIFE when
+Vercel identifies the build as a deployed environment. Local builds and ordinary GitHub Actions
+runs skip the publish step, so they need no Blob credentials and have no external side effects.
+
 `build:catalog` itself is `pnpm --filter "@mash/catalog..." run build`. The trailing `...` selects
 the catalog **and its workspace dependencies**, so one command builds tokens → `@mash/ui` →
-`@mash/shrine` → catalog in dependency order from a completely cold tree. That ordering is a real
-dependency — the catalog imports `@mash/tokens/tokens.css` and each package's
-`custom-elements.json`, which do not exist until those packages are built — and it belongs in the
-dependency graph rather than in a sequence of commands someone has to remember to chain.
+`@mash/shrine` → catalog and browser IIFE in dependency order from a completely cold tree. That
+ordering is a real dependency — both outputs consume generated token CSS, and the catalog imports
+each package's `custom-elements.json`, which do not exist until those packages are built — and it
+belongs in the dependency graph rather than in a sequence of commands someone has to remember to
+chain.
 
 If Vite is ever run against a cold tree anyway, a `buildStart` guard in `apps/catalog/vite.config.ts`
 names the missing artifacts and the command to fix it, instead of failing with a bare "failed to
@@ -338,6 +343,37 @@ what CI proves and what Vercel does surfaces on the PR rather than in the deploy
 The preview therefore always contains the PR's exact `packages/tokens`, `packages/components` and
 `apps/catalog`; there is no second token pipeline, no second component build, and no preview-only
 application. Designers review the same artifacts consumers get.
+
+### Single-file browser distribution
+
+Every catalog build also emits `dist/mash.js`: a classic IIFE containing Lit, every element in
+`@mash/ui` and `@mash/shrine`, and all token CSS. Loading it registers the elements and installs the
+tokens without a package manager, import map, or separate stylesheet:
+
+```html
+<script defer src="https://example.public.blob.vercel-storage.com/mash.js"></script>
+
+<ui-button>Save</ui-button>
+<shrine-confirm></shrine-confirm>
+```
+
+The package ES module graphs remain the canonical distribution. The IIFE is a secondary,
+all-inclusive browser distribution for markup-first consumers; its exported classes are also
+available on `globalThis.Mash`.
+
+Vercel production, preview, and custom-environment builds publish an immutable,
+deployment-specific object to a connected public Blob store, cached for one year. Separate paths
+mean concurrent previews cannot overwrite one another, and rolling Vercel back keeps the deployment
+paired with its original browser bundle.
+
+Each Vercel deployment includes `/mash-blob.json`, which records its exact Blob URL and a
+ready-to-copy `<script>` tag. Use that immutable URL for review and version pinning.
+
+Connect a **public** Vercel Blob store to the project for Production and Preview before deploying.
+New connections use Vercel OIDC, which provides short-lived `VERCEL_OIDC_TOKEN` and `BLOB_STORE_ID`
+credentials to the build. Upgrade an older token-based connection to OIDC in the Blob store's
+Projects settings. The publisher retains `BLOB_READ_WRITE_TOKEN` support only as a compatibility
+fallback. A public Blob remains public even when Vercel Deployment Protection protects the catalog.
 
 The rewrite exists because `/components/ui-button` is a real address the app routes client-side.
 Static files still win, so `/stage.html` and `/assets/*` are served directly.
@@ -430,7 +466,8 @@ Every tool here solves a stated problem, and a few choices are worth recording b
 alternative was rejected:
 
 - **tsc, not a bundler**, for the component package. The canonical artifact is native ES modules.
-  A bundled CDN build could be added later as a secondary distribution.
+  The bundled `mash.js` browser build is a secondary distribution and does not change that package
+  shape.
 - **oxlint, not ESLint.** `typescript-eslint` peers on `typescript <6.1`, and this repo compiles
   with TypeScript 7. Pinning a second compiler just to lint would be exactly the unnecessary build
   infrastructure this system is trying to avoid.
