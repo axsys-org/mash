@@ -1,43 +1,78 @@
 import { LitElement, css, html, type TemplateResult } from "lit";
 
+import { baseStyles } from "../internal/base-styles.js";
+
 /**
- * TODO: what this component is for, and when to reach for it.
+ * A navigable Shrine tree surface.
+ *
+ * The tree is intentionally compositional: direct children are
+ * `<ui-tree-item>` elements, and an item can own another level through its
+ * `children` slot. That keeps deeply nested structures and empty intermediate
+ * namespaces explicit instead of flattening them into a presentation-only
+ * list. Individual item state remains parent-controlled.
  *
  * @tag ui-tree
- * @summary TODO: one line describing what it does.
+ * @summary Groups expandable Shrine tree items into an accessible hierarchy.
  *
- * @slot - TODO: describe the default slot.
- * @csspart root - The outermost element.
+ * @slot - Tree items.
+ * @csspart root - The semantic tree container.
+ *
+ * @example Shrine hierarchy
+ * <ui-tree label="Shrine namespaces">
+ *   <ui-tree-item path="/shrine" expanded>
+ *     <ui-tree-item slot="children" path="/shrine/axiomatic" expanded>
+ *       <ui-tree-item slot="children" path="/shrine/axiomatic/foundry"></ui-tree-item>
+ *     </ui-tree-item>
+ *   </ui-tree-item>
+ * </ui-tree>
  */
 export class UITree extends LitElement {
-  // Reactive properties go here, as a plain object — this system uses no
-  // decorators. Declare the matching fields with `declare` and assign their
-  // defaults in a constructor. Every attribute needs a JSDoc description, or
-  // the manifest build fails.
-  //
-  // static override properties = {
-  //   tone: { type: String, reflect: true },
-  // };
-  //
-  // /** TODO: describe this attribute. */
-  // declare tone: UITreeTone;
+  static override properties = {
+    label: { type: String, reflect: true },
+  };
 
-  static override styles = css`
-    :host {
-      display: block;
-      box-sizing: border-box;
-    }
+  /** Accessible name for the tree region. */
+  declare label: string;
 
-    :host([hidden]) {
-      display: none !important;
-    }
+  constructor() {
+    super();
+    this.label = "Shrine tree";
+  }
 
-    /* Style from the semantic tokens (--color-*, --space-*, --radius-*).
-       Never reference --ref-* primitives, and keep anything you compute in a
-       private --_* variable rather than exposing it. */
-  `;
+  static override styles = [
+    baseStyles,
+    css`
+      :host {
+        display: block;
+        max-inline-size: 100%;
+
+        color: var(--color-text);
+        font-family: var(--type-body-font-family);
+        font-size: var(--type-body-font-size);
+        line-height: var(--type-body-line-height);
+      }
+
+      .root {
+        display: block;
+        min-inline-size: 0;
+        padding: var(--space-control-block) 0;
+
+        background: var(--color-surface);
+        border: var(--border-hairline) solid var(--color-border);
+        border-radius: var(--radius-container);
+      }
+
+      ::slotted(ui-tree-item) {
+        display: block;
+      }
+    `,
+  ];
 
   protected override render(): TemplateResult {
-    return html`<div part="root"><slot></slot></div>`;
+    return html`
+      <div part="root" class="root" role="tree" aria-label=${this.label}>
+        <slot></slot>
+      </div>
+    `;
   }
 }
