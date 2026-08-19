@@ -6,7 +6,9 @@
   "description": "Development catalog. Consumes the real workspace packages and derives its content from custom-elements.json and the token graph.",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "pnpm run build:site && pnpm run build:iife",
+    "build:site": "vite build",
+    "build:iife": "vite build --config vite.iife.config.ts",
     "preview": "vite preview",
     "check:types": "tsc -p tsconfig.json --noEmit",
     "clean": "rm -rf dist .vite"

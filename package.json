@@ -17,6 +17,9 @@
     "cem": "pnpm -r --filter \"./packages/*\" run build:manifest",
     "//build:catalog": "The artifact Vercel serves as the PR preview. The trailing `...` selects the catalog *and its workspace dependencies*, so pnpm builds tokens -> ui -> shrine -> catalog in dependency order from a cold tree. The ordering lives in the dependency graph rather than in a sequence of commands someone has to remember to run — Vercel, CI and a developer all run this one command.",
     "build:catalog": "pnpm --filter \"@mash/catalog...\" run build",
+    "//build:vercel": "Builds the catalog and browser IIFE, then publishes the IIFE only when Vercel marks the build as a deployed environment. Local and GitHub CI runs stop after the deterministic build.",
+    "build:vercel": "pnpm run build:catalog && pnpm run publish:iife",
+    "publish:iife": "node scripts/publish-iife-to-blob.mjs",
     "preview:catalog": "pnpm --filter @mash/catalog run preview",
     "//dev": "Build once so nothing starts against a missing dist/, then watch tokens, components and the manifest alongside the catalog.",
     "dev": "pnpm run build && pnpm -r --parallel run dev",
@@ -38,6 +41,7 @@
     "clean": "pnpm -r run clean && rm -rf node_modules/.vite"
   },
   "devDependencies": {
+    "@vercel/blob": "^2.8.0",
     "oxlint": "1.78.0",
     "prettier": "3.9.6",
     "typescript": "7.0.2"
