@@ -92,10 +92,12 @@ describe("ui-scroll-area", () => {
 
     expect(area.mode).toBe("scrolling");
     expect(area.matches(":state(visible)")).toBe(false);
+    vi.useFakeTimers();
     viewport.dispatchEvent(new Event("scroll"));
     expect(area.matches(":state(visible)")).toBe(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 30));
+    await vi.advanceTimersByTimeAsync(area.idleDelay + 1);
     expect(area.matches(":state(visible)")).toBe(false);
+    vi.useRealTimers();
 
     area.mode = "hover";
     await settled(area.parentElement!);
