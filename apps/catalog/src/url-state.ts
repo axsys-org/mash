@@ -66,6 +66,7 @@ export function stateFromUrl(url: URL, fallback: ComponentSchema): State {
   const component = componentFromPath(url.pathname) ?? fallback;
   const state = initialState(component);
   const params = url.searchParams;
+  let hasPreviewOverride = false;
 
   const theme = params.get("theme");
   if (theme && themes.includes(theme)) state.theme = theme;
@@ -83,22 +84,30 @@ export function stateFromUrl(url: URL, fallback: ComponentSchema): State {
   const legacyLabel = params.get("label");
   if (legacyLabel !== null && component.slots.some((slot) => !slot.name)) {
     state.slots[""] = legacyLabel;
+    hasPreviewOverride = true;
   }
 
   const slotNames = new Set(component.slots.map((slot) => slot.name).filter(Boolean));
   for (const name of (params.get("slots") ?? "").split(",")) {
-    if (slotNames.has(name)) state.slots[name] = name;
+    if (slotNames.has(name)) {
+      state.slots[name] = name;
+      hasPreviewOverride = true;
+    }
   }
 
   for (const slot of component.slots) {
     const content = params.get(slotParam(slot.name));
-    if (content !== null) state.slots[slot.name] = content;
+    if (content !== null) {
+      state.slots[slot.name] = content;
+      hasPreviewOverride = true;
+    }
   }
 
   for (const control of controlsFor(component)) {
     if (RESERVED.has(control.attribute)) continue;
     const raw = params.get(control.attribute);
     if (raw === null) continue;
+    hasPreviewOverride = true;
 
     if (control.kind === "enum") {
       if (control.options.includes(raw)) state.attrs[control.attribute] = raw;
@@ -107,6 +116,10 @@ export function stateFromUrl(url: URL, fallback: ComponentSchema): State {
     } else {
       state.attrs[control.attribute] = raw;
     }
+  }
+
+  if (example === null && hasPreviewOverride && controlsPreviewAllowed(component)) {
+    state.example = null;
   }
 
   return state;

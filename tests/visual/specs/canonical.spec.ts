@@ -12,10 +12,26 @@ import { expect, test } from "@playwright/test";
  * Each is addressed by the same deep link a designer would paste into a PR.
  */
 const STATES = [
-  { name: "button-primary-light", tag: "ui-button", url: "/components/ui-button" },
-  { name: "button-primary-dark", tag: "ui-button", url: "/components/ui-button?theme=dark" },
-  { name: "button-quiet-light", tag: "ui-button", url: "/components/ui-button?variant=quiet" },
-  { name: "button-disabled", tag: "ui-button", url: "/components/ui-button?disabled=true" },
+  {
+    name: "button-primary-light",
+    tag: "ui-button",
+    url: "/components/ui-button?example=controls",
+  },
+  {
+    name: "button-primary-dark",
+    tag: "ui-button",
+    url: "/components/ui-button?example=controls&theme=dark",
+  },
+  {
+    name: "button-quiet-light",
+    tag: "ui-button",
+    url: "/components/ui-button?example=controls&variant=quiet",
+  },
+  {
+    name: "button-disabled",
+    tag: "ui-button",
+    url: "/components/ui-button?example=controls&disabled=true",
+  },
   { name: "card-light", tag: "ui-card", url: "/components/ui-card" },
   { name: "card-dark", tag: "ui-card", url: "/components/ui-card?theme=dark" },
 ] as const;

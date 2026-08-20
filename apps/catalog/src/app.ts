@@ -65,6 +65,11 @@ export function buildPreview(doc: Document, component: ComponentSchema, state: S
   const node = doc.createElement(component.tagName);
 
   for (const [name, value] of Object.entries(state.attrs)) {
+    if (value === false) {
+      const attribute = component.attributes.find((candidate) => candidate.name === name);
+      const property = attribute?.fieldName;
+      if (property) (node as unknown as Record<string, unknown>)[property] = false;
+    }
     if (value === false || value === "") continue;
     node.setAttribute(name, value === true ? "" : String(value));
   }
@@ -117,29 +122,64 @@ export function markupFor(component: ComponentSchema, state: State): string {
 // Token provenance
 // ---------------------------------------------------------------------------
 
-/**
- * Which design tokens a rendered component actually uses.
- *
- * Read from the element's own adopted stylesheets rather than from a list kept
- * somewhere: whatever the component's CSS references is, by definition, what it
- * uses. Private `--_*` variables and public component properties are not in the
- * token graph, so they fall out naturally.
- *
- * Works across the iframe boundary because the stage is same-origin.
- */
-function tokensUsedBy(node: Element): string[] {
-  const root = node.shadowRoot;
-  if (!root) return [];
+function selectorMatchesInstance(node: Element, selector: string): boolean {
+  const part = selector.match(/^(.*)::part\(([^)]+)\)(.*)$/);
+  try {
+    if (!part) return node.matches(selector.trim());
+    if (!node.matches(part[1]!.trim())) return false;
+    const stateSelector = part[3]!.trim();
+    const targets = node.shadowRoot?.querySelectorAll(`[part~="${part[2]}"]`) ?? [];
+    return [...targets].some((target) => !stateSelector || target.matches(stateSelector));
+  } catch {
+    return false;
+  }
+}
 
-  const cssText = [...root.adoptedStyleSheets]
-    .flatMap((sheet) => {
-      try {
-        return [...sheet.cssRules].map((rule) => rule.cssText);
-      } catch {
-        return [];
-      }
-    })
+/** Tokens referenced by active component and opt-in catalogue rules. */
+function tokensUsedBy(nodes: Element[]): string[] {
+  const componentCss = nodes
+    .flatMap((node) =>
+      node.shadowRoot
+        ? [...node.shadowRoot.adoptedStyleSheets].flatMap((sheet) => {
+            try {
+              return [...sheet.cssRules].map((rule) => rule.cssText);
+            } catch {
+              return [];
+            }
+          })
+        : [],
+    )
     .join("\n");
+
+  const tagNames = new Set(nodes.map((node) => node.localName));
+  const tagPattern = new RegExp(`(^|[^\\w-])(${[...tagNames].join("|")})(?=$|[^\\w-])`);
+  const rules = (cssRules: CSSRuleList | CSSRule[]): CSSRule[] =>
+    [...cssRules].flatMap((rule) => {
+      const nested = "cssRules" in rule ? rules((rule as CSSGroupingRule).cssRules) : [];
+      return [rule, ...nested];
+    });
+  const recipeCss = nodes[0]
+    ? [...nodes[0].ownerDocument.styleSheets]
+        .flatMap((sheet) => {
+          try {
+            return rules(sheet.cssRules);
+          } catch {
+            return [];
+          }
+        })
+        .filter(
+          (rule): rule is CSSStyleRule =>
+            "selectorText" in rule &&
+            tagPattern.test((rule as CSSStyleRule).selectorText) &&
+            (rule as CSSStyleRule).selectorText
+              .split(",")
+              .some((selector) => nodes.some((node) => selectorMatchesInstance(node, selector))),
+        )
+        .map((rule) => rule.cssText)
+        .join("\n")
+    : "";
+
+  const cssText = [componentCss, recipeCss].join("\n");
 
   const found = new Set<string>();
   for (const match of cssText.matchAll(/var\((--[\w-]+)/g)) {
@@ -147,6 +187,12 @@ function tokensUsedBy(node: Element): string[] {
     if (name && tokenByCssVar.has(name)) found.add(name);
   }
   return [...found].sort();
+}
+
+function recipeSpecifier(component: ComponentSchema): string {
+  return component.packageName === "@mash/shrine"
+    ? "@mash/shrine/catalogue/mash.css"
+    : "@mash/ui/catalogue/mash.css";
 }
 
 function swatch(value: string): HTMLElement | null {
@@ -395,21 +441,28 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
     doc.body.replaceChildren(buildPreview(doc, component, state));
   }
 
-  const node = doc.querySelector(component.tagName);
+  const nodes = [...doc.querySelectorAll(component.tagName)];
+  const node = nodes[0];
   if (!node) return;
 
   const frameWindow = current.frame.contentWindow;
   await frameWindow?.customElements.whenDefined(component.tagName);
-  await (node as { updateComplete?: Promise<unknown> }).updateComplete;
+  await Promise.all(
+    nodes.map((instance) => (instance as { updateComplete?: Promise<unknown> }).updateComplete),
+  );
+  if (frameWindow) {
+    await new Promise<void>((resolve) => frameWindow.requestAnimationFrame(() => resolve()));
+  }
   if (ticket !== syncToken) return;
 
   // A component that fills its frame gets the whole surface; anything that
   // sizes to its content is centred on a padded canvas. Measured rather than
   // declared, so it needs no per-component configuration.
   const fills = node.getBoundingClientRect().height >= doc.documentElement.clientHeight - 96;
-  doc.documentElement.dataset.layout = fills ? "fill" : "center";
+  const anchored = component.attributes.some((attribute) => attribute.name === "placement");
+  doc.documentElement.dataset.layout = anchored ? "anchor" : fills ? "fill" : "center";
 
-  const used = tokensUsedBy(node);
+  const used = tokensUsedBy(nodes);
   current.tokenList.replaceChildren(
     ...(used.length > 0
       ? used.map((cssVar) => provenanceRow(cssVar, state.theme))
@@ -613,6 +666,7 @@ function belowStage(
           text: [
             `import "${importSpecifier(component)}";`,
             `import "@mash/tokens/tokens.css";`,
+            `import "${recipeSpecifier(component)}";`,
           ].join("\n"),
         }),
       ),
@@ -635,7 +689,7 @@ function belowStage(
       describedList(
         "CSS properties",
         component.cssProperties,
-        "No public CSS properties — this component is styled entirely through the shared semantic tokens.",
+        "No public CSS properties — recipes style its documented parts and reflected state.",
       ),
       describedList("Custom states", component.cssStates, "No custom states."),
       describedList("Events", component.events, "No events."),
@@ -647,7 +701,7 @@ function belowStage(
       el("h3", { text: "Tokens used" }),
       el("p", {
         class: "note",
-        text: "Extracted from the rendered component's own stylesheets, then traced through tokens.json to the primitive that holds the value.",
+        text: "Extracted from active catalogue rules, then traced through tokens.json to the primitive that holds the value.",
       }),
       tokenList,
     ),
