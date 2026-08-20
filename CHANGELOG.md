@@ -23,6 +23,8 @@ from resolved token values.
   owner registry for all catalogue presentation traits.
 - Added native realization snapshots so GPUI implementations run against the same semantic node
   topology and event intents as the Web conformance runner.
+- Added a runnable native catalogue covering all 38 pinned GPUI Base families and their 52 mapped
+  Mash components, plus an application-facing `NativeBinding` API for scoped semantic-node recipes.
 - Added a locked Rust 1.95 toolchain, native tests, generated-contract staleness checks, and a Linux
   CI job using the upstream GPUI system dependencies.
 

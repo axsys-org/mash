@@ -27,6 +27,12 @@ validation, and relations back to the state nodes an event requests or reports.
 SurfaceTree topology and event-intent contract without pretending its GPUI mechanics are DOM
 mechanics.
 
+`MashAdapter::native_binding` is the application-facing path. It scopes a component to one of the
+38 pinned GPUI Base families, carries state/environment values, selects a semantic node, and applies
+the resolved recipe to the native element. The runnable catalogue exercises every family and all 52
+mapped Mash components, including compound table, tabs, toast, tree, resizable, and virtual-list
+anatomy.
+
 ```rust
 use gpui::ParentElement as _;
 use mash_gpui::{base::Button, MashAdapter, MashRecipeContext, MashStyledExt, MashTheme};
@@ -43,4 +49,7 @@ Regenerate and verify the embedded adapter contract from the repository root:
 ```bash
 pnpm build:gpui-contracts
 pnpm check:gpui
+pnpm dev:gpui
 ```
+
+Pass a family slug after `--` to open it directly, for example `pnpm dev:gpui -- tree`.

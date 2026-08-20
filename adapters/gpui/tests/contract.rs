@@ -170,3 +170,43 @@ fn native_realizations_run_against_the_shared_surface_tree_fixture() {
         ["missing node mash://ui-checkbox/node/checked"]
     );
 }
+
+#[test]
+fn native_family_bindings_scope_components_and_apply_semantic_recipes() {
+    let mash = MashAdapter::embedded();
+    let binding = mash
+        .native_binding("button", MashTheme::Dark)
+        .expect("button GPUI Base binding")
+        .value("variant", "primary")
+        .value("tone", "critical");
+
+    assert!(binding.supports("ui-button"));
+    assert!(!binding.supports("ui-checkbox"));
+    assert!(binding.node("ui-checkbox", "control").is_none());
+
+    let control = binding
+        .node("ui-button", "control")
+        .expect("button control node");
+    let recipe = control.recipe();
+    assert!(recipe.is_portable());
+    assert_eq!(control.primitive().slug, "button");
+    let _native = control.apply(Button::new("native-binding-button"));
+}
+
+#[test]
+fn every_gpui_base_family_opens_a_native_binding() {
+    let mash = MashAdapter::embedded();
+    assert_eq!(mash.gpui_base_primitives().len(), 38);
+    for primitive in mash.gpui_base_primitives() {
+        let binding = mash
+            .native_binding(&primitive.slug, MashTheme::Light)
+            .expect("published native family must bind");
+        assert_eq!(binding.primitive(), primitive);
+        assert!(primitive.components.iter().all(|component| {
+            mash.component(component).is_some()
+                && mash
+                    .component(component)
+                    .is_some_and(|fixture| binding.node(component, &fixture.root).is_some())
+        }));
+    }
+}
