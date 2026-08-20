@@ -33,13 +33,11 @@ export type ToastTone = "neutral" | "positive" | "warning" | "critical";
  * @fires {CustomEvent<{ open: boolean, reason: string }>} ui-toast-open-change - Emitted after timeout or user dismissal requests a new open state.
  *
  * @mashnode root root
- * @mashnode icon icon root
  * @mashnode message message root
  * @mashnode close close root
  * @mashnode open open root
  * @mashnode paused paused root
  * @mashnode duration duration root
- * @mashnode pause-on-hover pause-on-hover root
  * @mashrole event ui-toast-open-change open open
  * @mashrole slot default message message
  * @mashrole slot close close close

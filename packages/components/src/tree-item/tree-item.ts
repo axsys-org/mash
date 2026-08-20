@@ -73,7 +73,6 @@ export type TreeItemKind = "file" | "folder";
  * @mashnode current current control
  * @mashnode selected selected control
  * @mashnode disabled disabled root
- * @mashnode toggle toggle control
  * @mashnode select select control
  * @mashrole attribute parent-value parent parent
  */

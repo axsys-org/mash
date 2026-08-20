@@ -48,7 +48,6 @@ export type TooltipTrigger = "click" | "hover" | "manual";
  * @mashnode collision-padding collision-padding positioner
  * @mashnode popup popup positioner
  * @mashnode description description popup
- * @mashnode trigger-mode trigger-mode trigger
  * @mashrole slot default description description
  */
 export class UITooltip extends UIAnchoredOverlay {

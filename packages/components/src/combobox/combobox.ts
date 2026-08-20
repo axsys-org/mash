@@ -108,14 +108,12 @@ function optionLabel(option: UIOption): string {
  * @mashnode popup popup positioner
  * @mashnode arrow pointer popup
  * @mashnode status status popup
- * @mashnode loading loading popup
  * @mashnode empty empty popup
  * @mashnode listbox listbox popup
  * @mashnode children children listbox
  * @mashnode values value root
  * @mashnode grid-mode grid-mode root
  * @mashnode open open root
- * @mashnode filter filter root
  * @mashnode invalid invalid control
  * @mashrole event ui-combobox-open-change open open
  * @mashrole slot default children children

@@ -47,14 +47,6 @@ interface FormatResult {
  *
  * @fires {CustomEvent<IntlFormatterErrorDetail>} ui-intl-formatter-error - Reports an invalid value or formatter option.
  *
- * @mashnode root root
- * @mashnode prefix prefix root
- * @mashnode output value root
- * @mashnode suffix suffix root
- * @mashnode fallback fallback root
- * @mashnode invalid invalid root
- * @mashnode format-error error root
- * @mashrole event ui-intl-formatter-error error format-error
  */
 export class UIIntlFormatter extends LitElement {
   static override properties = {

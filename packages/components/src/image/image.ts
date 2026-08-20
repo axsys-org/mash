@@ -66,20 +66,6 @@ interface AuthoredSource {
  * @fires {CustomEvent<ImageLoadDetail>} ui-image-load - Reports the source and intrinsic dimensions after loading.
  * @fires {CustomEvent<ImageErrorDetail>} ui-image-error - Reports a failed source and whether fallback recovery will continue.
  *
- * @mashnode root root
- * @mashnode picture media root
- * @mashnode sources source picture
- * @mashnode image image picture
- * @mashnode placeholder placeholder root
- * @mashnode error error root
- * @mashnode loading loading root
- * @mashnode loaded loaded root
- * @mashnode fallback fallback root
- * @mashnode load load root
- * @mashnode load-error error root
- * @mashrole slot source source sources
- * @mashrole part sources source sources
- * @mashrole event ui-image-error error load-error
  */
 export class UIImage extends LitElement {
   static override properties = {

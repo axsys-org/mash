@@ -38,13 +38,7 @@ export type AvatarSize = "small" | "medium" | "large";
  * @mashnode root root
  * @mashnode image image root
  * @mashnode fallback fallback root
- * @mashnode loading loading root
- * @mashnode loaded loaded root
- * @mashnode error error root
- * @mashnode load load root
- * @mashnode load-error error root
  * @mashrole slot default fallback fallback
- * @mashrole event ui-avatar-error error load-error
  */
 export class UIAvatar extends LitElement {
   static override properties = {

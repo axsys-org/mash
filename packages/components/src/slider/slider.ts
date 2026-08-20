@@ -63,11 +63,8 @@ export type SliderScale = "linear" | "logarithmic";
  * @mashnode start-control control root
  * @mashnode track track control
  * @mashnode indicator indicator track
- * @mashnode ticks ticks track
  * @mashnode thumb thumb track
  * @mashnode start-thumb thumb track
- * @mashnode thumb-value value thumb
- * @mashnode start-value value start-thumb
  * @mashnode value value root
  * @mashnode values value root
  * @mashnode min min root
@@ -75,7 +72,6 @@ export type SliderScale = "linear" | "logarithmic";
  * @mashnode step step root
  * @mashnode name name root
  * @mashnode disabled disabled root
- * @mashnode readonly readonly root
  * @mashnode invalid invalid control
  * @mashnode range range root
  * @mashnode orientation orientation root
