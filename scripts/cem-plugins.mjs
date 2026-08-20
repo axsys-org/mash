@@ -194,6 +194,20 @@ const hideInternalMembers = {
 };
 
 /**
+ * Keep the emitted manifest byte-stable across filesystems and analyzer runs.
+ *
+ * The analyzer discovers modules through a glob whose traversal order is not
+ * guaranteed. The contract is otherwise identical, but leaving that order in
+ * the output makes two builds produce different bytes on Linux and macOS.
+ */
+const sortManifestModules = {
+  name: "mash/sort-manifest-modules",
+  packageLinkPhase({ customElementsManifest }) {
+    customElementsManifest.modules?.sort((left, right) => left.path.localeCompare(right.path));
+  },
+};
+
+/**
  * Fail the build if a component is missing metadata that downstream tooling
  * depends on.
  *
@@ -277,6 +291,7 @@ export function mashManifestConfig({ tagPrefix }) {
       createCaptureExamples(),
       hideInternalMembers,
       createRequireElementMetadata(tagPrefix),
+      sortManifestModules,
     ],
   };
 }
