@@ -389,13 +389,14 @@ describe("ui-button: Mash recipe", () => {
 
   it("paints its background from --color-action, not from a hardcoded value", async () => {
     const button = await fixture<UIButton>(
-      `<ui-button style="--color-action: rgb(1 2 3); --duration-control: 0ms">Go</ui-button>`,
+      `<ui-button style="--color-action: rgb(1 2 3); --color-action-hover: rgb(1 2 3); --color-action-pressed: rgb(1 2 3); --duration-control: 0ms">Go</ui-button>`,
     );
     const probe = await fixture<HTMLElement>(`<div style="background-color: rgb(1 2 3)"></div>`);
 
-    // A custom token override must flow through the catalogue recipe to the
-    // shadow control. Using an sRGB sentinel avoids comparing equivalent
-    // OKLCH/OKLab serialisations, which Chromium varies by platform.
+    // A custom tone override must flow through the catalogue recipe to the
+    // shadow control. Override the whole interaction family because headless
+    // Chromium can leave its synthetic pointer over the first fixture. The
+    // sRGB sentinel also avoids platform-specific OKLCH/OKLab serialisation.
     expect(background(button)).toBe(getComputedStyle(probe).backgroundColor);
     expect(background(button)).not.toBe("rgba(0, 0, 0, 0)");
   });

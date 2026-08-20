@@ -127,7 +127,9 @@ jobs:
 
   gpui:
     name: GPUI adapter
-    runs-on: ubuntu-latest
+    # Mash currently supports the native adapter on macOS. Keep this job on a
+    # supported host rather than treating a Linux compile as platform support.
+    runs-on: macos-latest
     timeout-minutes: 30
 
     steps:
@@ -143,17 +145,6 @@ jobs:
 
       - name: Install JavaScript dependencies
         run: pnpm install --frozen-lockfile
-
-      # Keep this list aligned with the pinned gpui-component bootstrap. The
-      # adapter itself is headless, but GPUI's Linux backend still compiles its
-      # font, Wayland, X11, and Vulkan integration.
-      - name: Install GPUI system dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y \
-            gcc g++ clang libfontconfig-dev libwayland-dev \
-            libwebkit2gtk-4.1-dev libxkbcommon-x11-dev libx11-xcb-dev \
-            libssl-dev libzstd-dev vulkan-validationlayers libvulkan1
 
       - name: Cache Cargo
         uses: actions/cache@v4

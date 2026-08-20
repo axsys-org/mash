@@ -95,6 +95,7 @@ describe("ui-scroll-area", () => {
     vi.useFakeTimers();
     viewport.dispatchEvent(new Event("scroll"));
     expect(area.matches(":state(visible)")).toBe(true);
+    root.dispatchEvent(new PointerEvent("pointerleave"));
     await vi.advanceTimersByTimeAsync(area.idleDelay + 1);
     expect(area.matches(":state(visible)")).toBe(false);
     vi.useRealTimers();
