@@ -527,27 +527,140 @@ function valueForKind(
   return { kind, value: current.kind === "literal" ? currentValue || "initial" : "initial" };
 }
 
-function copyPatchButton(patch: string): HTMLElement {
-  const button = el("button", {
+function inspectorButton(
+  text: string,
+  onClick: () => void,
+  options: { class?: string; variant?: "primary" | "secondary" | "quiet"; title?: string } = {},
+): HTMLElement {
+  const button = el("ui-button", {
     type: "button",
-    class: "copy-link",
-    text: "copy portable patch",
+    size: "small",
+    variant: options.variant ?? "quiet",
+    class: options.class,
+    title: options.title,
   });
-  button.addEventListener("click", () => {
-    const restore = () =>
-      globalThis.setTimeout(() => (button.textContent = "copy portable patch"), 1200);
-    navigator.clipboard?.writeText(patch).then(
-      () => {
-        button.textContent = "copied";
-        restore();
-      },
-      () => {
-        button.textContent = "copy failed";
-        restore();
-      },
-    );
-  });
+  button.textContent = text;
+  button.addEventListener("click", onClick);
   return button;
+}
+
+function inspectorSelect(
+  options: { value: string; label: string }[],
+  value: string,
+  label: string,
+  onChange: (value: string) => void,
+  className: string,
+): HTMLElement {
+  const select = el("ui-select", {
+    class: className,
+    value,
+    label,
+    placeholder: "Choose…",
+  });
+  select.append(
+    ...options.map((option) => el("ui-option", { value: option.value, text: option.label })),
+    el("span", { slot: "icon", class: "inspector-select-icon", text: "⌄" }),
+  );
+  select.addEventListener("ui-select-change", (event) => {
+    onChange((event as CustomEvent<{ value: string }>).detail.value);
+  });
+  return select;
+}
+
+function inspectorInput(
+  value: string,
+  label: string,
+  onCommit: (value: string) => void,
+  className: string,
+): HTMLElement {
+  const input = el("ui-input", {
+    class: className,
+    size: "small",
+    value,
+    label,
+  });
+  const commit = () => onCommit(input.value);
+  input.addEventListener("focusout", commit);
+  input.addEventListener("keydown", (event) => {
+    if ((event as KeyboardEvent).key !== "Enter") return;
+    event.preventDefault();
+    commit();
+  });
+  return input;
+}
+
+function inspectorChoices(
+  options: string[],
+  value: string,
+  label: string,
+  onChange: (value: string) => void,
+): HTMLElement {
+  const group = el("ui-toggle-group", {
+    class: "recipe-value-control inspector-choice-group",
+    mode: "single",
+    value,
+    label,
+  });
+  group.append(
+    ...options.map((option) =>
+      el("ui-toggle", { value: option, text: option, pressed: option === value }),
+    ),
+  );
+  group.addEventListener("ui-toggle-group-change", (event) => {
+    const next = (event as CustomEvent<{ values: string[] }>).detail.values[0];
+    if (next) onChange(next);
+  });
+  return group;
+}
+
+function inspectorSection(
+  title: string,
+  value: string,
+  content: HTMLElement,
+  open = false,
+  className = "",
+): HTMLElement {
+  return el(
+    "ui-accordion-item",
+    {
+      class: `inspector-section ${className}`.trim(),
+      title,
+      value,
+      open,
+    },
+    content,
+  );
+}
+
+function copyPatchButton(patch: string): HTMLElement {
+  const button = inspectorButton(
+    "Copy patch",
+    () => {
+      const restore = () => globalThis.setTimeout(() => (button.textContent = "Copy patch"), 1200);
+      navigator.clipboard?.writeText(patch).then(
+        () => {
+          button.textContent = "Copied";
+          restore();
+        },
+        () => {
+          button.textContent = "Copy failed";
+          restore();
+        },
+      );
+    },
+    { class: "inspector-action copy-patch" },
+  );
+  return button;
+}
+
+function traitCategory(trait: string): string {
+  if (trait.startsWith("layout.")) return "Layout";
+  if (trait.startsWith("type.")) return "Typography";
+  if (trait.startsWith("border.")) return "Border";
+  if (trait.startsWith("motion.")) return "Motion";
+  if (trait.startsWith("surface.")) return "Appearance";
+  if (trait.startsWith("shadow.") || trait.startsWith("effect.")) return "Effects";
+  return "Properties";
 }
 
 function recipeEditor(
@@ -589,136 +702,98 @@ function recipeEditor(
     };
     const valueControl =
       current.kind === "token"
-        ? el(
-            "select",
-            {
-              class: "recipe-value-control",
-              onchange: (event: Event) =>
-                commit({ kind: "token", token: (event.target as HTMLSelectElement).value }),
-            },
-            ...(tokenOptions.length
-              ? tokenOptions.map((token) =>
-                  el("option", {
-                    value: token.id,
-                    selected: token.id === current.token,
-                    text: `${token.id} · ${valueOf(token, state.theme)}`,
-                  }),
-                )
-              : [el("option", { disabled: true, text: "No compatible token type" })]),
+        ? inspectorSelect(
+            tokenOptions.length
+              ? tokenOptions.map((token) => ({
+                  value: token.id,
+                  label: `${token.id} · ${valueOf(token, state.theme)}`,
+                }))
+              : [{ value: "", label: "No compatible token type" }],
+            current.token ?? "",
+            `${trait} token`,
+            (token) => commit({ kind: "token", token }),
+            "recipe-value-control",
           )
         : current.kind === "inherited"
-          ? el(
-              "select",
-              {
-                class: "recipe-value-control",
-                onchange: (event: Event) =>
-                  commit({ kind: "inherited", value: (event.target as HTMLSelectElement).value }),
-              },
-              ...["inherit", "initial", "unset", "revert", "revert-layer"].map((value) =>
-                el("option", {
-                  value,
-                  selected: value === current.value,
-                  text: value,
-                }),
-              ),
+          ? inspectorSelect(
+              ["inherit", "initial", "unset", "revert", "revert-layer"].map((option) => ({
+                value: option,
+                label: option,
+              })),
+              current.value ?? "inherit",
+              `${trait} inherited value`,
+              (value) => commit({ kind: "inherited", value }),
+              "recipe-value-control",
             )
-          : el("input", {
-              class: "recipe-value-control",
-              type: "text",
-              value: current.value ?? "",
-              onchange: (event: Event) =>
-                commit({
-                  kind: current.kind,
-                  value: (event.target as HTMLInputElement).value,
-                }),
-            });
+          : inspectorInput(
+              current.value ?? "",
+              `${trait} value`,
+              (value) => commit({ kind: current.kind, value }),
+              "recipe-value-control",
+            );
     const layoutIntents = layoutIntentForProperty(presentation.sourceProperty);
     const layoutChoices = layoutChoicesForProperty(presentation.sourceProperty);
     const renderedValueControl =
       current.kind === "literal" && layoutChoices.length > 0
-        ? el(
-            "select",
-            {
-              class: "recipe-value-control",
-              onchange: (event: Event) =>
-                commit({ kind: "literal", value: (event.target as HTMLSelectElement).value }),
-            },
-            ...(!current.value || layoutChoices.includes(current.value)
-              ? []
-              : [
-                  el("option", {
-                    selected: true,
-                    disabled: true,
-                    value: current.value,
-                    text: `original ${current.value}`,
-                  }),
-                ]),
-            ...layoutChoices.map((value) =>
-              el("option", {
-                value,
-                selected: value === current.value,
-                text: value,
-              }),
-            ),
+        ? inspectorChoices(
+            !current.value || layoutChoices.includes(current.value)
+              ? layoutChoices
+              : [current.value, ...layoutChoices],
+            current.value ?? "",
+            `${trait} layout intent`,
+            (value) => commit({ kind: "literal", value }),
           )
         : valueControl;
 
-    return el(
-      "div",
+    const field = el(
+      "ui-field",
       {
         class: override ? "recipe-field is-overridden" : "recipe-field",
+        label: trait.split(".").at(-1) ?? trait,
+        description: `${presentation.sourceProperty} · ${presentation.token ?? presentation.value} [${presentation.kind}]`,
         "data-recipe-trait": trait,
       },
       el(
         "div",
-        { class: "recipe-field-heading" },
-        el("code", { text: trait }),
-        override ? el("span", { class: "recipe-override-badge", text: "overridden" }) : null,
-        ...layoutIntents.map((intent) =>
-          el("span", { class: "layout-chip", text: `layout.${intent}` }),
-        ),
-      ),
-      el("span", {
-        class: "recipe-field-original",
-        text: `${presentation.sourceProperty} · original ${presentation.token ?? presentation.value} [${presentation.kind}]`,
-      }),
-      el(
-        "div",
-        { class: "recipe-field-controls" },
-        el(
-          "select",
-          {
-            class: "recipe-kind-control",
-            onchange: (event: Event) =>
-              commit(
-                valueForKind(
-                  (event.target as HTMLSelectElement).value as RecipeValueKind,
-                  current,
-                  tokenOptions,
-                ),
-              ),
-          },
-          ...(["token", "literal", "expression", "inherited"] as const).map((kind) =>
-            el("option", {
-              value: kind,
-              selected: kind === current.kind,
-              disabled: kind === "token" && tokenOptions.length === 0,
-              text: kind,
-            }),
-          ),
+        { class: "recipe-field-controls", slot: "control" },
+        inspectorSelect(
+          (["token", "literal", "expression", "inherited"] as const)
+            .filter((kind) => kind !== "token" || tokenOptions.length > 0)
+            .map((kind) => ({ value: kind, label: kind })),
+          current.kind,
+          `${trait} value kind`,
+          (kind) => commit(valueForKind(kind as RecipeValueKind, current, tokenOptions)),
+          "recipe-kind-control",
         ),
         renderedValueControl,
         override
-          ? el("button", {
-              type: "button",
-              class: "recipe-reset",
-              text: "reset",
-              onclick: () => callbacks.update({ edits: removeOverride(state.edits, target) }),
-            })
+          ? inspectorButton(
+              "Reset",
+              () => callbacks.update({ edits: removeOverride(state.edits, target) }),
+              { class: "recipe-reset" },
+            )
           : null,
       ),
-      error,
+      el(
+        "div",
+        { class: "recipe-field-description", slot: "description" },
+        el("span", {
+          class: "recipe-field-original",
+          text: `${presentation.sourceProperty} · ${presentation.token ?? presentation.value} [${presentation.kind}]`,
+        }),
+        el(
+          "span",
+          { class: "recipe-field-meta" },
+          override ? el("span", { class: "recipe-override-badge", text: "override" }) : null,
+          ...layoutIntents.map((intent) =>
+            el("span", { class: "layout-chip", text: `layout.${intent}` }),
+          ),
+        ),
+        error,
+      ),
     );
+
+    return field;
   };
 
   return el(
@@ -727,56 +802,60 @@ function recipeEditor(
     el(
       "div",
       { class: "recipe-editor-heading" },
-      el(
-        "div",
-        {},
-        el("h5", { text: "Live recipe" }),
-        el("span", { text: `${state.edits.length} edits` }),
-      ),
+      el("span", { class: "recipe-edit-count", text: `${state.edits.length} edits` }),
       copyPatchButton(patch),
       state.edits.length
-        ? el("button", {
-            type: "button",
+        ? inspectorButton("Clear", () => callbacks.update({ edits: [] }), {
             class: "recipe-reset",
-            text: "clear all",
-            onclick: () => callbacks.update({ edits: [] }),
           })
         : null,
     ),
-    el("p", {
-      class: "note",
-      text: "Controls come from portable recipe traits and typed token metadata. Each edit stays scoped to this semantic node and recipe condition.",
-    }),
-    ...rules.map((rule, ruleIndex) =>
-      el(
-        "details",
-        {
-          class: "recipe-editor-rule",
-          "data-editor-rule-index": ruleIndex,
-          open: ruleIndex === 0,
-        },
-        el(
-          "summary",
-          {},
-          el("span", { class: "surface-rule-state", text: "awaiting preview" }),
-          el("span", {
-            text: portableConditions(rule).map(conditionLabel).join(" · ") || "default condition",
-          }),
-        ),
-        el(
+    el(
+      "ui-accordion",
+      { class: "recipe-rule-list", mode: "multiple" },
+      ...rules.map((rule, ruleIndex) => {
+        const groups = new Map<string, [string, MashRecipeRule["presentation"][string]][]>();
+        for (const entry of Object.entries(rule.presentation)) {
+          const group = traitCategory(entry[0]);
+          groups.set(group, [...(groups.get(group) ?? []), entry]);
+        }
+        const body = el(
           "div",
           { class: "recipe-editor-fields" },
-          ...Object.entries(rule.presentation).map(([trait, presentation]) =>
-            renderField(ruleIndex, trait, presentation),
+          ...[...groups].map(([group, fields]) =>
+            el(
+              "section",
+              { class: "inspector-property-group", "data-property-group": group },
+              el("h6", { text: group }),
+              ...fields.map(([trait, presentation]) => renderField(ruleIndex, trait, presentation)),
+            ),
           ),
-        ),
-      ),
+        );
+        const item = inspectorSection(
+          portableConditions(rule).map(conditionLabel).join(" · ") || "Default",
+          `recipe-rule-${ruleIndex}`,
+          body,
+          ruleIndex === 0,
+          "recipe-editor-rule",
+        );
+        item.dataset.editorRuleIndex = String(ruleIndex);
+        const stateLabel = el("span", {
+          slot: "prefix",
+          class: "surface-rule-state",
+          text: "awaiting preview",
+        });
+        item.prepend(stateLabel);
+        return item;
+      }),
     ),
     el(
-      "details",
-      { class: "recipe-patch-export" },
-      el("summary", { text: "Portable recipe patch" }),
-      el("pre", { class: "code" }, el("code", { text: patch })),
+      "ui-accordion",
+      { class: "recipe-patch-export", mode: "multiple" },
+      inspectorSection(
+        "Portable patch",
+        "portable-patch",
+        el("pre", { class: "code" }, el("code", { text: patch })),
+      ),
     ),
   );
 }
@@ -798,77 +877,63 @@ function selectedNodeInspector(state: State, callbacks: AppCallbacks): HTMLEleme
     ),
   ].sort();
 
-  return el(
-    "article",
-    { class: "surface-selection", "data-selected-node-address": node.address },
+  const facts = el(
+    "dl",
+    { class: "surface-selection-facts" },
+    el("div", {}, el("dt", { text: "contract" }), el("dd", { text: owner.tagName })),
+    el("div", {}, el("dt", { text: "role" }), el("dd", { text: node.role })),
+    el("div", {}, el("dt", { text: "family" }), el("dd", { text: node.family })),
+    el("div", {}, el("dt", { text: "ownership" }), el("dd", { text: node.ownership })),
+    el("div", {}, el("dt", { text: "shared" }), el("dd", { text: String(node.shared) })),
     el(
       "div",
-      { class: "surface-selection-heading" },
-      el("div", {}, el("h4", { text: node.id }), el("code", { text: node.address })),
-      el("span", { class: "surface-realization-summary", text: "awaiting preview" }),
+      {},
+      el("dt", { text: "topology" }),
+      el("dd", {
+        text: `${parent ? `parent ${parent.id}` : "root"} · ${children.length ? `children ${children.map((child) => child.id).join(", ")}` : "leaf"}`,
+      }),
     ),
-    el(
-      "dl",
-      { class: "surface-selection-facts" },
-      el("div", {}, el("dt", { text: "contract" }), el("dd", { text: owner.tagName })),
-      el("div", {}, el("dt", { text: "role" }), el("dd", { text: node.role })),
-      el("div", {}, el("dt", { text: "family" }), el("dd", { text: node.family })),
-      el("div", {}, el("dt", { text: "ownership" }), el("dd", { text: node.ownership })),
-      el("div", {}, el("dt", { text: "shared" }), el("dd", { text: String(node.shared) })),
-      el(
-        "div",
-        {},
-        el("dt", { text: "topology" }),
-        el("dd", {
-          text: `${parent ? `parent ${parent.id}` : "root"} · ${children.length ? `children ${children.map((child) => child.id).join(", ")}` : "leaf"}`,
-        }),
-      ),
-    ),
-    el("h5", { text: `Bindings (${node.bindings.length})` }),
-    el(
-      "div",
-      { class: "surface-selection-bindings" },
-      ...(node.bindings.length
-        ? node.bindings.map((binding) =>
-            el(
-              "div",
-              {
-                class:
-                  binding.address === state.binding
-                    ? "surface-binding-detail is-selected"
-                    : "surface-binding-detail",
-                "data-selected-binding-address": binding.address,
-              },
-              el("code", { text: bindingName(owner, binding) }),
-              el("span", {
-                text: `${binding.mapping} · ${binding.availability} · ${binding.direction}`,
-              }),
-              el("span", { text: `value ${binding.value.kind}` }),
-              fallbackLabel(binding) ? el("span", { text: fallbackLabel(binding)! }) : null,
-              ...eventRelationLabels(binding).map((label) => el("span", { text: label })),
-              el("strong", { class: "surface-binding-effective", text: "awaiting preview" }),
-            ),
-          )
-        : [el("p", { class: "note", text: "Semantic-only node with no Web binding." })]),
-    ),
+  );
+
+  const bindings = el(
+    "div",
+    { class: "surface-selection-bindings" },
+    ...(node.bindings.length
+      ? node.bindings.map((binding) =>
+          el(
+            "div",
+            {
+              class:
+                binding.address === state.binding
+                  ? "surface-binding-detail is-selected"
+                  : "surface-binding-detail",
+              "data-selected-binding-address": binding.address,
+            },
+            el("code", { text: bindingName(owner, binding) }),
+            el("span", {
+              text: `${binding.mapping} · ${binding.availability} · ${binding.direction}`,
+            }),
+            el("span", { text: `value ${binding.value.kind}` }),
+            fallbackLabel(binding) ? el("span", { text: fallbackLabel(binding)! }) : null,
+            ...eventRelationLabels(binding).map((label) => el("span", { text: label })),
+            el("strong", { class: "surface-binding-effective", text: "awaiting preview" }),
+          ),
+        )
+      : [el("p", { class: "note", text: "Semantic-only node with no Web binding." })]),
+  );
+
+  const provenancePanel = el(
+    "div",
+    { class: "inspector-provenance" },
     el("h5", { text: `Recipe provenance (${rules.length})` }),
     el(
-      "div",
-      { class: "surface-selection-rules" },
+      "ui-accordion",
+      { class: "surface-selection-rules", mode: "multiple" },
       ...(rules.length
-        ? rules.map((rule, index) =>
-            el(
-              "details",
-              {
-                class: "surface-rule",
-                "data-selected-rule-index": index,
-              },
-              el(
-                "summary",
-                {},
-                el("span", { class: "surface-rule-state", text: "awaiting preview" }),
-                el("code", { text: rule.when.web.selector }),
-              ),
+        ? rules.map((rule, index) => {
+            const item = inspectorSection(
+              rule.when.web.selector,
+              `provenance-rule-${index}`,
               el(
                 "div",
                 { class: "surface-rule-body" },
@@ -885,8 +950,19 @@ function selectedNodeInspector(state: State, callbacks: AppCallbacks): HTMLEleme
                   }),
                 ),
               ),
-            ),
-          )
+              false,
+              "surface-rule",
+            );
+            item.dataset.selectedRuleIndex = String(index);
+            item.prepend(
+              el("span", {
+                slot: "prefix",
+                class: "surface-rule-state",
+                text: "awaiting preview",
+              }),
+            );
+            return item;
+          })
         : [el("p", { class: "note", text: "No direct recipe; this node is contract-only." })]),
     ),
     el("h5", { text: `Token provenance (${ruleTokens.length})` }),
@@ -899,7 +975,36 @@ function selectedNodeInspector(state: State, callbacks: AppCallbacks): HTMLEleme
           )
         : [el("li", { class: "note", text: "No token dependency on this node." })]),
     ),
-    recipeEditor(state, callbacks, node, rules),
+  );
+
+  return el(
+    "article",
+    { class: "surface-selection", "data-selected-node-address": node.address },
+    el(
+      "div",
+      { class: "surface-selection-heading" },
+      el(
+        "div",
+        {},
+        el("span", { class: "surface-selection-owner", text: owner.tagName }),
+        el("h4", { text: node.id }),
+        el("code", { text: node.address }),
+      ),
+      el("span", { class: "surface-realization-summary", text: "awaiting preview" }),
+    ),
+    el(
+      "ui-accordion",
+      { class: "inspector-sections", mode: "multiple" },
+      inspectorSection(
+        "Properties",
+        "properties",
+        recipeEditor(state, callbacks, node, rules),
+        true,
+      ),
+      inspectorSection("Bindings", "bindings", bindings, true),
+      inspectorSection("Contract", "contract", facts),
+      inspectorSection("Provenance", "provenance", provenancePanel, true),
+    ),
   );
 }
 
@@ -1013,7 +1118,6 @@ function mashContractTree(
         ? `${component.mash.address} · contract v${component.mash.version} · Web bindings, fallbacks, portable conditions, presentation, layout, and tokens are generated from the package contract`
         : "No renderer-neutral contract metadata.",
     }),
-    selectedNodeInspector(state, callbacks),
     nodes.length > 0 ? renderNodes() : null,
   );
 }
@@ -1136,6 +1240,7 @@ interface Mounted {
   tagName: string;
   above: HTMLElement;
   below: HTMLElement;
+  inspector: HTMLElement;
   frame: HTMLIFrameElement;
   document: Promise<Document>;
   tokenList: HTMLElement;
@@ -1752,6 +1857,73 @@ function belowStage(
   ];
 }
 
+function propertyPanel(
+  component: ComponentSchema,
+  state: State,
+  callbacks: AppCallbacks,
+  frame: HTMLIFrameElement,
+): HTMLElement[] {
+  const picker = el("ui-toggle", {
+    class: "inspector-picker",
+    value: "semantic-map",
+    pressed: showSurfaceTree,
+    title: "Reveal selectable semantic regions over the preview",
+  });
+  picker.textContent = "Pick";
+  picker.addEventListener("ui-toggle-change", (event) => {
+    showSurfaceTree = (event as CustomEvent<{ pressed: boolean }>).detail.pressed;
+    setSurfaceHighlight(frame, state.node, state.binding, showSurfaceTree);
+    for (const toggle of document.querySelectorAll<HTMLElement>(".surface-toggle")) {
+      toggle.classList.toggle("is-active", showSurfaceTree);
+      toggle.textContent = showSurfaceTree ? "hide semantic map" : "show semantic map";
+    }
+  });
+
+  const share = inspectorButton(
+    "Share",
+    () => {
+      const restore = () => globalThis.setTimeout(() => (share.textContent = "Share"), 1200);
+      navigator.clipboard?.writeText(location.href).then(
+        () => {
+          share.textContent = "Copied";
+          restore();
+        },
+        () => {
+          share.textContent = "Copy failed";
+          restore();
+        },
+      );
+    },
+    { class: "inspector-action", title: "Copy this inspector state" },
+  );
+
+  const selection = selectedNodeInspector(state, callbacks);
+  return [
+    el(
+      "header",
+      { class: "property-panel-header" },
+      el(
+        "div",
+        { class: "property-panel-title" },
+        el("span", { text: "Properties" }),
+        el("code", { text: component.tagName }),
+      ),
+      el("div", { class: "property-panel-actions" }, picker, share),
+    ),
+    el("ui-separator", { class: "property-panel-divider" }),
+    selection ??
+      el(
+        "div",
+        { class: "property-panel-empty" },
+        el("span", { class: "property-panel-empty-icon", text: "◇" }),
+        el("strong", { text: "Nothing selected" }),
+        el("p", {
+          text: "Choose a semantic node in SurfaceTree, or turn on Pick and select a region on the preview.",
+        }),
+      ),
+  ];
+}
+
 /**
  * Build the persistent page structure.
  *
@@ -1762,6 +1934,10 @@ function belowStage(
 function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): Mounted {
   const above = el("div", { class: "stack" });
   const below = el("div", { class: "stack" });
+  const inspector = el("aside", {
+    class: "property-panel",
+    "aria-label": "Semantic properties inspector",
+  });
   const tokenList = el("ul", { class: "token-list" });
 
   const frame = el("iframe", {
@@ -1822,6 +1998,7 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
       // The stage sits between two containers whose *children* are replaced on
       // each update. The containers themselves, and the frame, are never moved.
       el("main", { class: "content" }, above, el("div", { class: "stage-shell" }, frame), below),
+      inspector,
     ),
   );
 
@@ -1830,6 +2007,7 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
     tagName: state.tagName,
     above,
     below,
+    inspector,
     frame,
     tokenList,
     callbacks,
@@ -1857,6 +2035,7 @@ export function render(root: HTMLElement, state: State, callbacks: AppCallbacks)
   mounted.below.replaceChildren(
     ...belowStage(component, state, callbacks, mounted.tokenList, mounted.frame).filter(present),
   );
+  mounted.inspector.replaceChildren(...propertyPanel(component, state, callbacks, mounted.frame));
 
   void syncStage(mounted, component, state);
 }

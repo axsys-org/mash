@@ -91,13 +91,20 @@ pre {
 
 .layout {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: 220px minmax(0, 1fr) 312px;
   align-items: start;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1100px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+
+  .property-panel {
+    position: static;
+    grid-column: 2;
+    max-block-size: none;
+    border-block-start: 1px solid var(--chrome-line);
   }
 }
 
@@ -111,12 +118,20 @@ pre {
 }
 
 @media (max-width: 720px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
   .sidebar {
     position: static;
     max-block-size: none;
     overflow: visible;
     border-right: 0;
     border-bottom: 1px solid var(--chrome-line);
+  }
+
+  .property-panel {
+    grid-column: 1;
   }
 }
 
@@ -424,6 +439,489 @@ pre {
 .api-block dd {
   margin: 0;
   font-size: 13px;
+}
+
+/* --- docked property inspector ------------------------------------------ */
+
+.property-panel {
+  position: sticky;
+  inset-block-start: 0;
+  align-self: start;
+  min-inline-size: 0;
+  max-block-size: 100dvh;
+  overflow: auto;
+  border-inline-start: 1px solid var(--chrome-line);
+  background: var(--chrome-bg);
+  color: var(--chrome-fg);
+  font-size: 11px;
+}
+
+.property-panel-header {
+  display: flex;
+  min-block-size: 45px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px 7px 12px;
+}
+
+.property-panel-title {
+  display: grid;
+  min-inline-size: 0;
+  gap: 1px;
+}
+
+.property-panel-title > span {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.property-panel-title code {
+  overflow: hidden;
+  color: var(--chrome-muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.property-panel-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+}
+
+.property-panel-divider {
+  display: block;
+}
+
+.property-panel-empty {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 64px 28px;
+  color: var(--chrome-muted);
+  text-align: center;
+}
+
+.property-panel-empty-icon {
+  display: grid;
+  inline-size: 34px;
+  block-size: 34px;
+  place-items: center;
+  border: 1px solid var(--chrome-line);
+  border-radius: 8px;
+  color: var(--chrome-fg);
+  font-size: 18px;
+}
+
+.property-panel-empty strong {
+  color: var(--chrome-fg);
+  font-size: 12px;
+}
+
+.property-panel-empty p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.property-panel .surface-selection {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.property-panel .surface-selection-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+}
+
+.property-panel .surface-selection-heading h4 {
+  font-size: 13px;
+}
+
+.property-panel .surface-selection-owner {
+  display: block;
+  margin-block-end: 2px;
+  color: var(--chrome-accent);
+  font-family: var(--chrome-mono);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.property-panel .surface-selection-heading code {
+  display: block;
+  overflow: hidden;
+  max-inline-size: 100%;
+  color: var(--chrome-muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.property-panel .surface-realization-summary {
+  max-inline-size: 92px;
+  overflow: hidden;
+  border: 1px solid var(--chrome-line);
+  background: transparent;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.property-panel .inspector-sections::part(root),
+.property-panel .surface-selection-rules::part(root),
+.property-panel .recipe-rule-list::part(root),
+.property-panel .recipe-patch-export::part(root) {
+  display: grid;
+  gap: 0;
+}
+
+.property-panel .inspector-section {
+  display: block;
+  border: 0;
+  border-block-start: 1px solid var(--chrome-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.property-panel .inspector-section::part(trigger) {
+  min-block-size: 34px;
+  gap: 6px;
+  border-radius: 0;
+  padding: 7px 12px;
+  color: var(--chrome-fg);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.property-panel .inspector-section::part(trigger):hover:not(:disabled) {
+  background: var(--chrome-code-bg);
+}
+
+.property-panel .inspector-section::part(disclosure) {
+  color: var(--chrome-muted);
+  font-size: 9px;
+}
+
+.property-panel .inspector-section::part(content) {
+  padding: 0 12px 12px;
+  color: var(--chrome-fg);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.property-panel .surface-selection-facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px 12px;
+}
+
+.property-panel .surface-selection-facts dt {
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+
+.property-panel .surface-selection-facts dd {
+  overflow-wrap: anywhere;
+  font-size: 10px;
+}
+
+.property-panel .surface-selection-bindings {
+  gap: 5px;
+}
+
+.property-panel .surface-binding-detail {
+  display: grid;
+  gap: 3px;
+  padding: 7px 8px;
+  border-radius: 5px;
+  font-size: 9px;
+}
+
+.property-panel .surface-binding-detail code,
+.property-panel .surface-binding-detail strong {
+  color: var(--chrome-fg);
+  font-size: 9px;
+}
+
+.property-panel .inspector-provenance {
+  display: grid;
+  gap: 8px;
+}
+
+.property-panel .inspector-provenance h5 {
+  margin: 4px 0 0;
+  color: var(--chrome-muted);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.property-panel .surface-rule,
+.property-panel .recipe-editor-rule,
+.property-panel .recipe-patch-export .inspector-section {
+  margin-block-end: 5px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 6px;
+}
+
+.property-panel .surface-rule::part(trigger),
+.property-panel .recipe-editor-rule::part(trigger),
+.property-panel .recipe-patch-export .inspector-section::part(trigger) {
+  min-block-size: 30px;
+  padding: 6px 7px;
+  font-family: var(--chrome-mono);
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.property-panel .surface-rule::part(content),
+.property-panel .recipe-editor-rule::part(content),
+.property-panel .recipe-patch-export .inspector-section::part(content) {
+  padding: 0 7px 7px;
+}
+
+.property-panel .surface-rule-state {
+  color: var(--chrome-muted);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.property-panel .surface-rule.is-active .surface-rule-state,
+.property-panel .recipe-editor-rule.is-active .surface-rule-state {
+  color: var(--chrome-accent);
+}
+
+.property-panel .surface-rule-body {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+}
+
+.property-panel .surface-trait {
+  flex: none;
+  padding: 4px 5px;
+  font-size: 8px;
+}
+
+.property-panel .surface-token-traces {
+  gap: 4px;
+  font-size: 8px;
+}
+
+.property-panel .surface-token-traces code {
+  overflow-wrap: anywhere;
+}
+
+.property-panel .recipe-editor {
+  gap: 8px;
+  padding: 0;
+  border: 0;
+}
+
+.property-panel .recipe-editor-heading {
+  flex-wrap: nowrap;
+  min-block-size: 26px;
+  gap: 4px;
+}
+
+.property-panel .recipe-edit-count {
+  margin-inline-end: auto;
+  color: var(--chrome-muted);
+  font-family: var(--chrome-mono);
+  font-size: 9px;
+}
+
+.property-panel .recipe-editor-fields {
+  gap: 10px;
+  padding: 0;
+}
+
+.property-panel .inspector-property-group {
+  display: grid;
+  gap: 0;
+}
+
+.property-panel .inspector-property-group + .inspector-property-group {
+  margin-block-start: 10px;
+}
+
+.property-panel .inspector-property-group h6 {
+  margin: 0;
+  padding-block-end: 3px;
+  color: var(--chrome-muted);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.property-panel .recipe-field {
+  display: block;
+  padding: 7px 0;
+  border: 0;
+  border-block-end: 1px solid color-mix(in oklab, var(--chrome-line) 70%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+.property-panel .recipe-field.is-overridden {
+  border-color: var(--chrome-accent);
+  background: transparent;
+}
+
+.property-panel .recipe-field::part(root) {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  align-items: start;
+  gap: 4px 7px;
+}
+
+.property-panel .recipe-field::part(label) {
+  overflow: hidden;
+  padding-block-start: 5px;
+  color: var(--chrome-muted);
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.property-panel .recipe-field::part(control) {
+  min-inline-size: 0;
+}
+
+.property-panel .recipe-field::part(description) {
+  grid-column: 2;
+  color: var(--chrome-muted);
+  font-family: var(--chrome-mono);
+  font-size: 7px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.property-panel .recipe-field-description {
+  display: grid;
+  gap: 3px;
+}
+
+.property-panel .recipe-field-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 4px;
+  min-inline-size: 0;
+}
+
+.property-panel .recipe-kind-control,
+.property-panel .recipe-value-control {
+  display: block;
+  min-inline-size: 0;
+}
+
+.property-panel ui-select.recipe-kind-control::part(trigger),
+.property-panel ui-select.recipe-value-control::part(trigger),
+.property-panel ui-input.recipe-value-control::part(control) {
+  inline-size: 100%;
+  min-block-size: 25px;
+  min-inline-size: 0;
+  border-color: var(--chrome-line);
+  border-radius: 5px;
+  padding: 3px 5px;
+  background: var(--chrome-code-bg);
+  font-family: var(--chrome-mono);
+  font-size: 8px;
+  line-height: 1.2;
+}
+
+.property-panel ui-select::part(popup) {
+  max-inline-size: 272px;
+  max-block-size: 280px;
+  overflow: auto;
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.property-panel ui-option::part(control) {
+  padding: 5px 7px;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+
+.property-panel .inspector-choice-group::part(root),
+.property-panel .inspector-choice-group::part(children) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+}
+
+.property-panel .inspector-choice-group ui-toggle::part(control) {
+  inline-size: 100%;
+  min-block-size: 25px;
+  padding: 3px 4px;
+  border-radius: 4px;
+  font-size: 8px;
+}
+
+.property-panel .recipe-field-meta {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.property-panel .recipe-override-badge,
+.property-panel .layout-chip {
+  padding: 1px 4px;
+  font-size: 7px;
+}
+
+.property-panel .recipe-field-error {
+  display: block;
+  min-block-size: 0;
+  color: var(--color-critical);
+  font-size: 8px;
+}
+
+.property-panel .recipe-field-error:empty {
+  display: none;
+}
+
+.property-panel ui-button.inspector-action::part(control),
+.property-panel ui-button.recipe-reset::part(control),
+.property-panel .inspector-picker::part(control) {
+  min-block-size: 24px;
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 9px;
+}
+
+.property-panel ui-button.recipe-reset::part(control) {
+  padding-inline: 4px;
+}
+
+.property-panel ui-button.recipe-reset {
+  justify-self: end;
+}
+
+.property-panel .inspector-select-icon {
+  color: var(--chrome-muted);
+  font-size: 9px;
+}
+
+.property-panel .recipe-patch-export .code {
+  max-block-size: 220px;
+  margin: 0;
+  padding: 7px;
+  border-radius: 4px;
+  font-size: 8px;
 }
 
 /* --- semantic SurfaceTree ------------------------------------------------ */
