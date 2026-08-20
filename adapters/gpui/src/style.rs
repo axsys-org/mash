@@ -140,8 +140,8 @@ impl<T: Styled + Sized> MashStyledExt for T {}
 fn apply_display<T: Styled + Sized>(element: T, recipe: &ResolvedRecipe) -> T {
     match recipe.trait_value("layout.display") {
         Some("none") => element.hidden(),
-        Some(value) if value.contains("grid") => element.grid(),
-        Some(value) if value.contains("flex") => element.flex(),
+        Some(value) if value.contains("grid") || value == "overlay" => element.grid(),
+        Some(value) if value.contains("flex") || value == "flow" => element.flex(),
         Some("block" | "inline-block" | "contents") => element.block(),
         _ => element,
     }
@@ -157,16 +157,16 @@ fn apply_flex<T: Styled + Sized>(mut element: T, recipe: &ResolvedRecipe) -> T {
         .then_some("column")
     });
     element = match direction {
-        Some("column") => element.flex_col(),
-        Some("column-reverse") => element.flex_col_reverse(),
-        Some("row") => element.flex_row(),
-        Some("row-reverse") => element.flex_row_reverse(),
+        Some("column" | "block") => element.flex_col(),
+        Some("column-reverse" | "block-reverse") => element.flex_col_reverse(),
+        Some("row" | "inline") => element.flex_row(),
+        Some("row-reverse" | "inline-reverse") => element.flex_row_reverse(),
         _ => element,
     };
     element = match recipe.trait_value("layout.flexWrap") {
-        Some("wrap") => element.flex_wrap(),
-        Some("wrap-reverse") => element.flex_wrap_reverse(),
-        Some("nowrap") => element.flex_nowrap(),
+        Some("wrap" | "forward") => element.flex_wrap(),
+        Some("wrap-reverse" | "reverse") => element.flex_wrap_reverse(),
+        Some("nowrap" | "none") => element.flex_nowrap(),
         _ => element,
     };
     element = match recipe.trait_value("layout.flex") {
@@ -202,36 +202,36 @@ fn apply_flex<T: Styled + Sized>(mut element: T, recipe: &ResolvedRecipe) -> T {
 fn apply_alignment<T: Styled + Sized>(mut element: T, recipe: &ResolvedRecipe) -> T {
     element = match recipe.trait_value("layout.alignItems") {
         Some("center") => element.items_center(),
-        Some("start" | "flex-start") => element.items_start(),
-        Some("end" | "flex-end") => element.items_end(),
+        Some("start" | "flex-start" | "leading") => element.items_start(),
+        Some("end" | "flex-end" | "trailing") => element.items_end(),
         Some("baseline") => element.items_baseline(),
         Some("stretch") => element.items_stretch(),
         _ => element,
     };
     element = match recipe.trait_value("layout.alignSelf") {
         Some("center") => element.self_center(),
-        Some("start" | "flex-start") => element.self_start(),
-        Some("end" | "flex-end") => element.self_end(),
+        Some("start" | "flex-start" | "leading") => element.self_start(),
+        Some("end" | "flex-end" | "trailing") => element.self_end(),
         Some("baseline") => element.self_baseline(),
         Some("stretch") => element.self_stretch(),
         _ => element,
     };
     element = match recipe.trait_value("layout.justifyContent") {
         Some("center") => element.justify_center(),
-        Some("start" | "flex-start") => element.justify_start(),
-        Some("end" | "flex-end") => element.justify_end(),
-        Some("space-between") => element.justify_between(),
-        Some("space-around") => element.justify_around(),
-        Some("space-evenly") => element.justify_evenly(),
+        Some("start" | "flex-start" | "leading") => element.justify_start(),
+        Some("end" | "flex-end" | "trailing") => element.justify_end(),
+        Some("space-between" | "between") => element.justify_between(),
+        Some("space-around" | "around") => element.justify_around(),
+        Some("space-evenly" | "evenly") => element.justify_evenly(),
         _ => element,
     };
     element = match recipe.trait_value("layout.alignContent") {
         Some("center") => element.content_center(),
-        Some("start" | "flex-start") => element.content_start(),
-        Some("end" | "flex-end") => element.content_end(),
-        Some("space-between") => element.content_between(),
-        Some("space-around") => element.content_around(),
-        Some("space-evenly") => element.content_evenly(),
+        Some("start" | "flex-start" | "leading") => element.content_start(),
+        Some("end" | "flex-end" | "trailing") => element.content_end(),
+        Some("space-between" | "between") => element.content_between(),
+        Some("space-around" | "around") => element.content_around(),
+        Some("space-evenly" | "evenly") => element.content_evenly(),
         Some("stretch") => element.content_stretch(),
         _ => element,
     };

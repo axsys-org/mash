@@ -42,7 +42,12 @@ const callbacks: AppCallbacks = {
     if (!component) return;
     // Each component gets a fresh state seeded from its own documented
     // defaults, rather than inheriting attributes that may not apply.
-    state = { ...initialState(component), theme: state.theme };
+    state = {
+      ...initialState(component),
+      theme: state.theme,
+      density: state.density,
+      edits: state.edits,
+    };
     update("push");
   },
 

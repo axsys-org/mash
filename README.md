@@ -315,6 +315,21 @@ throwing, because links outlive the code they were copied from.
 Choosing a component pushes a history entry; nudging a control replaces one. Otherwise trying four
 variants would cost four presses of Back to leave the page.
 
+### The live recipe playground
+
+Select a semantic node in the SurfaceTree to edit the recipe rules that realize it. The catalogue
+generates those controls from `mash.json`: visual traits expose compatible typed tokens, logical
+layout properties show their `group`, `orientation`, `distribution`, `min/ideal/max`, gap, inset,
+overflow, and anchor intent, and every rule remains scoped to its portable conditions. Values stay
+explicitly `token`, `literal`, `expression`, or `inherited`; expressions reference portable token
+IDs as `{space.controlBlock}` rather than serializing CSS custom properties.
+
+Edits are applied by a late Web realization in the preview, survive light/dark and
+compact/comfortable/spacious comparisons, and are serialized into the URL. **Copy portable patch**
+exports the same state against `docs/schema/recipe-patch-1.0.0.schema.json`. The patch contains
+semantic node addresses, presentation traits, portable conditions, and typed values—no selectors
+or CSS property names. `MashAdapter::recipe_with_patch` consumes that artifact directly for GPUI.
+
 ## Pull requests
 
 ```text

@@ -199,6 +199,22 @@ glyph, control, compact, panel, dialog, readable measure, content, record, and w
 The recipe determines whether one of those values acts as a minimum, ideal value, maximum, gap,
 or inset for a particular semantic node.
 
+## Portable recipe patches
+
+A recipe patch addresses a semantic node, portable presentation trait, and recipe conditions. Its
+value is a direct DTCG token ID, literal, token-bearing expression, or inherited value. It never
+contains a Web selector or CSS property name; each renderer finds those details in its own
+catalogue realization. Logical alignment and distribution edits use `leading`, `center`,
+`trailing`, `between`, `around`, and `evenly`, which the Web and GPUI adapters translate into their
+own layout APIs.
+
+The browser playground stores patches in its deep link and applies them after the selected
+catalogue. GPUI parses the same `recipe-patch-1.0.0` artifact, checks component/layout/presentation
+contract compatibility, resolves token IDs against the active theme, evaluates portable
+conditions, and replaces the matching resolved traits. Invalid token types, unknown token
+references, renderer-specific conditions, and values the Web target property cannot accept are
+rejected instead of entering a shared patch.
+
 ## Versioning
 
 The schema URL and embedded version identify the exact contract shape. Releases follow SemVer:

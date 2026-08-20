@@ -2,8 +2,9 @@ use gpui::ParentElement as _;
 use std::collections::BTreeSet;
 
 use mash_gpui::{
-    GPUI_STYLED_TRAITS, MashAdapter, MashLayoutValueKind, MashRecipeContext, MashStyledExt,
-    MashTheme, RendererEventSnapshot, RendererNodeSnapshot, RendererSnapshot, base::Button,
+    GPUI_STYLED_TRAITS, MashAdapter, MashLayoutValueKind, MashRecipeContext, MashRecipePatch,
+    MashStyledExt, MashTheme, RendererEventSnapshot, RendererNodeSnapshot, RendererSnapshot,
+    base::Button,
 };
 
 #[test]
@@ -71,6 +72,56 @@ fn typed_layout_intent_and_provenance_survive_the_native_adapter() {
     assert_eq!(gap.kind, MashLayoutValueKind::Token);
     assert_eq!(gap.token.as_deref(), Some("space.controlGap"));
     assert!(!gap.value.contains("var(--"), "native gap is unresolved");
+}
+
+#[test]
+fn portable_playground_patch_is_consumed_by_gpui_recipes() {
+    let mash = MashAdapter::embedded();
+    let patch = MashRecipePatch::from_json(include_str!(
+        "../../../packages/conformance/fixtures/recipe-patch.json"
+    ))
+    .expect("portable patch");
+    assert_eq!(patch.override_count(), 2);
+    let recipe = mash
+        .recipe_with_patch(
+            "ui-button",
+            "control",
+            MashTheme::Dark,
+            &MashRecipeContext::new(),
+            &patch,
+        )
+        .expect("patched GPUI recipe");
+    let fill = recipe.traits.get("surface.fill").expect("fill trait");
+    assert_eq!(fill.kind, "token");
+    assert_eq!(fill.token.as_deref(), Some("color.critical"));
+    assert_eq!(
+        recipe.trait_value("layout.justifyContent"),
+        Some("trailing")
+    );
+    assert_eq!(
+        fill.value,
+        mash.theme(MashTheme::Dark)
+            .css_value("color.critical")
+            .expect("critical token")
+    );
+}
+
+#[test]
+fn native_patch_rejects_incompatible_token_types() {
+    let mash = MashAdapter::embedded();
+    let invalid = include_str!("../../../packages/conformance/fixtures/recipe-patch.json")
+        .replace("color.critical", "space.region");
+    let patch = MashRecipePatch::from_json(&invalid).expect("structural patch");
+    let problem = mash
+        .recipe_with_patch(
+            "ui-button",
+            "control",
+            MashTheme::Light,
+            &MashRecipeContext::new(),
+            &patch,
+        )
+        .expect_err("dimension token cannot realize a color trait");
+    assert!(problem.contains("expected color"), "{problem}");
 }
 
 #[test]

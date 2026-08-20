@@ -208,8 +208,17 @@ export interface MashCatalogueNode {
 }
 
 interface MashCatalogueRecipe {
+  componentContract: string;
+  layoutContract: string;
+  presentationContract: string;
   nodes: Record<string, MashCatalogueNode>;
   rules: MashRecipeRule[];
+}
+
+export interface MashCatalogueContractVersions {
+  componentContract: string;
+  layoutContract: string;
+  presentationContract: string;
 }
 
 export interface CssProperty extends Described {
@@ -317,6 +326,18 @@ export function recipeRulesFor(packageName: string, nodeAddress: string): MashRe
   return (recipes.get(packageName)?.rules ?? []).filter((rule) =>
     rule.targets.includes(nodeAddress),
   );
+}
+
+export function catalogueContractFor(
+  packageName: string,
+): MashCatalogueContractVersions | undefined {
+  const recipe = recipes.get(packageName);
+  if (!recipe) return undefined;
+  return {
+    componentContract: recipe.componentContract,
+    layoutContract: recipe.layoutContract,
+    presentationContract: recipe.presentationContract,
+  };
 }
 
 /** The component contract that owns a globally stable semantic node address. */

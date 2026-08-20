@@ -71,6 +71,16 @@ html[data-layout="fill"] body {
   padding: 0;
 }
 
+:root[data-density="compact"] {
+  --space-control-inline: var(--space-control-inline-small);
+  --space-control-block: var(--space-control-block-small);
+}
+
+:root[data-density="spacious"] {
+  --space-control-inline: var(--space-control-inline-large);
+  --space-control-block: var(--space-control-block-large);
+}
+
 /* A named semantic slot is real authored content, not an icon-shaped marker.
    Keep it readable so title, description, value, and action labels preserve
    their meaning in the controls-driven preview. */

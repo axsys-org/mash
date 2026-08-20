@@ -90,6 +90,48 @@ pub struct ResolvedParameter {
     pub tokens: Vec<String>,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MashRecipePatch {
+    #[serde(rename = "$schema")]
+    schema: String,
+    version: String,
+    component_contract: String,
+    layout_contract: String,
+    presentation_contract: String,
+    overrides: Vec<MashRecipeOverride>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct MashRecipeOverride {
+    node_address: String,
+    #[serde(rename = "trait")]
+    trait_: String,
+    conditions: Vec<Condition>,
+    occurrence: usize,
+    value: MashRecipePatchValue,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "kind", rename_all = "lowercase")]
+enum MashRecipePatchValue {
+    Token { token: String },
+    Literal { value: String },
+    Expression { value: String, tokens: Vec<String> },
+    Inherited { value: String },
+}
+
+impl MashRecipePatch {
+    pub fn from_json(source: &str) -> serde_json::Result<Self> {
+        serde_json::from_str(source)
+    }
+
+    pub fn override_count(&self) -> usize {
+        self.overrides.len()
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CatalogueInfo<'a> {
     pub name: &'a str,
@@ -273,6 +315,142 @@ pub(crate) fn resolve_recipe(
         layout,
         parameters,
         unresolved,
+    }
+}
+
+pub(crate) fn apply_recipe_patch(
+    runtime: &RuntimeContract,
+    theme: MashTheme,
+    context: &MashRecipeContext,
+    recipe: &mut ResolvedRecipe,
+    patch: &MashRecipePatch,
+) -> Result<(), String> {
+    const PATCH_SCHEMA: &str = "https://mash.axsys.dev/schema/recipe-patch-1.0.0.json";
+    if patch.schema != PATCH_SCHEMA || patch.version != "1.0.0" {
+        return Err("unsupported Mash recipe patch schema".to_owned());
+    }
+    if patch.component_contract != runtime.component_contract {
+        return Err(format!(
+            "patch component contract {} does not match {}",
+            patch.component_contract, runtime.component_contract
+        ));
+    }
+    if !runtime.catalogues.iter().any(|catalogue| {
+        catalogue.layout_contract == patch.layout_contract
+            && catalogue.presentation_contract == patch.presentation_contract
+    }) {
+        return Err("patch layout or presentation contract is incompatible".to_owned());
+    }
+
+    let theme = crate::theme::ThemeView::new(&runtime.tokens, theme);
+    for override_ in &patch.overrides {
+        if override_
+            .conditions
+            .iter()
+            .any(|condition| matches!(condition, Condition::Renderer { .. }))
+        {
+            return Err("portable patches cannot contain renderer conditions".to_owned());
+        }
+        if override_.node_address != recipe.target
+            || !override_
+                .conditions
+                .iter()
+                .all(|condition| condition.matches(context))
+        {
+            continue;
+        }
+        let _portable_occurrence = override_.occurrence;
+        let current = recipe
+            .traits
+            .get_mut(&override_.trait_)
+            .ok_or_else(|| format!("patch targets unknown trait {}", override_.trait_))?;
+        validate_patch_token_types(runtime, current, &override_.value)?;
+        let (kind, value, tokens, token) = resolve_patch_value(&override_.value, &theme)?;
+        current.kind = kind;
+        current.value = value;
+        current.tokens = tokens;
+        current.token = token;
+    }
+    recipe.unresolved = recipe
+        .traits
+        .iter()
+        .filter(|(_, value)| value.value.contains("var(--") || value.value.contains('{'))
+        .map(|(name, value)| format!("{name}: {}", value.value))
+        .collect();
+    Ok(())
+}
+
+fn validate_patch_token_types(
+    runtime: &RuntimeContract,
+    current: &ResolvedTrait,
+    value: &MashRecipePatchValue,
+) -> Result<(), String> {
+    let expected = current
+        .tokens
+        .iter()
+        .filter_map(|token| runtime.tokens.tokens.get(token))
+        .map(|token| token.kind.as_str())
+        .collect::<BTreeSet<_>>();
+    let patch_tokens = match value {
+        MashRecipePatchValue::Token { token } => vec![token],
+        MashRecipePatchValue::Expression { tokens, .. } => tokens.iter().collect(),
+        MashRecipePatchValue::Literal { .. } | MashRecipePatchValue::Inherited { .. } => Vec::new(),
+    };
+    for token in patch_tokens {
+        let actual = runtime
+            .tokens
+            .tokens
+            .get(token)
+            .ok_or_else(|| format!("patch references unknown token {token}"))?;
+        if !expected.is_empty() && !expected.contains(actual.kind.as_str()) {
+            return Err(format!(
+                "patch token {token} has type {}, expected {}",
+                actual.kind,
+                expected.iter().copied().collect::<Vec<_>>().join(" or ")
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn resolve_patch_value(
+    value: &MashRecipePatchValue,
+    theme: &crate::theme::ThemeView<'_>,
+) -> Result<(String, String, Vec<String>, Option<String>), String> {
+    match value {
+        MashRecipePatchValue::Token { token } => Ok((
+            "token".to_owned(),
+            theme
+                .css_value(token)
+                .ok_or_else(|| format!("patch references unknown token {token}"))?,
+            vec![token.clone()],
+            Some(token.clone()),
+        )),
+        MashRecipePatchValue::Literal { value } => {
+            Ok(("literal".to_owned(), value.clone(), Vec::new(), None))
+        }
+        MashRecipePatchValue::Inherited { value } => Ok((
+            "inherited".to_owned(),
+            match value.as_str() {
+                "inherit" | "initial" | "unset" | "revert" | "revert-layer" => value.clone(),
+                _ => return Err(format!("invalid inherited value {value}")),
+            },
+            Vec::new(),
+            None,
+        )),
+        MashRecipePatchValue::Expression { value, tokens } => {
+            let mut resolved = value.clone();
+            for token in tokens {
+                let replacement = theme
+                    .css_value(token)
+                    .ok_or_else(|| format!("patch references unknown token {token}"))?;
+                resolved = resolved.replace(&format!("{{{token}}}"), &replacement);
+            }
+            if resolved.contains('{') {
+                return Err("patch expression contains an undeclared token reference".to_owned());
+            }
+            Ok(("expression".to_owned(), resolved, tokens.clone(), None))
+        }
     }
 }
 

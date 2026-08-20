@@ -1,0 +1,23 @@
+{
+  "$schema": "https://mash.axsys.dev/schema/recipe-patch-1.0.0.json",
+  "version": "1.0.0",
+  "componentContract": "1.0.0",
+  "layoutContract": "2.0.0",
+  "presentationContract": "1.0.0",
+  "overrides": [
+    {
+      "nodeAddress": "mash://ui-button/node/control",
+      "trait": "surface.fill",
+      "conditions": [],
+      "occurrence": 0,
+      "value": { "kind": "token", "token": "color.critical" }
+    },
+    {
+      "nodeAddress": "mash://ui-button/node/control",
+      "trait": "layout.justifyContent",
+      "conditions": [],
+      "occurrence": 0,
+      "value": { "kind": "literal", "value": "trailing" }
+    }
+  ]
+}

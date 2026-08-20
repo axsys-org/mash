@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mash.axsys.dev/schema/recipe-patch-1.0.0.json",
+  "title": "Mash portable recipe patch",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "componentContract",
+    "layoutContract",
+    "presentationContract",
+    "overrides"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://mash.axsys.dev/schema/recipe-patch-1.0.0.json"
+    },
+    "version": { "const": "1.0.0" },
+    "componentContract": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "layoutContract": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "presentationContract": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "overrides": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/override" }
+    }
+  },
+  "$defs": {
+    "override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeAddress", "trait", "conditions", "occurrence", "value"],
+      "properties": {
+        "nodeAddress": {
+          "type": "string",
+          "pattern": "^mash://[^/]+/node/[^/]+$"
+        },
+        "trait": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z]*(?:\\.[a-z][a-zA-Z]*)+$"
+        },
+        "conditions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/condition" }
+        },
+        "occurrence": { "type": "integer", "minimum": 0 },
+        "value": { "$ref": "#/$defs/value" }
+      }
+    },
+    "value": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "token"],
+          "properties": {
+            "kind": { "const": "token" },
+            "token": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "literal" },
+            "value": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value", "tokens"],
+          "properties": {
+            "kind": { "const": "expression" },
+            "value": { "type": "string", "minLength": 1 },
+            "tokens": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": { "const": "inherited" },
+            "value": {
+              "enum": ["inherit", "initial", "unset", "revert", "revert-layer"]
+            }
+          }
+        }
+      ]
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "nodeAddress", "operator"],
+          "properties": {
+            "kind": { "const": "node" },
+            "nodeAddress": { "type": "string", "pattern": "^mash://" },
+            "operator": {
+              "enum": [
+                "truthy",
+                "falsy",
+                "equals",
+                "starts-with",
+                "ends-with",
+                "contains"
+              ]
+            },
+            "value": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "state", "active"],
+          "properties": {
+            "kind": { "const": "interaction" },
+            "state": { "type": "string" },
+            "active": { "type": "boolean" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "feature", "value"],
+          "properties": {
+            "kind": { "const": "environment" },
+            "feature": { "type": "string" },
+            "value": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "name", "operator"],
+          "properties": {
+            "kind": { "const": "context" },
+            "name": { "type": "string" },
+            "operator": { "type": "string" },
+            "value": { "type": "string" }
+          }
+        }
+      ]
+    }
+  }
+}

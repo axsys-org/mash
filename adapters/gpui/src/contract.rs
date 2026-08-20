@@ -3,7 +3,10 @@ use std::{collections::BTreeMap, sync::OnceLock};
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::{CatalogueInfo, MashRecipeContext, MashTheme, ResolvedRecipe, recipe::resolve_recipe};
+use crate::{
+    CatalogueInfo, MashRecipeContext, MashRecipePatch, MashTheme, ResolvedRecipe,
+    recipe::{apply_recipe_patch, resolve_recipe},
+};
 
 const EMBEDDED_RUNTIME: &str = include_str!("../contracts/mash-runtime.json");
 
@@ -305,6 +308,19 @@ impl MashAdapter {
         context: &MashRecipeContext,
     ) -> ResolvedRecipe {
         resolve_recipe(self.runtime(), component, node, theme, context)
+    }
+
+    pub fn recipe_with_patch(
+        &self,
+        component: &str,
+        node: &str,
+        theme: MashTheme,
+        context: &MashRecipeContext,
+        patch: &MashRecipePatch,
+    ) -> Result<ResolvedRecipe, String> {
+        let mut recipe = resolve_recipe(self.runtime(), component, node, theme, context);
+        apply_recipe_patch(self.runtime(), theme, context, &mut recipe, patch)?;
+        Ok(recipe)
     }
 }
 

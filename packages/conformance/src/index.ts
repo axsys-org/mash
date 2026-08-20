@@ -77,6 +77,30 @@ export interface RendererSnapshot {
   events: Array<{ nodeAddress: string; intent: "request" | "report" }>;
 }
 
+export interface RecipePatchValue {
+  kind: "token" | "literal" | "expression" | "inherited";
+  value?: string;
+  token?: string;
+  tokens?: string[];
+}
+
+export interface PortableRecipeOverride {
+  nodeAddress: string;
+  trait: string;
+  conditions: unknown[];
+  occurrence: number;
+  value: RecipePatchValue;
+}
+
+export interface PortableRecipePatch {
+  $schema: "https://mash.axsys.dev/schema/recipe-patch-1.0.0.json";
+  version: "1.0.0";
+  componentContract: string;
+  layoutContract: string;
+  presentationContract: string;
+  overrides: PortableRecipeOverride[];
+}
+
 /**
  * Shared structural gate used by every renderer runner. It deliberately deals
  * only in semantic node addresses; DOM slots and GPUI builders are adapter

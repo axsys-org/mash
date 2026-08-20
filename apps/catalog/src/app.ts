@@ -4,6 +4,23 @@ import { el } from "./dom.js";
 import { controlsPreviewAllowed, exampleNamed, examplesFor } from "./examples.js";
 import { familiesFor } from "./families.js";
 import {
+  compatibleTokens,
+  findOverride,
+  layoutChoicesForProperty,
+  layoutIntentForProperty,
+  overrideForRule,
+  playgroundStyle,
+  portableConditions,
+  recipePatch,
+  removeOverride,
+  tokenReferences,
+  upsertOverride,
+  validateRecipeValue,
+  type RecipeOverride,
+  type RecipePatchValue,
+  type RecipeValueKind,
+} from "./recipe-patch.js";
+import {
   components,
   catalogueNodeFor,
   componentForNode,
@@ -38,6 +55,8 @@ export interface State {
   node: string | null;
   /** Optional Web binding selected through a concrete preview realization. */
   binding: string | null;
+  density: "compact" | "comfortable" | "spacious";
+  edits: RecipeOverride[];
 }
 
 export function initialState(component: ComponentSchema): State {
@@ -51,6 +70,8 @@ export function initialState(component: ComponentSchema): State {
     example: examplesFor(component)[0]?.name ?? null,
     node: null,
     binding: null,
+    density: "comfortable",
+    edits: [],
   };
 }
 
@@ -463,7 +484,304 @@ function tokenTrace(tokenId: string, theme: string): string {
     .join(" → ");
 }
 
-function selectedNodeInspector(state: State): HTMLElement | null {
+function portableExpression(value: string): string {
+  return value.replace(/var\((--[\w-]+)\)/g, (source, cssVar: string) => {
+    const token = tokenByCssVar.get(cssVar);
+    return token ? `{${token.id}}` : source;
+  });
+}
+
+function originalPatchValue(
+  presentation: MashRecipeRule["presentation"][string],
+): RecipePatchValue {
+  if (presentation.kind === "token" && presentation.token) {
+    return { kind: "token", token: presentation.token };
+  }
+  return {
+    kind: presentation.kind,
+    value:
+      presentation.kind === "expression"
+        ? portableExpression(presentation.value)
+        : presentation.value,
+    ...(presentation.kind === "expression" ? { tokens: presentation.tokens } : {}),
+  };
+}
+
+function valueForKind(
+  kind: RecipeValueKind,
+  current: RecipePatchValue,
+  tokenOptions: ReturnType<typeof compatibleTokens>,
+): RecipePatchValue {
+  if (kind === "token") return { kind, token: current.token ?? tokenOptions[0]?.id ?? "" };
+  if (kind === "inherited") return { kind, value: "inherit" };
+  const currentValue = current.value ?? "";
+  if (kind === "expression") {
+    const value =
+      current.kind === "expression"
+        ? currentValue
+        : tokenOptions[0]
+          ? `{${tokenOptions[0].id}}`
+          : "calc(1 * 1)";
+    return { kind, value, tokens: tokenReferences(value) };
+  }
+  return { kind, value: current.kind === "literal" ? currentValue || "initial" : "initial" };
+}
+
+function copyPatchButton(patch: string): HTMLElement {
+  const button = el("button", {
+    type: "button",
+    class: "copy-link",
+    text: "copy portable patch",
+  });
+  button.addEventListener("click", () => {
+    const restore = () =>
+      globalThis.setTimeout(() => (button.textContent = "copy portable patch"), 1200);
+    navigator.clipboard?.writeText(patch).then(
+      () => {
+        button.textContent = "copied";
+        restore();
+      },
+      () => {
+        button.textContent = "copy failed";
+        restore();
+      },
+    );
+  });
+  return button;
+}
+
+function recipeEditor(
+  state: State,
+  callbacks: AppCallbacks,
+  node: MashNode,
+  rules: MashRecipeRule[],
+): HTMLElement {
+  const patch = JSON.stringify(recipePatch(state.edits), null, 2);
+  const renderField = (
+    ruleIndex: number,
+    trait: string,
+    presentation: MashRecipeRule["presentation"][string],
+  ) => {
+    const original = originalPatchValue(presentation);
+    const withValue = overrideForRule(node.address, trait, rules, ruleIndex, original);
+    const { value: _value, ...target } = withValue;
+    const override = findOverride(state.edits, target);
+    const current = override?.value ?? original;
+    const tokenOptions = compatibleTokens(trait, presentation.tokens);
+    const error = el("span", { class: "recipe-field-error" });
+    const commit = (value: RecipePatchValue) => {
+      if (value.kind === "expression" && value.value) value.tokens = tokenReferences(value.value);
+      const problem = validateRecipeValue(
+        value,
+        trait,
+        presentation.sourceProperty,
+        presentation.tokens,
+        (property, candidate) => CSS.supports(property, candidate),
+      );
+      error.textContent = problem ?? "";
+      if (problem) return;
+      callbacks.update({
+        edits: upsertOverride(
+          state.edits,
+          overrideForRule(node.address, trait, rules, ruleIndex, value),
+        ),
+      });
+    };
+    const valueControl =
+      current.kind === "token"
+        ? el(
+            "select",
+            {
+              class: "recipe-value-control",
+              onchange: (event: Event) =>
+                commit({ kind: "token", token: (event.target as HTMLSelectElement).value }),
+            },
+            ...(tokenOptions.length
+              ? tokenOptions.map((token) =>
+                  el("option", {
+                    value: token.id,
+                    selected: token.id === current.token,
+                    text: `${token.id} · ${valueOf(token, state.theme)}`,
+                  }),
+                )
+              : [el("option", { disabled: true, text: "No compatible token type" })]),
+          )
+        : current.kind === "inherited"
+          ? el(
+              "select",
+              {
+                class: "recipe-value-control",
+                onchange: (event: Event) =>
+                  commit({ kind: "inherited", value: (event.target as HTMLSelectElement).value }),
+              },
+              ...["inherit", "initial", "unset", "revert", "revert-layer"].map((value) =>
+                el("option", {
+                  value,
+                  selected: value === current.value,
+                  text: value,
+                }),
+              ),
+            )
+          : el("input", {
+              class: "recipe-value-control",
+              type: "text",
+              value: current.value ?? "",
+              onchange: (event: Event) =>
+                commit({
+                  kind: current.kind,
+                  value: (event.target as HTMLInputElement).value,
+                }),
+            });
+    const layoutIntents = layoutIntentForProperty(presentation.sourceProperty);
+    const layoutChoices = layoutChoicesForProperty(presentation.sourceProperty);
+    const renderedValueControl =
+      current.kind === "literal" && layoutChoices.length > 0
+        ? el(
+            "select",
+            {
+              class: "recipe-value-control",
+              onchange: (event: Event) =>
+                commit({ kind: "literal", value: (event.target as HTMLSelectElement).value }),
+            },
+            ...(!current.value || layoutChoices.includes(current.value)
+              ? []
+              : [
+                  el("option", {
+                    selected: true,
+                    disabled: true,
+                    value: current.value,
+                    text: `original ${current.value}`,
+                  }),
+                ]),
+            ...layoutChoices.map((value) =>
+              el("option", {
+                value,
+                selected: value === current.value,
+                text: value,
+              }),
+            ),
+          )
+        : valueControl;
+
+    return el(
+      "div",
+      {
+        class: override ? "recipe-field is-overridden" : "recipe-field",
+        "data-recipe-trait": trait,
+      },
+      el(
+        "div",
+        { class: "recipe-field-heading" },
+        el("code", { text: trait }),
+        override ? el("span", { class: "recipe-override-badge", text: "overridden" }) : null,
+        ...layoutIntents.map((intent) =>
+          el("span", { class: "layout-chip", text: `layout.${intent}` }),
+        ),
+      ),
+      el("span", {
+        class: "recipe-field-original",
+        text: `${presentation.sourceProperty} · original ${presentation.token ?? presentation.value} [${presentation.kind}]`,
+      }),
+      el(
+        "div",
+        { class: "recipe-field-controls" },
+        el(
+          "select",
+          {
+            class: "recipe-kind-control",
+            onchange: (event: Event) =>
+              commit(
+                valueForKind(
+                  (event.target as HTMLSelectElement).value as RecipeValueKind,
+                  current,
+                  tokenOptions,
+                ),
+              ),
+          },
+          ...(["token", "literal", "expression", "inherited"] as const).map((kind) =>
+            el("option", {
+              value: kind,
+              selected: kind === current.kind,
+              disabled: kind === "token" && tokenOptions.length === 0,
+              text: kind,
+            }),
+          ),
+        ),
+        renderedValueControl,
+        override
+          ? el("button", {
+              type: "button",
+              class: "recipe-reset",
+              text: "reset",
+              onclick: () => callbacks.update({ edits: removeOverride(state.edits, target) }),
+            })
+          : null,
+      ),
+      error,
+    );
+  };
+
+  return el(
+    "section",
+    { class: "recipe-editor" },
+    el(
+      "div",
+      { class: "recipe-editor-heading" },
+      el(
+        "div",
+        {},
+        el("h5", { text: "Live recipe" }),
+        el("span", { text: `${state.edits.length} edits` }),
+      ),
+      copyPatchButton(patch),
+      state.edits.length
+        ? el("button", {
+            type: "button",
+            class: "recipe-reset",
+            text: "clear all",
+            onclick: () => callbacks.update({ edits: [] }),
+          })
+        : null,
+    ),
+    el("p", {
+      class: "note",
+      text: "Controls come from portable recipe traits and typed token metadata. Each edit stays scoped to this semantic node and recipe condition.",
+    }),
+    ...rules.map((rule, ruleIndex) =>
+      el(
+        "details",
+        {
+          class: "recipe-editor-rule",
+          "data-editor-rule-index": ruleIndex,
+          open: ruleIndex === 0,
+        },
+        el(
+          "summary",
+          {},
+          el("span", { class: "surface-rule-state", text: "awaiting preview" }),
+          el("span", {
+            text: portableConditions(rule).map(conditionLabel).join(" · ") || "default condition",
+          }),
+        ),
+        el(
+          "div",
+          { class: "recipe-editor-fields" },
+          ...Object.entries(rule.presentation).map(([trait, presentation]) =>
+            renderField(ruleIndex, trait, presentation),
+          ),
+        ),
+      ),
+    ),
+    el(
+      "details",
+      { class: "recipe-patch-export" },
+      el("summary", { text: "Portable recipe patch" }),
+      el("pre", { class: "code" }, el("code", { text: patch })),
+    ),
+  );
+}
+
+function selectedNodeInspector(state: State, callbacks: AppCallbacks): HTMLElement | null {
   if (!state.node) return null;
   const owner = componentForNode(state.node);
   const node = owner?.mash?.nodes.find((candidate) => candidate.address === state.node);
@@ -581,6 +899,7 @@ function selectedNodeInspector(state: State): HTMLElement | null {
           )
         : [el("li", { class: "note", text: "No token dependency on this node." })]),
     ),
+    recipeEditor(state, callbacks, node, rules),
   );
 }
 
@@ -694,7 +1013,7 @@ function mashContractTree(
         ? `${component.mash.address} · contract v${component.mash.version} · Web bindings, fallbacks, portable conditions, presentation, layout, and tokens are generated from the package contract`
         : "No renderer-neutral contract metadata.",
     }),
-    selectedNodeInspector(state),
+    selectedNodeInspector(state, callbacks),
     nodes.length > 0 ? renderNodes() : null,
   );
 }
@@ -1097,10 +1416,13 @@ function syncSelectedProof(current: Mounted, state: State, instances: Element[])
   }
 
   active.forEach((isActive, index) => {
-    const rule = panel.querySelector<HTMLElement>(`[data-selected-rule-index="${index}"]`);
-    const status = rule?.querySelector<HTMLElement>(".surface-rule-state");
-    rule?.classList.toggle("is-active", isActive);
-    if (status) status.textContent = isActive ? "active" : "inactive";
+    for (const rule of panel.querySelectorAll<HTMLElement>(
+      `[data-selected-rule-index="${index}"], [data-editor-rule-index="${index}"]`,
+    )) {
+      const status = rule.querySelector<HTMLElement>(".surface-rule-state");
+      rule.classList.toggle("is-active", isActive);
+      if (status) status.textContent = isActive ? "active" : "inactive";
+    }
   });
 }
 
@@ -1110,6 +1432,14 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
   if (ticket !== syncToken) return;
 
   doc.documentElement.dataset.theme = state.theme;
+  doc.documentElement.dataset.density = state.density;
+  let playground = doc.querySelector<HTMLStyleElement>("#mash-playground-patch");
+  if (!playground) {
+    playground = doc.createElement("style");
+    playground.id = "mash-playground-patch";
+    doc.head.append(playground);
+  }
+  playground.textContent = playgroundStyle(state.edits);
 
   const example = exampleNamed(component, state.example);
   if (example) {
@@ -1330,6 +1660,27 @@ function aboveStage(
           el("span", {
             class: "control-hint",
             text: "Applied to the catalog and preview roots; nested components can still override it.",
+          }),
+        ),
+        el(
+          "div",
+          { class: "control" },
+          el("span", { class: "control-label", text: "density" }),
+          el(
+            "div",
+            { class: "segmented" },
+            ...(["compact", "comfortable", "spacious"] as const).map((density) =>
+              el("button", {
+                type: "button",
+                class: state.density === density ? "segment is-active" : "segment",
+                text: density,
+                onclick: () => callbacks.update({ density }),
+              }),
+            ),
+          ),
+          el("span", {
+            class: "control-hint",
+            text: "Changes the preview's semantic control spacing without clearing recipe edits.",
           }),
         ),
       ),

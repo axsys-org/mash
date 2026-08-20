@@ -22,6 +22,7 @@
 import { initialState, type State } from "./app.js";
 import { controlsFor } from "./controls.js";
 import { controlsPreviewAllowed, examplesFor } from "./examples.js";
+import { parseRecipeOverrides } from "./recipe-patch.js";
 import { componentForNode, components, themes, type ComponentSchema } from "./schema.js";
 
 /** Route prefix. `/components/ui-button`. */
@@ -34,7 +35,7 @@ const ROUTE = "/components/";
 const CONTROLS = "controls";
 
 /** Reserved keys, so a component attribute called `theme` cannot collide. */
-const RESERVED = new Set(["theme", "example", "slots", "node", "binding"]);
+const RESERVED = new Set(["theme", "example", "slots", "node", "binding", "density", "patch"]);
 
 function slotParam(name: string): string {
   return `slot-${name || "default"}`;
@@ -70,6 +71,12 @@ export function stateFromUrl(url: URL, fallback: ComponentSchema): State {
 
   const theme = params.get("theme");
   if (theme && themes.includes(theme)) state.theme = theme;
+
+  const density = params.get("density");
+  if (density === "compact" || density === "comfortable" || density === "spacious") {
+    state.density = density;
+  }
+  state.edits = parseRecipeOverrides(params.get("patch"));
 
   const example = params.get("example");
   if (example === CONTROLS && controlsPreviewAllowed(component)) {
@@ -149,6 +156,8 @@ export function urlForState(state: State): string {
   const params = new URLSearchParams();
 
   if (state.theme !== defaults.theme) params.set("theme", state.theme);
+  if (state.density !== defaults.density) params.set("density", state.density);
+  if (state.edits.length > 0) params.set("patch", JSON.stringify(state.edits));
 
   if (state.example !== defaults.example) {
     params.set("example", state.example ?? CONTROLS);
