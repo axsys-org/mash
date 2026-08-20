@@ -5,12 +5,18 @@ import { controlsPreviewAllowed, exampleNamed, examplesFor } from "./examples.js
 import { familiesFor } from "./families.js";
 import {
   components,
+  catalogueNodeFor,
+  layoutRulesFor,
   provenance,
   themes,
   tokenByCssVar,
   valueOf,
   type ComponentSchema,
   type Described,
+  type MashBinding,
+  type MashLayoutMeasure,
+  type MashNode,
+  type MashRecipeRule,
 } from "./schema.js";
 
 export interface State {
@@ -40,6 +46,10 @@ export function initialState(component: ComponentSchema): State {
 }
 
 function defaultSlotContent(component: ComponentSchema): string {
+  const role = component.slots.find((slot) => slot.name === "")?.mash?.role;
+  if (!role || !["content", "label", "title", "description", "message", "value"].includes(role)) {
+    return "";
+  }
   const bare = component.tagName.replace(/^[a-z]+-/, "");
   return bare.charAt(0).toUpperCase() + bare.slice(1);
 }
@@ -65,6 +75,11 @@ export function buildPreview(doc: Document, component: ComponentSchema, state: S
   const node = doc.createElement(component.tagName);
 
   for (const [name, value] of Object.entries(state.attrs)) {
+    if (value === false) {
+      const attribute = component.attributes.find((candidate) => candidate.name === name);
+      const property = attribute?.fieldName;
+      if (property) (node as unknown as Record<string, unknown>)[property] = false;
+    }
     if (value === false || value === "") continue;
     node.setAttribute(name, value === true ? "" : String(value));
   }
@@ -118,28 +133,72 @@ export function markupFor(component: ComponentSchema, state: State): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Which design tokens a rendered component actually uses.
+ * Which design tokens a rendered component's active styling contract uses.
  *
- * Read from the element's own adopted stylesheets rather than from a list kept
- * somewhere: whatever the component's CSS references is, by definition, what it
- * uses. Private `--_*` variables and public component properties are not in the
- * token graph, so they fall out naturally.
+ * A headless component has only technical baseline CSS in its own shadow root;
+ * visual tokens belong to the explicitly imported catalogue recipe. Read both
+ * sources rather than keeping a duplicate token list, so the catalogue stays
+ * honest when a recipe evolves.
  *
  * Works across the iframe boundary because the stage is same-origin.
  */
-function tokensUsedBy(node: Element): string[] {
-  const root = node.shadowRoot;
-  if (!root) return [];
+function selectorMatchesInstance(node: Element, selector: string): boolean {
+  const part = selector.match(/^(.*)::part\(([^)]+)\)(.*)$/);
+  try {
+    if (!part) return node.matches(selector.trim());
+    if (!node.matches(part[1]!.trim())) return false;
+    const stateSelector = part[3]!.trim();
+    const targets = node.shadowRoot?.querySelectorAll(`[part~="${part[2]}"]`) ?? [];
+    return [...targets].some((target) => !stateSelector || target.matches(stateSelector));
+  } catch {
+    return false;
+  }
+}
 
-  const cssText = [...root.adoptedStyleSheets]
-    .flatMap((sheet) => {
-      try {
-        return [...sheet.cssRules].map((rule) => rule.cssText);
-      } catch {
-        return [];
-      }
-    })
+function tokensUsedBy(nodes: Element[]): string[] {
+  const componentCss = nodes
+    .flatMap((node) =>
+      node.shadowRoot
+        ? [...node.shadowRoot.adoptedStyleSheets].flatMap((sheet) => {
+            try {
+              return [...sheet.cssRules].map((rule) => rule.cssText);
+            } catch {
+              return [];
+            }
+          })
+        : [],
+    )
     .join("\n");
+
+  const tagNames = new Set(nodes.map((node) => node.localName));
+  const tagPattern = new RegExp(`(^|[^\\w-])(${[...tagNames].join("|")})(?=$|[^\\w-])`);
+  const rules = (cssRules: CSSRuleList | CSSRule[]): CSSRule[] =>
+    [...cssRules].flatMap((rule) => {
+      const nested = "cssRules" in rule ? rules((rule as CSSGroupingRule).cssRules) : [];
+      return [rule, ...nested];
+    });
+  const recipeCss = nodes[0]
+    ? [...nodes[0].ownerDocument.styleSheets]
+        .flatMap((sheet) => {
+          try {
+            return rules(sheet.cssRules);
+          } catch {
+            return [];
+          }
+        })
+        .filter(
+          (rule): rule is CSSStyleRule =>
+            "selectorText" in rule &&
+            tagPattern.test((rule as CSSStyleRule).selectorText) &&
+            (rule as CSSStyleRule).selectorText
+              .split(",")
+              .some((selector) => nodes.some((node) => selectorMatchesInstance(node, selector))),
+        )
+        .map((rule) => rule.cssText)
+        .join("\n")
+    : "";
+
+  const cssText = [componentCss, recipeCss].join("\n");
 
   const found = new Set<string>();
   for (const match of cssText.matchAll(/var\((--[\w-]+)/g)) {
@@ -147,6 +206,12 @@ function tokensUsedBy(node: Element): string[] {
     if (name && tokenByCssVar.has(name)) found.add(name);
   }
   return [...found].sort();
+}
+
+function recipeSpecifier(component: ComponentSchema): string {
+  return component.packageName === "@mash/shrine"
+    ? "@mash/shrine/catalogue/mash.css"
+    : "@mash/ui/catalogue/mash.css";
 }
 
 function swatch(value: string): HTMLElement | null {
@@ -250,6 +315,179 @@ function attributeTable(component: ComponentSchema): HTMLElement {
         ),
       ),
     ),
+  );
+}
+
+let showSurfaceTree = false;
+
+function measureLabel(measure: MashLayoutMeasure): string {
+  return measure.tokens.length > 0 ? measure.tokens.join(" + ") : measure.value;
+}
+
+function layoutLabels(rules: MashRecipeRule[]): string[] {
+  const labels = new Set<string>();
+  for (const rule of rules) {
+    const layout = rule.layout;
+    if (!layout) continue;
+    if (layout.group) {
+      labels.add(
+        `group ${layout.group.kind}${layout.group.axis ? `:${layout.group.axis}` : ""}${layout.group.wrap ? " wrap" : ""}`,
+      );
+    }
+    if (layout.align) labels.add(`align ${layout.align}`);
+    if (layout.justify) labels.add(`justify ${layout.justify}`);
+    if (layout.gap) labels.add(`gap ${measureLabel(layout.gap)}`);
+    for (const axis of ["inline", "block"] as const) {
+      const dimensions = layout.dimensions?.[axis];
+      if (!dimensions) continue;
+      for (const bound of ["min", "preferred", "max"] as const) {
+        const measure = dimensions[bound];
+        if (measure) labels.add(`${axis} ${bound} ${measureLabel(measure)}`);
+      }
+    }
+    if (layout.position) labels.add(`position ${layout.position}`);
+    if (layout.overflow?.inline) labels.add(`overflow inline ${layout.overflow.inline}`);
+    if (layout.overflow?.block) labels.add(`overflow block ${layout.overflow.block}`);
+  }
+  return [...labels];
+}
+
+function bindingValue(value: unknown): string {
+  return JSON.stringify(value) ?? String(value);
+}
+
+function fallbackLabel(binding: MashBinding): string | null {
+  if (binding.default.kind === "value") return `default ${bindingValue(binding.default.value)}`;
+  if (binding.fallback.kind === "empty") return "fallback empty";
+  if (binding.fallback.kind === "literal") {
+    return `fallback ${bindingValue(binding.fallback.value)}`;
+  }
+  if (binding.fallback.kind === "binding") {
+    return `fallback ${binding.fallback.bindingAddress.split("/binding/").at(-1)}`;
+  }
+  if (binding.fallback.kind === "chain") {
+    return `fallback ${binding.fallback.bindingAddresses
+      .map((address) => address.split("/binding/").at(-1))
+      .join(" → ")}`;
+  }
+  return null;
+}
+
+function reportLabels(binding: MashBinding): string[] {
+  return (binding.reports ?? []).map(
+    (report) => `reports ${report.path.join(".")} → ${report.nodeAddress.split("/node/").at(-1)}`,
+  );
+}
+
+function setSurfaceHighlight(
+  frame: HTMLIFrameElement,
+  address: string | null,
+  showAll = showSurfaceTree,
+): void {
+  const boxes = frame.contentDocument?.querySelectorAll<HTMLElement>(".mash-semantic-box") ?? [];
+  for (const box of boxes) {
+    const selected = box.dataset.mashNodeAddress === address;
+    box.hidden = !(showAll || selected);
+    box.dataset.selected = selected ? "true" : "false";
+  }
+}
+
+function mashContractTree(component: ComponentSchema, frame: HTMLIFrameElement): HTMLElement {
+  const nodes = component.mash?.nodes ?? [];
+  const children = new Map<string | undefined, MashNode[]>();
+  for (const node of nodes) {
+    const siblings = children.get(node.parent) ?? [];
+    siblings.push(node);
+    children.set(node.parent, siblings);
+  }
+
+  const renderNodes = (parent?: string): HTMLElement =>
+    el(
+      "ol",
+      { class: parent ? "surface-tree-children" : "surface-tree" },
+      ...(children.get(parent) ?? []).map((node) => {
+        const catalogueNode = catalogueNodeFor(component.packageName, node.address);
+        const coverage = `${catalogueNode?.coverage ?? "contract-only"} · ${catalogueNode?.layout ?? "unconstrained"}`;
+        const row = el(
+          "div",
+          {
+            class: "surface-node",
+            "data-mash-node-address": node.address,
+            onmouseenter: () => setSurfaceHighlight(frame, node.address),
+            onmouseleave: () => setSurfaceHighlight(frame, null),
+          },
+          el(
+            "div",
+            { class: "surface-node-identity" },
+            el("code", { class: "surface-node-id", text: node.id }),
+            el("code", { class: "surface-node-role", text: node.role }),
+            el("span", { class: "surface-node-owner", text: node.ownership }),
+          ),
+          el(
+            "div",
+            { class: "surface-node-layout", "data-mash-layout-address": node.address },
+            el("span", { class: "layout-empty", text: `${coverage} · awaiting preview` }),
+          ),
+          el(
+            "div",
+            { class: "surface-node-bindings" },
+            ...(node.bindings.length > 0
+              ? node.bindings.map((binding) =>
+                  el(
+                    "div",
+                    {
+                      class: "surface-binding",
+                      "data-mash-binding-address": binding.address,
+                    },
+                    el("code", {
+                      class: "surface-binding-name",
+                      text: `${binding.kind}:${binding.name || "default"}`,
+                    }),
+                    el("span", { text: binding.mapping }),
+                    el("span", { text: binding.availability }),
+                    el("span", { text: binding.direction }),
+                    fallbackLabel(binding)
+                      ? el("span", {
+                          class: "surface-binding-fallback",
+                          text: fallbackLabel(binding)!,
+                        })
+                      : null,
+                    ...reportLabels(binding).map((label) =>
+                      el("span", { class: "surface-binding-report", text: label }),
+                    ),
+                    el("span", { class: "surface-binding-effective", text: "awaiting preview" }),
+                  ),
+                )
+              : [el("span", { text: "semantic only" })]),
+          ),
+        );
+        return el("li", {}, row, children.has(node.address) ? renderNodes(node.address) : null);
+      }),
+    );
+
+  const toggle = el("button", {
+    type: "button",
+    class: showSurfaceTree ? "surface-toggle is-active" : "surface-toggle",
+    text: showSurfaceTree ? "hide semantic map" : "show semantic map",
+    onclick: () => {
+      showSurfaceTree = !showSurfaceTree;
+      toggle.classList.toggle("is-active", showSurfaceTree);
+      toggle.textContent = showSurfaceTree ? "hide semantic map" : "show semantic map";
+      setSurfaceHighlight(frame, null, showSurfaceTree);
+    },
+  });
+
+  return el(
+    "section",
+    { class: "api-block surface-tree-block" },
+    el("div", { class: "surface-tree-heading" }, el("h3", { text: "SurfaceTree" }), toggle),
+    el("p", {
+      class: "note surface-contract-note",
+      text: component.mash
+        ? `${component.mash.address} · contract v${component.mash.version} · inferred and explicit Web bindings, fallback behavior, layout, and tokens are generated from the package contract`
+        : "No renderer-neutral contract metadata.",
+    }),
+    nodes.length > 0 ? renderNodes() : null,
   );
 }
 
@@ -381,6 +619,210 @@ let mounted: Mounted | null = null;
 /** Guards against an older sync finishing after a newer one. */
 let syncToken = 0;
 
+function elementsAcrossSurface(root: Document | ShadowRoot): Element[] {
+  const found = [...root.querySelectorAll("*")];
+  return found.flatMap((element) => [
+    element,
+    ...(element.shadowRoot ? elementsAcrossSurface(element.shadowRoot) : []),
+  ]);
+}
+
+function installSurfaceOverlay(doc: Document): void {
+  doc.querySelector(".mash-semantic-overlay")?.remove();
+  const overlay = doc.createElement("div");
+  overlay.className = "mash-semantic-overlay";
+  overlay.setAttribute("aria-hidden", "true");
+
+  const schemas = new Map(components.map((component) => [component.tagName, component]));
+  const instances = elementsAcrossSurface(doc).filter(
+    (element): element is HTMLElement =>
+      element instanceof (doc.defaultView?.HTMLElement ?? HTMLElement) &&
+      schemas.has(element.localName),
+  );
+
+  for (const instance of instances) {
+    const component = schemas.get(instance.localName);
+    if (!component?.mash) continue;
+    for (const node of component.mash.nodes) {
+      const targets = new Set<Element>();
+      for (const binding of node.bindings) {
+        if (!instance.shadowRoot) continue;
+        if (binding.kind === "part") {
+          for (const target of instance.shadowRoot.querySelectorAll(`[part~="${binding.name}"]`)) {
+            targets.add(target);
+          }
+        }
+        if (binding.kind === "slot") {
+          const selector = binding.name ? `slot[name="${binding.name}"]` : "slot:not([name])";
+          for (const slot of instance.shadowRoot.querySelectorAll<HTMLSlotElement>(selector)) {
+            const assigned = slot.assignedElements({ flatten: true });
+            if (assigned.length > 0) assigned.forEach((target) => targets.add(target));
+            else targets.add(slot);
+          }
+        }
+      }
+      if (
+        targets.size === 0 &&
+        (node.bindings.length > 0 || !node.parent) &&
+        node.bindings.some((binding) => ["attribute", "state", "event"].includes(binding.kind))
+      ) {
+        targets.add(instance);
+      }
+      if (targets.size === 0 && !node.parent) targets.add(instance);
+
+      for (const target of targets) {
+        const rect = target.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) continue;
+        const box = doc.createElement("div");
+        box.className = "mash-semantic-box";
+        box.dataset.mashNodeAddress = node.address;
+        box.hidden = !showSurfaceTree;
+        box.style.left = `${rect.left}px`;
+        box.style.top = `${rect.top}px`;
+        box.style.width = `${rect.width}px`;
+        box.style.height = `${rect.height}px`;
+        const label = doc.createElement("span");
+        label.textContent = `${instance.localName} · ${node.id}`;
+        box.append(label);
+        overlay.append(box);
+      }
+    }
+  }
+
+  doc.body.append(overlay);
+}
+
+const overlayDocuments = new WeakSet<Document>();
+const overlayRefreshes = new WeakMap<Document, () => void>();
+
+function installOverlayRefresh(doc: Document, refresh: () => void): void {
+  overlayRefreshes.set(doc, refresh);
+  if (overlayDocuments.has(doc)) return;
+  overlayDocuments.add(doc);
+  let frame = 0;
+  const schedule = () => {
+    if (frame) return;
+    frame =
+      doc.defaultView?.requestAnimationFrame(() => {
+        frame = 0;
+        overlayRefreshes.get(doc)?.();
+      }) ?? 0;
+  };
+  doc.addEventListener("scroll", schedule, true);
+  doc.addEventListener("slotchange", schedule, true);
+  doc.addEventListener("click", schedule, true);
+  doc.addEventListener("input", schedule, true);
+  doc.addEventListener("change", schedule, true);
+  doc.addEventListener("focusin", schedule, true);
+  doc.addEventListener("focusout", schedule, true);
+  doc.defaultView?.addEventListener("resize", schedule);
+}
+
+function slotIsAuthored(instance: Element, name: string): boolean {
+  if (name) {
+    return [...instance.children].some((child) => child.getAttribute("slot") === name);
+  }
+  return [...instance.childNodes].some((child) => {
+    if (child.nodeType === Node.TEXT_NODE) return Boolean(child.textContent?.trim());
+    return child.nodeType === Node.ELEMENT_NODE && !(child as Element).hasAttribute("slot");
+  });
+}
+
+function bindingEffectiveState(binding: MashBinding, instances: Element[]): string {
+  const count = (predicate: (instance: Element) => boolean) => instances.filter(predicate).length;
+  const fraction = (matched: number) =>
+    instances.length > 1 ? `${matched}/${instances.length} instances` : matched ? "yes" : "no";
+
+  if (binding.kind === "attribute") {
+    const present = count((instance) => instance.hasAttribute(binding.name));
+    if (present) return `present ${fraction(present)}`;
+    return binding.default.kind === "value"
+      ? `effective default ${bindingValue(binding.default.value)}`
+      : "omitted";
+  }
+  if (binding.kind === "slot") {
+    const authored = count((instance) => slotIsAuthored(instance, binding.name));
+    if (authored) return `authored ${fraction(authored)}`;
+    const fallback = fallbackLabel(binding);
+    return fallback ? `effective ${fallback.replace(/^fallback /, "")}` : "unfilled";
+  }
+  if (binding.kind === "part") {
+    const realized = count((instance) =>
+      Boolean(instance.shadowRoot?.querySelector(`[part~="${binding.name}"]`)),
+    );
+    return `realized ${fraction(realized)}`;
+  }
+  if (binding.kind === "state") {
+    const active = count((instance) => instance.matches(`:state(${binding.name})`));
+    return `active ${fraction(active)}`;
+  }
+  return binding.reports && binding.reports.length > 0
+    ? `reports ${binding.reports.length} node${binding.reports.length === 1 ? "" : "s"}`
+    : "output available";
+}
+
+function syncBindingProof(
+  current: Mounted,
+  component: ComponentSchema,
+  instances: Element[],
+): void {
+  const note = current.root.querySelector<HTMLElement>(".surface-contract-note");
+  if (note) {
+    note.dataset.instanceCount = String(instances.length);
+    if (!note.textContent?.includes("preview instance")) {
+      note.textContent = `${note.textContent} · ${instances.length} preview instance${instances.length === 1 ? "" : "s"}`;
+    }
+  }
+  for (const binding of component.mash?.bindings ?? []) {
+    const row = current.root.querySelector<HTMLElement>(
+      `[data-mash-binding-address="${binding.address}"]`,
+    );
+    const effective = row?.querySelector<HTMLElement>(".surface-binding-effective");
+    if (effective) effective.textContent = bindingEffectiveState(binding, instances);
+  }
+}
+
+function recipeRuleActive(rule: MashRecipeRule, instances: Element[]): boolean {
+  const view = instances[0]?.ownerDocument.defaultView;
+  if (!view) return false;
+  for (const context of rule.when.context) {
+    if (context.startsWith("@media ") && !view.matchMedia(context.slice(7)).matches) return false;
+    if (context.startsWith("@supports ") && !view.CSS.supports(context.slice(10))) return false;
+  }
+  return rule.when.selector
+    .split(",")
+    .some((selector) => instances.some((instance) => selectorMatchesInstance(instance, selector)));
+}
+
+function syncLayoutProof(current: Mounted, component: ComponentSchema, instances: Element[]): void {
+  for (const node of component.mash?.nodes ?? []) {
+    const container = current.root.querySelector<HTMLElement>(
+      `[data-mash-layout-address="${node.address}"]`,
+    );
+    if (!container) continue;
+    const catalogueNode = catalogueNodeFor(component.packageName, node.address);
+    const rules = layoutRulesFor(component.packageName, node.address);
+    const active = rules.filter((rule) => recipeRuleActive(rule, instances));
+    const labels = layoutLabels(active);
+    const tokens = [
+      ...new Set(
+        active.flatMap((rule) =>
+          Object.values(rule.declarations).flatMap((declaration) => declaration.tokens),
+        ),
+      ),
+    ].sort();
+    const coverage = `${catalogueNode?.coverage ?? "contract-only"} · ${catalogueNode?.layout ?? "unconstrained"}`;
+    container.replaceChildren(
+      el("span", {
+        class: "layout-empty",
+        text: `${coverage} · active ${active.length}/${rules.length}`,
+      }),
+      ...labels.map((label) => el("code", { class: "layout-chip", text: label })),
+      ...tokens.map((token) => el("code", { class: "surface-node-token", text: token })),
+    );
+  }
+}
+
 async function syncStage(current: Mounted, component: ComponentSchema, state: State) {
   const ticket = ++syncToken;
   const doc = await current.document;
@@ -395,26 +837,39 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
     doc.body.replaceChildren(buildPreview(doc, component, state));
   }
 
-  const node = doc.querySelector(component.tagName);
+  const nodes = [...doc.querySelectorAll(component.tagName)];
+  const node = nodes[0];
   if (!node) return;
 
   const frameWindow = current.frame.contentWindow;
   await frameWindow?.customElements.whenDefined(component.tagName);
-  await (node as { updateComplete?: Promise<unknown> }).updateComplete;
+  await Promise.all(
+    nodes.map((instance) => (instance as { updateComplete?: Promise<unknown> }).updateComplete),
+  );
+  if (frameWindow) {
+    await new Promise<void>((resolve) => frameWindow.requestAnimationFrame(() => resolve()));
+  }
   if (ticket !== syncToken) return;
 
   // A component that fills its frame gets the whole surface; anything that
   // sizes to its content is centred on a padded canvas. Measured rather than
   // declared, so it needs no per-component configuration.
   const fills = node.getBoundingClientRect().height >= doc.documentElement.clientHeight - 96;
-  doc.documentElement.dataset.layout = fills ? "fill" : "center";
-
-  const used = tokensUsedBy(node);
-  current.tokenList.replaceChildren(
-    ...(used.length > 0
-      ? used.map((cssVar) => provenanceRow(cssVar, state.theme))
-      : [el("li", { class: "note", text: "No design tokens referenced." })]),
-  );
+  const anchored = component.attributes.some((attribute) => attribute.name === "placement");
+  doc.documentElement.dataset.layout = anchored ? "anchor" : fills ? "fill" : "center";
+  const refreshProof = () => {
+    installSurfaceOverlay(doc);
+    syncBindingProof(current, component, nodes);
+    syncLayoutProof(current, component, nodes);
+    const used = tokensUsedBy(nodes);
+    current.tokenList.replaceChildren(
+      ...(used.length > 0
+        ? used.map((cssVar) => provenanceRow(cssVar, state.theme))
+        : [el("li", { class: "note", text: "No active design tokens referenced." })]),
+    );
+  };
+  refreshProof();
+  installOverlayRefresh(doc, refreshProof);
 }
 
 // ---------------------------------------------------------------------------
@@ -599,6 +1054,7 @@ function belowStage(
   component: ComponentSchema,
   state: State,
   tokenList: HTMLElement,
+  frame: HTMLIFrameElement,
 ): (HTMLElement | null)[] {
   return [
     el(
@@ -613,6 +1069,7 @@ function belowStage(
           text: [
             `import "${importSpecifier(component)}";`,
             `import "@mash/tokens/tokens.css";`,
+            `import "${recipeSpecifier(component)}";`,
           ].join("\n"),
         }),
       ),
@@ -629,13 +1086,14 @@ function belowStage(
       { class: "panel" },
       el("h3", { text: "API" }),
       el("p", { class: "note", text: "Read from custom-elements.json." }),
+      mashContractTree(component, frame),
       attributeTable(component),
       describedList("Slots", component.slots, "No slots."),
       describedList("Parts", component.cssParts, "No exposed parts."),
       describedList(
         "CSS properties",
         component.cssProperties,
-        "No public CSS properties — this component is styled entirely through the shared semantic tokens.",
+        "No public CSS properties — recipes style its documented parts and reflected state.",
       ),
       describedList("Custom states", component.cssStates, "No custom states."),
       describedList("Events", component.events, "No events."),
@@ -647,7 +1105,7 @@ function belowStage(
       el("h3", { text: "Tokens used" }),
       el("p", {
         class: "note",
-        text: "Extracted from the rendered component's own stylesheets, then traced through tokens.json to the primitive that holds the value.",
+        text: "Extracted from active recipe rules that target this component, then traced through tokens.json to the primitive that holds the value.",
       }),
       tokenList,
     ),
@@ -755,7 +1213,9 @@ export function render(root: HTMLElement, state: State, callbacks: AppCallbacks)
   const present = (node: HTMLElement | null): node is HTMLElement => node !== null;
 
   mounted.above.replaceChildren(...aboveStage(component, state, callbacks).filter(present));
-  mounted.below.replaceChildren(...belowStage(component, state, mounted.tokenList).filter(present));
+  mounted.below.replaceChildren(
+    ...belowStage(component, state, mounted.tokenList, mounted.frame).filter(present),
+  );
 
   void syncStage(mounted, component, state);
 }

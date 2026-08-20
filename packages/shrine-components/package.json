@@ -17,7 +17,8 @@
   ],
   "sideEffects": [
     "./dist/**/register.js",
-    "./dist/register.js"
+    "./dist/register.js",
+    "./src/catalogue/mash.css"
   ],
   "exports": {
     ".": {
@@ -28,6 +29,8 @@
       "types": "./dist/register.d.ts",
       "import": "./dist/register.js"
     },
+    "./catalogue/mash.css": "./src/catalogue/mash.css",
+    "./catalogue/mash.json": "./src/catalogue/mash.json",
     "./confirm": {
       "types": "./dist/confirm/confirm.d.ts",
       "import": "./dist/confirm/confirm.js"

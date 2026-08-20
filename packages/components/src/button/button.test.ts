@@ -1,11 +1,20 @@
 import { userEvent } from "vitest/browser";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { fixture, inShadow, settled, shadow } from "../test-support/fixture.js";
+import "../catalogue/mash.css";
 import { UIButton } from "./button.js";
 import "./register.js";
 
 const control = (button: Element) => inShadow<HTMLButtonElement>(button, "button");
+
+beforeEach(() => {
+  document.documentElement.dataset.mashCatalogue = "mash";
+});
+
+afterEach(() => {
+  delete document.documentElement.dataset.mashCatalogue;
+});
 
 describe("ui-button: lifecycle and registration", () => {
   it("registers the tag and upgrades elements parsed from markup", async () => {
@@ -43,6 +52,7 @@ describe("ui-button: attribute and property reflection", () => {
     expect(button.tone).toBe("accent");
     expect(button.disabled).toBe(false);
     expect(button.loading).toBe(false);
+    expect(button.selected).toBe(false);
     expect(button.type).toBe("button");
   });
 
@@ -53,12 +63,15 @@ describe("ui-button: attribute and property reflection", () => {
     button.size = "large";
     button.tone = "critical";
     button.disabled = true;
+    button.selected = true;
     await settled(button.parentElement!);
 
     expect(button.getAttribute("variant")).toBe("secondary");
     expect(button.getAttribute("size")).toBe("large");
     expect(button.getAttribute("tone")).toBe("critical");
     expect(button.hasAttribute("disabled")).toBe(true);
+    expect(button.hasAttribute("selected")).toBe(true);
+    expect(button.matches(":state(selected)")).toBe(true);
   });
 
   it("reads attributes set in markup into properties", async () => {
@@ -371,7 +384,7 @@ describe("ui-button: form association", () => {
   });
 });
 
-describe("ui-button: design tokens and theming", () => {
+describe("ui-button: Mash recipe", () => {
   const background = (button: Element) => getComputedStyle(control(button)).backgroundColor;
 
   it("paints its background from --color-action, not from a hardcoded value", async () => {

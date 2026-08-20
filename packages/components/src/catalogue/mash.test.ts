@@ -23,8 +23,9 @@ describe("Mash catalogue", () => {
   it("uses the same root opt-in for checkable controls", async () => {
     document.documentElement.dataset.mashCatalogue = "mash";
     const checkbox = await fixture(`<ui-checkbox>Release notes</ui-checkbox>`);
-    const control = inShadow<HTMLInputElement>(checkbox, "input");
+    const indicator = inShadow<HTMLElement>(checkbox, '[part="indicator"]');
 
-    expect(getComputedStyle(control).accentColor).not.toBe("");
+    expect(getComputedStyle(indicator).display).toBe("grid");
+    expect(getComputedStyle(indicator).borderTopWidth).toBe("1px");
   });
 });

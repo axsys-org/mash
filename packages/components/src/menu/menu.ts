@@ -1,6 +1,10 @@
 import { type TemplateResult } from "lit";
 
-import { UIOverlay } from "../internal/overlay.js";
+import {
+  type OverlayChangeReason,
+  type OverlayOpenChangeDetail,
+  UIAnchoredOverlay,
+} from "../internal/overlay.js";
 import type { UIMenuItem } from "../menu-item/menu-item.js";
 
 /**
@@ -21,30 +25,48 @@ import type { UIMenuItem } from "../menu-item/menu-item.js";
  *
  * @slot trigger - Control that opens or closes the menu.
  * @slot - `ui-menu-item` commands.
+ * @slot close - Optional control that dismisses the menu.
  *
+ * @csspart trigger - The authored trigger realization.
  * @csspart backdrop - The dismissal boundary behind the menu.
+ * @csspart positioner - The renderer-owned anchor-relative placement boundary.
  * @csspart popup - The semantic menu surface.
+ * @csspart actions - The authored menu commands.
+ * @csspart close - The authored close action realization.
  *
  * @cssstate open - Matches `:state(open)` while visible.
  * @cssstate disabled - Matches `:state(disabled)` while the trigger is unavailable.
  *
- * @fires {CustomEvent<{ open: boolean }>} ui-menu-open-change - Emitted after user interaction requests a new open state.
+ * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-menu-open-change - Emitted after user interaction requests a new open state and reports why.
  * @fires {CustomEvent<{ value: string }>} ui-menu-select - Emitted when a menu item is selected.
+ *
+ * @mashnode trigger trigger
+ * @mashnode backdrop backdrop
+ * @mashnode positioner positioner backdrop
+ * @mashnode placement placement positioner
+ * @mashnode align align positioner
+ * @mashnode offset offset positioner
+ * @mashnode collision-padding collision-padding positioner
+ * @mashnode popup popup positioner
+ * @mashnode actions actions popup
+ * @mashnode close close popup
+ * @mashrole slot default actions actions
  */
-export class UIMenu extends UIOverlay {
+export class UIMenu extends UIAnchoredOverlay {
   protected readonly overlayRole = "menu";
+  protected override readonly authoredContentPart = "actions";
 
   constructor() {
     super();
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
   }
 
-  protected override emitOpenChange(open: boolean): void {
+  protected override emitOpenChange(open: boolean, reason: OverlayChangeReason): void {
     this.dispatchEvent(
-      new CustomEvent<{ open: boolean }>("ui-menu-open-change", {
+      new CustomEvent<OverlayOpenChangeDetail>("ui-menu-open-change", {
         bubbles: true,
         composed: true,
-        detail: { open },
+        detail: { open, reason },
       }),
     );
   }
@@ -88,7 +110,7 @@ export class UIMenu extends UIOverlay {
         detail: { value },
       }),
     );
-    this.requestOpenChange(false);
+    this.requestOpenChange(false, "select");
   };
 
   protected override render(): TemplateResult {

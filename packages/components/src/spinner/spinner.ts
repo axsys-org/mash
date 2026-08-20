@@ -1,4 +1,4 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, html, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -38,48 +38,7 @@ export class UISpinner extends LitElement {
     this.label = "Loading";
   }
 
-  static override styles = [
-    baseStyles,
-    css`
-      :host {
-        display: inline-flex;
-        vertical-align: middle;
-
-        --_size: var(--space-container-inline);
-      }
-
-      :host([size="small"]) {
-        --_size: calc(var(--space-control-block) + var(--space-control-block));
-      }
-
-      :host([size="large"]) {
-        --_size: calc(var(--space-container-inline) + var(--space-container-inline));
-      }
-
-      .spinner {
-        display: inline-flex;
-        inline-size: var(--_size);
-        block-size: var(--_size);
-        border: var(--border-strong) solid var(--color-surface-sunken);
-        border-inline-start-color: var(--color-action);
-        border-radius: var(--radius-pill);
-        animation: spin calc(var(--duration-surface) * 5) var(--easing-linear) infinite;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(1turn);
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .spinner {
-          animation: none;
-          border-inline-start-color: var(--color-border-strong);
-        }
-      }
-    `,
-  ];
+  static override styles = baseStyles;
 
   protected override render(): TemplateResult {
     return html`<span part="root" role="status" aria-label=${this.label}

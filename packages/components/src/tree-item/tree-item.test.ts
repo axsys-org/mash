@@ -12,58 +12,100 @@ describe("ui-tree-item", () => {
     const control = inShadow<HTMLButtonElement>(item, '[part="control"]');
 
     expect(item).toBeInstanceOf(UITreeItem);
+    expect(item.kind).toBe("file");
     expect(item.expanded).toBe(false);
     expect(item.selected).toBe(false);
-    expect(item.size).toBe("medium");
     expect(control.localName).toBe("button");
     expect(control.getAttribute("role")).toBe("treeitem");
     expect(control.hasAttribute("aria-expanded")).toBe(false);
   });
 
-  it("projects icons, labels and nested children into their distinct slots", async () => {
+  it("keeps its documented parts available for a path title", async () => {
     const item = await fixture<UITreeItem>(`
-      <ui-tree-item>
-        <span slot="icon">▣</span>src
-        <ui-tree-item slot="children">app.ts</ui-tree-item>
+      <ui-tree-item kind="folder" path="/interzone/projects" title="Projects">
+        <span slot="icon">▣</span><span slot="meta">3 records</span>
       </ui-tree-item>
     `);
     await settled(item.parentElement!);
-
     const parts = [...shadow(item).querySelectorAll("[part]")].map((node) =>
       node.getAttribute("part"),
     );
+
     expect(parts).toEqual(
-      expect.arrayContaining(["control", "disclosure", "icon", "label", "children"]),
+      expect.arrayContaining([
+        "root",
+        "control",
+        "disclosure",
+        "icon",
+        "label",
+        "meta",
+        "actions",
+        "children",
+      ]),
     );
-    expect(inShadow<HTMLSlotElement>(item, 'slot[name="icon"]').assignedElements()).toHaveLength(1);
+    expect(inShadow<HTMLElement>(item, '[part="label"]').textContent).toContain("Projects");
     expect(
-      inShadow<HTMLSlotElement>(item, 'slot[name="children"]').assignedElements(),
-    ).toHaveLength(1);
-    expect(
-      inShadow<HTMLButtonElement>(item, '[part="control"]').getAttribute("aria-expanded"),
-    ).toBe("false");
+      shadow(item)
+        .querySelector<HTMLSlotElement>('slot[name="meta"]')!
+        .assignedNodes({ flatten: true })
+        .map((node) => node.textContent)
+        .join(""),
+    ).toContain("3 records");
+    expect(shadow(item).querySelector("ui-path")).toBeNull();
   });
 
-  it("opens and closes a branch on activation and arrow keys", async () => {
-    const item = await fixture<UITreeItem>(
-      `<ui-tree-item><ui-tree-item slot="children">app.ts</ui-tree-item>src</ui-tree-item>`,
-    );
-    const control = inShadow<HTMLButtonElement>(item, '[part="control"]');
-    const toggles: boolean[] = [];
+  it("uses named label and disclosure slots before compatibility fallbacks", async () => {
+    const item = await fixture<UITreeItem>(`
+      <ui-tree-item kind="folder" title="Fallback">
+        <span slot="label">Authored label</span>
+        <span slot="disclosure">+</span>
+      </ui-tree-item>
+    `);
+
+    expect(
+      inShadow<HTMLSlotElement>(item, 'slot[name="label"]').assignedElements()[0]?.textContent,
+    ).toBe("Authored label");
+    expect(
+      inShadow<HTMLSlotElement>(item, 'slot[name="disclosure"]').assignedElements(),
+    ).toHaveLength(1);
+  });
+
+  it("mirrors parent-owned state attributes into custom states", async () => {
+    const item = await fixture<UITreeItem>(`
+      <ui-tree-item kind="folder" expanded current selected disabled>Folder</ui-tree-item>
+    `);
+
+    for (const state of ["expanded", "current", "selected", "disabled"]) {
+      expect(item.matches(`:state(${state})`)).toBe(true);
+    }
+
+    item.expanded = false;
+    item.current = false;
+    item.selected = false;
+    item.disabled = false;
+    await settled(item.parentElement!);
+
+    for (const state of ["expanded", "current", "selected", "disabled"]) {
+      expect(item.matches(`:state(${state})`)).toBe(false);
+    }
+  });
+
+  it("requests expansion from the disclosure without mutating parent-owned state", async () => {
+    const item = await fixture<UITreeItem>(`
+      <ui-tree-item kind="folder"><ui-tree-item slot="children">app.ts</ui-tree-item>src</ui-tree-item>
+    `);
+    await settled(item.parentElement!);
+    const disclosure = inShadow<HTMLElement>(item, '[part="disclosure"]');
+    const requests: boolean[] = [];
     item.addEventListener("ui-tree-item-toggle", (event) => {
-      toggles.push((event as CustomEvent<{ expanded: boolean }>).detail.expanded);
+      requests.push((event as CustomEvent<{ expanded: boolean }>).detail.expanded);
     });
-    await settled(item.parentElement!);
 
-    control.click();
-    await settled(item.parentElement!);
-    expect(item.expanded).toBe(true);
-    expect(inShadow<HTMLElement>(item, '[part="children"]').hasAttribute("hidden")).toBe(false);
+    disclosure.click();
 
-    control.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
-    await settled(item.parentElement!);
+    expect(requests).toEqual([true]);
     expect(item.expanded).toBe(false);
-    expect(toggles).toEqual([true, false]);
+    expect(inShadow<HTMLElement>(item, '[part="children"]').hidden).toBe(true);
   });
 
   it("reports activation without claiming selection ownership", async () => {
@@ -77,38 +119,16 @@ describe("ui-tree-item", () => {
     expect(item.selected).toBe(false);
   });
 
-  it("renders a path label through ui-path", async () => {
-    const el = await fixture<UITreeItem>(
-      `<ui-tree-item path="/shrine/axiomatic" title="Axiomatic"></ui-tree-item>`,
+  it("keeps an empty folder explicit for lazy loading", async () => {
+    const item = await fixture<UITreeItem>(
+      `<ui-tree-item kind="folder" path="/archive"></ui-tree-item>`,
     );
-    const path = shadow(el).querySelector("ui-path");
+    const disclosure = inShadow<HTMLElement>(item, '[part="disclosure"]');
 
-    expect(path).toBeInstanceOf(HTMLElement);
-    expect(path?.getAttribute("path")).toBe("/shrine/axiomatic");
-    expect(path?.getAttribute("title")).toBe("Axiomatic");
-  });
-
-  it("keeps empty intermediate nodes and toggles nested children", async () => {
-    const el = await fixture<UITreeItem>(`
-      <ui-tree-item path="/foo">
-        <ui-tree-item slot="children" path="/foo/baz"></ui-tree-item>
-      </ui-tree-item>
-    `);
-    const disclosure = inShadow<HTMLElement>(el, ".disclosure");
-    const control = inShadow<HTMLButtonElement>(el, '[part="control"]');
-    const children = inShadow(el, ".children");
-
+    expect(item.branch).toBe(true);
     expect(disclosure.hidden).toBe(false);
-    expect(el.getAttribute("expanded")).toBeNull();
-    expect(children.hidden).toBe(true);
-    const childrenSlot = shadow(el).querySelector('slot[name="children"]') as HTMLSlotElement;
-    expect(childrenSlot.assignedElements()).toHaveLength(1);
-
-    control.click();
-    await settled(el.parentElement!);
-
-    expect(el.getAttribute("expanded")).toBe("");
-    expect(children.hidden).toBe(false);
-    expect(el.querySelector('[path="/foo/baz"]')).not.toBeNull();
+    expect(
+      inShadow<HTMLButtonElement>(item, '[part="control"]').getAttribute("aria-expanded"),
+    ).toBe("false");
   });
 });

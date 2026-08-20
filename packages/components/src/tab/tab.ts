@@ -15,11 +15,18 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - Visible tab label.
  *
  * @csspart control - The native button carrying the tab role.
+ * @csspart label - The authored tab label.
  *
  * @cssstate selected - Matches `:state(selected)` while active.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  *
  * @fires {CustomEvent<{ value: string }>} ui-tab-select - Emitted when the tab is activated.
+ *
+ * @mashnode control control
+ * @mashnode label label control
+ * @mashnode position position control
+ * @mashnode set-size set-size control
+ * @mashrole slot default label label
  */
 export class UITab extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {
@@ -32,6 +39,8 @@ export class UITab extends LitElement {
     selected: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
     controls: { type: String, reflect: true },
+    position: { type: Number, reflect: true },
+    setSize: { type: Number, attribute: "set-size", reflect: true },
   };
 
   /** Stable value matched to a panel in the containing tabs. */
@@ -42,6 +51,10 @@ export class UITab extends LitElement {
   declare disabled: boolean;
   /** Identifier of the panel this tab controls. */
   declare controls: string;
+  /** One-based position assigned by the owning tab set. */
+  declare position: number;
+  /** Total tab count assigned by the owning tab set. */
+  declare setSize: number;
 
   readonly #internals: ElementInternals;
 
@@ -51,6 +64,8 @@ export class UITab extends LitElement {
     this.selected = false;
     this.disabled = false;
     this.controls = "";
+    this.position = 0;
+    this.setSize = 0;
     this.#internals = this.attachInternals();
   }
 
@@ -83,11 +98,13 @@ export class UITab extends LitElement {
         role="tab"
         aria-selected=${this.selected ? "true" : "false"}
         aria-controls=${this.controls || undefined}
+        aria-posinset=${this.position || undefined}
+        aria-setsize=${this.setSize || undefined}
         tabindex=${this.selected ? "0" : "-1"}
         ?disabled=${this.disabled}
         @click=${this.#select}
       >
-        <slot></slot>
+        <slot part="label"></slot>
       </button>
     `;
   }

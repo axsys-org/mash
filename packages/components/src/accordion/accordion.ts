@@ -25,8 +25,15 @@ export type AccordionMode = "single" | "multiple";
  * @slot - `ui-accordion-item` elements.
  *
  * @csspart root - The accordion container.
+ * @csspart children - The authored accordion-item collection.
+ * @cssstate disabled - Matches `:state(disabled)` while disclosure changes are unavailable.
  *
  * @fires {CustomEvent<{ values: string[] }>} ui-accordion-change - Emitted after the open item set changes.
+ *
+ * @mashnode root root
+ * @mashnode children children root
+ * @mashnode disabled disabled root
+ * @mashrole slot default children children
  */
 export class UIAccordion extends LitElement {
   static override properties = {
@@ -40,11 +47,13 @@ export class UIAccordion extends LitElement {
   declare disabled: boolean;
 
   readonly #childDisabled = new WeakMap<UIAccordionItem, boolean>();
+  readonly #internals: ElementInternals;
 
   constructor() {
     super();
     this.mode = "single";
     this.disabled = false;
+    this.#internals = this.attachInternals();
   }
 
   static override styles = baseStyles;
@@ -69,6 +78,10 @@ export class UIAccordion extends LitElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("mode") || changed.has("disabled")) this.#syncItems();
+    if (changed.has("disabled")) {
+      if (this.disabled) this.#internals.states.add("disabled");
+      else this.#internals.states.delete("disabled");
+    }
   }
 
   #onSlotChange = (): void => this.#syncItems();
@@ -96,7 +109,7 @@ export class UIAccordion extends LitElement {
 
   protected override render(): TemplateResult {
     return html`<div part="root" @ui-accordion-item-change=${this.#onItemChange}>
-      <slot @slotchange=${this.#onSlotChange}></slot>
+      <slot part="children" @slotchange=${this.#onSlotChange}></slot>
     </div>`;
   }
 }

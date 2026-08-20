@@ -17,10 +17,15 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - Visible command label or icon content.
  *
  * @csspart control - The native menuitem button.
+ * @csspart label - The authored command label.
  *
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  *
  * @fires {CustomEvent<{ value: string }>} ui-menu-item-select - Emitted when the command is activated.
+ *
+ * @mashnode control control
+ * @mashnode label label control
+ * @mashrole slot default label label
  */
 export class UIMenuItem extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {
@@ -73,7 +78,7 @@ export class UIMenuItem extends LitElement {
       ?disabled=${this.disabled}
       @click=${this.#select}
     >
-      <slot></slot>
+      <slot part="label"></slot>
     </button>`;
   }
 }

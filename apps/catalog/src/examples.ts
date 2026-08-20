@@ -35,22 +35,16 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <div class="catalog-example catalog-example-card">
           <ui-card elevation="raised">
-            <div slot="header" class="example-card-heading">
-              <ui-avatar>BM</ui-avatar>
-              <div>
-                <strong>Billing migration</strong>
-                <span>Interzone project</span>
-              </div>
-              <ui-badge tone="positive">Active</ui-badge>
-            </div>
-            <p>Replace the legacy invoice flow before the next billing cycle.</p>
+            <ui-avatar slot="prefix">BM</ui-avatar>
+            <strong slot="title">Billing migration</strong>
+            <span slot="description">Interzone project</span>
+            <ui-badge slot="value" tone="positive">Active</ui-badge>
+            <p slot="content">Replace the legacy invoice flow before the next billing cycle.</p>
             <div slot="footer" class="example-actions">
               <ui-dialog label="Rename Billing migration">
                 <ui-button slot="trigger" variant="secondary">Rename</ui-button>
-                <div class="example-dialog-copy">
-                  <h2>Rename project</h2>
-                  <p>Choose a clear name for everyone in the workspace.</p>
-                </div>
+                <h2 slot="title">Rename project</h2>
+                <p slot="description">Choose a clear name for everyone in the workspace.</p>
                 <ui-field label="Project name" description="Visible to collaborators.">
                   <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
                 </ui-field>
@@ -143,6 +137,30 @@ const curated: Record<string, CatalogExample[]> = {
       { compositionOnly: true },
     ),
   ],
+  "ui-input": [
+    example(
+      "A labelled text entry",
+      `
+        <ui-field class="catalog-example example-field" label="Project name" description="Visible to everyone in this workspace." required>
+          <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "ui-input-group": [
+    example(
+      "Search with affordances",
+      `
+        <ui-field class="catalog-example example-field" label="Search projects" description="Search by name, owner, or namespace.">
+          <ui-input-group slot="control">
+            <span slot="prefix" aria-hidden="true">⌕</span>
+            <ui-input slot="control" type="search" label="Search projects" placeholder="Billing migration"></ui-input>
+            <ui-kbd slot="suffix">⌘ K</ui-kbd>
+          </ui-input-group>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+  ],
   "ui-field": [
     example(
       "Text field",
@@ -211,9 +229,28 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Project visibility" description="Controls who can find this project.">
           <ui-select slot="control" name="visibility" value="team" label="Project visibility">
-            <ui-option value="private">Private</ui-option>
-            <ui-option value="team">Everyone in Interzone</ui-option>
-            <ui-option value="public">Anyone with the link</ui-option>
+            <span slot="icon" aria-hidden="true">⌄</span>
+            <ui-option value="private">Private<span slot="indicator">✓</span></ui-option>
+            <ui-option value="team">Everyone in Interzone<span slot="indicator">✓</span></ui-option>
+            <ui-option value="public">Anyone with the link<span slot="indicator">✓</span></ui-option>
+          </ui-select>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Grouped multiple selection",
+      `
+        <ui-field class="catalog-example example-field" label="Project access" description="Choose one or more audiences.">
+          <ui-select slot="control" name="access" label="Project access" multiple values='["team", "guests"]'>
+            <span slot="icon" aria-hidden="true">⌄</span>
+            <ui-option-group label="Workspace">
+              <ui-option value="team">Everyone in Interzone<span slot="indicator">✓</span></ui-option>
+              <ui-option value="admins">Administrators<span slot="indicator">✓</span></ui-option>
+            </ui-option-group>
+            <ui-option-group label="External">
+              <ui-option value="guests">Invited guests<span slot="indicator">✓</span></ui-option>
+              <ui-option value="public">Anyone with the link<span slot="indicator">✓</span></ui-option>
+            </ui-option-group>
           </ui-select>
         </ui-field>`,
       { compositionOnly: true },
@@ -225,9 +262,52 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Project owner" description="Search the workspace to assign responsibility.">
           <ui-combobox slot="control" name="owner" value="maya" label="Project owner">
+            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Show project owners">⌄</ui-button>
+            <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
+            <span slot="empty">No matching people</span>
             <ui-option value="maya">Maya Chen</ui-option>
             <ui-option value="sam">Sam Okafor</ui-option>
             <ui-option value="alex">Alex Rivera</ui-option>
+          </ui-combobox>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Multiple owners",
+      `
+        <ui-field class="catalog-example example-field" label="Project owners" description="Search and assign more than one owner.">
+          <ui-combobox slot="control" name="owners" label="Project owners" multiple values='["maya", "sam"]'>
+            <span slot="chips">
+              <ui-chip value="maya">Maya Chen<ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Maya">×</ui-button></ui-chip>
+              <ui-chip value="sam">Sam Okafor<ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Sam">×</ui-button></ui-chip>
+            </span>
+            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
+            <span slot="empty">No matching people</span>
+            <ui-option-group label="People">
+              <ui-option value="maya">Maya Chen<span slot="indicator">✓</span></ui-option>
+              <ui-option value="sam">Sam Okafor<span slot="indicator">✓</span></ui-option>
+              <ui-option value="alex">Alex Rivera<span slot="indicator">✓</span></ui-option>
+            </ui-option-group>
+          </ui-combobox>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Grid suggestions",
+      `
+        <ui-field class="catalog-example example-field" label="Assignee matrix" description="Arrow keys preserve row and column position.">
+          <ui-combobox slot="control" name="assignee" label="Assignee matrix" grid>
+            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-option-row>
+              <ui-option value="maya">Maya Chen</ui-option>
+              <ui-option value="sam">Sam Okafor</ui-option>
+            </ui-option-row>
+            <ui-option-row>
+              <ui-option value="alex">Alex Rivera</ui-option>
+              <ui-option value="jo">Jo Bell</ui-option>
+            </ui-option-row>
           </ui-combobox>
         </ui-field>`,
       { compositionOnly: true },
@@ -239,9 +319,16 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Related project" description="Start typing to narrow the project list.">
           <ui-autocomplete slot="control" name="related-project" label="Related project">
-            <ui-option value="billing">Billing migration</ui-option>
-            <ui-option value="invoices">Invoice reconciliation</ui-option>
-            <ui-option value="ledger">Ledger export</ui-option>
+            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
+            <span slot="empty">No matching projects</span>
+            <ui-option-group label="Active projects">
+              <ui-option value="billing">Billing migration</ui-option>
+              <ui-option value="invoices">Invoice reconciliation</ui-option>
+            </ui-option-group>
+            <ui-option-group label="Archived projects">
+              <ui-option value="ledger">Ledger export</ui-option>
+            </ui-option-group>
           </ui-autocomplete>
         </ui-field>`,
       { compositionOnly: true },
@@ -343,6 +430,34 @@ const curated: Record<string, CatalogExample[]> = {
         </ui-toolbar>`,
       { compositionOnly: true },
     ),
+    example(
+      "Docked editor tools",
+      `
+        <div class="catalog-example example-toolbar-dock">
+          <span>Canvas</span>
+          <ui-toolbar data-mash-toolbar-dock="top" orientation="horizontal" label="Top tools">
+            <ui-toggle pressed aria-label="Select">↖</ui-toggle>
+            <ui-toggle aria-label="Text">T</ui-toggle>
+          </ui-toolbar>
+          <ui-toolbar data-mash-toolbar-dock="right" orientation="vertical" label="Right tools">
+            <ui-toggle aria-label="Comments">◌</ui-toggle>
+            <ui-toggle aria-label="Inspect">⊙</ui-toggle>
+          </ui-toolbar>
+          <ui-toolbar data-mash-toolbar-dock="bottom" orientation="horizontal" label="Bottom tools">
+            <ui-toggle aria-label="Zoom out">−</ui-toggle>
+            <ui-toggle aria-label="Zoom in">+</ui-toggle>
+          </ui-toolbar>
+          <ui-toolbar data-mash-toolbar-dock="left" orientation="vertical" label="Left tools">
+            <ui-toggle aria-label="Layers">≡</ui-toggle>
+            <ui-toggle aria-label="Assets">◇</ui-toggle>
+          </ui-toolbar>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Docking is an opt-in Mash recipe layout contract; toolbar keyboard semantics remain independent of screen edge.",
+      },
+    ),
   ],
   "ui-dialog": [
     example(
@@ -352,10 +467,8 @@ const curated: Record<string, CatalogExample[]> = {
           <p class="example-support">A modal asks for a focused edit, then returns focus to its trigger.</p>
           <ui-dialog label="Rename Billing migration">
             <ui-button slot="trigger">Rename project</ui-button>
-            <div class="example-dialog-copy">
-              <h2>Rename project</h2>
-              <p>Use a clear name that your whole workspace will recognize.</p>
-            </div>
+            <h2 slot="title">Rename project</h2>
+            <p slot="description">Use a clear name that your whole workspace will recognize.</p>
             <ui-field label="Project name" description="Visible to everyone in Interzone.">
               <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
             </ui-field>
@@ -376,14 +489,10 @@ const curated: Record<string, CatalogExample[]> = {
           <p class="example-support">Use an alert dialog when the user must acknowledge an important consequence.</p>
           <ui-alert-dialog label="Archive Billing migration?">
             <ui-button slot="trigger" tone="critical">Archive project</ui-button>
-            <div class="example-dialog-copy">
-              <h2>Archive Billing migration?</h2>
-              <p>The project will be read-only until someone restores it.</p>
-            </div>
-            <div slot="close" class="example-actions">
-              <ui-button variant="secondary">Keep active</ui-button>
-              <ui-button tone="critical">Archive</ui-button>
-            </div>
+            <h2 slot="title">Archive Billing migration?</h2>
+            <p slot="description">The project will be read-only until someone restores it.</p>
+            <ui-button slot="cancel" variant="secondary">Keep active</ui-button>
+            <ui-button slot="confirm" tone="critical">Archive</ui-button>
           </ui-alert-dialog>
         </div>`,
       { compositionOnly: true },
@@ -396,10 +505,8 @@ const curated: Record<string, CatalogExample[]> = {
         <div class="catalog-example example-stack">
           <ui-drawer side="end" label="Project activity">
             <ui-button slot="trigger" variant="secondary">Open activity</ui-button>
-            <div class="example-dialog-copy">
-              <h2>Project activity</h2>
-              <p>Latest changes to Billing migration.</p>
-            </div>
+            <h2 slot="title">Project activity</h2>
+            <p slot="description">Latest changes to Billing migration.</p>
             <ui-scroll-area label="Project activity feed" class="example-activity">
               <ol>
                 <li>Maya moved the project to active.</li>
@@ -420,11 +527,9 @@ const curated: Record<string, CatalogExample[]> = {
         <div class="catalog-example example-stack">
           <ui-popover label="Project actions">
             <ui-button slot="trigger" variant="secondary">Actions</ui-button>
-            <div class="example-popover-content">
-              <strong>Billing migration</strong>
-              <p>Last edited 14 minutes ago.</p>
-              <div slot="close" class="example-actions"><ui-button variant="quiet">Done</ui-button></div>
-            </div>
+            <strong slot="title">Billing migration</strong>
+            <p slot="description">Last edited 14 minutes ago.</p>
+            <ui-button slot="close" variant="quiet">Done</ui-button>
           </ui-popover>
         </div>`,
       { compositionOnly: true },
@@ -469,11 +574,9 @@ const curated: Record<string, CatalogExample[]> = {
           <p>Hover or focus the linked project for a lightweight preview.</p>
           <ui-preview-card label="Billing migration preview">
             <a slot="trigger" href="#billing-migration">Billing migration</a>
-            <div class="example-popover-content">
-              <ui-badge tone="positive">Active</ui-badge>
-              <strong>Billing migration</strong>
-              <p>Replace legacy invoicing before the next billing cycle.</p>
-            </div>
+            <strong slot="title">Billing migration</strong>
+            <p slot="description">Replace legacy invoicing before the next billing cycle.</p>
+            <ui-badge tone="positive">Active</ui-badge>
           </ui-preview-card>
         </div>`,
       { compositionOnly: true },
@@ -529,6 +632,64 @@ const curated: Record<string, CatalogExample[]> = {
       { compositionOnly: true },
     ),
   ],
+  "ui-calendar": [
+    example(
+      "Calendar views",
+      `
+        <div class="catalog-example example-stack">
+          <ui-calendar month="2026-08" value="2026-08-18" label="Billing date"></ui-calendar>
+          <p class="example-support">The month and year headings switch the same state machine into month and year selection views.</p>
+        </div>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Two month range",
+      `
+        <ui-calendar class="catalog-example" month="2026-08" months="2" mode="range" value="2026-08-18/2026-09-03" label="Migration window"></ui-calendar>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "ui-color-picker": [
+    example(
+      "Palette and HSLA controls",
+      `
+        <div class="catalog-example example-stack">
+          <ui-color-picker label="Accent color" value="#0A84FF" open>
+            <ui-button slot="trigger" variant="secondary">Choose accent</ui-button>
+            <ui-color-swatch slot="preview" value="#0A84FF" disabled>Current</ui-color-swatch>
+            <ui-color-swatch value="#0A84FF">Blue</ui-color-swatch>
+            <ui-color-swatch value="#30D158">Green</ui-color-swatch>
+            <ui-color-swatch value="#FF453A">Red</ui-color-swatch>
+            <ui-slider slot="hue" min="0" max="360" step="1" label="Hue"></ui-slider>
+            <ui-slider slot="saturation" min="0" max="100" step="1" label="Saturation"></ui-slider>
+            <ui-slider slot="lightness" min="0" max="100" step="1" label="Lightness"></ui-slider>
+            <ui-slider slot="alpha" min="0" max="100" step="1" label="Alpha"></ui-slider>
+            <ui-input slot="hex" label="Hex color"></ui-input>
+            <ui-button slot="clear" variant="quiet">Clear</ui-button>
+            <ui-button slot="close" variant="secondary">Done</ui-button>
+          </ui-color-picker>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The picker coordinates authored Mash sliders and input through renderer-neutral hue, saturation, lightness, alpha, and hex nodes.",
+      },
+    ),
+  ],
+  "ui-date-picker": [
+    example(
+      "Due date",
+      `
+        <div class="catalog-example example-stack">
+          <ui-date-picker label="Due date" value="2026-08-18" open>
+            <ui-button slot="trigger" variant="secondary">Choose due date</ui-button>
+            <ui-calendar month="2026-08" value="2026-08-18" label="Due date"></ui-calendar>
+            <ui-button slot="close" variant="secondary">Cancel</ui-button>
+          </ui-date-picker>
+        </div>`,
+      { compositionOnly: true },
+    ),
+  ],
   "ui-scroll-area": [
     example(
       "Activity log",
@@ -542,6 +703,14 @@ const curated: Record<string, CatalogExample[]> = {
               <li>Alex requested a deployment review.</li>
               <li>Maya assigned Billing migration to the Finance crew.</li>
               <li>Sam updated the external project reference.</li>
+              <li>Priya approved the migration window.</li>
+              <li>Alex attached the rollback checklist.</li>
+              <li>Maya moved two dependencies into review.</li>
+              <li>Sam recorded the latest invoice sample.</li>
+              <li>Priya scheduled the production rehearsal.</li>
+              <li>Alex resolved the final deployment warning.</li>
+              <li>Maya published the release notes.</li>
+              <li>Sam archived the superseded migration plan.</li>
             </ol>
           </ui-scroll-area>
         </ui-card>`,
@@ -553,12 +722,23 @@ const curated: Record<string, CatalogExample[]> = {
       "Project hierarchy",
       `
         <ui-tree class="catalog-example" label="Interzone project hierarchy">
-          <ui-tree-item path="/interzone" title="Interzone" expanded>
-            <ui-tree-item slot="children" path="/interzone/projects" title="Projects" expanded>
-              <ui-tree-item slot="children" path="/interzone/projects/billing-migration" title="Billing migration"></ui-tree-item>
-              <ui-tree-item slot="children" path="/interzone/projects/invoice-reconciliation" title="Invoice reconciliation"></ui-tree-item>
+          <ui-tree-item kind="folder" path="/interzone" title="Interzone" expanded>
+            <span slot="icon" aria-hidden="true">▣</span>
+            <span slot="meta">workspace</span>
+            <ui-tree-item slot="children" kind="folder" path="/interzone/projects" title="Projects" expanded>
+              <span slot="icon" aria-hidden="true">▤</span>
+              <span slot="meta">2 records</span>
+              <ui-tree-item slot="children" kind="file" path="/interzone/projects/billing-migration" title="Billing migration" selected>
+                <span slot="icon" aria-hidden="true">◆</span>
+                <span slot="meta">active</span>
+              </ui-tree-item>
+              <ui-tree-item slot="children" kind="file" path="/interzone/projects/invoice-reconciliation" title="Invoice reconciliation" current>
+                <span slot="icon" aria-hidden="true">◆</span>
+              </ui-tree-item>
             </ui-tree-item>
-            <ui-tree-item slot="children" path="/interzone/archive" title="Archive"></ui-tree-item>
+            <ui-tree-item slot="children" kind="folder" path="/interzone/archive" title="Archive">
+              <span slot="icon" aria-hidden="true">▤</span>
+            </ui-tree-item>
           </ui-tree-item>
         </ui-tree>`,
       { compositionOnly: true },
@@ -572,6 +752,18 @@ const curated: Record<string, CatalogExample[]> = {
           <ui-toast open tone="positive" duration="0">Project preferences saved</ui-toast>
           <p class="example-support">Transient feedback confirms a completed action without taking focus.</p>
         </div>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "ui-toast-stack": [
+    example(
+      "Workspace notifications",
+      `
+        <ui-toast-stack placement="top-end" limit="3" label="Workspace notifications">
+          <ui-toast open duration="0" tone="positive">Project saved</ui-toast>
+          <ui-toast open duration="0">Review requested</ui-toast>
+          <ui-toast open duration="0" tone="warning">Migration needs attention</ui-toast>
+        </ui-toast-stack>`,
       { compositionOnly: true },
     ),
   ],
@@ -593,5 +785,5 @@ export function exampleNamed(
 
 /** Whether synthesising standalone slots would create an invalid component tree. */
 export function controlsPreviewAllowed(component: ComponentSchema): boolean {
-  return !examplesFor(component).some((entry) => entry.compositionOnly);
+  return component.slots.every((slot) => slot.mash?.availability !== "required");
 }

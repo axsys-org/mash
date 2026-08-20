@@ -44,6 +44,16 @@ export abstract class UICheckable extends LitElement {
   /** Native control type. Radio groups reuse this form-associated core. */
   protected readonly inputType: "checkbox" | "radio" = "checkbox";
 
+  /** Optional one-based position for concrete controls that belong to a semantic collection. */
+  protected get collectionPosition(): number | undefined {
+    return undefined;
+  }
+
+  /** Optional collection size paired with {@link collectionPosition}. */
+  protected get collectionSize(): number | undefined {
+    return undefined;
+  }
+
   readonly #internals: ElementInternals;
   #defaultChecked: boolean | undefined;
   #formDisabled = false;
@@ -69,22 +79,51 @@ export abstract class UICheckable extends LitElement {
     return this.disabled || this.#formDisabled;
   }
 
+  /** Optional three-state visual state supplied by a concrete checkbox. */
+  protected get checkableIndeterminate(): boolean {
+    return false;
+  }
+
+  /** Additional independently styleable anatomy supplied by the concrete control. */
+  protected renderCheckableParts(): TemplateResult | typeof nothing {
+    return nothing;
+  }
+
+  /** Renderer-neutral detail reported by the concrete control's change event. */
+  protected checkableChangeDetail(): Record<string, unknown> {
+    return { checked: this.checked };
+  }
+
+  /** Lets a three-state control consume the native input's complete next state. */
+  protected readCheckableState(control: HTMLInputElement): void {
+    this.checked = control.checked;
+  }
+
+  /** Lets a concrete control restore additional form state. */
+  protected restoreCheckableState(_state: string): void {}
+
   #syncStates(): void {
     const states = this.#internals.states;
     if (this.checked) states.add("checked");
     else states.delete("checked");
 
+    if (this.checkableIndeterminate) states.add("indeterminate");
+    else states.delete("indeterminate");
+
     if (this.#isDisabled) states.add("disabled");
     else states.delete("disabled");
+
+    if (this.required) states.add("required");
+    else states.delete("required");
   }
 
-  #syncForm(): void {
+  protected syncCheckable(): void {
     const control = this.renderRoot.querySelector<HTMLInputElement>("input");
     const participates = this.checked && !this.#isDisabled && Boolean(this.name);
 
     this.#internals.setFormValue(
       participates ? this.value : null,
-      this.checked ? "checked" : "unchecked",
+      this.checkableIndeterminate ? "indeterminate" : this.checked ? "checked" : "unchecked",
     );
 
     if (this.required && !this.checked && !this.#isDisabled) {
@@ -108,7 +147,7 @@ export abstract class UICheckable extends LitElement {
       changed.has("required") ||
       changed.has("value")
     ) {
-      this.#syncForm();
+      this.syncCheckable();
     }
   }
 
@@ -123,18 +162,19 @@ export abstract class UICheckable extends LitElement {
 
   formStateRestoreCallback(state: string | File | FormData | null): void {
     this.checked = state === "checked";
+    if (typeof state === "string") this.restoreCheckableState(state);
   }
 
   #onInput = (event: Event): void => {
-    this.checked = (event.currentTarget as HTMLInputElement).checked;
+    this.readCheckableState(event.currentTarget as HTMLInputElement);
   };
 
   #onChange = (): void => {
     this.dispatchEvent(
-      new CustomEvent<{ checked: boolean }>(this.changeEventName, {
+      new CustomEvent<Record<string, unknown>>(this.changeEventName, {
         bubbles: true,
         composed: true,
-        detail: { checked: this.checked },
+        detail: this.checkableChangeDetail(),
       }),
     );
   };
@@ -147,14 +187,18 @@ export abstract class UICheckable extends LitElement {
           part="control"
           type=${this.inputType}
           .checked=${this.checked}
+          .indeterminate=${this.checkableIndeterminate}
           name=${this.name}
           value=${this.value}
           role=${this.controlRole ?? nothing}
+          aria-posinset=${this.collectionPosition ?? nothing}
+          aria-setsize=${this.collectionSize ?? nothing}
           ?disabled=${this.#isDisabled}
           ?required=${this.required}
           @input=${this.#onInput}
           @change=${this.#onChange}
         />
+        ${this.renderCheckableParts()}
         <span part="label"><slot></slot></span>
       </label>
     `;

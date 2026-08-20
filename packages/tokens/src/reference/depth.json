@@ -1,0 +1,12 @@
+{
+  "depth": {
+    "$type": "number",
+    "reference": {
+      "$description": "Raw renderer stacking coordinates. Consumers use semantic layer tokens rather than these literal values.",
+      "base": { "$value": 0 },
+      "raised": { "$value": 1 },
+      "overlay": { "$value": 1000 },
+      "inspection": { "$value": 2147483647 }
+    }
+  }
+}

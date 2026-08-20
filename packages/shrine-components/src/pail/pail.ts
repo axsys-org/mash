@@ -1,4 +1,6 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, html, type TemplateResult } from "lit";
+
+import { baseStyles } from "../internal/base-styles.js";
 
 /**
  * The value held by a Shrine limb.
@@ -9,9 +11,15 @@ import { LitElement, css, html, type TemplateResult } from "lit";
  * @example Text value
  * <sh-pail text="active"></sh-pail>
  *
- * @slot - Optional rich value content. Overrides the `text` fallback.
+ * @slot - Compatibility fallback for the `value` slot.
+ * @slot value - Optional rich value content. Overrides the `text` fallback.
  *
  * @csspart root - The visible field value.
+ *
+ * @mashrole attribute text value value
+ * @mashrole slot default value value
+ * @mashrole part root value value
+ * @mashnode value value
  */
 export class ShrinePail extends LitElement {
   static override properties = {
@@ -26,24 +34,11 @@ export class ShrinePail extends LitElement {
     this.text = "";
   }
 
-  static override styles = css`
-    :host {
-      display: block;
-      min-inline-size: 0;
-      color: var(--color-text);
-      font-family: var(--type-body-font-family);
-      font-size: var(--type-body-font-size);
-      font-weight: var(--type-body-font-weight);
-      line-height: var(--type-body-line-height);
-      overflow-wrap: anywhere;
-    }
-
-    :host([hidden]) {
-      display: none !important;
-    }
-  `;
+  static override styles = baseStyles;
 
   protected override render(): TemplateResult {
-    return html`<span part="root"><slot>${this.text}</slot></span>`;
+    return html`<span part="root"
+      ><slot name="value"><slot>${this.text}</slot></slot></span
+    >`;
   }
 }

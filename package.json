@@ -23,11 +23,13 @@
     "preview:catalog": "pnpm --filter @mash/catalog run preview",
     "//dev": "Build once so nothing starts against a missing dist/, then watch tokens, components and the manifest alongside the catalog.",
     "dev": "pnpm run build && pnpm -r --parallel run dev",
-    "check": "pnpm run check:format && pnpm run check:types && pnpm run check:lint && pnpm run check:exports && pnpm run check:paper",
+    "check": "pnpm run check:format && pnpm run check:types && pnpm run check:lint && pnpm run check:exports && pnpm run check:mash && pnpm run check:gpui-base && pnpm run check:paper",
     "check:types": "pnpm -r --parallel run check:types",
     "check:lint": "oxlint",
     "check:format": "prettier --check .",
     "check:exports": "node scripts/check-exports.mjs",
+    "check:mash": "node scripts/check-mash-contract.mjs && node scripts/build-catalogue-contract.mjs --check && node scripts/check-css-token-closure.mjs",
+    "check:gpui-base": "node scripts/check-gpui-base-parity.mjs",
     "check:paper": "node scripts/check-paper-contract.mjs",
     "format": "prettier --write .",
     "//new:component": "Scaffolds a component and wires it into the package's barrels and exports map. Usage: pnpm new:component <package> <tag-name>",
@@ -45,5 +47,6 @@
     "oxlint": "1.78.0",
     "prettier": "3.9.6",
     "typescript": "7.0.2"
-  }
+  },
+  "customElements": "custom-elements.json"
 }

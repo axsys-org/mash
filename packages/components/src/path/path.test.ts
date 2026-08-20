@@ -31,6 +31,21 @@ describe("ui-path", () => {
     expect(root.querySelector(".content")?.getAttribute("aria-label")).toBe("Foundry");
   });
 
+  it("lets an authored title slot override attribute fallbacks", async () => {
+    const el = await fixture<UIPath>(`
+      <ui-path title="Fallback" path="/foo/bar"><span slot="title">Authored title</span></ui-path>
+    `);
+
+    expect(
+      shadow(el).querySelector<HTMLSlotElement>('slot[name="title"]')?.assignedElements()[0]
+        ?.textContent,
+    ).toBe("Authored title");
+    expect(shadow(el).querySelector('[part="content"]')?.getAttribute("aria-label")).toBe(
+      "Authored title",
+    );
+    expect(shadow(el).querySelector('[part="segments"]')).toBeNull();
+  });
+
   it("supports small, current, and selected states", async () => {
     const el = await fixture<UIPath>(
       `<ui-path path="/foo/bar" size="small" current selected></ui-path>`,
@@ -39,6 +54,8 @@ describe("ui-path", () => {
     expect(el.getAttribute("size")).toBe("small");
     expect(el.hasAttribute("current")).toBe(true);
     expect(el.hasAttribute("selected")).toBe(true);
+    expect(el.matches(":state(current)")).toBe(true);
+    expect(el.matches(":state(selected)")).toBe(true);
     expect(shadow(el).querySelector('[part="root"]')?.getAttribute("aria-current")).toBe("page");
     expect(shadow(el).querySelector('[part="root"]')?.getAttribute("aria-selected")).toBe("true");
 
@@ -47,6 +64,8 @@ describe("ui-path", () => {
     await settled(el.parentElement!);
     expect(el.hasAttribute("current")).toBe(false);
     expect(el.hasAttribute("selected")).toBe(false);
+    expect(el.matches(":state(current)")).toBe(false);
+    expect(el.matches(":state(selected)")).toBe(false);
   });
 
   it("keeps the icon slot and documented parts available", async () => {
@@ -58,7 +77,7 @@ describe("ui-path", () => {
     );
 
     expect(parts).toEqual(
-      expect.arrayContaining(["root", "icon", "segments", "separator", "segment"]),
+      expect.arrayContaining(["root", "icon", "content", "segments", "separator", "segment"]),
     );
     const iconSlot = shadow(el).querySelector('slot[name="icon"]') as HTMLSlotElement;
     expect(iconSlot.assignedElements()).toHaveLength(1);

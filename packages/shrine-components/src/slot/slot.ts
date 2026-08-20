@@ -1,4 +1,6 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, html, type TemplateResult } from "lit";
+
+import { baseStyles } from "../internal/base-styles.js";
 
 /**
  * The named label of a Shrine limb.
@@ -9,9 +11,15 @@ import { LitElement, css, html, type TemplateResult } from "lit";
  * @example Field label
  * <sh-slot title="status"></sh-slot>
  *
- * @slot - Optional rich label content. Overrides the `title` fallback.
+ * @slot - Compatibility fallback for the `label` slot.
+ * @slot label - Optional rich label content. Overrides the `title` fallback.
  *
  * @csspart root - The visible field label.
+ *
+ * @mashrole attribute title label label
+ * @mashrole slot default label label
+ * @mashrole part root label label
+ * @mashnode label label
  */
 export class ShrineSlot extends LitElement {
   static override properties = {
@@ -26,24 +34,11 @@ export class ShrineSlot extends LitElement {
     this.title = "";
   }
 
-  static override styles = css`
-    :host {
-      display: block;
-      min-inline-size: 0;
-      color: var(--color-text-muted);
-      font-family: var(--type-code-font-family);
-      font-size: var(--type-code-font-size);
-      font-weight: var(--type-code-font-weight);
-      line-height: var(--type-code-line-height);
-      overflow-wrap: anywhere;
-    }
-
-    :host([hidden]) {
-      display: none !important;
-    }
-  `;
+  static override styles = baseStyles;
 
   protected override render(): TemplateResult {
-    return html`<span part="root"><slot>${this.title}</slot></span>`;
+    return html`<span part="root"
+      ><slot name="label"><slot>${this.title}</slot></slot></span
+    >`;
   }
 }

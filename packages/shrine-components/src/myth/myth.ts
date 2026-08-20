@@ -1,4 +1,6 @@
-import { LitElement, css, html, nothing, type TemplateResult } from "lit";
+import { LitElement, html, type TemplateResult } from "lit";
+
+import { baseStyles } from "../internal/base-styles.js";
 
 /**
  * A record header with composable Shrine limbs.
@@ -22,20 +24,52 @@ import { LitElement, css, html, nothing, type TemplateResult } from "lit";
  *   </sh-limb>
  * </sh-myth>
  *
- * @slot - `sh-limb` elements describing the record's fields.
+ * @slot - Compatibility fallback for the `limbs` slot.
+ * @slot limbs - `sh-limb` elements describing the record's fields.
+ * @slot title - Rich record title content. Overrides the `title` attribute.
+ * @slot path - Rich canonical path content. Overrides the `path` attribute.
+ * @slot kind - Rich record-kind content. Overrides the `kind` attribute.
+ * @slot actions - Actions associated with the record.
  *
  * @csspart root - The card surface containing the record.
- * @csspart header - The identity region containing title, path, and kind.
+ * @csspart card-header - The card header containing record identity.
+ * @csspart identity - The region containing title and path.
+ * @csspart card-title - The card's title wrapper.
  * @csspart title - The record title.
+ * @csspart card-description - The card's path wrapper.
  * @csspart path - The canonical Shrine path.
+ * @csspart card-value - The card's kind wrapper.
  * @csspart kind - The UI badge that carries the record kind.
+ * @csspart kind-content - The badge content realization.
+ * @csspart card-actions - The card action wrapper.
+ * @csspart actions - The record action region.
+ * @csspart card-content - The card's primary content region.
  * @csspart limbs - The composed limb region.
+ *
+ * @mashrole slot default limbs limbs
+ * @mashrole part card-header header header
+ * @mashrole part card-title title title
+ * @mashrole part card-description path path
+ * @mashrole part card-value kind kind
+ * @mashrole part kind-content kind kind
+ * @mashrole part card-actions actions actions
+ * @mashrole part card-content content content
+ * @mashnode root root
+ * @mashnode header header root
+ * @mashnode identity identity header
+ * @mashnode title title identity
+ * @mashnode path path identity
+ * @mashnode kind kind header
+ * @mashnode actions actions header
+ * @mashnode content content root
+ * @mashnode limbs limbs content
  */
 export class ShrineMyth extends LitElement {
   static override properties = {
     kind: { type: String, reflect: true },
     title: { type: String, reflect: true },
     path: { type: String, reflect: true },
+    _filledSlots: { state: true },
   };
 
   /** The record's stable kind, rendered with the shared UI badge. */
@@ -44,92 +78,64 @@ export class ShrineMyth extends LitElement {
   declare title: string;
   /** The record's canonical Shrine path. */
   declare path: string;
+  declare private _filledSlots: ReadonlySet<string>;
 
   constructor() {
     super();
     this.kind = "";
     this.title = "";
     this.path = "";
+    this._filledSlots = new Set();
   }
 
-  static override styles = css`
-    :host {
-      display: block;
-      box-sizing: border-box;
-      inline-size: min(100%, 60rem);
-    }
+  static override styles = baseStyles;
 
-    :host([hidden]) {
-      display: none !important;
-    }
-
-    .header {
-      display: flex;
-      align-items: start;
-      justify-content: space-between;
-      gap: var(--space-container-gap);
-    }
-
-    .identity {
-      display: grid;
-      min-inline-size: 0;
-      gap: var(--space-control-gap);
-    }
-
-    .title,
-    .path {
-      min-inline-size: 0;
-      margin: 0;
-    }
-
-    .title {
-      color: var(--color-text);
-      font-family: var(--type-heading-font-family);
-      font-size: var(--type-heading-font-size);
-      font-weight: var(--type-heading-font-weight);
-      line-height: var(--type-heading-line-height);
-      overflow-wrap: anywhere;
-    }
-
-    .path {
-      overflow-wrap: anywhere;
-      color: var(--color-text-muted);
-      font-family: var(--type-code-font-family);
-      font-size: var(--type-code-font-size);
-      font-weight: var(--type-code-font-weight);
-      line-height: var(--type-code-line-height);
-    }
-
-    .kind {
-      flex: 0 0 auto;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .limbs {
-      display: grid;
-      gap: var(--space-control-gap);
-      margin-block-start: var(--space-stack);
-    }
-
-    @media (forced-colors: active) {
-      .kind {
-        border: var(--border-hairline) solid CanvasText;
-      }
-    }
-  `;
+  #onSlotChange = (event: Event): void => {
+    const slot = event.target as HTMLSlotElement;
+    const next = new Set(this._filledSlots);
+    if (slot.assignedNodes({ flatten: true }).length > 0) next.add(slot.name);
+    else next.delete(slot.name);
+    this._filledSlots = next;
+  };
 
   protected override render(): TemplateResult {
     return html`
-      <ui-card part="root" elevation="flat">
-        <div part="header" class="header">
-          <div class="identity">
-            ${this.title ? html`<h2 part="title" class="title">${this.title}</h2>` : nothing}
-            ${this.path ? html`<p part="path" class="path">${this.path}</p>` : nothing}
-          </div>
-          ${this.kind ? html`<ui-badge part="kind" class="kind">${this.kind}</ui-badge>` : nothing}
+      <ui-card
+        part="root"
+        elevation="flat"
+        exportparts="header:card-header,identity:identity,title:card-title,description:card-description,value:card-value,actions:card-actions,content:card-content"
+      >
+        <h2
+          slot="title"
+          part="title"
+          class="title"
+          ?hidden=${!this.title && !this._filledSlots.has("title")}
+        >
+          <slot name="title" @slotchange=${this.#onSlotChange}>${this.title}</slot>
+        </h2>
+        <p
+          slot="description"
+          part="path"
+          class="path"
+          ?hidden=${!this.path && !this._filledSlots.has("path")}
+        >
+          <slot name="path" @slotchange=${this.#onSlotChange}>${this.path}</slot>
+        </p>
+        <ui-badge
+          slot="value"
+          part="kind"
+          class="kind"
+          exportparts="root:kind-content"
+          ?hidden=${!this.kind && !this._filledSlots.has("kind")}
+        >
+          <slot name="kind" @slotchange=${this.#onSlotChange}>${this.kind}</slot>
+        </ui-badge>
+        <div slot="actions" part="actions" ?hidden=${!this._filledSlots.has("actions")}>
+          <slot name="actions" @slotchange=${this.#onSlotChange}></slot>
         </div>
-        <div part="limbs" class="limbs"><slot></slot></div>
+        <div slot="content" part="limbs" class="limbs">
+          <slot name="limbs"><slot></slot></slot>
+        </div>
       </ui-card>
     `;
   }

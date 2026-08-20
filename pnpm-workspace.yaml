@@ -3,9 +3,14 @@ packages:
   - "apps/*"
   - "tests/*"
 
+allowBuilds:
+  rs-module-lexer: true
+
 # pnpm 10 does not run dependency lifecycle scripts unless they are listed here.
-# These three genuinely need theirs (native binary downloads).
+# These dependencies genuinely need theirs (native binary downloads or
+# platform-specific parser bindings).
 onlyBuiltDependencies:
   - "@parcel/watcher"
   - esbuild
   - playwright
+  - rs-module-lexer

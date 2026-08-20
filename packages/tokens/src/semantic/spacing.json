@@ -35,13 +35,21 @@
       "$description": "Gap between sibling regions inside a container, e.g. a card's header and its content."
     },
 
-    "stack": {
-      "$value": "{space.reference.4}",
-      "$description": "Default vertical rhythm between stacked blocks."
+    "groupRelated": {
+      "$value": "{space.reference.2}",
+      "$description": "Tight spacing between parts that form one semantic value or control."
     },
-    "inline": {
+    "groupInline": {
       "$value": "{space.reference.3}",
-      "$description": "Default horizontal gap between inline siblings."
+      "$description": "Default spacing between sibling nodes grouped on the inline axis."
+    },
+    "groupBlock": {
+      "$value": "{space.reference.4}",
+      "$description": "Default spacing between sibling nodes grouped on the block axis."
+    },
+    "region": {
+      "$value": "{space.reference.5}",
+      "$description": "Separation between distinct semantic regions in a larger surface composition."
     }
   }
 }

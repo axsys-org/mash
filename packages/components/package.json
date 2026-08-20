@@ -62,6 +62,7 @@
       "import": "./dist/badge/register.js"
     },
     "./catalogue/mash.css": "./src/catalogue/mash.css",
+    "./catalogue/mash.json": "./src/catalogue/mash.json",
     "./checkbox": {
       "types": "./dist/checkbox/checkbox.d.ts",
       "import": "./dist/checkbox/checkbox.js"
@@ -126,6 +127,14 @@
       "types": "./dist/card/register.d.ts",
       "import": "./dist/card/register.js"
     },
+    "./chip": {
+      "types": "./dist/chip/chip.d.ts",
+      "import": "./dist/chip/chip.js"
+    },
+    "./chip/register": {
+      "types": "./dist/chip/register.d.ts",
+      "import": "./dist/chip/register.js"
+    },
     "./input": {
       "types": "./dist/input/input.d.ts",
       "import": "./dist/input/input.js"
@@ -133,6 +142,14 @@
     "./input/register": {
       "types": "./dist/input/register.d.ts",
       "import": "./dist/input/register.js"
+    },
+    "./input-group": {
+      "types": "./dist/input-group/input-group.d.ts",
+      "import": "./dist/input-group/input-group.js"
+    },
+    "./input-group/register": {
+      "types": "./dist/input-group/register.d.ts",
+      "import": "./dist/input-group/register.js"
     },
     "./kbd": {
       "types": "./dist/kbd/kbd.d.ts",
@@ -390,6 +407,22 @@
       "types": "./dist/option/register.d.ts",
       "import": "./dist/option/register.js"
     },
+    "./option-group": {
+      "types": "./dist/option-group/option-group.d.ts",
+      "import": "./dist/option-group/option-group.js"
+    },
+    "./option-group/register": {
+      "types": "./dist/option-group/register.d.ts",
+      "import": "./dist/option-group/register.js"
+    },
+    "./option-row": {
+      "types": "./dist/option-row/option-row.d.ts",
+      "import": "./dist/option-row/option-row.js"
+    },
+    "./option-row/register": {
+      "types": "./dist/option-row/register.d.ts",
+      "import": "./dist/option-row/register.js"
+    },
     "./popover": {
       "types": "./dist/popover/popover.d.ts",
       "import": "./dist/popover/popover.js"
@@ -422,6 +455,14 @@
       "types": "./dist/toast/register.d.ts",
       "import": "./dist/toast/register.js"
     },
+    "./toast-stack": {
+      "types": "./dist/toast-stack/toast-stack.d.ts",
+      "import": "./dist/toast-stack/toast-stack.js"
+    },
+    "./toast-stack/register": {
+      "types": "./dist/toast-stack/register.d.ts",
+      "import": "./dist/toast-stack/register.js"
+    },
     "./tooltip": {
       "types": "./dist/tooltip/tooltip.d.ts",
       "import": "./dist/tooltip/tooltip.js"
@@ -429,6 +470,86 @@
     "./tooltip/register": {
       "types": "./dist/tooltip/register.d.ts",
       "import": "./dist/tooltip/register.js"
+    },
+    "./link": {
+      "types": "./dist/link/link.d.ts",
+      "import": "./dist/link/link.js"
+    },
+    "./link/register": {
+      "types": "./dist/link/register.d.ts",
+      "import": "./dist/link/register.js"
+    },
+    "./textarea": {
+      "types": "./dist/textarea/textarea.d.ts",
+      "import": "./dist/textarea/textarea.js"
+    },
+    "./textarea/register": {
+      "types": "./dist/textarea/register.d.ts",
+      "import": "./dist/textarea/register.js"
+    },
+    "./pagination": {
+      "types": "./dist/pagination/pagination.d.ts",
+      "import": "./dist/pagination/pagination.js"
+    },
+    "./pagination/register": {
+      "types": "./dist/pagination/register.d.ts",
+      "import": "./dist/pagination/register.js"
+    },
+    "./table": {
+      "types": "./dist/table/table.d.ts",
+      "import": "./dist/table/table.js"
+    },
+    "./table/register": {
+      "types": "./dist/table/register.d.ts",
+      "import": "./dist/table/register.js"
+    },
+    "./resizable": {
+      "types": "./dist/resizable/resizable.d.ts",
+      "import": "./dist/resizable/resizable.js"
+    },
+    "./resizable/register": {
+      "types": "./dist/resizable/register.d.ts",
+      "import": "./dist/resizable/register.js"
+    },
+    "./virtual-list": {
+      "types": "./dist/virtual-list/virtual-list.d.ts",
+      "import": "./dist/virtual-list/virtual-list.js"
+    },
+    "./virtual-list/register": {
+      "types": "./dist/virtual-list/register.d.ts",
+      "import": "./dist/virtual-list/register.js"
+    },
+    "./calendar": {
+      "types": "./dist/calendar/calendar.d.ts",
+      "import": "./dist/calendar/calendar.js"
+    },
+    "./calendar/register": {
+      "types": "./dist/calendar/register.d.ts",
+      "import": "./dist/calendar/register.js"
+    },
+    "./date-picker": {
+      "types": "./dist/date-picker/date-picker.d.ts",
+      "import": "./dist/date-picker/date-picker.js"
+    },
+    "./date-picker/register": {
+      "types": "./dist/date-picker/register.d.ts",
+      "import": "./dist/date-picker/register.js"
+    },
+    "./color-picker": {
+      "types": "./dist/color-picker/color-picker.d.ts",
+      "import": "./dist/color-picker/color-picker.js"
+    },
+    "./color-picker/register": {
+      "types": "./dist/color-picker/register.d.ts",
+      "import": "./dist/color-picker/register.js"
+    },
+    "./editor": {
+      "types": "./dist/editor/editor.d.ts",
+      "import": "./dist/editor/editor.js"
+    },
+    "./editor/register": {
+      "types": "./dist/editor/register.d.ts",
+      "import": "./dist/editor/register.js"
     },
     "./custom-elements.json": "./custom-elements.json",
     "./package.json": "./package.json"

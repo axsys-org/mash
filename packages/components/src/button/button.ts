@@ -1,4 +1,4 @@
-import { LitElement, css, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -25,10 +25,10 @@ export type ButtonType = "button" | "submit" | "reset";
  * The element is form-associated, so a `submit` button submits its containing
  * form even though the real `<button>` lives inside a shadow root.
  *
- * This component intentionally exposes **no public CSS custom properties**. It
- * is built entirely from the semantic design tokens, and everything it computes
- * internally is a private `--_*` variable. Restyling a button means changing the
- * design language — the shared semantic tokens — not overriding one component.
+ * The component intentionally exposes no visual CSS contract of its own. A
+ * catalogue recipe can interpret its stable parts and reflected state with any
+ * token system, while an application can omit that recipe and keep the native
+ * control behaviour.
  *
  * @tag ui-button
  * @summary Triggers an action. The primary interactive control of the system.
@@ -107,11 +107,31 @@ export type ButtonType = "button" | "submit" | "reset";
  * @csspart spinner - The loading indicator, present only while `loading` is set.
  *
  * @cssstate loading - Matches `:state(loading)` while an async action is in flight.
+ * @cssstate selected - Matches `:state(selected)` while an owning composite keeps the action selected.
  * @cssstate pressed - Matches `:state(pressed)` while the button is actively held down.
+ * @cssstate disabled - Matches `:state(disabled)` while activation is unavailable.
  *
  * @fires {PointerEvent} click - The button's behavioural output. Retargeted to the
  *   host, so listeners attach to `<ui-button>` directly. Suppressed entirely while
  *   `disabled` or `loading`.
+ *
+ * @mashnode control control
+ * @mashnode prefix prefix control
+ * @mashnode label label control
+ * @mashnode suffix suffix control
+ * @mashnode spinner spinner control
+ * @mashnode variant variant control
+ * @mashnode size size control
+ * @mashnode tone tone control
+ * @mashnode disabled disabled control
+ * @mashnode loading loading control
+ * @mashnode selected selected control
+ * @mashnode pressed pressed control
+ * @mashnode type type control
+ * @mashnode name name control
+ * @mashnode value value control
+ * @mashnode activate activate control
+ * @mashrole slot default label label
  */
 export class UIButton extends LitElement {
   /** Lets the element participate in form submission and reset from inside its shadow root. */
@@ -132,9 +152,12 @@ export class UIButton extends LitElement {
     tone: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
     loading: { type: Boolean, reflect: true },
+    selected: { type: Boolean, reflect: true },
     type: { type: String, reflect: true },
     name: { type: String, reflect: true },
     value: { type: String, reflect: true },
+    _hasPrefix: { type: Boolean, state: true },
+    _hasSuffix: { type: Boolean, state: true },
   };
 
   /** Visual emphasis. */
@@ -147,12 +170,16 @@ export class UIButton extends LitElement {
   declare disabled: boolean;
   /** Shows a spinner and suppresses interaction while an action is in flight. */
   declare loading: boolean;
+  /** Parent-controlled presentation state for persistent triggers such as an open popover. */
+  declare selected: boolean;
   /** Form behaviour, mirroring native `<button type>`. */
   declare type: ButtonType;
   /** Form control name, submitted with the form. */
   declare name: string;
   /** Form control value, submitted with the form. */
   declare value: string;
+  declare private _hasPrefix: boolean;
+  declare private _hasSuffix: boolean;
 
   readonly #internals: ElementInternals;
 
@@ -163,9 +190,12 @@ export class UIButton extends LitElement {
     this.tone = "accent";
     this.disabled = false;
     this.loading = false;
+    this.selected = false;
     this.type = "button";
     this.name = "";
     this.value = "";
+    this._hasPrefix = false;
+    this._hasSuffix = false;
 
     this.#internals = this.attachInternals();
 
@@ -183,243 +213,7 @@ export class UIButton extends LitElement {
     this.addEventListener("click", this.#onActivate);
   }
 
-  static override styles = [
-    baseStyles,
-    css`
-      :host {
-        display: inline-flex;
-        vertical-align: middle;
-
-        /* ------------------------------------------------------------------
-         * Private implementation variables.
-         *
-         * Two levels of indirection, and the split is what keeps the axes
-         * orthogonal: the tone rules below set only --_tone-*, the variant
-         * rules set only --_background/--_foreground *in terms of* --_tone-*.
-         * Because custom properties substitute at use time rather than at
-         * declaration time, tone and variant never need to know about each
-         * other, and there is no rule for each of the 15 combinations.
-         * ------------------------------------------------------------------ */
-
-        /* size axis */
-        --_padding-inline: var(--space-control-inline);
-        --_padding-block: var(--space-control-block);
-        --_font-size: var(--type-label-font-size);
-        --_font-weight: var(--type-label-font-weight);
-        --_line-height: var(--type-label-line-height);
-
-        /* tone axis */
-        --_tone: var(--color-action);
-        --_tone-hover: var(--color-action-hover);
-        --_tone-pressed: var(--color-action-pressed);
-        --_on-tone: var(--color-on-action);
-
-        /* variant axis, resolved through the tone axis */
-        --_background: var(--_tone);
-        --_background-hover: var(--_tone-hover);
-        --_background-pressed: var(--_tone-pressed);
-        --_foreground: var(--_on-tone);
-        --_border-color: transparent;
-      }
-
-      /* --- size ------------------------------------------------------- */
-
-      :host([size="small"]) {
-        --_padding-inline: var(--space-control-inline-small);
-        --_padding-block: var(--space-control-block-small);
-        --_font-size: var(--type-label-small-font-size);
-        --_font-weight: var(--type-label-small-font-weight);
-        --_line-height: var(--type-label-small-line-height);
-      }
-
-      :host([size="large"]) {
-        --_padding-inline: var(--space-control-inline-large);
-        --_padding-block: var(--space-control-block-large);
-        --_font-size: var(--type-label-large-font-size);
-        --_font-weight: var(--type-label-large-font-weight);
-        --_line-height: var(--type-label-large-line-height);
-      }
-
-      /* --- tone ------------------------------------------------------- */
-
-      :host([tone="neutral"]) {
-        --_tone: var(--color-neutral);
-        --_tone-hover: var(--color-neutral-hover);
-        --_tone-pressed: var(--color-neutral-pressed);
-        --_on-tone: var(--color-on-neutral);
-      }
-
-      :host([tone="positive"]) {
-        --_tone: var(--color-positive);
-        --_tone-hover: var(--color-positive-hover);
-        --_tone-pressed: var(--color-positive-pressed);
-        --_on-tone: var(--color-on-positive);
-      }
-
-      :host([tone="warning"]) {
-        --_tone: var(--color-warning);
-        --_tone-hover: var(--color-warning-hover);
-        --_tone-pressed: var(--color-warning-pressed);
-        --_on-tone: var(--color-on-warning);
-      }
-
-      :host([tone="critical"]) {
-        --_tone: var(--color-critical);
-        --_tone-hover: var(--color-critical-hover);
-        --_tone-pressed: var(--color-critical-pressed);
-        --_on-tone: var(--color-on-critical);
-      }
-
-      /* --- variant ---------------------------------------------------- */
-
-      /* Secondary and quiet paint the tone as *text*, and tint the surface only
-         on interaction. color-mix keeps that derivation here, in the one place
-         it applies, rather than adding two more tokens per tone. */
-      :host([variant="secondary"]),
-      :host([variant="quiet"]) {
-        --_background: transparent;
-        --_background-hover: color-mix(in oklab, var(--_tone) 12%, transparent);
-        --_background-pressed: color-mix(in oklab, var(--_tone) 22%, transparent);
-        --_foreground: var(--_tone);
-      }
-
-      :host([variant="secondary"]) {
-        --_border-color: var(--color-border-strong);
-      }
-
-      /* --- disabled --------------------------------------------------- */
-
-      :host([disabled]) {
-        --_background: var(--color-neutral);
-        --_foreground: var(--color-text-disabled);
-        --_border-color: var(--color-border);
-      }
-
-      :host([disabled][variant="secondary"]),
-      :host([disabled][variant="quiet"]) {
-        --_background: transparent;
-      }
-
-      /* --- control ---------------------------------------------------- */
-
-      .control {
-        flex: 1 1 auto;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-
-        margin: 0;
-        padding-block: var(--_padding-block);
-        padding-inline: var(--_padding-inline);
-
-        border: var(--border-hairline) solid var(--_border-color);
-        border-radius: var(--radius-control);
-        background-color: var(--_background);
-        color: var(--_foreground);
-
-        font-family: var(--type-label-font-family);
-        font-size: var(--_font-size);
-        font-weight: var(--_font-weight);
-        line-height: var(--_line-height);
-
-        cursor: pointer;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-
-        transition:
-          background-color var(--duration-control) var(--easing-control),
-          border-color var(--duration-control) var(--easing-control),
-          color var(--duration-control) var(--easing-control);
-      }
-
-      .control:hover:not(:disabled) {
-        background-color: var(--_background-hover);
-      }
-
-      .control:active:not(:disabled) {
-        background-color: var(--_background-pressed);
-      }
-
-      .control:focus-visible {
-        outline: var(--border-focus-ring) solid var(--color-focus-ring);
-        outline-offset: var(--border-focus-ring-offset);
-      }
-
-      .control:disabled {
-        cursor: not-allowed;
-      }
-
-      /* --- slots ------------------------------------------------------ */
-
-      .prefix,
-      .suffix,
-      .label {
-        display: inline-flex;
-        align-items: center;
-      }
-
-      /* Spacing hangs off the slotted content rather than off a gap on the
-         control. An empty prefix wrapper is a zero-size flex item and so
-         disappears on its own — whereas gap would reserve space for it and
-         force the component to track whether each slot is filled. */
-      ::slotted([slot="prefix"]),
-      .spinner {
-        margin-inline-end: var(--space-control-gap);
-      }
-
-      ::slotted([slot="suffix"]) {
-        margin-inline-start: var(--space-control-gap);
-      }
-
-      /* --- loading ---------------------------------------------------- */
-
-      .spinner {
-        inline-size: 1em;
-        block-size: 1em;
-        border: var(--border-strong) solid currentColor;
-        border-block-start-color: transparent;
-        border-radius: var(--radius-pill);
-        animation: ui-button-spin 700ms linear infinite;
-      }
-
-      @keyframes ui-button-spin {
-        to {
-          transform: rotate(1turn);
-        }
-      }
-
-      /* --- environment ------------------------------------------------ */
-
-      @media (prefers-reduced-motion: reduce) {
-        .control {
-          transition-duration: 0s;
-        }
-
-        /* The ring stays, it just stops moving: the affordance is the shape,
-           not the motion. aria-busy carries the same information to AT. */
-        .spinner {
-          animation: none;
-        }
-      }
-
-      @media (forced-colors: active) {
-        .control {
-          border-color: ButtonBorder;
-          background-color: ButtonFace;
-          color: ButtonText;
-        }
-
-        .control:focus-visible {
-          outline-color: Highlight;
-        }
-
-        :host([disabled]) .control {
-          border-color: GrayText;
-          color: GrayText;
-        }
-      }
-    `,
-  ];
+  static override styles = baseStyles;
 
   /** True when the button cannot currently be activated. */
   get #inert(): boolean {
@@ -450,10 +244,25 @@ export class UIButton extends LitElement {
     else this.#internals.states.delete("pressed");
   };
 
+  #onSlotChange = (event: Event): void => {
+    const slot = event.target as HTMLSlotElement;
+    const hasContent = slot.assignedNodes({ flatten: true }).length > 0;
+    if (slot.name === "prefix") this._hasPrefix = hasContent;
+    else if (slot.name === "suffix") this._hasSuffix = hasContent;
+  };
+
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("loading")) {
       if (this.loading) this.#internals.states.add("loading");
       else this.#internals.states.delete("loading");
+    }
+    if (changed.has("disabled")) {
+      if (this.disabled) this.#internals.states.add("disabled");
+      else this.#internals.states.delete("disabled");
+    }
+    if (changed.has("selected")) {
+      if (this.selected) this.#internals.states.add("selected");
+      else this.#internals.states.delete("selected");
     }
 
     // A button that goes inert mid-press must not stay stuck in :state(pressed).
@@ -480,18 +289,18 @@ export class UIButton extends LitElement {
         @keyup=${() => this.#setPressed(false)}
         @blur=${() => this.#setPressed(false)}
       >
-        <span part="prefix" class="prefix">
+        <span part="prefix" class="prefix" ?hidden=${!this.loading && !this._hasPrefix}>
           ${
             this.loading
               ? html`<span part="spinner" class="spinner" aria-hidden="true"></span>`
-              : html`<slot name="prefix"></slot>`
+              : html`<slot name="prefix" @slotchange=${this.#onSlotChange}></slot>`
           }
         </span>
 
         <span part="label" class="label"><slot></slot></span>
 
-        <span part="suffix" class="suffix">
-          <slot name="suffix"></slot>
+        <span part="suffix" class="suffix" ?hidden=${!this._hasSuffix}>
+          <slot name="suffix" @slotchange=${this.#onSlotChange}></slot>
         </span>
       </button>
     `;

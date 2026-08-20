@@ -1,12 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { fixture, inShadow, settled, shadow } from "../test-support/fixture.js";
+import "@mash/ui/catalogue/mash.css";
+import "../catalogue/mash.css";
 import { ShrineConfirm } from "./confirm.js";
 import "./register.js";
 
 const buttons = (host: Element) => [...shadow(host).querySelectorAll("ui-button")];
 const confirmButton = (host: Element) => inShadow(host, 'ui-button[part="confirm"]');
 const cancelButton = (host: Element) => inShadow(host, 'ui-button[part="cancel"]');
+
+beforeEach(() => {
+  document.documentElement.dataset.mashCatalogue = "mash";
+});
+
+afterEach(() => {
+  delete document.documentElement.dataset.mashCatalogue;
+});
 
 describe("shrine-confirm: lifecycle", () => {
   it("registers and upgrades", async () => {
@@ -97,6 +107,15 @@ describe("shrine-confirm: slots", () => {
     expect(assigned("cancel")).toBe("Keep");
   });
 
+  it("projects the explanatory message through the semantic description slot", async () => {
+    const host = await fixture<ShrineConfirm>(`
+      <shrine-confirm><p slot="description">This cannot be undone.</p></shrine-confirm>
+    `);
+    const description = shadow(host).querySelector<HTMLSlotElement>('slot[name="description"]')!;
+    expect(description.assignedElements()).toHaveLength(1);
+    expect(description.assignedElements()[0]?.textContent).toBe("This cannot be undone.");
+  });
+
   it("hides the heading when the title slot is empty", async () => {
     const host = await fixture<ShrineConfirm>(`<shrine-confirm>Sure?</shrine-confirm>`);
     expect(inShadow(host, ".title").hasAttribute("hidden")).toBe(true);
@@ -171,6 +190,7 @@ describe("shrine-confirm: pending state", () => {
     // this package reimplemented a spinner.
     expect(confirmButton(host).matches(":state(loading)")).toBe(true);
     expect(cancelButton(host).hasAttribute("disabled")).toBe(true);
+    expect(host.matches(":state(pending)")).toBe(true);
   });
 
   it("returns to interactive when pending clears", async () => {

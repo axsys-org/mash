@@ -48,6 +48,16 @@ html[data-layout="center"] body {
   padding: 48px 24px;
 }
 
+/* Trigger-relative surfaces need useful room on their preferred side. This is
+   derived from the generic `placement` binding, not from component names, so
+   every anchored renderer contract gets the same honest preview canvas. */
+html[data-layout="anchor"] body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 72px 24px 48px;
+}
+
 /* A component that fills the frame owns the viewport, exactly as an application
    shell does — so the frame itself must not scroll. Without this, whitespace
    between elements in the example markup is slotted as text nodes, adds line
@@ -61,18 +71,52 @@ html[data-layout="fill"] body {
   padding: 0;
 }
 
-/* Placeholder for a named slot in the controls-driven preview. Deliberately
-   tiny — it exists to show that a slot is filled, not to look like content. */
+/* A named semantic slot is real authored content, not an icon-shaped marker.
+   Keep it readable so title, description, value, and action labels preserve
+   their meaning in the controls-driven preview. */
 .slot-fill {
-  display: inline-grid;
-  place-items: center;
-  inline-size: 1em;
-  block-size: 1em;
-  border: 1px dashed currentColor;
-  border-radius: 3px;
-  font-size: 9px;
-  opacity: 0.7;
+  display: inline;
+}
+
+/* SurfaceTree inspection is catalogue instrumentation. Boxes are generated
+   from the semantic node -> Web part bindings after each preview settles. */
+.mash-semantic-overlay {
+  position: fixed;
+  z-index: var(--layer-inspection);
+  inset: 0;
+  pointer-events: none;
+}
+
+.mash-semantic-box {
+  position: absolute;
+  border: 1px solid color-mix(in oklab, var(--color-action) 82%, white);
+  background: color-mix(in oklab, var(--color-action) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-action) 18%, transparent);
+}
+
+.mash-semantic-box[hidden] {
+  display: none;
+}
+
+.mash-semantic-box[data-selected="true"] {
+  border-width: 2px;
+  background: color-mix(in oklab, var(--color-action) 18%, transparent);
+}
+
+.mash-semantic-box > span {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  max-inline-size: 100%;
+  padding: 2px 5px;
   overflow: hidden;
+  background: var(--color-action);
+  color: var(--color-on-action);
+  font-family: var(--type-code-font-family);
+  font-size: 10px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* --- @example placeholders ------------------------------------------------ */
@@ -124,8 +168,8 @@ html[data-layout="fill"] body {
 
   inline-size: min(100%, 760px);
 
-  padding: clamp(var(--space-control-block), 4vw, var(--space-8))
-    clamp(var(--space-control-inline), 6vw, var(--space-10));
+  padding: clamp(var(--space-control-block), 4vw, calc(var(--space-group-block) * 2))
+    clamp(var(--space-control-inline), 6vw, calc(var(--space-region) * 2));
 
   background: var(--color-surface);
   border-style: solid;
@@ -160,7 +204,7 @@ html[data-layout="fill"] body {
   display: grid;
   grid-template-columns: minmax(64px, 0.55fr) repeat(3, minmax(0, 1fr));
   align-items: center;
-  gap: var(--space-control-gap) var(--space-3);
+  gap: var(--space-control-gap) var(--space-group-inline);
 }
 
 .button-showcase-grid ui-button {
@@ -181,14 +225,25 @@ html[data-layout="fill"] body {
   gap: var(--space-control-gap);
 }
 
+/* Atomic examples reuse the button-row helpers for alignment, not the full
+   placeholder surface used by structural layout demos. Keep those examples
+   self-sized so the component geometry remains the thing being previewed. */
+.demo.button-showcase-row,
+.demo.button-showcase-heading {
+  block-size: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
 .button-showcase-rule {
   block-size: var(--border-hairline);
-  margin-block: var(--space-2);
+  margin-block: var(--space-group-related);
   background: var(--color-border);
 }
 
 .button-showcase-compact {
-  gap: var(--space-5);
+  gap: var(--space-region);
 }
 
 /* System compositions -----------------------------------------------------
@@ -283,6 +338,26 @@ html[data-layout="fill"] body {
   inline-size: min(100%, 440px);
 }
 
+.example-toolbar-dock {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-block-size: 260px;
+  overflow: hidden;
+  border: var(--border-hairline) dashed var(--color-border-strong);
+  border-radius: var(--radius-container);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-family: var(--type-code-font-family);
+  font-size: var(--type-code-font-size);
+}
+
+.example-toolbar-dock ui-toolbar[data-mash-toolbar-dock] {
+  padding: var(--space-control-block) var(--space-control-inline);
+  background: var(--color-surface-raised);
+  box-shadow: 0 2px 8px var(--color-shadow);
+}
+
 .example-form ui-fieldset,
 .example-stack ui-fieldset {
   inline-size: 100%;
@@ -329,13 +404,13 @@ html[data-layout="fill"] body {
 
 .example-activity {
   display: block;
-  max-block-size: 190px;
+  block-size: 190px;
 }
 
 .example-activity ol {
   display: grid;
-  gap: var(--space-3);
-  padding-inline-start: var(--space-6);
+  gap: var(--space-group-inline);
+  padding-inline-start: calc(var(--space-group-inline) * 2);
 }
 
 .example-navigation {
@@ -368,7 +443,7 @@ ui-preview-card a:hover {
 
   .button-showcase-grid {
     grid-template-columns: minmax(58px, 0.5fr) repeat(3, minmax(0, 1fr));
-    gap: var(--space-2);
+    gap: var(--space-group-related);
   }
 
   .example-card-heading {

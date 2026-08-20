@@ -38,4 +38,24 @@ describe("ui-progress", () => {
     expect(root.getAttribute("aria-valuenow")).toBe("0");
     expect(indicator.style.inlineSize).toBe("0%");
   });
+
+  it("shares track and indicator anatomy across indeterminate and circular realizations", async () => {
+    const progress = await fixture<UIProgress>(
+      `<ui-progress shape="circular" indeterminate label="Analyzing"></ui-progress>`,
+    );
+    const root = inShadow<SVGElement>(progress, 'svg[part="root"]');
+    const indicator = inShadow<SVGCircleElement>(progress, 'circle[part="indicator"]');
+
+    expect(root.getAttribute("role")).toBe("progressbar");
+    expect(root.hasAttribute("aria-valuenow")).toBe(false);
+    expect(indicator.style.strokeDasharray).toBe("28, 100");
+    expect(progress.matches(":state(indeterminate)")).toBe(true);
+
+    progress.indeterminate = false;
+    progress.value = 72;
+    await settled(progress.parentElement!);
+
+    expect(root.getAttribute("aria-valuenow")).toBe("72");
+    expect(indicator.style.strokeDasharray).toBe("72, 100");
+  });
 });

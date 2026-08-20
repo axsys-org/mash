@@ -1,4 +1,4 @@
-import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -16,15 +16,31 @@ import { baseStyles } from "../internal/base-styles.js";
  * @example Verification code
  * <ui-otp-field name="verification-code" length="6" label="Verification code"></ui-otp-field>
  *
+ * @slot label - Authored group label; the `label` attribute is the compatibility fallback.
+ *
  * @csspart root - The labelled OTP group.
  * @csspart cell - Each single-character native input.
  * @csspart label - The accessible visible group label.
  *
  * @cssstate complete - Matches `:state(complete)` when every cell has a character.
+ * @cssstate masked - Matches `:state(masked)` while entered characters are obscured.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
+ * @cssstate invalid - Matches `:state(invalid)` while the owning field reports an error.
  *
  * @fires {CustomEvent<{ value: string, complete: boolean }>} ui-otp-field-input - Emitted whenever a cell changes or a code is pasted.
  * @fires {CustomEvent<{ value: string }>} ui-otp-field-complete - Emitted when a complete code is entered.
+ *
+ * @mashnode root root
+ * @mashnode label label root
+ * @mashnode cell cell root
+ * @mashnode value value root
+ * @mashnode length length root
+ * @mashnode name name root
+ * @mashnode disabled disabled root
+ * @mashnode masked masked root
+ * @mashnode complete complete root
+ * @mashnode invalid invalid root
+ * @mashnode input input root
  */
 export class UIOtpField extends LitElement {
   static formAssociated = true;
@@ -40,6 +56,8 @@ export class UIOtpField extends LitElement {
     name: { type: String, reflect: true },
     label: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
+    masked: { type: Boolean, reflect: true },
+    _authoredLabel: { type: String, state: true },
   };
 
   /** Complete code assembled from the visible cells. */
@@ -52,10 +70,16 @@ export class UIOtpField extends LitElement {
   declare label: string;
   /** Prevents entry and form participation. */
   declare disabled: boolean;
+  /** Obscures entered characters without changing the submitted value. */
+  declare masked: boolean;
+
+  declare private _authoredLabel: string;
 
   readonly #internals: ElementInternals;
   #formDisabled = false;
   #defaultValue: string | undefined;
+  #fieldDescription = "";
+  #fieldInvalid = false;
 
   constructor() {
     super();
@@ -64,6 +88,8 @@ export class UIOtpField extends LitElement {
     this.name = "";
     this.label = "Verification code";
     this.disabled = false;
+    this.masked = false;
+    this._authoredLabel = "";
     this.#internals = this.attachInternals();
   }
 
@@ -72,6 +98,18 @@ export class UIOtpField extends LitElement {
   get #isDisabled(): boolean {
     return this.disabled || this.#formDisabled;
   }
+
+  get #effectiveLabel(): string {
+    return this._authoredLabel || this.label;
+  }
+
+  #onLabelChange = (event: Event): void => {
+    this._authoredLabel = (event.target as HTMLSlotElement)
+      .assignedNodes({ flatten: true })
+      .map((node) => node.textContent ?? "")
+      .join("")
+      .trim();
+  };
 
   get #normalizedLength(): number {
     return Math.min(Math.max(Math.floor(Number.isFinite(this.length) ? this.length : 6), 1), 12);
@@ -104,11 +142,16 @@ export class UIOtpField extends LitElement {
       changed.has("value") ||
       changed.has("name") ||
       changed.has("disabled") ||
-      changed.has("length")
+      changed.has("length") ||
+      changed.has("masked")
     ) {
       const normalized = this.#normalizedValue();
       if (normalized !== this.value) this.value = normalized;
       this.#syncForm();
+    }
+    if (changed.has("masked")) {
+      if (this.masked) this.#internals.states.add("masked");
+      else this.#internals.states.delete("masked");
     }
   }
 
@@ -123,6 +166,15 @@ export class UIOtpField extends LitElement {
 
   formStateRestoreCallback(state: string | File | FormData | null): void {
     if (typeof state === "string") this.value = state;
+  }
+
+  /** @internal Cooperative field context without introducing visual anatomy. */
+  _setFieldContext(context: { description: string; invalid: boolean }): void {
+    this.#fieldDescription = context.description;
+    this.#fieldInvalid = context.invalid;
+    if (context.invalid) this.#internals.states.add("invalid");
+    else this.#internals.states.delete("invalid");
+    this.requestUpdate();
   }
 
   #setCharacters(value: string, start = 0): void {
@@ -207,20 +259,29 @@ export class UIOtpField extends LitElement {
 
   protected override render(): TemplateResult {
     const value = this.#normalizedValue();
+    const label = this.#effectiveLabel;
     return html`
-      <div part="root" role="group" aria-label=${this.label}>
-        <span part="label" ?hidden=${!this.label}>${this.label}</span>
+      <div
+        part="root"
+        role="group"
+        aria-label=${label}
+        aria-description=${this.#fieldDescription || nothing}
+        aria-invalid=${this.#fieldInvalid ? "true" : nothing}
+      >
+        <span part="label" ?hidden=${!label}
+          ><slot name="label" @slotchange=${this.#onLabelChange}>${this.label}</slot></span
+        >
         ${Array.from(
           { length: this.#normalizedLength },
           (_, index) =>
             html`<input
               part="cell"
               data-index=${index}
-              type="text"
+              type=${this.masked ? "password" : "text"}
               inputmode="numeric"
               autocomplete=${index === 0 ? "one-time-code" : "off"}
               maxlength="1"
-              aria-label=${`${this.label}, character ${index + 1} of ${this.#normalizedLength}`}
+              aria-label=${`${label}, character ${index + 1} of ${this.#normalizedLength}`}
               .value=${value[index] ?? ""}
               ?disabled=${this.#isDisabled}
               @input=${this.#onInput}

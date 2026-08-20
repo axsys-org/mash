@@ -13,7 +13,9 @@
 // Import attributes are required for JSON under `module: nodenext`, and are
 // what the platform itself specifies — Vite honours them too.
 import rawUiManifest from "@mash/ui/custom-elements.json" with { type: "json" };
+import rawUiRecipe from "@mash/ui/catalogue/mash.json" with { type: "json" };
 import rawShrineManifest from "@mash/shrine/custom-elements.json" with { type: "json" };
+import rawShrineRecipe from "@mash/shrine/catalogue/mash.json" with { type: "json" };
 import rawTokens from "@mash/tokens/tokens.json" with { type: "json" };
 
 // --- Custom Elements Manifest ---------------------------------------------
@@ -28,11 +30,126 @@ export interface Attribute {
   default?: string;
   description?: string;
   fieldName?: string;
+  mash?: MashBinding;
 }
 
 export interface Described {
   name: string;
   description?: string;
+  mash?: MashBinding;
+}
+
+export type MashNodeKind = "attribute" | "slot" | "part" | "state" | "event";
+
+/** One renderer-neutral, addressable surface in a Mash component contract. */
+export interface MashValueSchema {
+  kind: string;
+  choices?: string[];
+  items?: MashValueSchema;
+  detail?: MashValueSchema;
+  fields?: Record<string, MashValueSchema>;
+  name?: string;
+}
+
+export type MashDefaultSpec = { kind: "none" } | { kind: "value"; value: unknown };
+
+export type MashFallbackSpec =
+  | { kind: "none" | "empty" }
+  | { kind: "literal"; value: unknown }
+  | { kind: "binding"; bindingAddress: string }
+  | { kind: "chain"; bindingAddresses: string[] };
+
+export interface MashReport {
+  path: string[];
+  nodeAddress: string;
+}
+
+/** One renderer binding onto a semantic Mash node. */
+export interface MashBinding {
+  address: string;
+  nodeAddress: string;
+  renderer: "web";
+  kind: MashNodeKind;
+  name: string;
+  role: string;
+  family: string;
+  shared: boolean;
+  mapping: "inferred" | "explicit";
+  availability: "optional" | "required" | "provided";
+  direction: "input" | "content" | "realization" | "state" | "output";
+  value: MashValueSchema;
+  default: MashDefaultSpec;
+  fallback: MashFallbackSpec;
+  reports?: MashReport[];
+}
+
+/** One renderer-neutral semantic node, possibly realized by several Web bindings. */
+export interface MashNode {
+  id: string;
+  address: string;
+  role: string;
+  family: string;
+  shared: boolean;
+  ownership: "authored" | "controlled" | "reported" | "realized";
+  parent?: string;
+  bindings: MashBinding[];
+}
+
+export interface MashComponentContract {
+  version: string;
+  address: string;
+  nodes: MashNode[];
+  bindings: MashBinding[];
+}
+
+export interface MashLayoutMeasure {
+  value: string;
+  tokens: string[];
+}
+
+export interface MashLayoutRecipe {
+  group?: {
+    kind: "none" | "contents" | "flow" | "grid" | "overlay";
+    axis?: "block" | "inline" | "depth";
+    reverse?: boolean;
+    wrap?: boolean;
+  };
+  align?: "leading" | "center" | "trailing" | "stretch" | "baseline";
+  justify?: "leading" | "center" | "trailing" | "between" | "around" | "evenly" | "stretch";
+  gap?: MashLayoutMeasure;
+  dimensions?: {
+    inline?: { min?: MashLayoutMeasure; preferred?: MashLayoutMeasure; max?: MashLayoutMeasure };
+    block?: { min?: MashLayoutMeasure; preferred?: MashLayoutMeasure; max?: MashLayoutMeasure };
+  };
+  inset?: {
+    blockStart?: MashLayoutMeasure;
+    blockEnd?: MashLayoutMeasure;
+    inlineStart?: MashLayoutMeasure;
+    inlineEnd?: MashLayoutMeasure;
+  };
+  overflow?: {
+    inline?: "visible" | "clip" | "hidden" | "auto" | "scroll";
+    block?: "visible" | "clip" | "hidden" | "auto" | "scroll";
+  };
+  position?: "flow" | "relative" | "absolute" | "fixed" | "sticky";
+}
+
+export interface MashRecipeRule {
+  targets: string[];
+  when: { renderer: "web"; selector: string; context: string[] };
+  declarations: Record<string, { value: string; tokens: string[] }>;
+  layout?: MashLayoutRecipe;
+}
+
+export interface MashCatalogueNode {
+  tokens: string[];
+  coverage: "direct" | "contract-only";
+  layout: "constrained" | "unconstrained";
+}
+
+interface MashCatalogueRecipe {
+  nodes: Record<string, MashCatalogueNode>;
+  rules: MashRecipeRule[];
 }
 
 export interface CssProperty extends Described {
@@ -67,6 +184,7 @@ export interface ComponentSchema {
   cssProperties: CssProperty[];
   cssStates: Described[];
   events: EventInfo[];
+  mash?: MashComponentContract;
   examples: Example[];
   /** Module that defines the class, e.g. `dist/button/button.js`. */
   modulePath: string;
@@ -95,6 +213,7 @@ interface ManifestDeclaration {
   cssProperties?: CssProperty[];
   cssStates?: Described[];
   events?: EventInfo[];
+  mash?: MashComponentContract;
   examples?: Example[];
 }
 
@@ -120,6 +239,26 @@ const sources: ReadonlyArray<{ packageName: string; manifest: Manifest }> = [
   { packageName: "@mash/ui", manifest: rawUiManifest as unknown as Manifest },
   { packageName: "@mash/shrine", manifest: rawShrineManifest as unknown as Manifest },
 ];
+
+const recipes = new Map<string, MashCatalogueRecipe>([
+  ["@mash/ui", rawUiRecipe as unknown as MashCatalogueRecipe],
+  ["@mash/shrine", rawShrineRecipe as unknown as MashCatalogueRecipe],
+]);
+
+/** Portable layout recipes that target one semantic SurfaceTree node. */
+export function layoutRulesFor(packageName: string, nodeAddress: string): MashRecipeRule[] {
+  return (recipes.get(packageName)?.rules ?? []).filter(
+    (rule) => rule.layout && rule.targets.includes(nodeAddress),
+  );
+}
+
+/** How the active catalogue accounts for one semantic SurfaceTree node. */
+export function catalogueNodeFor(
+  packageName: string,
+  nodeAddress: string,
+): MashCatalogueNode | undefined {
+  return recipes.get(packageName)?.nodes[nodeAddress];
+}
 
 /**
  * Which module registers each tag.
@@ -158,6 +297,7 @@ export const components: ComponentSchema[] = sources
           cssProperties: declaration.cssProperties ?? [],
           cssStates: declaration.cssStates ?? [],
           events: declaration.events ?? [],
+          mash: declaration.mash,
           examples: declaration.examples ?? [],
           modulePath: mod.path,
           registerPath: registrationModules.get(declaration.tagName!),

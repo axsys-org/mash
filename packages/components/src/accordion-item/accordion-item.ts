@@ -19,15 +19,40 @@ let accordionItemId = 0;
  *   <p>Account settings are available here.</p>
  * </ui-accordion-item>
  *
+ * @slot prefix - Optional content before the item title.
+ * @slot title - Authored item title; the `title` attribute is the compatibility fallback.
+ * @slot suffix - Optional content after the item title.
+ * @slot disclosure - Optional disclosure glyph; the recipe may orient it from open state.
  * @slot - Disclosure body.
  *
+ * @csspart header - The semantic heading around the trigger.
  * @csspart trigger - The native item button.
+ * @csspart prefix - The wrapper around the leading content.
+ * @csspart title - The item title inside the trigger.
+ * @csspart suffix - The wrapper around the trailing content.
+ * @csspart disclosure - The disclosure glyph.
  * @csspart content - The labelled disclosure region.
  *
  * @cssstate open - Matches `:state(open)` while the item is expanded.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  *
  * @fires {CustomEvent<{ open: boolean, value: string }>} ui-accordion-item-change - Emitted after user activation changes item state.
+ *
+ * @mashnode root root
+ * @mashnode header header root
+ * @mashnode trigger trigger header
+ * @mashnode prefix prefix trigger
+ * @mashnode title title trigger
+ * @mashnode suffix suffix trigger
+ * @mashnode disclosure disclosure trigger
+ * @mashnode content content root
+ * @mashnode level level header
+ * @mashnode value value root
+ * @mashnode open open root
+ * @mashnode disabled disabled root
+ * @mashnode change change root
+ * @mashrole attribute heading-level level level
+ * @mashfallback slot disclosure literal "▸"
  */
 export class UIAccordionItem extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {
@@ -40,6 +65,7 @@ export class UIAccordionItem extends LitElement {
     value: { type: String, reflect: true },
     open: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
+    headingLevel: { type: Number, attribute: "heading-level", reflect: true },
   };
 
   /** Text rendered in the item's native trigger. */
@@ -50,9 +76,13 @@ export class UIAccordionItem extends LitElement {
   declare open: boolean;
   /** Prevents disclosure changes. */
   declare disabled: boolean;
+  /** Accessible heading level for this disclosure's header. */
+  declare headingLevel: number;
 
   readonly #internals: ElementInternals;
-  readonly #contentId = `ui-accordion-item-content-${++accordionItemId}`;
+  readonly #itemId = ++accordionItemId;
+  readonly #triggerId = `ui-accordion-item-trigger-${this.#itemId}`;
+  readonly #contentId = `ui-accordion-item-content-${this.#itemId}`;
 
   constructor() {
     super();
@@ -60,6 +90,7 @@ export class UIAccordionItem extends LitElement {
     this.value = "";
     this.open = false;
     this.disabled = false;
+    this.headingLevel = 3;
     this.#internals = this.attachInternals();
   }
 
@@ -87,21 +118,27 @@ export class UIAccordionItem extends LitElement {
 
   protected override render(): TemplateResult {
     return html`
-      <button
-        part="trigger"
-        type="button"
-        aria-expanded=${this.open ? "true" : "false"}
-        aria-controls=${this.#contentId}
-        ?disabled=${this.disabled}
-        @click=${this.#onClick}
-      >
-        ${this.title}
-      </button>
+      <div part="header" role="heading" aria-level=${Math.max(1, Math.round(this.headingLevel))}>
+        <button
+          part="trigger"
+          id=${this.#triggerId}
+          type="button"
+          aria-expanded=${this.open ? "true" : "false"}
+          aria-controls=${this.#contentId}
+          ?disabled=${this.disabled}
+          @click=${this.#onClick}
+        >
+          <span part="prefix"><slot name="prefix"></slot></span>
+          <span part="title"><slot name="title">${this.title}</slot></span>
+          <span part="suffix"><slot name="suffix"></slot></span>
+          <span part="disclosure" aria-hidden="true"><slot name="disclosure">▸</slot></span>
+        </button>
+      </div>
       <div
         part="content"
         id=${this.#contentId}
         role="region"
-        aria-label=${this.title}
+        aria-labelledby=${this.#triggerId}
         ?hidden=${!this.open}
       >
         <slot></slot>

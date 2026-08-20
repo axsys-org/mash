@@ -26,8 +26,15 @@ export type RadioGroupOrientation = "horizontal" | "vertical";
  * @slot - `ui-radio` options.
  *
  * @csspart root - The semantic radiogroup container.
+ * @csspart children - The authored radio collection.
+ * @cssstate disabled - Matches `:state(disabled)` while selection changes are unavailable.
  *
  * @fires {CustomEvent<{ value: string }>} ui-radio-group-change - Emitted after the selected option changes.
+ *
+ * @mashnode root root
+ * @mashnode children children root
+ * @mashnode disabled disabled root
+ * @mashrole slot default children children
  */
 export class UIRadioGroup extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {
@@ -54,6 +61,8 @@ export class UIRadioGroup extends LitElement {
   /** Prevents selection changes throughout the group. */
   declare disabled: boolean;
 
+  readonly #internals: ElementInternals;
+
   constructor() {
     super();
     this.label = "Options";
@@ -61,6 +70,7 @@ export class UIRadioGroup extends LitElement {
     this.value = "";
     this.orientation = "vertical";
     this.disabled = false;
+    this.#internals = this.attachInternals();
   }
 
   static override styles = baseStyles;
@@ -70,9 +80,12 @@ export class UIRadioGroup extends LitElement {
   }
 
   #syncOptions(): void {
-    for (const radio of this.#radios()) {
+    const radios = this.#radios();
+    for (const [index, radio] of radios.entries()) {
       if (this.name) radio.name = this.name;
       radio.checked = radio.value === this.value;
+      radio.position = index + 1;
+      radio.setSize = radios.length;
       radio.setAttribute("aria-disabled", this.disabled ? "true" : "false");
     }
   }
@@ -80,6 +93,10 @@ export class UIRadioGroup extends LitElement {
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("name") || changed.has("value") || changed.has("disabled")) {
       this.#syncOptions();
+    }
+    if (changed.has("disabled")) {
+      if (this.disabled) this.#internals.states.add("disabled");
+      else this.#internals.states.delete("disabled");
     }
   }
 
@@ -109,8 +126,11 @@ export class UIRadioGroup extends LitElement {
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
-    const previous = this.orientation === "horizontal" ? "ArrowLeft" : "ArrowUp";
-    const next = this.orientation === "horizontal" ? "ArrowRight" : "ArrowDown";
+    const rtl = getComputedStyle(this).direction === "rtl";
+    const previous =
+      this.orientation === "horizontal" ? (rtl ? "ArrowRight" : "ArrowLeft") : "ArrowUp";
+    const next =
+      this.orientation === "horizontal" ? (rtl ? "ArrowLeft" : "ArrowRight") : "ArrowDown";
     if (event.key !== previous && event.key !== next) return;
     const radios = this.#radios().filter((radio) => !radio.disabled);
     if (radios.length === 0) return;
@@ -136,7 +156,7 @@ export class UIRadioGroup extends LitElement {
         @keydown=${this.#onKeydown}
         @ui-radio-change=${this.#onRadioChange}
       >
-        <slot @slotchange=${this.#onSlotChange}></slot>
+        <slot part="children" @slotchange=${this.#onSlotChange}></slot>
       </div>
     `;
   }

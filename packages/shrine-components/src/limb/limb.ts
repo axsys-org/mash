@@ -1,4 +1,6 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, html, type TemplateResult } from "lit";
+
+import { baseStyles } from "../internal/base-styles.js";
 
 /**
  * One labelled value in a Shrine record.
@@ -8,52 +10,34 @@ import { LitElement, css, html, type TemplateResult } from "lit";
  *
  * @example Status limb
  * <sh-limb>
- *   <sh-slot slot="slot" title="status"></sh-slot>
+ *   <sh-slot slot="label" title="status"></sh-slot>
  *   <sh-pail slot="value" text="active"></sh-pail>
  * </sh-limb>
  *
- * @slot slot - The `sh-slot` label for this limb.
+ * @slot label - The `sh-slot` label for this limb.
+ * @slot slot - Compatibility alias for the `label` slot.
  * @slot value - The `sh-pail` value for this limb.
  *
  * @csspart root - The limb's two-column row.
- * @csspart slot - The label column.
+ * @csspart label - The label column.
+ * @csspart slot - Compatibility alias for the `label` part.
  * @csspart value - The value column.
+ *
+ * @mashrole slot slot label label
+ * @mashrole part slot label label
+ * @mashnode root root
+ * @mashnode label label root
+ * @mashnode value value root
  */
 export class ShrineLimb extends LitElement {
-  static override styles = css`
-    :host {
-      display: block;
-      box-sizing: border-box;
-    }
-
-    :host([hidden]) {
-      display: none !important;
-    }
-
-    .limb {
-      display: grid;
-      grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
-      gap: var(--space-inline);
-      align-items: baseline;
-    }
-
-    .slot,
-    .value {
-      min-inline-size: 0;
-    }
-
-    @media (max-width: 520px) {
-      .limb {
-        grid-template-columns: minmax(0, 1fr);
-        gap: var(--space-control-gap);
-      }
-    }
-  `;
+  static override styles = baseStyles;
 
   protected override render(): TemplateResult {
     return html`
       <div part="root" class="limb">
-        <div part="slot" class="slot"><slot name="slot"></slot></div>
+        <div part="label slot" class="label">
+          <slot name="label"><slot name="slot"></slot></slot>
+        </div>
         <div part="value" class="value"><slot name="value"></slot></div>
       </div>
     `;

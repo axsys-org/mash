@@ -20,11 +20,16 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - Toggle label or icon content.
  *
  * @csspart control - The native button that owns keyboard interaction.
+ * @csspart label - The authored toggle label.
  *
  * @cssstate pressed - Matches `:state(pressed)` while active.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  *
  * @fires {CustomEvent<{ pressed: boolean }>} ui-toggle-change - Emitted after activation changes the pressed state.
+ *
+ * @mashnode control control
+ * @mashnode label label control
+ * @mashrole slot default label label
  */
 export class UIToggle extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {
@@ -88,7 +93,7 @@ export class UIToggle extends LitElement {
         ?disabled=${this.disabled}
         @click=${this.#onClick}
       >
-        <slot></slot>
+        <slot part="label"></slot>
       </button>
     `;
   }

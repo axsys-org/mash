@@ -1,18 +1,22 @@
 # mash
 
-A standards-oriented Web Components design system.
+A standards-oriented, renderer-neutral component system with a Web Components reference renderer.
 
 The goal is a design language that machines can read without scraping documentation prose. Two
 generated schemas carry it:
 
-| Artifact                           | Describes                                                    | Generated from     |
-| ---------------------------------- | ------------------------------------------------------------ | ------------------ |
-| `packages/tokens/dist/tokens.json` | the token graph — names, values, provenance per theme        | DTCG sources       |
-| `<package>/custom-elements.json`   | component schemas — attributes, slots, parts, states, events | TypeScript sources |
+| Artifact                            | Describes                                                                        | Generated from                      |
+| ----------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------- |
+| `packages/tokens/dist/tokens.json`  | the token graph — names, values, provenance per theme                            | DTCG sources                        |
+| `<package>/custom-elements.json`    | semantic node graphs plus their Web attributes, slots, parts, states, and events | TypeScript sources                  |
+| `<package>/src/catalogue/mash.json` | semantic-node recipe index and exact DTCG token dependencies                     | catalogue CSS + component manifests |
 
-Every component package emits a manifest, all through the same analyzer config, so they are
-interchangeable in shape. Everything downstream — the catalog, editor tooling, future React
-wrappers, Figma bridges, coding agents — reads those schemas rather than the source.
+Every component package emits a manifest through the same analyzer config, so they are
+interchangeable in shape. Each component declaration contains a renderer-neutral `mash` graph and
+the Web bindings that realize it. Everything downstream — the catalog, editor tooling, React or
+native adapters, Figma bridges, and coding agents — reads those schemas rather than scraping source
+or documentation prose. See [the Mash component contract](docs/mash-contract.md) and its checked-in
+[JSON Schema](docs/schema/component-contract-1.0.0.schema.json).
 
 ## Architecture
 
@@ -160,34 +164,52 @@ of the source.
 
 ### API vocabulary
 
-| Surface               | Carries                            |
-| --------------------- | ---------------------------------- |
-| attributes/properties | semantic configuration             |
-| slots                 | content composition                |
-| CSS custom properties | design-language inputs             |
-| `::part()`            | intentional styling escape hatches |
-| `:state()`            | internal runtime state             |
-| events                | behavioural outputs                |
+| Surface               | Carries                                                  |
+| --------------------- | -------------------------------------------------------- |
+| semantic nodes        | renderer-neutral anatomy, identity, and parent topology  |
+| attributes/properties | Web input bindings for configuration or controlled state |
+| slots                 | Web content bindings                                     |
+| `::part()`            | Web realization bindings for catalogue recipes           |
+| `:state()`            | Web bindings for reflected runtime state                 |
+| events                | Web output bindings for behaviour and value changes      |
 
 Variant axes are semantic and orthogonal. `ui-button` has `variant` (emphasis), `size` (scale) and
 `tone` (meaning); they compose freely, so a quiet critical button needs no special case. That works
-because the CSS resolves in two steps — tone rules set only `--_tone-*`, variant rules express
+because the Mash catalogue recipe resolves in two steps — tone rules set only `--_tone-*`, variant rules express
 `--_background` in terms of `--_tone-*` — and custom properties substitute at use time.
 
-### Public vs private CSS properties
+### Component styling boundary
 
 ```css
---foo-*    public, part of the component's contract
 --_foo-*   private implementation detail
 ```
 
-`ui-button` deliberately exposes **no** public CSS custom properties: it is built entirely from
-shared semantic tokens, and restyling buttons means changing the design language rather than
-overriding one component. `ui-card` exposes exactly one, `--card-padding`, because full-bleed
-content is a genuine independent axis that the shared tokens cannot express.
+Mash components expose **no public component-specific CSS custom properties**. Visual values come
+from the shared DTCG semantic token graph, while an opt-in catalogue recipe maps those values onto
+stable parts and reflected states. Layout and composition choices such as a card's inset or
+full-bleed region are semantic attributes, slots, nodes, or recipe decisions—not ad hoc variables
+on one Web Component. A private `--_foo-*` variable may still be used inside a renderer as an
+implementation mechanism; it is not a Mash contract and must not be consumed outside that
+renderer.
 
 The same underscore convention marks internals in JavaScript, and the manifest build strips
 `_`-prefixed members so they never reach the public schema.
+
+### GPUI Base conformance
+
+Mash tracks the 38 primitives published by
+[GPUI Component Base](https://longbridge.github.io/gpui-component/base/) at the pinned
+`b77f352589503a114cdf709507c0738a88e28364` revision. The checked-in
+[`docs/gpui-base-parity.json`](docs/gpui-base-parity.json) maps each primitive to its Mash Web
+realization, the upstream source inspected, covered behavior, browser fixtures, catalogue example,
+and headless proof. `pnpm run check:gpui-base` rejects an aligned claim without all of that evidence.
+
+Conformance is about the public interaction and semantic contract, not identical renderer
+internals. GPUI may use a uniform list, native scene layer, or language-service entity where the Web
+renderer uses authored elements, a shadow part, or provider slot. Both preserve the same Mash node
+identity, state, inputs, outputs, and relationships; the renderer chooses its native mechanism and
+the active catalogue chooses its visual treatment. The pinned registry currently passes strictly at
+38 aligned, 0 partial, and 0 missing.
 
 ### Definition and registration are separate
 
@@ -205,13 +227,30 @@ elements without containing a `define` call of its own.
 ### The manifest is a build artifact
 
 `custom-elements.json` is treated like compiled output, not documentation. The analyzer config adds
-four things that make it trustworthy enough to build on:
+the information and gates that make it trustworthy enough to build on:
 
 - module paths are rewritten from `src/*.ts` to `dist/*.js`, so they match the `exports` map
 - local union type aliases are expanded, so `variant` is `"primary" | "secondary" | "quiet"`
   rather than the meaningless-outside-this-repo name `ButtonVariant`
+- every public Web surface is bound to a stable, renderer-neutral semantic node with an address,
+  role, direction, structured value schema, and optional parent topology
+- every binding records whether its semantic mapping was inferred or explicit, whether authored
+  input is optional or required, and its typed default/fallback behavior
+- event bindings identify which semantic node values their structured payload fields report
 - `_`-prefixed internals are removed
-- the build **fails** if a component lacks a tag name, a description, or a described attribute
+- the build **fails** if a component lacks required metadata, maps a surface to an unknown role,
+  emits invalid node topology, or publishes a component-specific CSS custom property
+
+The manifest root embeds the versioned role registry and schema identifier. Each component embeds
+its semantic nodes and a flat binding index; the same binding also appears on the CEM attribute,
+slot, part, state, or event that realizes it on the Web. The graph is the portable contract. The CEM
+surface is the Web adapter.
+
+Shared names are the normal path: `title`, `open`, `value`, and the other registered roles require
+no component-specific mapping. The anonymous slot maps to `content`, and event names normalize to
+their shared action/state roles. Explicit `@mashrole` annotations exist only for actual name/meaning
+mismatches or repeated-role topology. A missing slot resolves through its generated fallback
+contract rather than through authored instance data in the manifest.
 
 ## The catalog
 

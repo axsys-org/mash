@@ -25,8 +25,15 @@ export type CheckboxGroupOrientation = "horizontal" | "vertical";
  * @slot - `ui-checkbox` options.
  *
  * @csspart root - The semantic group container.
+ * @csspart children - The authored checkbox collection.
+ * @cssstate disabled - Matches `:state(disabled)` while selection changes are unavailable.
  *
  * @fires {CustomEvent<{ values: string[] }>} ui-checkbox-group-change - Emitted after any child selection changes.
+ *
+ * @mashnode root root
+ * @mashnode children children root
+ * @mashnode disabled disabled root
+ * @mashrole slot default children children
  */
 export class UICheckboxGroup extends LitElement {
   static override properties = {
@@ -43,12 +50,14 @@ export class UICheckboxGroup extends LitElement {
   declare disabled: boolean;
 
   readonly #childDisabled = new WeakMap<UICheckbox, boolean>();
+  readonly #internals: ElementInternals;
 
   constructor() {
     super();
     this.label = "Options";
     this.orientation = "vertical";
     this.disabled = false;
+    this.#internals = this.attachInternals();
   }
 
   static override styles = baseStyles;
@@ -67,6 +76,10 @@ export class UICheckboxGroup extends LitElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("disabled")) this.#syncOptions();
+    if (changed.has("disabled")) {
+      if (this.disabled) this.#internals.states.add("disabled");
+      else this.#internals.states.delete("disabled");
+    }
   }
 
   #onSlotChange = (): void => this.#syncOptions();
@@ -95,7 +108,7 @@ export class UICheckboxGroup extends LitElement {
         aria-disabled=${this.disabled ? "true" : "false"}
         @ui-checkbox-change=${this.#onCheckboxChange}
       >
-        <slot @slotchange=${this.#onSlotChange}></slot>
+        <slot part="children" @slotchange=${this.#onSlotChange}></slot>
       </div>
     `;
   }

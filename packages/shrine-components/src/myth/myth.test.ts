@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fixture, inShadow, settled, shadow } from "../test-support/fixture.js";
+import { fixture, inShadow, settled } from "../test-support/fixture.js";
 import { ShrineMyth } from "./myth.js";
 import "./register.js";
 
@@ -8,11 +8,11 @@ describe("sh-myth", () => {
   const projectRecord = `
     <sh-myth kind="Project" title="Billing Migration" path="/rec/project/billing-migration">
       <sh-limb>
-        <sh-slot slot="slot" title="status"></sh-slot>
+        <sh-slot slot="label" title="status"></sh-slot>
         <sh-pail slot="value" text="active"></sh-pail>
       </sh-limb>
       <sh-limb>
-        <sh-slot slot="slot" title="goal"></sh-slot>
+        <sh-slot slot="label" title="goal"></sh-slot>
         <sh-pail slot="value" text="replace legacy invoicer"></sh-pail>
       </sh-limb>
     </sh-myth>
@@ -33,12 +33,12 @@ describe("sh-myth", () => {
   it("renders the record identity and uses the existing UI badge for kind", async () => {
     const el = await fixture<ShrineMyth>(projectRecord);
 
-    expect(inShadow(el, "[part=title]").textContent).toBe("Billing Migration");
-    expect(inShadow(el, "[part=path]").textContent).toBe("/rec/project/billing-migration");
+    expect(inShadow(el, "[part=title]").textContent?.trim()).toBe("Billing Migration");
+    expect(inShadow(el, "[part=path]").textContent?.trim()).toBe("/rec/project/billing-migration");
 
     const badge = inShadow<HTMLElement>(el, "ui-badge");
     expect(badge.getAttribute("part")).toBe("kind");
-    expect(badge.textContent).toBe("Project");
+    expect(badge.textContent?.trim()).toBe("Project");
   });
 
   it("keeps labels and values owned by the projected limb anatomy", async () => {
@@ -49,9 +49,9 @@ describe("sh-myth", () => {
     await settled(el);
     const firstLimb = limbs[0]!;
     const secondLimb = limbs[1]!;
-    expect(inShadow<HTMLSlotElement>(firstLimb, "slot[name=slot]").assignedElements()).toHaveLength(
-      1,
-    );
+    expect(
+      inShadow<HTMLSlotElement>(firstLimb, "slot[name=label]").assignedElements(),
+    ).toHaveLength(1);
     expect(
       inShadow<HTMLSlotElement>(firstLimb, "slot[name=value]").assignedElements(),
     ).toHaveLength(1);
@@ -66,8 +66,8 @@ describe("sh-myth", () => {
   it("renders a bounded identity when optional metadata is absent", async () => {
     const el = await fixture<ShrineMyth>(`<sh-myth title="Untitled record"></sh-myth>`);
 
-    expect(inShadow(el, "[part=title]").textContent).toBe("Untitled record");
-    expect(shadow(el).querySelector("[part=kind]")).toBeNull();
-    expect(shadow(el).querySelector("[part=path]")).toBeNull();
+    expect(inShadow(el, "[part=title]").textContent?.trim()).toBe("Untitled record");
+    expect(inShadow<HTMLElement>(el, "[part=kind]").hidden).toBe(true);
+    expect(inShadow<HTMLElement>(el, "[part=path]").hidden).toBe(true);
   });
 });
