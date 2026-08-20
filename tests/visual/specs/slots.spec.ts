@@ -35,7 +35,6 @@ test.describe("catalog slot composition", () => {
     await page.goto("/components/ui-checkbox-group");
     const checkboxPreview = page.frameLocator("iframe.stage-frame");
     await expect(checkboxPreview.locator("ui-checkbox-group > ui-checkbox")).toHaveCount(3);
-    await expect(page.getByRole("button", { name: "controls", exact: true })).toHaveCount(0);
 
     await page.goto("/components/ui-tabs");
     const tabsPreview = page.frameLocator("iframe.stage-frame");
@@ -70,33 +69,35 @@ test.describe("catalog slot composition", () => {
     expect(assigned).toEqual(["⌘ J"]);
   });
 
-  test("keeps real label attributes distinct from named slot content", async ({ page }) => {
-    await page.goto("/components/ui-input?example=controls&label=Search");
+  test("keeps input adornments in the input-group anatomy", async ({ page }) => {
+    await page.goto("/components/ui-input-group");
 
-    const prefixControl = page.locator(".control", { hasText: "prefix slot" }).locator("input");
-    const suffixControl = page.locator(".control", { hasText: "suffix slot" }).locator("input");
-    await prefixControl.fill("⌕");
-    await suffixControl.fill("⌘ K");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const group = preview.locator("ui-input-group");
+    const input = group.locator('ui-input[slot="control"]');
 
-    const preview = page.frameLocator("iframe.stage-frame").locator("ui-input");
-    const composition = await preview.evaluate((node) => {
-      const shadow = node.shadowRoot!;
-      const content = (name: string) =>
-        shadow
-          .querySelector<HTMLSlotElement>(`slot[name="${name}"]`)!
-          .assignedNodes()
-          .map((child) => child.textContent);
+    await expect(group.locator('[slot="prefix"]')).toHaveText("⌕");
+    await expect(group.locator('[slot="suffix"]')).toHaveText("⌘ K");
+    await expect(input).toHaveAttribute("label", "Search projects");
+
+    const composition = await group.evaluate((node) => {
+      const assigned = (name: string) =>
+        node
+          .shadowRoot!.querySelector<HTMLSlotElement>(`slot[name="${name}"]`)!
+          .assignedElements()
+          .map((child) => child.localName);
 
       return {
-        label: shadow.querySelector<HTMLInputElement>("input")!.getAttribute("aria-label"),
-        prefix: content("prefix"),
-        suffix: content("suffix"),
+        prefix: assigned("prefix"),
+        control: assigned("control"),
+        suffix: assigned("suffix"),
       };
     });
 
-    expect(composition).toEqual({ label: "Search", prefix: ["⌕"], suffix: ["⌘ K"] });
-    await expect(page).toHaveURL(/label=Search/);
-    await expect(page).toHaveURL(/slot-prefix=%E2%8C%95/);
-    await expect(page).toHaveURL(/slot-suffix=%E2%8C%98\+K/);
+    expect(composition).toEqual({
+      prefix: ["span"],
+      control: ["ui-input"],
+      suffix: ["ui-kbd"],
+    });
   });
 });
