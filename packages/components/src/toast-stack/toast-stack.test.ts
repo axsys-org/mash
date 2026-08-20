@@ -46,23 +46,28 @@ describe("ui-toast-stack", () => {
   });
 
   it("pauses automatic dismissal while the stack is expanded", async () => {
-    const stack = await fixture<UIToastStack>(`
-      <ui-toast-stack><ui-toast open duration="20">Saved</ui-toast></ui-toast-stack>
-    `);
-    const toast = stack.querySelector<UIToast>("ui-toast")!;
-    const root = stack.shadowRoot!.querySelector<HTMLElement>('[part="root"]')!;
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    try {
+      const stack = await fixture<UIToastStack>(`
+        <ui-toast-stack><ui-toast open duration="20">Saved</ui-toast></ui-toast-stack>
+      `);
+      const toast = stack.querySelector<UIToast>("ui-toast")!;
+      const root = stack.shadowRoot!.querySelector<HTMLElement>('[part="root"]')!;
 
-    root.dispatchEvent(new PointerEvent("pointerenter"));
-    await settled(stack.parentElement!);
-    expect(toast.paused).toBe(true);
-    await new Promise((resolve) => setTimeout(resolve, 35));
-    expect(toast.open).toBe(true);
+      root.dispatchEvent(new PointerEvent("pointerenter"));
+      await settled(stack.parentElement!);
+      expect(toast.paused).toBe(true);
+      await vi.advanceTimersByTimeAsync(35);
+      expect(toast.open).toBe(true);
 
-    root.dispatchEvent(new PointerEvent("pointerleave"));
-    await settled(stack.parentElement!);
-    expect(toast.paused).toBe(false);
-    await new Promise((resolve) => setTimeout(resolve, 25));
-    await settled(stack.parentElement!);
-    expect(toast.open).toBe(false);
+      root.dispatchEvent(new PointerEvent("pointerleave"));
+      await settled(stack.parentElement!);
+      expect(toast.paused).toBe(false);
+      await vi.advanceTimersByTimeAsync(25);
+      await settled(stack.parentElement!);
+      expect(toast.open).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
