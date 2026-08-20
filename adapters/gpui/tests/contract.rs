@@ -2,8 +2,8 @@ use gpui::ParentElement as _;
 use std::collections::BTreeSet;
 
 use mash_gpui::{
-    GPUI_STYLED_TRAITS, MashAdapter, MashRecipeContext, MashStyledExt, MashTheme,
-    RendererEventSnapshot, RendererNodeSnapshot, RendererSnapshot, base::Button,
+    GPUI_STYLED_TRAITS, MashAdapter, MashLayoutValueKind, MashRecipeContext, MashStyledExt,
+    MashTheme, RendererEventSnapshot, RendererNodeSnapshot, RendererSnapshot, base::Button,
 };
 
 #[test]
@@ -47,6 +47,30 @@ fn portable_recipe_resolves_private_parameters_and_theme_tokens() {
             .values()
             .all(|value| !value.source_property.is_empty())
     );
+}
+
+#[test]
+fn typed_layout_intent_and_provenance_survive_the_native_adapter() {
+    let mash = MashAdapter::embedded();
+    assert!(
+        mash.catalogues()
+            .iter()
+            .all(|catalogue| catalogue.layout_contract == "2.0.0")
+    );
+
+    let recipe = mash.recipe(
+        "ui-checkbox",
+        "root",
+        MashTheme::Dark,
+        &MashRecipeContext::new(),
+    );
+    assert_eq!(recipe.layout_intent("/group/orientation"), Some("block"));
+    let gap = recipe
+        .layout_value("/gap/inline")
+        .expect("typed inline gap");
+    assert_eq!(gap.kind, MashLayoutValueKind::Token);
+    assert_eq!(gap.token.as_deref(), Some("space.controlGap"));
+    assert!(!gap.value.contains("var(--"), "native gap is unresolved");
 }
 
 #[test]

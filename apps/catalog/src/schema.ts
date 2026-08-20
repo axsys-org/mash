@@ -104,64 +104,69 @@ export interface MashComponentContract {
   bindings: MashBinding[];
 }
 
-export interface MashLayoutMeasure {
+export interface MashLayoutValue {
+  kind: "token" | "literal" | "expression" | "inherited";
   value: string;
   tokens: string[];
+  token?: string;
 }
+
+/** @deprecated Use MashLayoutValue. */
+export type MashLayoutMeasure = MashLayoutValue;
 
 export interface MashLayoutRecipe {
   group?: {
     kind: "none" | "contents" | "flow" | "grid" | "overlay";
-    axis?: "block" | "inline" | "depth";
+    orientation?: "block" | "inline" | "depth";
     reverse?: boolean;
-    wrap?: boolean;
+    wrap?: "none" | "forward" | "reverse";
   };
   align?: "leading" | "center" | "trailing" | "stretch" | "baseline";
-  justify?: "leading" | "center" | "trailing" | "between" | "around" | "evenly" | "stretch";
-  gap?: { inline?: MashLayoutMeasure; block?: MashLayoutMeasure };
+  distribute?: "leading" | "center" | "trailing" | "between" | "around" | "evenly" | "stretch";
+  gap?: { inline?: MashLayoutValue; block?: MashLayoutValue };
   dimensions?: {
-    inline?: { min?: MashLayoutMeasure; preferred?: MashLayoutMeasure; max?: MashLayoutMeasure };
-    block?: { min?: MashLayoutMeasure; preferred?: MashLayoutMeasure; max?: MashLayoutMeasure };
+    inline?: { min?: MashLayoutValue; ideal?: MashLayoutValue; max?: MashLayoutValue };
+    block?: { min?: MashLayoutValue; ideal?: MashLayoutValue; max?: MashLayoutValue };
   };
   inset?: {
-    blockStart?: MashLayoutMeasure;
-    blockEnd?: MashLayoutMeasure;
-    inlineStart?: MashLayoutMeasure;
-    inlineEnd?: MashLayoutMeasure;
+    blockStart?: MashLayoutValue;
+    blockEnd?: MashLayoutValue;
+    inlineStart?: MashLayoutValue;
+    inlineEnd?: MashLayoutValue;
   };
   margin?: {
-    blockStart?: MashLayoutMeasure;
-    blockEnd?: MashLayoutMeasure;
-    inlineStart?: MashLayoutMeasure;
-    inlineEnd?: MashLayoutMeasure;
+    blockStart?: MashLayoutValue;
+    blockEnd?: MashLayoutValue;
+    inlineStart?: MashLayoutValue;
+    inlineEnd?: MashLayoutValue;
   };
-  placement?: {
-    blockStart?: MashLayoutMeasure;
-    blockEnd?: MashLayoutMeasure;
-    inlineStart?: MashLayoutMeasure;
-    inlineEnd?: MashLayoutMeasure;
-    layer?: MashLayoutMeasure;
+  anchor?: {
+    mode?: "flow" | "relative" | "absolute" | "fixed" | "sticky";
+    blockStart?: MashLayoutValue;
+    blockEnd?: MashLayoutValue;
+    inlineStart?: MashLayoutValue;
+    inlineEnd?: MashLayoutValue;
+    layer?: MashLayoutValue;
   };
   self?: {
     align?: "leading" | "center" | "trailing" | "stretch" | "baseline";
-    justify?: "leading" | "center" | "trailing" | "between" | "around" | "evenly" | "stretch";
-    grow?: string;
-    shrink?: string;
-    basis?: MashLayoutMeasure;
-    gridRow?: string;
-    gridColumn?: string;
+    distribute?: "leading" | "center" | "trailing" | "between" | "around" | "evenly" | "stretch";
+    grow?: MashLayoutValue;
+    shrink?: MashLayoutValue;
+    basis?: MashLayoutValue;
+    gridRow?: MashLayoutValue;
+    gridColumn?: MashLayoutValue;
   };
   grid?: {
-    columns?: MashLayoutMeasure;
-    rows?: MashLayoutMeasure;
-    autoFlow?: string;
+    columns?: MashLayoutValue;
+    rows?: MashLayoutValue;
+    autoFlow?: MashLayoutValue;
   };
-  aspectRatio?: string;
+  aspectRatio?: MashLayoutValue;
   overflow?: {
     inline?: "visible" | "clip" | "hidden" | "auto" | "scroll";
     block?: "visible" | "clip" | "hidden" | "auto" | "scroll";
   };
-  position?: "flow" | "relative" | "absolute" | "fixed" | "sticky";
 }
 
 export interface MashRecipeRule {

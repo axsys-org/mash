@@ -19,7 +19,8 @@ pub use contract::{
 pub use gpui_base as base;
 pub use native::{NativeBinding, NativeNodeBinding};
 pub use recipe::{
-    CatalogueInfo, MashRecipeContext, ResolvedParameter, ResolvedRecipe, ResolvedTrait,
+    CatalogueInfo, MashLayoutValue, MashLayoutValueKind, MashRecipeContext, ResolvedParameter,
+    ResolvedRecipe, ResolvedTrait,
 };
 pub use style::{GPUI_STYLED_TRAITS, MashStyledExt};
 pub use theme::{MashColor, MashTheme, MashToken, MashTokenValue};

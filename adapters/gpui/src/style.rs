@@ -151,7 +151,7 @@ fn apply_flex<T: Styled + Sized>(mut element: T, recipe: &ResolvedRecipe) -> T {
     let direction = recipe.trait_value("layout.flexDirection").or_else(|| {
         (recipe
             .layout
-            .pointer("/group/axis")
+            .pointer("/group/orientation")
             .and_then(|value| value.as_str())
             == Some("block"))
         .then_some("column")

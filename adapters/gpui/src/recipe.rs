@@ -58,6 +58,23 @@ pub struct ResolvedRecipe {
     pub unresolved: Vec<String>,
 }
 
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum MashLayoutValueKind {
+    Token,
+    Literal,
+    Expression,
+    Inherited,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+pub struct MashLayoutValue {
+    pub kind: MashLayoutValueKind,
+    pub value: String,
+    pub tokens: Vec<String>,
+    pub token: Option<String>,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ResolvedTrait {
     pub value: String,
@@ -90,6 +107,16 @@ impl ResolvedRecipe {
 
     pub fn is_portable(&self) -> bool {
         self.unresolved.is_empty()
+    }
+
+    /// Read one typed value from the renderer-neutral layout contract.
+    pub fn layout_value(&self, pointer: &str) -> Option<MashLayoutValue> {
+        serde_json::from_value(self.layout.pointer(pointer)?.clone()).ok()
+    }
+
+    /// Read one semantic layout intent such as orientation or distribution.
+    pub fn layout_intent(&self, pointer: &str) -> Option<&str> {
+        self.layout.pointer(pointer)?.as_str()
     }
 }
 
@@ -231,7 +258,7 @@ pub(crate) fn resolve_recipe(
             );
         }
         if let Some(next) = &rule.layout {
-            merge_json(&mut layout, next);
+            merge_json(&mut layout, &resolve_layout(next, &raw_parameters, &theme));
         }
     }
 
@@ -368,5 +395,37 @@ fn merge_json(target: &mut Value, source: &Value) {
             }
         }
         (target, source) => *target = source.clone(),
+    }
+}
+
+fn resolve_layout(
+    value: &Value,
+    parameters: &BTreeMap<String, RecipeValue>,
+    theme: &crate::theme::ThemeView<'_>,
+) -> Value {
+    match value {
+        Value::Object(object) if object.contains_key("value") && object.contains_key("tokens") => {
+            let mut resolved = object.clone();
+            if let Some(Value::String(raw)) = object.get("value") {
+                resolved.insert(
+                    "value".to_owned(),
+                    Value::String(substitute(raw, parameters, theme, &mut BTreeSet::new())),
+                );
+            }
+            Value::Object(resolved)
+        }
+        Value::Object(object) => Value::Object(
+            object
+                .iter()
+                .map(|(key, child)| (key.clone(), resolve_layout(child, parameters, theme)))
+                .collect(),
+        ),
+        Value::Array(values) => Value::Array(
+            values
+                .iter()
+                .map(|child| resolve_layout(child, parameters, theme))
+                .collect(),
+        ),
+        other => other.clone(),
     }
 }

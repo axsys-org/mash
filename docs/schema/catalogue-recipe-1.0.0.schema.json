@@ -25,22 +25,24 @@
       "type": "string",
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
     },
-    "layoutContract": { "const": "1.1.0" },
+    "layoutContract": { "const": "2.0.0" },
     "layoutVocabulary": {
       "type": "object",
       "required": [
-        "axes",
+        "orientations",
         "groups",
         "alignments",
         "distributions",
+        "wraps",
         "overflow",
-        "positions",
+        "anchors",
         "dimensions",
-        "edges"
+        "edges",
+        "valueKinds"
       ],
       "additionalProperties": false,
       "properties": {
-        "axes": {
+        "orientations": {
           "type": "array",
           "items": { "enum": ["block", "inline", "depth"] }
         },
@@ -68,11 +70,15 @@
             ]
           }
         },
+        "wraps": {
+          "type": "array",
+          "items": { "enum": ["none", "forward", "reverse"] }
+        },
         "overflow": {
           "type": "array",
           "items": { "enum": ["visible", "clip", "hidden", "auto", "scroll"] }
         },
-        "positions": {
+        "anchors": {
           "type": "array",
           "items": {
             "enum": ["flow", "relative", "absolute", "fixed", "sticky"]
@@ -80,13 +86,17 @@
         },
         "dimensions": {
           "type": "array",
-          "items": { "enum": ["min", "preferred", "max"] }
+          "items": { "enum": ["min", "ideal", "max"] }
         },
         "edges": {
           "type": "array",
           "items": {
             "enum": ["blockStart", "blockEnd", "inlineStart", "inlineEnd"]
           }
+        },
+        "valueKinds": {
+          "type": "array",
+          "items": { "enum": ["token", "literal", "expression", "inherited"] }
         }
       }
     },
@@ -311,26 +321,34 @@
         }
       ]
     },
-    "measure": {
+    "layoutValue": {
       "type": "object",
-      "required": ["value", "tokens"],
+      "required": ["kind", "value", "tokens"],
       "additionalProperties": false,
       "properties": {
+        "kind": { "enum": ["token", "literal", "expression", "inherited"] },
         "value": { "type": "string", "minLength": 1 },
         "tokens": {
           "type": "array",
           "items": { "type": "string" },
           "uniqueItems": true
+        },
+        "token": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "token" } } },
+          "then": { "required": ["token"] }
         }
-      }
+      ]
     },
     "axisDimensions": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "min": { "$ref": "#/$defs/measure" },
-        "preferred": { "$ref": "#/$defs/measure" },
-        "max": { "$ref": "#/$defs/measure" }
+        "min": { "$ref": "#/$defs/layoutValue" },
+        "ideal": { "$ref": "#/$defs/layoutValue" },
+        "max": { "$ref": "#/$defs/layoutValue" }
       }
     },
     "layout": {
@@ -344,15 +362,15 @@
           "additionalProperties": false,
           "properties": {
             "kind": { "enum": ["none", "contents", "flow", "grid", "overlay"] },
-            "axis": { "enum": ["block", "inline", "depth"] },
+            "orientation": { "enum": ["block", "inline", "depth"] },
             "reverse": { "type": "boolean" },
-            "wrap": { "type": "boolean" }
+            "wrap": { "enum": ["none", "forward", "reverse"] }
           }
         },
         "align": {
           "enum": ["leading", "center", "trailing", "stretch", "baseline"]
         },
-        "justify": {
+        "distribute": {
           "enum": [
             "leading",
             "center",
@@ -367,8 +385,8 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "inline": { "$ref": "#/$defs/measure" },
-            "block": { "$ref": "#/$defs/measure" }
+            "inline": { "$ref": "#/$defs/layoutValue" },
+            "block": { "$ref": "#/$defs/layoutValue" }
           }
         },
         "dimensions": {
@@ -383,24 +401,27 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "blockStart": { "$ref": "#/$defs/measure" },
-            "blockEnd": { "$ref": "#/$defs/measure" },
-            "inlineStart": { "$ref": "#/$defs/measure" },
-            "inlineEnd": { "$ref": "#/$defs/measure" }
+            "blockStart": { "$ref": "#/$defs/layoutValue" },
+            "blockEnd": { "$ref": "#/$defs/layoutValue" },
+            "inlineStart": { "$ref": "#/$defs/layoutValue" },
+            "inlineEnd": { "$ref": "#/$defs/layoutValue" }
           }
         },
         "margin": {
           "$ref": "#/$defs/edges"
         },
-        "placement": {
+        "anchor": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "blockStart": { "$ref": "#/$defs/measure" },
-            "blockEnd": { "$ref": "#/$defs/measure" },
-            "inlineStart": { "$ref": "#/$defs/measure" },
-            "inlineEnd": { "$ref": "#/$defs/measure" },
-            "layer": { "$ref": "#/$defs/measure" }
+            "mode": {
+              "enum": ["flow", "relative", "absolute", "fixed", "sticky"]
+            },
+            "blockStart": { "$ref": "#/$defs/layoutValue" },
+            "blockEnd": { "$ref": "#/$defs/layoutValue" },
+            "inlineStart": { "$ref": "#/$defs/layoutValue" },
+            "inlineEnd": { "$ref": "#/$defs/layoutValue" },
+            "layer": { "$ref": "#/$defs/layoutValue" }
           }
         },
         "self": {
@@ -410,7 +431,7 @@
             "align": {
               "enum": ["leading", "center", "trailing", "stretch", "baseline"]
             },
-            "justify": {
+            "distribute": {
               "enum": [
                 "leading",
                 "center",
@@ -421,23 +442,23 @@
                 "stretch"
               ]
             },
-            "grow": { "type": "string" },
-            "shrink": { "type": "string" },
-            "basis": { "$ref": "#/$defs/measure" },
-            "gridRow": { "type": "string" },
-            "gridColumn": { "type": "string" }
+            "grow": { "$ref": "#/$defs/layoutValue" },
+            "shrink": { "$ref": "#/$defs/layoutValue" },
+            "basis": { "$ref": "#/$defs/layoutValue" },
+            "gridRow": { "$ref": "#/$defs/layoutValue" },
+            "gridColumn": { "$ref": "#/$defs/layoutValue" }
           }
         },
         "grid": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "columns": { "$ref": "#/$defs/measure" },
-            "rows": { "$ref": "#/$defs/measure" },
-            "autoFlow": { "type": "string" }
+            "columns": { "$ref": "#/$defs/layoutValue" },
+            "rows": { "$ref": "#/$defs/layoutValue" },
+            "autoFlow": { "$ref": "#/$defs/layoutValue" }
           }
         },
-        "aspectRatio": { "type": "string" },
+        "aspectRatio": { "$ref": "#/$defs/layoutValue" },
         "overflow": {
           "type": "object",
           "additionalProperties": false,
@@ -447,9 +468,6 @@
             },
             "block": { "enum": ["visible", "clip", "hidden", "auto", "scroll"] }
           }
-        },
-        "position": {
-          "enum": ["flow", "relative", "absolute", "fixed", "sticky"]
         }
       }
     },
@@ -457,10 +475,10 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "blockStart": { "$ref": "#/$defs/measure" },
-        "blockEnd": { "$ref": "#/$defs/measure" },
-        "inlineStart": { "$ref": "#/$defs/measure" },
-        "inlineEnd": { "$ref": "#/$defs/measure" }
+        "blockStart": { "$ref": "#/$defs/layoutValue" },
+        "blockEnd": { "$ref": "#/$defs/layoutValue" },
+        "inlineStart": { "$ref": "#/$defs/layoutValue" },
+        "inlineEnd": { "$ref": "#/$defs/layoutValue" }
       }
     }
   },

@@ -14,7 +14,7 @@ import {
   type ComponentSchema,
   type Described,
   type MashBinding,
-  type MashLayoutMeasure,
+  type MashLayoutValue,
   type MashNode,
   type MashRecipeRule,
 } from "./schema.js";
@@ -320,8 +320,10 @@ function attributeTable(component: ComponentSchema): HTMLElement {
 
 let showSurfaceTree = false;
 
-function measureLabel(measure: MashLayoutMeasure): string {
-  return measure.tokens.length > 0 ? measure.tokens.join(" + ") : measure.value;
+function measureLabel(measure: MashLayoutValue): string {
+  const source =
+    measure.token ?? (measure.tokens.length > 0 ? measure.tokens.join(" + ") : measure.value);
+  return `${source} [${measure.kind}]`;
 }
 
 function layoutLabels(rules: MashRecipeRule[]): string[] {
@@ -331,23 +333,22 @@ function layoutLabels(rules: MashRecipeRule[]): string[] {
     if (!layout) continue;
     if (layout.group) {
       labels.add(
-        `group ${layout.group.kind}${layout.group.axis ? `:${layout.group.axis}` : ""}${layout.group.wrap ? " wrap" : ""}`,
+        `group ${layout.group.kind}${layout.group.orientation ? `:${layout.group.orientation}` : ""}${layout.group.wrap && layout.group.wrap !== "none" ? ` wrap:${layout.group.wrap}` : ""}`,
       );
     }
     if (layout.align) labels.add(`align ${layout.align}`);
-    if (layout.justify) labels.add(`justify ${layout.justify}`);
+    if (layout.distribute) labels.add(`distribute ${layout.distribute}`);
     if (layout.gap?.inline) labels.add(`gap inline ${measureLabel(layout.gap.inline)}`);
     if (layout.gap?.block) labels.add(`gap block ${measureLabel(layout.gap.block)}`);
     for (const axis of ["inline", "block"] as const) {
       const dimensions = layout.dimensions?.[axis];
       if (!dimensions) continue;
-      for (const bound of ["min", "preferred", "max"] as const) {
+      for (const bound of ["min", "ideal", "max"] as const) {
         const measure = dimensions[bound];
         if (measure) labels.add(`${axis} ${bound} ${measureLabel(measure)}`);
       }
     }
-    if (layout.position) labels.add(`position ${layout.position}`);
-    for (const region of ["inset", "margin", "placement"] as const) {
+    for (const region of ["inset", "margin", "anchor"] as const) {
       const edges = layout[region];
       if (!edges) continue;
       for (const edge of ["blockStart", "blockEnd", "inlineStart", "inlineEnd"] as const) {
@@ -355,18 +356,19 @@ function layoutLabels(rules: MashRecipeRule[]): string[] {
         if (measure) labels.add(`${region} ${edge} ${measureLabel(measure)}`);
       }
     }
-    if (layout.placement?.layer) labels.add(`layer ${measureLabel(layout.placement.layer)}`);
+    if (layout.anchor?.mode) labels.add(`anchor ${layout.anchor.mode}`);
+    if (layout.anchor?.layer) labels.add(`layer ${measureLabel(layout.anchor.layer)}`);
     if (layout.self?.align) labels.add(`self align ${layout.self.align}`);
-    if (layout.self?.justify) labels.add(`self justify ${layout.self.justify}`);
+    if (layout.self?.distribute) labels.add(`self distribute ${layout.self.distribute}`);
     if (layout.self?.basis) labels.add(`self basis ${measureLabel(layout.self.basis)}`);
-    if (layout.self?.grow) labels.add(`self grow ${layout.self.grow}`);
-    if (layout.self?.shrink) labels.add(`self shrink ${layout.self.shrink}`);
-    if (layout.self?.gridRow) labels.add(`grid row ${layout.self.gridRow}`);
-    if (layout.self?.gridColumn) labels.add(`grid column ${layout.self.gridColumn}`);
+    if (layout.self?.grow) labels.add(`self grow ${measureLabel(layout.self.grow)}`);
+    if (layout.self?.shrink) labels.add(`self shrink ${measureLabel(layout.self.shrink)}`);
+    if (layout.self?.gridRow) labels.add(`grid row ${measureLabel(layout.self.gridRow)}`);
+    if (layout.self?.gridColumn) labels.add(`grid column ${measureLabel(layout.self.gridColumn)}`);
     if (layout.grid?.columns) labels.add(`grid columns ${measureLabel(layout.grid.columns)}`);
     if (layout.grid?.rows) labels.add(`grid rows ${measureLabel(layout.grid.rows)}`);
-    if (layout.grid?.autoFlow) labels.add(`grid flow ${layout.grid.autoFlow}`);
-    if (layout.aspectRatio) labels.add(`aspect ${layout.aspectRatio}`);
+    if (layout.grid?.autoFlow) labels.add(`grid flow ${measureLabel(layout.grid.autoFlow)}`);
+    if (layout.aspectRatio) labels.add(`aspect ${measureLabel(layout.aspectRatio)}`);
     if (layout.overflow?.inline) labels.add(`overflow inline ${layout.overflow.inline}`);
     if (layout.overflow?.block) labels.add(`overflow block ${layout.overflow.block}`);
   }

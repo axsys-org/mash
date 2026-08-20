@@ -7,17 +7,19 @@
  * them into its own layout system.
  */
 
-export const MASH_LAYOUT_VERSION = "1.1.0";
+export const MASH_LAYOUT_VERSION = "2.0.0";
 
 export const MASH_LAYOUT_VOCABULARY = Object.freeze({
-  axes: ["block", "inline", "depth"],
+  orientations: ["block", "inline", "depth"],
   groups: ["none", "contents", "flow", "grid", "overlay"],
   alignments: ["leading", "center", "trailing", "stretch", "baseline"],
   distributions: ["leading", "center", "trailing", "between", "around", "evenly", "stretch"],
+  wraps: ["none", "forward", "reverse"],
   overflow: ["visible", "clip", "hidden", "auto", "scroll"],
-  positions: ["flow", "relative", "absolute", "fixed", "sticky"],
-  dimensions: ["min", "preferred", "max"],
+  anchors: ["flow", "relative", "absolute", "fixed", "sticky"],
+  dimensions: ["min", "ideal", "max"],
   edges: ["blockStart", "blockEnd", "inlineStart", "inlineEnd"],
+  valueKinds: ["token", "literal", "expression", "inherited"],
 });
 
 const alignment = Object.freeze({
@@ -55,8 +57,20 @@ const overflow = Object.freeze({
   scroll: "scroll",
 });
 
-const measure = (value, tokensFor) =>
-  value === undefined ? undefined : { value, tokens: tokensFor(value) };
+const inheritedValues = new Set(["inherit", "initial", "unset", "revert", "revert-layer"]);
+
+/** Classify a renderer-authored value without losing its original expression. */
+export function mashLayoutValue(value, tokensFor) {
+  if (value === undefined) return undefined;
+  const tokens = tokensFor(value);
+  const direct = value.match(/^var\((--[\w-]+)\)$/);
+  if (direct && tokens.length === 1) {
+    return { kind: "token", token: tokens[0], value, tokens };
+  }
+  if (inheritedValues.has(value.trim())) return { kind: "inherited", value, tokens };
+  const literal = !value.includes("var(") && !value.includes("calc(");
+  return { kind: literal ? "literal" : "expression", value, tokens };
+}
 
 const first = (declarations, ...properties) => {
   for (const property of properties) {
@@ -127,28 +141,33 @@ export function mashLayoutFromDeclarations(declarations, tokensFor) {
   else if (display === "flex" || display === "inline-flex") {
     group = {
       kind: "flow",
-      axis: direction.startsWith("column") ? "block" : "inline",
+      orientation: direction.startsWith("column") ? "block" : "inline",
       reverse: direction.endsWith("reverse"),
-      wrap: declarations["flex-wrap"] === "wrap",
+      wrap:
+        declarations["flex-wrap"] === "wrap-reverse"
+          ? "reverse"
+          : declarations["flex-wrap"] === "wrap"
+            ? "forward"
+            : "none",
     };
   } else if (display === "grid" || display === "inline-grid") {
     group = {
       kind: "grid",
-      axis: declarations["grid-auto-flow"]?.startsWith("column") ? "inline" : "block",
+      orientation: declarations["grid-auto-flow"]?.startsWith("column") ? "inline" : "block",
     };
   } else if (display === "block" || display === "inline" || display === "inline-block") {
-    group = { kind: "flow", axis: "block" };
+    group = { kind: "flow", orientation: "block", wrap: "none" };
   }
 
   const inline = compact({
-    min: measure(first(declarations, "min-inline-size", "min-width"), tokensFor),
-    preferred: measure(first(declarations, "inline-size", "width"), tokensFor),
-    max: measure(first(declarations, "max-inline-size", "max-width"), tokensFor),
+    min: mashLayoutValue(first(declarations, "min-inline-size", "min-width"), tokensFor),
+    ideal: mashLayoutValue(first(declarations, "inline-size", "width"), tokensFor),
+    max: mashLayoutValue(first(declarations, "max-inline-size", "max-width"), tokensFor),
   });
   const block = compact({
-    min: measure(first(declarations, "min-block-size", "min-height"), tokensFor),
-    preferred: measure(first(declarations, "block-size", "height"), tokensFor),
-    max: measure(first(declarations, "max-block-size", "max-height"), tokensFor),
+    min: mashLayoutValue(first(declarations, "min-block-size", "min-height"), tokensFor),
+    ideal: mashLayoutValue(first(declarations, "block-size", "height"), tokensFor),
+    max: mashLayoutValue(first(declarations, "max-block-size", "max-height"), tokensFor),
   });
 
   const allPadding = declarations.padding;
@@ -158,23 +177,23 @@ export function mashLayoutFromDeclarations(declarations, tokensFor) {
   const logicalInlinePadding = expandAxis(inlinePadding);
   const logicalBlockPadding = expandAxis(blockPadding);
   const inset = compact({
-    blockStart: measure(
+    blockStart: mashLayoutValue(
       first(declarations, "padding-block-start") ??
         logicalBlockPadding.start ??
         boxPadding.blockStart,
       tokensFor,
     ),
-    blockEnd: measure(
+    blockEnd: mashLayoutValue(
       first(declarations, "padding-block-end") ?? logicalBlockPadding.end ?? boxPadding.blockEnd,
       tokensFor,
     ),
-    inlineStart: measure(
+    inlineStart: mashLayoutValue(
       first(declarations, "padding-inline-start") ??
         logicalInlinePadding.start ??
         boxPadding.inlineStart,
       tokensFor,
     ),
-    inlineEnd: measure(
+    inlineEnd: mashLayoutValue(
       first(declarations, "padding-inline-end") ?? logicalInlinePadding.end ?? boxPadding.inlineEnd,
       tokensFor,
     ),
@@ -187,21 +206,21 @@ export function mashLayoutFromDeclarations(declarations, tokensFor) {
   const logicalInlineMargin = expandAxis(inlineMargin);
   const logicalBlockMargin = expandAxis(blockMargin);
   const margin = compact({
-    blockStart: measure(
+    blockStart: mashLayoutValue(
       first(declarations, "margin-block-start") ?? logicalBlockMargin.start ?? boxMargin.blockStart,
       tokensFor,
     ),
-    blockEnd: measure(
+    blockEnd: mashLayoutValue(
       first(declarations, "margin-block-end") ?? logicalBlockMargin.end ?? boxMargin.blockEnd,
       tokensFor,
     ),
-    inlineStart: measure(
+    inlineStart: mashLayoutValue(
       first(declarations, "margin-inline-start") ??
         logicalInlineMargin.start ??
         boxMargin.inlineStart,
       tokensFor,
     ),
-    inlineEnd: measure(
+    inlineEnd: mashLayoutValue(
       first(declarations, "margin-inline-end") ?? logicalInlineMargin.end ?? boxMargin.inlineEnd,
       tokensFor,
     ),
@@ -210,57 +229,58 @@ export function mashLayoutFromDeclarations(declarations, tokensFor) {
   const allPlacement = expandBox(declarations.inset);
   const inlinePlacement = expandAxis(declarations["inset-inline"]);
   const blockPlacement = expandAxis(declarations["inset-block"]);
-  const placement = compact({
-    blockStart: measure(
+  const anchor = compact({
+    mode: position[declarations.position],
+    blockStart: mashLayoutValue(
       first(declarations, "inset-block-start") ?? blockPlacement.start ?? allPlacement.blockStart,
       tokensFor,
     ),
-    blockEnd: measure(
+    blockEnd: mashLayoutValue(
       first(declarations, "inset-block-end") ?? blockPlacement.end ?? allPlacement.blockEnd,
       tokensFor,
     ),
-    inlineStart: measure(
+    inlineStart: mashLayoutValue(
       first(declarations, "inset-inline-start") ??
         inlinePlacement.start ??
         allPlacement.inlineStart,
       tokensFor,
     ),
-    inlineEnd: measure(
+    inlineEnd: mashLayoutValue(
       first(declarations, "inset-inline-end") ?? inlinePlacement.end ?? allPlacement.inlineEnd,
       tokensFor,
     ),
-    layer: measure(declarations["z-index"], tokensFor),
+    layer: mashLayoutValue(declarations["z-index"], tokensFor),
   });
 
   const gapValues = splitCssValues(declarations.gap);
   const blockGap = first(declarations, "row-gap") ?? gapValues[0];
   const inlineGap = first(declarations, "column-gap") ?? gapValues[1] ?? gapValues[0];
   const gap = compact({
-    inline: measure(inlineGap, tokensFor),
-    block: measure(blockGap, tokensFor),
+    inline: mashLayoutValue(inlineGap, tokensFor),
+    block: mashLayoutValue(blockGap, tokensFor),
   });
 
   const self = compact({
     align: alignment[declarations["align-self"]],
-    justify: distribution[declarations["justify-self"]],
-    grow: declarations["flex-grow"],
-    shrink: declarations["flex-shrink"],
-    basis: measure(declarations["flex-basis"], tokensFor),
-    gridRow: declarations["grid-row"],
-    gridColumn: declarations["grid-column"],
+    distribute: distribution[declarations["justify-self"]],
+    grow: mashLayoutValue(declarations["flex-grow"], tokensFor),
+    shrink: mashLayoutValue(declarations["flex-shrink"], tokensFor),
+    basis: mashLayoutValue(declarations["flex-basis"], tokensFor),
+    gridRow: mashLayoutValue(declarations["grid-row"], tokensFor),
+    gridColumn: mashLayoutValue(declarations["grid-column"], tokensFor),
   });
 
   const grid = compact({
-    columns: measure(declarations["grid-template-columns"], tokensFor),
-    rows: measure(declarations["grid-template-rows"], tokensFor),
-    autoFlow: declarations["grid-auto-flow"],
+    columns: mashLayoutValue(declarations["grid-template-columns"], tokensFor),
+    rows: mashLayoutValue(declarations["grid-template-rows"], tokensFor),
+    autoFlow: mashLayoutValue(declarations["grid-auto-flow"], tokensFor),
   });
 
   const commonOverflow = declarations.overflow;
   const semantic = compact({
     group,
     align: alignment[declarations["align-items"] ?? splitCssValues(declarations["place-items"])[0]],
-    justify:
+    distribute:
       distribution[
         declarations["justify-content"] ?? splitCssValues(declarations["place-content"])[0]
       ],
@@ -271,10 +291,10 @@ export function mashLayoutFromDeclarations(declarations, tokensFor) {
         : undefined,
     inset: Object.keys(inset).length > 0 ? inset : undefined,
     margin: Object.keys(margin).length > 0 ? margin : undefined,
-    placement: Object.keys(placement).length > 0 ? placement : undefined,
+    anchor: Object.keys(anchor).length > 0 ? anchor : undefined,
     self: Object.keys(self).length > 0 ? self : undefined,
     grid: Object.keys(grid).length > 0 ? grid : undefined,
-    aspectRatio: declarations["aspect-ratio"],
+    aspectRatio: mashLayoutValue(declarations["aspect-ratio"], tokensFor),
     overflow:
       commonOverflow || declarations["overflow-inline"] || declarations["overflow-block"]
         ? {
@@ -282,7 +302,6 @@ export function mashLayoutFromDeclarations(declarations, tokensFor) {
             block: overflow[declarations["overflow-block"] ?? commonOverflow],
           }
         : undefined,
-    position: position[declarations.position],
   });
 
   return Object.keys(semantic).length > 0 ? semantic : undefined;

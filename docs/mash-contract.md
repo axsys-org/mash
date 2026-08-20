@@ -146,7 +146,8 @@ Each shipped catalogue has two synchronized artifacts:
   rule carries portable semantic conditions and presentation traits alongside its Web selector and
   declarations. Layout-bearing rules also carry normalized logical grouping, alignment,
   distribution, per-axis gaps, content insets, margins, placement edges, layer, self-placement,
-  grid tracks, overflow, and min/preferred/max dimension constraints.
+  grid tracks, overflow, and min/ideal/max dimension constraints. Every authored layout value
+  records whether it is a direct token, literal, compound expression, or inherited value.
 
 `node scripts/build-catalogue-contract.mjs` generates the JSON from the Web recipe and
 `check:mash` rejects stale output or a selector that targets an undocumented part. Native adapters
@@ -183,19 +184,19 @@ button tone × emphasis without forcing GPUI or Swift to parse CSS.
 Layout recipes use logical rather than physical coordinates. `block`, `inline`, and `depth` survive
 writing-direction changes and map cleanly onto Web layout, GPUI layout, Swift layout containers, and
 other renderers. Grouping is expressed as `flow`, `grid`, `overlay`, `contents`, or `none`; flow and
-grid groups may declare an axis and wrapping. Alignment and distribution use semantic values such as
-`leading`, `center`, and `trailing`, never CSS-only `left` and `right`.
+grid groups may declare a logical orientation and `none`, `forward`, or `reverse` wrapping.
+Alignment and distribution use semantic values such as `leading`, `center`, and `trailing`, never
+CSS-only `left` and `right`.
 
-Each node may independently declare min, preferred, and max dimensions on both logical axes, plus
-per-axis gaps, four logical content inset and margin edges, positioned edges, layering,
-self-alignment, grid placement, overflow, and positioning. Fixed layout measures must reference
-DTCG tokens. Intrinsic values such as `auto`, `max-content`, percentages, and viewport-relative
-values remain portable recipe values because they describe a relationship rather than an authored
-length.
+Each node may independently declare min, ideal, and max dimensions on both logical axes, plus
+per-axis gaps, four logical content inset and margin edges, semantic anchoring, layering,
+self-alignment, grid placement, and overflow. Fixed layout measures must reference DTCG tokens.
+Intrinsic values such as `auto`, `max-content`, percentages, and viewport-relative values remain
+portable recipe values because they describe a relationship rather than an authored length.
 
 The token graph supplies semantic grouping gaps and reusable layout dimensions—including zero,
 glyph, control, compact, panel, dialog, readable measure, content, record, and workspace measures.
-The recipe determines whether one of those values acts as a minimum, preferred value, maximum, gap,
+The recipe determines whether one of those values acts as a minimum, ideal value, maximum, gap,
 or inset for a particular semantic node.
 
 ## Versioning

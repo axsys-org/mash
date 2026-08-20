@@ -30,7 +30,7 @@
     "check:lint": "oxlint",
     "check:format": "prettier --check .",
     "check:exports": "node scripts/check-exports.mjs",
-    "check:mash": "node scripts/check-mash-contract.mjs && node scripts/build-catalogue-contract.mjs --check && node scripts/check-css-token-closure.mjs",
+    "check:mash": "node scripts/check-mash-contract.mjs && node scripts/build-catalogue-contract.mjs --check && node scripts/check-layout-contract.mjs && node scripts/check-css-token-closure.mjs",
     "check:conformance": "pnpm --filter @mash/conformance check:fixtures",
     "check:gpui-contracts": "node scripts/build-gpui-contracts.mjs --check",
     "check:gpui-base": "node scripts/check-gpui-base-parity.mjs",

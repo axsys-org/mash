@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "name": "mash",
   "componentContract": "1.0.0",
-  "layoutContract": "1.1.0",
+  "layoutContract": "2.0.0",
   "layoutVocabulary": {
-    "axes": [
+    "orientations": [
       "block",
       "inline",
       "depth"
@@ -33,6 +33,11 @@
       "evenly",
       "stretch"
     ],
+    "wraps": [
+      "none",
+      "forward",
+      "reverse"
+    ],
     "overflow": [
       "visible",
       "clip",
@@ -40,7 +45,7 @@
       "auto",
       "scroll"
     ],
-    "positions": [
+    "anchors": [
       "flow",
       "relative",
       "absolute",
@@ -49,7 +54,7 @@
     ],
     "dimensions": [
       "min",
-      "preferred",
+      "ideal",
       "max"
     ],
     "edges": [
@@ -57,6 +62,12 @@
       "blockEnd",
       "inlineStart",
       "inlineEnd"
+    ],
+    "valueKinds": [
+      "token",
+      "literal",
+      "expression",
+      "inherited"
     ]
   },
   "presentationContract": "1.0.0",
@@ -637,7 +648,8 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         }
       }
     },
@@ -767,11 +779,13 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         },
         "dimensions": {
           "block": {
             "min": {
+              "kind": "expression",
               "value": "calc(var(--space-control-block) + var(--space-control-block))",
               "tokens": [
                 "space.controlBlock"
@@ -781,24 +795,32 @@
         },
         "inset": {
           "blockStart": {
+            "kind": "token",
+            "token": "space.controlBlock",
             "value": "var(--space-control-block)",
             "tokens": [
               "space.controlBlock"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "space.controlBlock",
             "value": "var(--space-control-block)",
             "tokens": [
               "space.controlBlock"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "space.controlInline",
             "value": "var(--space-control-inline)",
             "tokens": [
               "space.controlInline"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "space.controlInline",
             "value": "var(--space-control-inline)",
             "tokens": [
               "space.controlInline"
@@ -847,11 +869,13 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         },
         "dimensions": {
           "block": {
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100dvh",
               "tokens": []
             }
@@ -959,11 +983,12 @@
       "layout": {
         "group": {
           "kind": "grid",
-          "axis": "block"
+          "orientation": "block"
         },
         "dimensions": {
           "block": {
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100%",
               "tokens": []
             }
@@ -971,6 +996,7 @@
         },
         "grid": {
           "columns": {
+            "kind": "expression",
             "value": "minmax(var(--layout-dimension-supporting), var(--layout-dimension-panel))\n      minmax(var(--layout-dimension-zero), 1fr)\n      minmax(var(--layout-dimension-panel), var(--layout-dimension-inspector))",
             "tokens": [
               "layout.dimension.inspector",
@@ -1030,6 +1056,7 @@
       "layout": {
         "grid": {
           "columns": {
+            "kind": "expression",
             "value": "minmax(var(--layout-dimension-supporting), var(--layout-dimension-panel))\n      minmax(var(--layout-dimension-zero), 1fr)",
             "tokens": [
               "layout.dimension.panel",
@@ -1151,11 +1178,13 @@
       "layout": {
         "group": {
           "kind": "grid",
-          "axis": "block"
+          "orientation": "block"
         },
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -1164,6 +1193,8 @@
           },
           "block": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -1173,6 +1204,7 @@
         },
         "grid": {
           "rows": {
+            "kind": "literal",
             "value": "minmax(0, 1fr) auto",
             "tokens": []
           }
@@ -1263,11 +1295,13 @@
       "layout": {
         "group": {
           "kind": "grid",
-          "axis": "block"
+          "orientation": "block"
         },
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -1276,6 +1310,8 @@
           },
           "block": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -1285,6 +1321,7 @@
         },
         "grid": {
           "rows": {
+            "kind": "literal",
             "value": "auto minmax(0, 1fr)",
             "tokens": []
           }
@@ -1375,11 +1412,13 @@
       "layout": {
         "group": {
           "kind": "grid",
-          "axis": "block"
+          "orientation": "block"
         },
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -1388,6 +1427,8 @@
           },
           "block": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -1397,6 +1438,7 @@
         },
         "grid": {
           "rows": {
+            "kind": "literal",
             "value": "auto minmax(0, 1fr)",
             "tokens": []
           }
@@ -1536,11 +1578,14 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         },
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -1549,12 +1594,15 @@
           },
           "block": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
               ]
             },
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100%",
               "tokens": []
             }
@@ -1646,11 +1694,14 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         },
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -1659,12 +1710,15 @@
           },
           "block": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
               ]
             },
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100%",
               "tokens": []
             }
@@ -1756,11 +1810,14 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         },
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -1769,12 +1826,15 @@
           },
           "block": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
               ]
             },
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100%",
               "tokens": []
             }
@@ -1842,12 +1902,15 @@
         "dimensions": {
           "block": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
               ]
             },
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100%",
               "tokens": []
             }
@@ -1915,12 +1978,15 @@
         "dimensions": {
           "block": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
               ]
             },
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100%",
               "tokens": []
             }
@@ -1988,12 +2054,15 @@
         "dimensions": {
           "block": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
               ]
             },
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100%",
               "tokens": []
             }
@@ -2045,7 +2114,8 @@
       "layout": {
         "dimensions": {
           "block": {
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100%",
               "tokens": []
             }
@@ -2097,7 +2167,8 @@
       "layout": {
         "dimensions": {
           "block": {
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100%",
               "tokens": []
             }
@@ -2149,7 +2220,8 @@
       "layout": {
         "dimensions": {
           "block": {
-            "preferred": {
+            "ideal": {
+              "kind": "literal",
               "value": "100%",
               "tokens": []
             }
@@ -2212,6 +2284,7 @@
         "dimensions": {
           "block": {
             "min": {
+              "kind": "expression",
               "value": "calc(var(--space-control-block) + var(--space-control-block))",
               "tokens": [
                 "space.controlBlock"
@@ -2272,6 +2345,7 @@
         "dimensions": {
           "block": {
             "min": {
+              "kind": "expression",
               "value": "calc(var(--space-control-block) + var(--space-control-block))",
               "tokens": [
                 "space.controlBlock"
@@ -2334,6 +2408,7 @@
         "dimensions": {
           "block": {
             "min": {
+              "kind": "expression",
               "value": "calc(var(--space-container-block) + var(--space-control-block))",
               "tokens": [
                 "space.containerBlock",
@@ -2401,12 +2476,14 @@
       "layout": {
         "grid": {
           "columns": {
+            "kind": "expression",
             "value": "minmax(var(--layout-dimension-zero), 1fr)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "rows": {
+            "kind": "expression",
             "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)\n        minmax(var(--layout-dimension-compact), 0.8fr)",
             "tokens": [
               "layout.dimension.compact",
@@ -2478,12 +2555,14 @@
       "layout": {
         "grid": {
           "columns": {
+            "kind": "expression",
             "value": "minmax(var(--layout-dimension-zero), 1fr)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "rows": {
+            "kind": "expression",
             "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)\n        minmax(var(--layout-dimension-compact), 0.8fr)",
             "tokens": [
               "layout.dimension.compact",
@@ -2541,6 +2620,7 @@
       "layout": {
         "grid": {
           "rows": {
+            "kind": "expression",
             "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)",
             "tokens": [
               "layout.dimension.compact",
@@ -2696,11 +2776,13 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         },
         "dimensions": {
           "inline": {
-            "preferred": {
+            "ideal": {
+              "kind": "expression",
               "value": "min(100%, var(--layout-dimension-record))",
               "tokens": [
                 "layout.dimension.record"
@@ -2821,7 +2903,8 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         }
       }
     },
@@ -2861,24 +2944,32 @@
       "layout": {
         "inset": {
           "blockStart": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "space.containerInline",
             "value": "var(--space-container-inline)",
             "tokens": [
               "space.containerInline"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "space.containerInline",
             "value": "var(--space-container-inline)",
             "tokens": [
               "space.containerInline"
@@ -2972,17 +3063,21 @@
       "layout": {
         "group": {
           "kind": "grid",
-          "axis": "block"
+          "orientation": "block"
         },
         "align": "leading",
         "gap": {
           "inline": {
+            "kind": "token",
+            "token": "space.containerGap",
             "value": "var(--space-container-gap)",
             "tokens": [
               "space.containerGap"
             ]
           },
           "block": {
+            "kind": "token",
+            "token": "space.containerGap",
             "value": "var(--space-container-gap)",
             "tokens": [
               "space.containerGap"
@@ -2991,24 +3086,32 @@
         },
         "inset": {
           "blockStart": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "space.containerInline",
             "value": "var(--space-container-inline)",
             "tokens": [
               "space.containerInline"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "space.containerInline",
             "value": "var(--space-container-inline)",
             "tokens": [
               "space.containerInline"
@@ -3017,6 +3120,7 @@
         },
         "grid": {
           "columns": {
+            "kind": "expression",
             "value": "minmax(var(--layout-dimension-zero), 1fr) auto auto",
             "tokens": [
               "layout.dimension.zero"
@@ -3085,16 +3189,20 @@
       "layout": {
         "group": {
           "kind": "grid",
-          "axis": "block"
+          "orientation": "block"
         },
         "gap": {
           "inline": {
+            "kind": "token",
+            "token": "space.controlGap",
             "value": "var(--space-control-gap)",
             "tokens": [
               "space.controlGap"
             ]
           },
           "block": {
+            "kind": "token",
+            "token": "space.controlGap",
             "value": "var(--space-control-gap)",
             "tokens": [
               "space.controlGap"
@@ -3104,6 +3212,8 @@
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -3149,6 +3259,8 @@
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -3194,6 +3306,8 @@
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -3239,6 +3353,8 @@
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -3284,6 +3400,8 @@
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -3354,6 +3472,8 @@
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -3363,24 +3483,32 @@
         },
         "margin": {
           "blockStart": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
@@ -3450,6 +3578,8 @@
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -3459,24 +3589,32 @@
         },
         "margin": {
           "blockStart": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
@@ -3631,9 +3769,9 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "inline",
+          "orientation": "inline",
           "reverse": false,
-          "wrap": false
+          "wrap": "none"
         }
       }
     },
@@ -3788,31 +3926,39 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "inline",
+          "orientation": "inline",
           "reverse": false,
-          "wrap": false
+          "wrap": "none"
         },
         "align": "center",
         "inset": {
           "blockStart": {
+            "kind": "token",
+            "token": "space.controlBlockSmall",
             "value": "var(--space-control-block-small)",
             "tokens": [
               "space.controlBlockSmall"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "space.controlBlockSmall",
             "value": "var(--space-control-block-small)",
             "tokens": [
               "space.controlBlockSmall"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "space.controlInlineSmall",
             "value": "var(--space-control-inline-small)",
             "tokens": [
               "space.controlInlineSmall"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "space.controlInlineSmall",
             "value": "var(--space-control-inline-small)",
             "tokens": [
               "space.controlInlineSmall"
@@ -3866,16 +4012,20 @@
       "layout": {
         "group": {
           "kind": "grid",
-          "axis": "block"
+          "orientation": "block"
         },
         "gap": {
           "inline": {
+            "kind": "token",
+            "token": "space.controlGap",
             "value": "var(--space-control-gap)",
             "tokens": [
               "space.controlGap"
             ]
           },
           "block": {
+            "kind": "token",
+            "token": "space.controlGap",
             "value": "var(--space-control-gap)",
             "tokens": [
               "space.controlGap"
@@ -3914,7 +4064,8 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         }
       }
     },
@@ -3987,17 +4138,21 @@
       "layout": {
         "group": {
           "kind": "grid",
-          "axis": "block"
+          "orientation": "block"
         },
         "align": "baseline",
         "gap": {
           "inline": {
+            "kind": "token",
+            "token": "space.controlInline",
             "value": "var(--space-control-inline)",
             "tokens": [
               "space.controlInline"
             ]
           },
           "block": {
+            "kind": "token",
+            "token": "space.controlInline",
             "value": "var(--space-control-inline)",
             "tokens": [
               "space.controlInline"
@@ -4006,6 +4161,7 @@
         },
         "grid": {
           "columns": {
+            "kind": "expression",
             "value": "minmax(var(--layout-dimension-zero), max-content)\n      minmax(var(--layout-dimension-zero), 1fr)",
             "tokens": [
               "layout.dimension.zero"
@@ -4050,6 +4206,8 @@
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -4095,6 +4253,8 @@
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -4140,6 +4300,8 @@
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -4204,11 +4366,14 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         },
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -4273,11 +4438,14 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         },
         "dimensions": {
           "inline": {
             "min": {
+              "kind": "token",
+              "token": "layout.dimension.zero",
               "value": "var(--layout-dimension-zero)",
               "tokens": [
                 "layout.dimension.zero"
@@ -4437,11 +4605,13 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         },
         "dimensions": {
           "inline": {
-            "preferred": {
+            "ideal": {
+              "kind": "expression",
               "value": "min(100%, var(--layout-dimension-dialog))",
               "tokens": [
                 "layout.dimension.dialog"
@@ -4576,7 +4746,8 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "block"
+          "orientation": "block",
+          "wrap": "none"
         }
       }
     },
@@ -4616,24 +4787,32 @@
       "layout": {
         "inset": {
           "blockStart": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "space.containerInline",
             "value": "var(--space-container-inline)",
             "tokens": [
               "space.containerInline"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "space.containerInline",
             "value": "var(--space-container-inline)",
             "tokens": [
               "space.containerInline"
@@ -4678,24 +4857,32 @@
       "layout": {
         "inset": {
           "blockStart": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "space.containerInline",
             "value": "var(--space-container-inline)",
             "tokens": [
               "space.containerInline"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "space.containerInline",
             "value": "var(--space-container-inline)",
             "tokens": [
               "space.containerInline"
@@ -4740,24 +4927,32 @@
       "layout": {
         "inset": {
           "blockStart": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "space.containerInline",
             "value": "var(--space-container-inline)",
             "tokens": [
               "space.containerInline"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "space.containerInline",
             "value": "var(--space-container-inline)",
             "tokens": [
               "space.containerInline"
@@ -4871,24 +5066,32 @@
       "layout": {
         "margin": {
           "blockStart": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "space.containerBlock",
             "value": "var(--space-container-block)",
             "tokens": [
               "space.containerBlock"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
@@ -4995,19 +5198,23 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "inline",
+          "orientation": "inline",
           "reverse": false,
-          "wrap": true
+          "wrap": "forward"
         },
-        "justify": "trailing",
+        "distribute": "trailing",
         "gap": {
           "inline": {
+            "kind": "token",
+            "token": "space.controlGap",
             "value": "var(--space-control-gap)",
             "tokens": [
               "space.controlGap"
             ]
           },
           "block": {
+            "kind": "token",
+            "token": "space.controlGap",
             "value": "var(--space-control-gap)",
             "tokens": [
               "space.controlGap"
@@ -5108,9 +5315,9 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "inline",
+          "orientation": "inline",
           "reverse": false,
-          "wrap": false
+          "wrap": "none"
         }
       }
     },
@@ -5206,9 +5413,9 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "inline",
+          "orientation": "inline",
           "reverse": false,
-          "wrap": false
+          "wrap": "none"
         }
       }
     },
@@ -5652,32 +5859,40 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "inline",
+          "orientation": "inline",
           "reverse": false,
-          "wrap": false
+          "wrap": "none"
         },
         "align": "center",
-        "justify": "center",
+        "distribute": "center",
         "inset": {
           "blockStart": {
+            "kind": "token",
+            "token": "space.controlBlock",
             "value": "var(--_mash-button-block)",
             "tokens": [
               "space.controlBlock"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "space.controlBlock",
             "value": "var(--_mash-button-block)",
             "tokens": [
               "space.controlBlock"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "space.controlInline",
             "value": "var(--_mash-button-inline)",
             "tokens": [
               "space.controlInline"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "space.controlInline",
             "value": "var(--_mash-button-inline)",
             "tokens": [
               "space.controlInline"
@@ -5686,24 +5901,32 @@
         },
         "margin": {
           "blockStart": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
@@ -5904,32 +6127,40 @@
       "layout": {
         "group": {
           "kind": "flow",
-          "axis": "inline",
+          "orientation": "inline",
           "reverse": false,
-          "wrap": false
+          "wrap": "none"
         },
         "align": "center",
-        "justify": "center",
+        "distribute": "center",
         "inset": {
           "blockStart": {
+            "kind": "token",
+            "token": "space.controlBlock",
             "value": "var(--_mash-button-block)",
             "tokens": [
               "space.controlBlock"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "space.controlBlock",
             "value": "var(--_mash-button-block)",
             "tokens": [
               "space.controlBlock"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "space.controlInline",
             "value": "var(--_mash-button-inline)",
             "tokens": [
               "space.controlInline"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "space.controlInline",
             "value": "var(--_mash-button-inline)",
             "tokens": [
               "space.controlInline"
@@ -5938,24 +6169,32 @@
         },
         "margin": {
           "blockStart": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "blockEnd": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "inlineStart": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
             ]
           },
           "inlineEnd": {
+            "kind": "token",
+            "token": "layout.dimension.zero",
             "value": "var(--layout-dimension-zero)",
             "tokens": [
               "layout.dimension.zero"
@@ -6312,12 +6551,16 @@
       "layout": {
         "gap": {
           "inline": {
+            "kind": "token",
+            "token": "space.controlGap",
             "value": "var(--space-control-gap)",
             "tokens": [
               "space.controlGap"
             ]
           },
           "block": {
+            "kind": "token",
+            "token": "space.controlGap",
             "value": "var(--space-control-gap)",
             "tokens": [
               "space.controlGap"
@@ -6326,6 +6569,7 @@
         },
         "grid": {
           "columns": {
+            "kind": "expression",
             "value": "minmax(var(--layout-dimension-zero), 1fr)",
             "tokens": [
               "layout.dimension.zero"
