@@ -12,6 +12,7 @@
     "clean": "rm -rf test-results playwright-report"
   },
   "devDependencies": {
+    "@mash/conformance": "workspace:*",
     "@mash/shrine": "workspace:*",
     "@mash/tokens": "workspace:*",
     "@mash/ui": "workspace:*",

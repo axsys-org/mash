@@ -48,6 +48,34 @@ function valueAtPath(schema, segments) {
   return current;
 }
 
+function validValueSchema(schema) {
+  if (!schema || typeof schema !== "object" || typeof schema.kind !== "string") return false;
+  if (["void", "string", "number", "boolean", "form-data", "node"].includes(schema.kind)) {
+    return Object.keys(schema).length === 1;
+  }
+  if (schema.kind === "enum") {
+    return (
+      Array.isArray(schema.choices) &&
+      schema.choices.length > 0 &&
+      new Set(schema.choices).size === schema.choices.length &&
+      schema.choices.every((choice) => typeof choice === "string")
+    );
+  }
+  if (schema.kind === "array") return validValueSchema(schema.items);
+  if (schema.kind === "nullable") return validValueSchema(schema.value);
+  if (schema.kind === "record") {
+    return (
+      schema.fields &&
+      typeof schema.fields === "object" &&
+      !Array.isArray(schema.fields) &&
+      Object.values(schema.fields).every(validValueSchema)
+    );
+  }
+  if (schema.kind === "event") return validValueSchema(schema.detail);
+  if (schema.kind === "reference") return typeof schema.name === "string" && schema.name.length > 0;
+  return false;
+}
+
 for (const sourceRoot of ["packages/components/src", "packages/shrine-components/src"]) {
   const absoluteRoot = path.join(ROOT, sourceRoot);
   const entries = await readdir(absoluteRoot, { recursive: true, withFileTypes: true });
@@ -135,8 +163,8 @@ for (const relativePath of manifestPaths) {
       if (!nodes.has(binding.nodeAddress)) {
         fail(location, `binding ${binding.address} points to missing node ${binding.nodeAddress}`);
       }
-      if (!binding.value?.kind || binding.value.kind === "unknown") {
-        fail(location, `binding ${binding.address} has no renderer-neutral value schema`);
+      if (!validValueSchema(binding.value)) {
+        fail(location, `binding ${binding.address} has an invalid renderer-neutral value schema`);
       }
       if (/PointerEvent|MouseEvent|FormData/.test(JSON.stringify(binding.value))) {
         fail(location, `binding ${binding.address} leaks a Web-only value type`);
@@ -219,36 +247,46 @@ for (const relativePath of manifestPaths) {
       }
 
       if (binding.kind === "event") {
-        if (!Array.isArray(binding.reports)) {
-          fail(location, `event binding ${binding.address} has no reports index`);
+        if (binding.intent !== "request" && binding.intent !== "report") {
+          fail(location, `event binding ${binding.address} has invalid intent ${binding.intent}`);
+        }
+        if (!Array.isArray(binding.relations)) {
+          fail(location, `event binding ${binding.address} has no relations index`);
         } else {
-          const seenReports = new Set();
-          for (const report of binding.reports) {
-            const key = `${report.path?.join(".")}::${report.nodeAddress}`;
-            if (seenReports.has(key)) {
-              fail(location, `event binding ${binding.address} repeats report ${key}`);
+          const seenRelations = new Set();
+          const expectedRelation = binding.intent === "request" ? "requests" : "reports";
+          for (const relation of binding.relations) {
+            const key = `${relation.kind}:${relation.path?.join(".")}::${relation.nodeAddress}`;
+            if (seenRelations.has(key)) {
+              fail(location, `event binding ${binding.address} repeats relation ${key}`);
             }
-            seenReports.add(key);
-            if (!Array.isArray(report.path) || report.path.length === 0) {
-              fail(location, `event binding ${binding.address} has an empty report path`);
-              continue;
-            }
-            if (!valueAtPath(binding.value.detail, report.path)) {
+            seenRelations.add(key);
+            if (relation.kind !== expectedRelation) {
               fail(
                 location,
-                `event binding ${binding.address} reports missing payload path ${report.path.join(".")}`,
+                `event binding ${binding.address} has ${relation.kind} relation for ${binding.intent} intent`,
               );
             }
-            const target = nodes.get(report.nodeAddress);
+            if (!Array.isArray(relation.path) || relation.path.length === 0) {
+              fail(location, `event binding ${binding.address} has an empty relation path`);
+              continue;
+            }
+            if (!valueAtPath(binding.value.detail, relation.path)) {
+              fail(
+                location,
+                `event binding ${binding.address} relates missing payload path ${relation.path.join(".")}`,
+              );
+            }
+            const target = nodes.get(relation.nodeAddress);
             if (!target) {
               fail(
                 location,
-                `event binding ${binding.address} reports missing node ${report.nodeAddress}`,
+                `event binding ${binding.address} relates missing node ${relation.nodeAddress}`,
               );
             } else if (target.bindings.every((candidate) => candidate.kind === "event")) {
               fail(
                 location,
-                `event binding ${binding.address} reports event-only node ${target.id}`,
+                `event binding ${binding.address} relates event-only node ${target.id}`,
               );
             }
           }
@@ -262,20 +300,20 @@ for (const relativePath of manifestPaths) {
               );
               if (
                 target &&
-                !binding.reports.some(
-                  (report) => report.path.length === 1 && report.path[0] === field,
+                !binding.relations.some(
+                  (relation) => relation.path.length === 1 && relation.path[0] === field,
                 )
               ) {
                 fail(
                   location,
-                  `event binding ${binding.address} omits inferred report ${field} -> ${target.id}`,
+                  `event binding ${binding.address} omits inferred relation ${field} -> ${target.id}`,
                 );
               }
             }
           }
         }
-      } else if (binding.reports !== undefined) {
-        fail(location, `non-event binding ${binding.address} declares event reports`);
+      } else if (binding.intent !== undefined || binding.relations !== undefined) {
+        fail(location, `non-event binding ${binding.address} declares event semantics`);
       }
     }
 

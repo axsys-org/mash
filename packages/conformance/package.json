@@ -1,0 +1,36 @@
+{
+  "name": "@mash/conformance",
+  "version": "0.0.0",
+  "description": "Renderer-neutral Mash SurfaceTree and behavior conformance fixtures.",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "fixtures"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./surface-tree.json": "./fixtures/surface-tree.json",
+    "./behaviors.json": "./fixtures/behaviors.json",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "pnpm run build:fixtures && pnpm run build:js",
+    "build:fixtures": "node ../../scripts/build-conformance-fixtures.mjs",
+    "build:js": "tsc -p tsconfig.build.json",
+    "check:types": "tsc -p tsconfig.json --noEmit",
+    "check:fixtures": "node ../../scripts/build-conformance-fixtures.mjs --check",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@mash/shrine": "workspace:*",
+    "@mash/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "26.2.0",
+    "typescript": "7.0.2"
+  }
+}

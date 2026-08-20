@@ -271,6 +271,52 @@ function createCaptureMashRoles() {
       }
       if (fallbacks.length > 0) declaration.__mashFallbackMappings = fallbacks;
 
+      const eventIntents = [];
+      const eventIntentNames = new Set();
+      for (const tag of ts.getJSDocTags(node)) {
+        if (tag.tagName.text !== "mashevent") continue;
+        const raw = Array.isArray(tag.comment)
+          ? tag.comment.map((part) => part.text ?? "").join("")
+          : String(tag.comment ?? "");
+        const [name, intent] = raw.trim().split(/\s+/);
+        if (!name || !["request", "report"].includes(intent)) {
+          throw new Error(
+            `${node.name.text} has invalid @mashevent "${raw}"; expected ` +
+              "@mashevent <event-name> <request|report>.",
+          );
+        }
+        if (eventIntentNames.has(name)) {
+          throw new Error(`${node.name.text} declares intent for event \`${name}\` twice.`);
+        }
+        eventIntentNames.add(name);
+        eventIntents.push({ name, intent });
+      }
+      if (eventIntents.length > 0) declaration.__mashEventIntents = eventIntents;
+
+      const relations = [];
+      const relationKeys = new Set();
+      for (const tag of ts.getJSDocTags(node)) {
+        if (tag.tagName.text !== "mashrelation") continue;
+        const raw = Array.isArray(tag.comment)
+          ? tag.comment.map((part) => part.text ?? "").join("")
+          : String(tag.comment ?? "");
+        const [eventName, kind, rawPath, nodeId] = raw.trim().split(/\s+/);
+        if (!eventName || !["requests", "reports"].includes(kind) || !rawPath || !nodeId) {
+          throw new Error(
+            `${node.name.text} has invalid @mashrelation "${raw}"; expected ` +
+              "@mashrelation <event-name> <requests|reports> <payload.path> <node-id>.",
+          );
+        }
+        const path = rawPath.split(".");
+        const key = `${eventName}:${path.join(".")}`;
+        if (relationKeys.has(key)) {
+          throw new Error(`${node.name.text} declares Mash event relation \`${key}\` twice.`);
+        }
+        relationKeys.add(key);
+        relations.push({ eventName, kind, path, nodeId });
+      }
+      if (relations.length > 0) declaration.__mashRelations = relations;
+
       const nodes = [];
       const nodeIds = new Set();
       for (const tag of ts.getJSDocTags(node)) {
@@ -323,6 +369,10 @@ const embedMashContract = {
           ]),
         );
         const declaredNodes = declaration.__mashNodes ?? [];
+        const eventIntentOverrides = new Map(
+          (declaration.__mashEventIntents ?? []).map((entry) => [entry.name, entry.intent]),
+        );
+        const relationOverrides = declaration.__mashRelations ?? [];
         const fallbackOverrides = new Map(
           (declaration.__mashFallbackMappings ?? []).map((fallback) => [
             `${fallback.kind}:${fallback.name}`,
@@ -332,6 +382,8 @@ const embedMashContract = {
         delete declaration.__mashRoleMappings;
         delete declaration.__mashNodes;
         delete declaration.__mashFallbackMappings;
+        delete declaration.__mashEventIntents;
+        delete declaration.__mashRelations;
 
         const bindings = [];
         const nodeRecords = new Map(
@@ -366,6 +418,10 @@ const embedMashContract = {
               exposed,
               mapping,
             );
+            if (kind === "event" && eventIntentOverrides.has(exposed.name)) {
+              binding.intent = eventIntentOverrides.get(exposed.name);
+              eventIntentOverrides.delete(exposed.name);
+            }
             if (!binding.shared) {
               throw new Error(
                 `${declaration.tagName} exposes ${kind} \`${exposed.name || "default"}\` ` +
@@ -471,22 +527,62 @@ const embedMashContract = {
           );
         }
 
-        // Event payload fields report semantic nodes when their field name is
-        // also a stable node id. This preserves the event as a first-class
-        // output binding while making its relationship to controlled values
-        // machine-readable. A compound event can report several nodes without
-        // pretending that one Web event has only one semantic target.
+        if (eventIntentOverrides.size > 0) {
+          throw new Error(
+            `${declaration.tagName} has @mashevent mappings for events that do not exist: ` +
+              [...eventIntentOverrides.keys()].join(", "),
+          );
+        }
+
+        // Event payload fields relate to semantic nodes when their field name
+        // is also a stable node id. The event's semantic intent determines
+        // whether the payload requests a value from an owner or reports a
+        // value the component observed. A compound event can relate several
+        // nodes without pretending that one Web event has only one target.
         for (const binding of bindings) {
           if (binding.kind !== "event" || binding.value.detail?.kind !== "record") continue;
+          const explicitPaths = new Set(
+            relationOverrides
+              .filter((relation) => relation.eventName === binding.name)
+              .map((relation) => relation.path.join(".")),
+          );
           for (const field of Object.keys(binding.value.detail.fields)) {
+            if (explicitPaths.has(field)) continue;
             const target = nodeRecords.get(field);
             if (!target || target.bindings.every((candidate) => candidate.kind === "event"))
               continue;
-            binding.reports.push({
+            binding.relations.push({
+              kind: binding.intent === "request" ? "requests" : "reports",
               path: [field],
               nodeAddress: `mash://${declaration.tagName}/node/${field}`,
             });
           }
+        }
+
+        for (const relation of relationOverrides) {
+          const binding = bindings.find(
+            (candidate) => candidate.kind === "event" && candidate.name === relation.eventName,
+          );
+          if (!binding) {
+            throw new Error(
+              `${declaration.tagName} maps a relation for missing event \`${relation.eventName}\`.`,
+            );
+          }
+          if (relation.kind !== (binding.intent === "request" ? "requests" : "reports")) {
+            throw new Error(
+              `${declaration.tagName} event \`${relation.eventName}\` has ${binding.intent} intent but relation ${relation.kind}.`,
+            );
+          }
+          if (!nodeRecords.has(relation.nodeId)) {
+            throw new Error(
+              `${declaration.tagName} event \`${relation.eventName}\` relates missing node \`${relation.nodeId}\`.`,
+            );
+          }
+          binding.relations.push({
+            kind: relation.kind,
+            path: relation.path,
+            nodeAddress: `mash://${declaration.tagName}/node/${relation.nodeId}`,
+          });
         }
 
         // Every component is one rooted semantic SurfaceTree. Components may

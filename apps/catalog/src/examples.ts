@@ -1,4 +1,4 @@
-import type { ComponentSchema, Example } from "./schema.js";
+import { components, type ComponentSchema, type Example } from "./schema.js";
 
 /**
  * A catalog example is deliberately more specific than an `@example` JSDoc
@@ -769,9 +769,53 @@ const curated: Record<string, CatalogExample[]> = {
   ],
 };
 
+const anatomyCompositions: Record<
+  string,
+  { parent: string; example?: string; openParent?: boolean }
+> = {
+  "ui-accordion-item": { parent: "ui-accordion" },
+  "ui-chip": { parent: "ui-combobox", example: "Multiple owners" },
+  "ui-menu-item": { parent: "ui-menu", openParent: true },
+  "ui-option": { parent: "ui-select", openParent: true },
+  "ui-option-group": {
+    parent: "ui-select",
+    example: "Grouped multiple selection",
+    openParent: true,
+  },
+  "ui-option-row": { parent: "ui-combobox", example: "Grid suggestions", openParent: true },
+  "ui-tab": { parent: "ui-tabs" },
+  "ui-tab-panel": { parent: "ui-tabs" },
+  "ui-table-header": { parent: "ui-table" },
+  "ui-table-body": { parent: "ui-table" },
+  "ui-table-row": { parent: "ui-table" },
+  "ui-table-head": { parent: "ui-table" },
+  "ui-table-cell": { parent: "ui-table" },
+  "ui-table-caption": { parent: "ui-table" },
+  "ui-resizable-panel": { parent: "ui-resizable" },
+  "ui-resizable-handle": { parent: "ui-resizable" },
+  "ui-virtual-item": { parent: "ui-virtual-list" },
+  "ui-color-swatch": { parent: "ui-color-picker" },
+  "ui-tree-item": { parent: "ui-tree" },
+};
+
 /** Curated system compositions take precedence; all other public examples stay manifest-driven. */
 export function examplesFor(component: ComponentSchema): CatalogExample[] {
-  return curated[component.tagName] ?? component.examples;
+  const direct = curated[component.tagName];
+  if (direct) return direct;
+
+  const composition = anatomyCompositions[component.tagName];
+  if (!composition) return component.examples;
+  const parent = components.find((candidate) => candidate.tagName === composition.parent);
+  if (!parent) return component.examples;
+  const examples = curated[parent.tagName] ?? parent.examples;
+  const selected = composition.example
+    ? examples.find((candidate) => candidate.name === composition.example)
+    : examples[0];
+  if (!selected) return component.examples;
+  const code = composition.openParent
+    ? selected.code.replace(`<${composition.parent}`, `<${composition.parent} open`)
+    : selected.code;
+  return [{ ...selected, code, compositionOnly: true }];
 }
 
 export function exampleNamed(

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "name": "mash",
   "componentContract": "1.0.0",
-  "layoutContract": "1.0.0",
+  "layoutContract": "1.1.0",
   "layoutVocabulary": {
     "axes": [
       "block",
@@ -51,6 +51,43 @@
       "min",
       "preferred",
       "max"
+    ],
+    "edges": [
+      "blockStart",
+      "blockEnd",
+      "inlineStart",
+      "inlineEnd"
+    ]
+  },
+  "presentationContract": "1.0.0",
+  "presentationVocabulary": {
+    "aspects": [
+      "surface",
+      "content",
+      "edge",
+      "focus",
+      "elevation",
+      "type",
+      "motion",
+      "interaction",
+      "media",
+      "generated",
+      "layout"
+    ],
+    "eventIntents": [
+      "request",
+      "report"
+    ],
+    "relationKinds": [
+      "requests",
+      "reports"
+    ],
+    "conditionKinds": [
+      "node",
+      "interaction",
+      "environment",
+      "context",
+      "renderer"
     ]
   },
   "source": "./mash.css",
@@ -64,6 +101,7 @@
     },
     "mash://sh-limb/node/root": {
       "tokens": [
+        "layout.dimension.zero",
         "space.controlGap",
         "space.controlInline"
       ],
@@ -115,6 +153,7 @@
     },
     "mash://sh-myth/node/header": {
       "tokens": [
+        "layout.dimension.zero",
         "space.containerBlock",
         "space.containerGap",
         "space.containerInline"
@@ -316,7 +355,12 @@
     "mash://sh-triptych/node/shell": {
       "tokens": [
         "color.canvas",
-        "color.text"
+        "color.text",
+        "layout.dimension.compact",
+        "layout.dimension.inspector",
+        "layout.dimension.panel",
+        "layout.dimension.supporting",
+        "layout.dimension.zero"
       ],
       "coverage": "direct",
       "layout": "constrained"
@@ -387,6 +431,7 @@
         "color.text",
         "duration.control",
         "easing.control",
+        "layout.dimension.zero",
         "radius.control",
         "space.controlBlock",
         "space.controlInline",
@@ -455,6 +500,7 @@
         "color.text",
         "duration.control",
         "easing.control",
+        "layout.dimension.zero",
         "radius.control",
         "space.controlBlock",
         "space.controlInline",
@@ -544,6 +590,7 @@
     "mash://shrine-confirm/node/title": {
       "tokens": [
         "color.text",
+        "layout.dimension.zero",
         "space.containerBlock",
         "type.heading.fontFamily",
         "type.heading.fontSize",
@@ -551,7 +598,7 @@
         "type.heading.lineHeight"
       ],
       "coverage": "direct",
-      "layout": "unconstrained"
+      "layout": "constrained"
     },
     "mash://shrine-confirm/node/tone": {
       "tokens": [],
@@ -565,11 +612,21 @@
         "mash://sh-locator/node/root"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-locator",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-locator",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -589,11 +646,76 @@
         "mash://sh-locator/node/locator"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-locator::part(root)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-locator::part(root)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "expression",
+          "value": "calc(var(--space-control-block) + var(--space-control-block))",
+          "tokens": [
+            "space.controlBlock"
+          ]
+        },
+        "layout.padding": {
+          "sourceProperty": "padding",
+          "kind": "expression",
+          "value": "var(--space-control-block) var(--space-control-inline)",
+          "tokens": [
+            "space.controlBlock",
+            "space.controlInline"
+          ]
+        },
+        "edge.blockEnd": {
+          "sourceProperty": "border-block-end",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        },
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "token",
+          "token": "color.surfaceSunken",
+          "value": "var(--color-surface-sunken)",
+          "tokens": [
+            "color.surfaceSunken"
+          ]
+        },
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.textMuted",
+          "value": "var(--color-text-muted)",
+          "tokens": [
+            "color.textMuted"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)\n      var(--type-code-font-family)",
+          "tokens": [
+            "type.code.fontFamily",
+            "type.code.fontSize",
+            "type.code.fontWeight",
+            "type.code.lineHeight"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -690,11 +812,27 @@
         "mash://sh-triptych/node/shell"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100dvh",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -726,11 +864,62 @@
         "mash://sh-triptych/node/shell"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(shell)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(shell)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "grid",
+          "tokens": []
+        },
+        "layout.gridTemplateColumns": {
+          "sourceProperty": "grid-template-columns",
+          "kind": "expression",
+          "value": "minmax(var(--layout-dimension-supporting), var(--layout-dimension-panel))\n      minmax(var(--layout-dimension-zero), 1fr)\n      minmax(var(--layout-dimension-panel), var(--layout-dimension-inspector))",
+          "tokens": [
+            "layout.dimension.inspector",
+            "layout.dimension.panel",
+            "layout.dimension.supporting",
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100%",
+          "tokens": []
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "hidden",
+          "tokens": []
+        },
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "token",
+          "token": "color.canvas",
+          "value": "var(--color-canvas)",
+          "tokens": [
+            "color.canvas"
+          ]
+        },
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.text",
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -738,8 +927,13 @@
           "tokens": []
         },
         "grid-template-columns": {
-          "value": "minmax(12rem, 15rem) minmax(0, 1fr) minmax(16rem, 20rem)",
-          "tokens": []
+          "value": "minmax(var(--layout-dimension-supporting), var(--layout-dimension-panel))\n      minmax(var(--layout-dimension-zero), 1fr)\n      minmax(var(--layout-dimension-panel), var(--layout-dimension-inspector))",
+          "tokens": [
+            "layout.dimension.inspector",
+            "layout.dimension.panel",
+            "layout.dimension.supporting",
+            "layout.dimension.zero"
+          ]
         },
         "block-size": {
           "value": "100%",
@@ -775,6 +969,17 @@
             }
           }
         },
+        "grid": {
+          "columns": {
+            "value": "minmax(var(--layout-dimension-supporting), var(--layout-dimension-panel))\n      minmax(var(--layout-dimension-zero), 1fr)\n      minmax(var(--layout-dimension-panel), var(--layout-dimension-inspector))",
+            "tokens": [
+              "layout.dimension.inspector",
+              "layout.dimension.panel",
+              "layout.dimension.supporting",
+              "layout.dimension.zero"
+            ]
+          }
+        },
         "overflow": {
           "inline": "hidden",
           "block": "hidden"
@@ -786,16 +991,52 @@
         "mash://sh-triptych/node/shell"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych:not([inspector-open])::part(shell)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [
+          {
+            "kind": "node",
+            "nodeAddress": "mash://sh-triptych/node/inspector-open",
+            "operator": "falsy"
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych:not([inspector-open])::part(shell)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.gridTemplateColumns": {
+          "sourceProperty": "grid-template-columns",
+          "kind": "expression",
+          "value": "minmax(var(--layout-dimension-supporting), var(--layout-dimension-panel))\n      minmax(var(--layout-dimension-zero), 1fr)",
+          "tokens": [
+            "layout.dimension.panel",
+            "layout.dimension.supporting",
+            "layout.dimension.zero"
+          ]
+        }
       },
       "declarations": {
         "grid-template-columns": {
-          "value": "minmax(12rem, 15rem) minmax(0, 1fr)",
-          "tokens": []
+          "value": "minmax(var(--layout-dimension-supporting), var(--layout-dimension-panel))\n      minmax(var(--layout-dimension-zero), 1fr)",
+          "tokens": [
+            "layout.dimension.panel",
+            "layout.dimension.supporting",
+            "layout.dimension.zero"
+          ]
+        }
+      },
+      "layout": {
+        "grid": {
+          "columns": {
+            "value": "minmax(var(--layout-dimension-supporting), var(--layout-dimension-panel))\n      minmax(var(--layout-dimension-zero), 1fr)",
+            "tokens": [
+              "layout.dimension.panel",
+              "layout.dimension.supporting",
+              "layout.dimension.zero"
+            ]
+          }
         }
       }
     },
@@ -804,11 +1045,69 @@
         "mash://sh-triptych/node/sidebar"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "grid",
+          "tokens": []
+        },
+        "layout.gridTemplateRows": {
+          "sourceProperty": "grid-template-rows",
+          "kind": "literal",
+          "value": "minmax(0, 1fr) auto",
+          "tokens": []
+        },
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "hidden",
+          "tokens": []
+        },
+        "edge.inlineEnd": {
+          "sourceProperty": "border-inline-end",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        },
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "token",
+          "token": "color.surfaceSunken",
+          "value": "var(--color-surface-sunken)",
+          "tokens": [
+            "color.surfaceSunken"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -872,6 +1171,12 @@
             }
           }
         },
+        "grid": {
+          "rows": {
+            "value": "minmax(0, 1fr) auto",
+            "tokens": []
+          }
+        },
         "overflow": {
           "inline": "hidden",
           "block": "hidden"
@@ -883,11 +1188,51 @@
         "mash://sh-triptych/node/main"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "grid",
+          "tokens": []
+        },
+        "layout.gridTemplateRows": {
+          "sourceProperty": "grid-template-rows",
+          "kind": "literal",
+          "value": "auto minmax(0, 1fr)",
+          "tokens": []
+        },
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "hidden",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -938,6 +1283,12 @@
             }
           }
         },
+        "grid": {
+          "rows": {
+            "value": "auto minmax(0, 1fr)",
+            "tokens": []
+          }
+        },
         "overflow": {
           "inline": "hidden",
           "block": "hidden"
@@ -949,11 +1300,51 @@
         "mash://sh-triptych/node/inspector"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "grid",
+          "tokens": []
+        },
+        "layout.gridTemplateRows": {
+          "sourceProperty": "grid-template-rows",
+          "kind": "literal",
+          "value": "auto minmax(0, 1fr)",
+          "tokens": []
+        },
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "hidden",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -1004,6 +1395,12 @@
             }
           }
         },
+        "grid": {
+          "rows": {
+            "value": "auto minmax(0, 1fr)",
+            "tokens": []
+          }
+        },
         "overflow": {
           "inline": "hidden",
           "block": "hidden"
@@ -1015,11 +1412,33 @@
         "mash://sh-triptych/node/inspector"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "edge.inlineStart": {
+          "sourceProperty": "border-inline-start",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        },
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "token",
+          "token": "color.surfaceSunken",
+          "value": "var(--color-surface-sunken)",
+          "tokens": [
+            "color.surfaceSunken"
+          ]
+        }
       },
       "declarations": {
         "border-inline-start": {
@@ -1042,11 +1461,51 @@
         "mash://sh-triptych/node/sidebar-scroller"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar-body)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar-body)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100%",
+          "tokens": []
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "hidden",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -1112,11 +1571,51 @@
         "mash://sh-triptych/node/main-scroller"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main-body)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main-body)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100%",
+          "tokens": []
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "hidden",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -1182,11 +1681,51 @@
         "mash://sh-triptych/node/inspector-scroller"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-body)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-body)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100%",
+          "tokens": []
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "hidden",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -1252,11 +1791,36 @@
         "mash://sh-triptych/node/sidebar-scroller"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar-scroll-root)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar-scroll-root)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100%",
+          "tokens": []
+        },
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "hidden",
+          "tokens": []
+        }
       },
       "declarations": {
         "block-size": {
@@ -1300,11 +1864,36 @@
         "mash://sh-triptych/node/main-scroller"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main-scroll-root)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main-scroll-root)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100%",
+          "tokens": []
+        },
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "hidden",
+          "tokens": []
+        }
       },
       "declarations": {
         "block-size": {
@@ -1348,11 +1937,36 @@
         "mash://sh-triptych/node/inspector-scroller"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-scroll-root)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-scroll-root)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100%",
+          "tokens": []
+        },
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "hidden",
+          "tokens": []
+        }
       },
       "declarations": {
         "block-size": {
@@ -1396,11 +2010,27 @@
         "mash://sh-triptych/node/sidebar-viewport"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar-viewport)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar-viewport)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100%",
+          "tokens": []
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "auto",
+          "tokens": []
+        }
       },
       "declarations": {
         "block-size": {
@@ -1432,11 +2062,27 @@
         "mash://sh-triptych/node/main-viewport"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main-viewport)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main-viewport)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100%",
+          "tokens": []
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "auto",
+          "tokens": []
+        }
       },
       "declarations": {
         "block-size": {
@@ -1468,11 +2114,27 @@
         "mash://sh-triptych/node/inspector-viewport"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-viewport)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-viewport)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.blockSize": {
+          "sourceProperty": "block-size",
+          "kind": "literal",
+          "value": "100%",
+          "tokens": []
+        },
+        "layout.overflow": {
+          "sourceProperty": "overflow",
+          "kind": "literal",
+          "value": "auto",
+          "tokens": []
+        }
       },
       "declarations": {
         "block-size": {
@@ -1504,11 +2166,32 @@
         "mash://sh-triptych/node/main-locator"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(locator)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(locator)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "expression",
+          "value": "calc(var(--space-control-block) + var(--space-control-block))",
+          "tokens": [
+            "space.controlBlock"
+          ]
+        },
+        "edge.blockEnd": {
+          "sourceProperty": "border-block-end",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
       },
       "declarations": {
         "min-block-size": {
@@ -1543,11 +2226,32 @@
         "mash://sh-triptych/node/inspector-locator"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-locator)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-locator)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "expression",
+          "value": "calc(var(--space-control-block) + var(--space-control-block))",
+          "tokens": [
+            "space.controlBlock"
+          ]
+        },
+        "edge.blockEnd": {
+          "sourceProperty": "border-block-end",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
       },
       "declarations": {
         "min-block-size": {
@@ -1582,11 +2286,33 @@
         "mash://sh-triptych/node/navigate"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(navigate)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(navigate)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minBlockSize": {
+          "sourceProperty": "min-block-size",
+          "kind": "expression",
+          "value": "calc(var(--space-container-block) + var(--space-control-block))",
+          "tokens": [
+            "space.containerBlock",
+            "space.controlBlock"
+          ]
+        },
+        "edge.blockStart": {
+          "sourceProperty": "border-block-start",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
       },
       "declarations": {
         "min-block-size": {
@@ -1623,21 +2349,70 @@
         "mash://sh-triptych/node/shell"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(shell)",
-        "context": [
-          "@layer mash.catalogue",
-          "@media (max-width: 52rem)"
-        ]
+        "conditions": [
+          {
+            "kind": "environment",
+            "feature": "viewport-inline-max",
+            "value": "52rem"
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(shell)",
+          "context": [
+            "@layer mash.catalogue",
+            "@media (max-width: 52rem)"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.gridTemplateColumns": {
+          "sourceProperty": "grid-template-columns",
+          "kind": "expression",
+          "value": "minmax(var(--layout-dimension-zero), 1fr)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.gridTemplateRows": {
+          "sourceProperty": "grid-template-rows",
+          "kind": "expression",
+          "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)\n        minmax(var(--layout-dimension-compact), 0.8fr)",
+          "tokens": [
+            "layout.dimension.compact",
+            "layout.dimension.supporting"
+          ]
+        }
       },
       "declarations": {
         "grid-template-columns": {
-          "value": "minmax(0, 1fr)",
-          "tokens": []
+          "value": "minmax(var(--layout-dimension-zero), 1fr)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
         },
         "grid-template-rows": {
-          "value": "minmax(8rem, 0.8fr) minmax(12rem, 2fr) minmax(8rem, 0.8fr)",
-          "tokens": []
+          "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)\n        minmax(var(--layout-dimension-compact), 0.8fr)",
+          "tokens": [
+            "layout.dimension.compact",
+            "layout.dimension.supporting"
+          ]
+        }
+      },
+      "layout": {
+        "grid": {
+          "columns": {
+            "value": "minmax(var(--layout-dimension-zero), 1fr)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "rows": {
+            "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)\n        minmax(var(--layout-dimension-compact), 0.8fr)",
+            "tokens": [
+              "layout.dimension.compact",
+              "layout.dimension.supporting"
+            ]
+          }
         }
       }
     },
@@ -1646,21 +2421,75 @@
         "mash://sh-triptych/node/shell"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych:not([inspector-open])::part(shell)",
-        "context": [
-          "@layer mash.catalogue",
-          "@media (max-width: 52rem)"
-        ]
+        "conditions": [
+          {
+            "kind": "node",
+            "nodeAddress": "mash://sh-triptych/node/inspector-open",
+            "operator": "falsy"
+          },
+          {
+            "kind": "environment",
+            "feature": "viewport-inline-max",
+            "value": "52rem"
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych:not([inspector-open])::part(shell)",
+          "context": [
+            "@layer mash.catalogue",
+            "@media (max-width: 52rem)"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.gridTemplateColumns": {
+          "sourceProperty": "grid-template-columns",
+          "kind": "expression",
+          "value": "minmax(var(--layout-dimension-zero), 1fr)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.gridTemplateRows": {
+          "sourceProperty": "grid-template-rows",
+          "kind": "expression",
+          "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)\n        minmax(var(--layout-dimension-compact), 0.8fr)",
+          "tokens": [
+            "layout.dimension.compact",
+            "layout.dimension.supporting"
+          ]
+        }
       },
       "declarations": {
         "grid-template-columns": {
-          "value": "minmax(0, 1fr)",
-          "tokens": []
+          "value": "minmax(var(--layout-dimension-zero), 1fr)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
         },
         "grid-template-rows": {
-          "value": "minmax(8rem, 0.8fr) minmax(12rem, 2fr) minmax(8rem, 0.8fr)",
-          "tokens": []
+          "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)\n        minmax(var(--layout-dimension-compact), 0.8fr)",
+          "tokens": [
+            "layout.dimension.compact",
+            "layout.dimension.supporting"
+          ]
+        }
+      },
+      "layout": {
+        "grid": {
+          "columns": {
+            "value": "minmax(var(--layout-dimension-zero), 1fr)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "rows": {
+            "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)\n        minmax(var(--layout-dimension-compact), 0.8fr)",
+            "tokens": [
+              "layout.dimension.compact",
+              "layout.dimension.supporting"
+            ]
+          }
         }
       }
     },
@@ -1669,17 +2498,55 @@
         "mash://sh-triptych/node/shell"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych:not([inspector-open])::part(shell)",
-        "context": [
-          "@layer mash.catalogue",
-          "@media (max-width: 52rem)"
-        ]
+        "conditions": [
+          {
+            "kind": "node",
+            "nodeAddress": "mash://sh-triptych/node/inspector-open",
+            "operator": "falsy"
+          },
+          {
+            "kind": "environment",
+            "feature": "viewport-inline-max",
+            "value": "52rem"
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych:not([inspector-open])::part(shell)",
+          "context": [
+            "@layer mash.catalogue",
+            "@media (max-width: 52rem)"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.gridTemplateRows": {
+          "sourceProperty": "grid-template-rows",
+          "kind": "expression",
+          "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)",
+          "tokens": [
+            "layout.dimension.compact",
+            "layout.dimension.supporting"
+          ]
+        }
       },
       "declarations": {
         "grid-template-rows": {
-          "value": "minmax(8rem, 0.8fr) minmax(12rem, 2fr)",
-          "tokens": []
+          "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)",
+          "tokens": [
+            "layout.dimension.compact",
+            "layout.dimension.supporting"
+          ]
+        }
+      },
+      "layout": {
+        "grid": {
+          "rows": {
+            "value": "minmax(var(--layout-dimension-compact), 0.8fr)\n        minmax(var(--layout-dimension-supporting), 2fr)",
+            "tokens": [
+              "layout.dimension.compact",
+              "layout.dimension.supporting"
+            ]
+          }
         }
       }
     },
@@ -1688,12 +2555,37 @@
         "mash://sh-triptych/node/sidebar"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar)",
-        "context": [
-          "@layer mash.catalogue",
-          "@media (max-width: 52rem)"
-        ]
+        "conditions": [
+          {
+            "kind": "environment",
+            "feature": "viewport-inline-max",
+            "value": "52rem"
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar)",
+          "context": [
+            "@layer mash.catalogue",
+            "@media (max-width: 52rem)"
+          ]
+        }
+      },
+      "presentation": {
+        "edge.inlineEnd": {
+          "sourceProperty": "border-inline-end",
+          "kind": "literal",
+          "value": "0",
+          "tokens": []
+        },
+        "edge.blockEnd": {
+          "sourceProperty": "border-block-end",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
       },
       "declarations": {
         "border-inline-end": {
@@ -1714,12 +2606,37 @@
         "mash://sh-triptych/node/inspector"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector)",
-        "context": [
-          "@layer mash.catalogue",
-          "@media (max-width: 52rem)"
-        ]
+        "conditions": [
+          {
+            "kind": "environment",
+            "feature": "viewport-inline-max",
+            "value": "52rem"
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector)",
+          "context": [
+            "@layer mash.catalogue",
+            "@media (max-width: 52rem)"
+          ]
+        }
+      },
+      "presentation": {
+        "edge.inlineStart": {
+          "sourceProperty": "border-inline-start",
+          "kind": "literal",
+          "value": "0",
+          "tokens": []
+        },
+        "edge.blockStart": {
+          "sourceProperty": "border-block-start",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
       },
       "declarations": {
         "border-inline-start": {
@@ -1740,11 +2657,29 @@
         "mash://sh-myth/node/root"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "layout.inlineSize": {
+          "sourceProperty": "inline-size",
+          "kind": "expression",
+          "value": "min(100%, var(--layout-dimension-record))",
+          "tokens": [
+            "layout.dimension.record"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -1780,11 +2715,68 @@
         "mash://sh-myth/node/root"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(root)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(root)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "edge.all": {
+          "sourceProperty": "border",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        },
+        "edge.radius": {
+          "sourceProperty": "border-radius",
+          "kind": "token",
+          "token": "radius.container",
+          "value": "var(--radius-container)",
+          "tokens": [
+            "radius.container"
+          ]
+        },
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "token",
+          "token": "color.surface",
+          "value": "var(--color-surface)",
+          "tokens": [
+            "color.surface"
+          ]
+        },
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.text",
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)\n      var(--type-body-font-family)",
+          "tokens": [
+            "type.body.fontFamily",
+            "type.body.fontSize",
+            "type.body.fontWeight",
+            "type.body.lineHeight"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -1838,11 +2830,24 @@
         "mash://sh-myth/node/content"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-content)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-content)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.padding": {
+          "sourceProperty": "padding",
+          "kind": "expression",
+          "value": "var(--space-container-block) var(--space-container-inline)",
+          "tokens": [
+            "space.containerBlock",
+            "space.containerInline"
+          ]
+        }
       },
       "declarations": {
         "padding": {
@@ -1887,11 +2892,53 @@
         "mash://sh-myth/node/header"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-header)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-header)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "grid",
+          "tokens": []
+        },
+        "layout.gridTemplateColumns": {
+          "sourceProperty": "grid-template-columns",
+          "kind": "expression",
+          "value": "minmax(var(--layout-dimension-zero), 1fr) auto auto",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.alignItems": {
+          "sourceProperty": "align-items",
+          "kind": "literal",
+          "value": "start",
+          "tokens": []
+        },
+        "layout.gap": {
+          "sourceProperty": "gap",
+          "kind": "token",
+          "token": "space.containerGap",
+          "value": "var(--space-container-gap)",
+          "tokens": [
+            "space.containerGap"
+          ]
+        },
+        "layout.padding": {
+          "sourceProperty": "padding",
+          "kind": "expression",
+          "value": "var(--space-container-block) var(--space-container-inline)",
+          "tokens": [
+            "space.containerBlock",
+            "space.containerInline"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -1899,8 +2946,10 @@
           "tokens": []
         },
         "grid-template-columns": {
-          "value": "minmax(0, 1fr) auto auto",
-          "tokens": []
+          "value": "minmax(var(--layout-dimension-zero), 1fr) auto auto",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
         },
         "align-items": {
           "value": "start",
@@ -1927,10 +2976,18 @@
         },
         "align": "leading",
         "gap": {
-          "value": "var(--space-container-gap)",
-          "tokens": [
-            "space.containerGap"
-          ]
+          "inline": {
+            "value": "var(--space-container-gap)",
+            "tokens": [
+              "space.containerGap"
+            ]
+          },
+          "block": {
+            "value": "var(--space-container-gap)",
+            "tokens": [
+              "space.containerGap"
+            ]
+          }
         },
         "inset": {
           "blockStart": {
@@ -1957,6 +3014,14 @@
               "space.containerInline"
             ]
           }
+        },
+        "grid": {
+          "columns": {
+            "value": "minmax(var(--layout-dimension-zero), 1fr) auto auto",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          }
         }
       }
     },
@@ -1965,11 +3030,39 @@
         "mash://sh-myth/node/identity"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(identity)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(identity)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "grid",
+          "tokens": []
+        },
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.gap": {
+          "sourceProperty": "gap",
+          "kind": "token",
+          "token": "space.controlGap",
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -1995,10 +3088,18 @@
           "axis": "block"
         },
         "gap": {
-          "value": "var(--space-control-gap)",
-          "tokens": [
-            "space.controlGap"
-          ]
+          "inline": {
+            "value": "var(--space-control-gap)",
+            "tokens": [
+              "space.controlGap"
+            ]
+          },
+          "block": {
+            "value": "var(--space-control-gap)",
+            "tokens": [
+              "space.controlGap"
+            ]
+          }
         },
         "dimensions": {
           "inline": {
@@ -2017,11 +3118,24 @@
         "mash://sh-myth/node/title"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-title)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-title)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
       },
       "declarations": {
         "min-inline-size": {
@@ -2049,11 +3163,24 @@
         "mash://sh-myth/node/path"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-description)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-description)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
       },
       "declarations": {
         "min-inline-size": {
@@ -2081,11 +3208,24 @@
         "mash://sh-myth/node/kind"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-value)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-value)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
       },
       "declarations": {
         "min-inline-size": {
@@ -2113,11 +3253,24 @@
         "mash://sh-myth/node/actions"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-actions)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-actions)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
       },
       "declarations": {
         "min-inline-size": {
@@ -2145,11 +3298,39 @@
         "mash://sh-myth/node/title"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(title)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(title)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.margin": {
+          "sourceProperty": "margin",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "type.wrap": {
+          "sourceProperty": "overflow-wrap",
+          "kind": "literal",
+          "value": "anywhere",
+          "tokens": []
+        }
       },
       "declarations": {
         "min-inline-size": {
@@ -2159,8 +3340,10 @@
           ]
         },
         "margin": {
-          "value": "0",
-          "tokens": []
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
         },
         "overflow-wrap": {
           "value": "anywhere",
@@ -2176,6 +3359,32 @@
                 "layout.dimension.zero"
               ]
             }
+          }
+        },
+        "margin": {
+          "blockStart": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
           }
         }
       }
@@ -2185,11 +3394,39 @@
         "mash://sh-myth/node/path"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(path)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(path)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.margin": {
+          "sourceProperty": "margin",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "type.wrap": {
+          "sourceProperty": "overflow-wrap",
+          "kind": "literal",
+          "value": "anywhere",
+          "tokens": []
+        }
       },
       "declarations": {
         "min-inline-size": {
@@ -2199,8 +3436,10 @@
           ]
         },
         "margin": {
-          "value": "0",
-          "tokens": []
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
         },
         "overflow-wrap": {
           "value": "anywhere",
@@ -2217,6 +3456,32 @@
               ]
             }
           }
+        },
+        "margin": {
+          "blockStart": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          }
         }
       }
     },
@@ -2225,11 +3490,35 @@
         "mash://sh-myth/node/title"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(title)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(title)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.text",
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--type-heading-font-weight) var(--type-heading-font-size) /\n      var(--type-heading-line-height) var(--type-heading-font-family)",
+          "tokens": [
+            "type.heading.fontFamily",
+            "type.heading.fontSize",
+            "type.heading.fontWeight",
+            "type.heading.lineHeight"
+          ]
+        }
       },
       "declarations": {
         "color": {
@@ -2254,11 +3543,35 @@
         "mash://sh-myth/node/path"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(path)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(path)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.textMuted",
+          "value": "var(--color-text-muted)",
+          "tokens": [
+            "color.textMuted"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)\n      var(--type-code-font-family)",
+          "tokens": [
+            "type.code.fontFamily",
+            "type.code.fontSize",
+            "type.code.fontWeight",
+            "type.code.lineHeight"
+          ]
+        }
       },
       "declarations": {
         "color": {
@@ -2283,11 +3596,27 @@
         "mash://sh-myth/node/kind"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(kind)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(kind)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "inline-flex",
+          "tokens": []
+        },
+        "layout.flex": {
+          "sourceProperty": "flex",
+          "kind": "literal",
+          "value": "0 0 auto",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -2313,11 +3642,92 @@
         "mash://sh-myth/node/kind"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(kind-content)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(kind-content)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "inline-flex",
+          "tokens": []
+        },
+        "layout.alignItems": {
+          "sourceProperty": "align-items",
+          "kind": "literal",
+          "value": "center",
+          "tokens": []
+        },
+        "layout.padding": {
+          "sourceProperty": "padding",
+          "kind": "expression",
+          "value": "var(--space-control-block-small) var(--space-control-inline-small)",
+          "tokens": [
+            "space.controlBlockSmall",
+            "space.controlInlineSmall"
+          ]
+        },
+        "edge.radius": {
+          "sourceProperty": "border-radius",
+          "kind": "token",
+          "token": "radius.pill",
+          "value": "var(--radius-pill)",
+          "tokens": [
+            "radius.pill"
+          ]
+        },
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "token",
+          "token": "color.action",
+          "value": "var(--color-action)",
+          "tokens": [
+            "color.action"
+          ]
+        },
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.onAction",
+          "value": "var(--color-on-action)",
+          "tokens": [
+            "color.onAction"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--type-label-small-font-weight) var(--type-label-small-font-size) /\n      var(--type-label-small-line-height) var(--type-label-small-font-family)",
+          "tokens": [
+            "type.labelSmall.fontFamily",
+            "type.labelSmall.fontSize",
+            "type.labelSmall.fontWeight",
+            "type.labelSmall.lineHeight"
+          ]
+        },
+        "type.tracking": {
+          "sourceProperty": "letter-spacing",
+          "kind": "literal",
+          "value": "0.08em",
+          "tokens": []
+        },
+        "type.transform": {
+          "sourceProperty": "text-transform",
+          "kind": "literal",
+          "value": "uppercase",
+          "tokens": []
+        },
+        "type.white-space": {
+          "sourceProperty": "white-space",
+          "kind": "literal",
+          "value": "nowrap",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -2416,11 +3826,30 @@
         "mash://sh-myth/node/limbs"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(limbs)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(limbs)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "grid",
+          "tokens": []
+        },
+        "layout.gap": {
+          "sourceProperty": "gap",
+          "kind": "token",
+          "token": "space.controlGap",
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -2440,10 +3869,18 @@
           "axis": "block"
         },
         "gap": {
-          "value": "var(--space-control-gap)",
-          "tokens": [
-            "space.controlGap"
-          ]
+          "inline": {
+            "value": "var(--space-control-gap)",
+            "tokens": [
+              "space.controlGap"
+            ]
+          },
+          "block": {
+            "value": "var(--space-control-gap)",
+            "tokens": [
+              "space.controlGap"
+            ]
+          }
         }
       }
     },
@@ -2452,11 +3889,21 @@
         "mash://sh-limb/node/root"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -2476,11 +3923,44 @@
         "mash://sh-limb/node/root"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(root)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(root)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "grid",
+          "tokens": []
+        },
+        "layout.gridTemplateColumns": {
+          "sourceProperty": "grid-template-columns",
+          "kind": "expression",
+          "value": "minmax(var(--layout-dimension-zero), max-content)\n      minmax(var(--layout-dimension-zero), 1fr)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.alignItems": {
+          "sourceProperty": "align-items",
+          "kind": "literal",
+          "value": "baseline",
+          "tokens": []
+        },
+        "layout.gap": {
+          "sourceProperty": "gap",
+          "kind": "token",
+          "token": "space.controlInline",
+          "value": "var(--space-control-inline)",
+          "tokens": [
+            "space.controlInline"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -2488,8 +3968,10 @@
           "tokens": []
         },
         "grid-template-columns": {
-          "value": "minmax(0, max-content) minmax(0, 1fr)",
-          "tokens": []
+          "value": "minmax(var(--layout-dimension-zero), max-content)\n      minmax(var(--layout-dimension-zero), 1fr)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
         },
         "align-items": {
           "value": "baseline",
@@ -2509,10 +3991,26 @@
         },
         "align": "baseline",
         "gap": {
-          "value": "var(--space-control-inline)",
-          "tokens": [
-            "space.controlInline"
-          ]
+          "inline": {
+            "value": "var(--space-control-inline)",
+            "tokens": [
+              "space.controlInline"
+            ]
+          },
+          "block": {
+            "value": "var(--space-control-inline)",
+            "tokens": [
+              "space.controlInline"
+            ]
+          }
+        },
+        "grid": {
+          "columns": {
+            "value": "minmax(var(--layout-dimension-zero), max-content)\n      minmax(var(--layout-dimension-zero), 1fr)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          }
         }
       }
     },
@@ -2521,11 +4019,24 @@
         "mash://sh-limb/node/label"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(label)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(label)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
       },
       "declarations": {
         "min-inline-size": {
@@ -2553,11 +4064,24 @@
         "mash://sh-limb/node/label"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(slot)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(slot)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
       },
       "declarations": {
         "min-inline-size": {
@@ -2585,11 +4109,24 @@
         "mash://sh-limb/node/value"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(value)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(value)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
       },
       "declarations": {
         "min-inline-size": {
@@ -2617,11 +4154,36 @@
         "mash://sh-slot/node/root"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-slot",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-slot",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "type.wrap": {
+          "sourceProperty": "overflow-wrap",
+          "kind": "literal",
+          "value": "anywhere",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -2661,11 +4223,36 @@
         "mash://sh-pail/node/root"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-pail",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-pail",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "layout.minInlineSize": {
+          "sourceProperty": "min-inline-size",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "type.wrap": {
+          "sourceProperty": "overflow-wrap",
+          "kind": "literal",
+          "value": "anywhere",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -2705,11 +4292,35 @@
         "mash://sh-slot/node/label"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-slot::part(root)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-slot::part(root)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.textMuted",
+          "value": "var(--color-text-muted)",
+          "tokens": [
+            "color.textMuted"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)\n      var(--type-code-font-family)",
+          "tokens": [
+            "type.code.fontFamily",
+            "type.code.fontSize",
+            "type.code.fontWeight",
+            "type.code.lineHeight"
+          ]
+        }
       },
       "declarations": {
         "color": {
@@ -2734,11 +4345,35 @@
         "mash://sh-pail/node/value"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-pail::part(root)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-pail::part(root)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.text",
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)\n      var(--type-body-font-family)",
+          "tokens": [
+            "type.body.fontFamily",
+            "type.body.fontSize",
+            "type.body.fontWeight",
+            "type.body.lineHeight"
+          ]
+        }
       },
       "declarations": {
         "color": {
@@ -2763,11 +4398,29 @@
         "mash://shrine-confirm/node/root"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "layout.inlineSize": {
+          "sourceProperty": "inline-size",
+          "kind": "expression",
+          "value": "min(100%, var(--layout-dimension-dialog))",
+          "tokens": [
+            "layout.dimension.dialog"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -2803,11 +4456,76 @@
         "mash://shrine-confirm/node/root"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "block",
+          "tokens": []
+        },
+        "edge.all": {
+          "sourceProperty": "border",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        },
+        "edge.radius": {
+          "sourceProperty": "border-radius",
+          "kind": "token",
+          "token": "radius.container",
+          "value": "var(--radius-container)",
+          "tokens": [
+            "radius.container"
+          ]
+        },
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "token",
+          "token": "color.surfaceRaised",
+          "value": "var(--color-surface-raised)",
+          "tokens": [
+            "color.surfaceRaised"
+          ]
+        },
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.text",
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "elevation.shadow": {
+          "sourceProperty": "box-shadow",
+          "kind": "expression",
+          "value": "0 1px 2px var(--color-shadow),\n      0 4px 12px var(--color-shadow)",
+          "tokens": [
+            "color.shadow"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)\n      var(--type-body-font-family)",
+          "tokens": [
+            "type.body.fontFamily",
+            "type.body.fontSize",
+            "type.body.fontWeight",
+            "type.body.lineHeight"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -2867,11 +4585,24 @@
         "mash://shrine-confirm/node/header"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-header)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-header)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.padding": {
+          "sourceProperty": "padding",
+          "kind": "expression",
+          "value": "var(--space-container-block) var(--space-container-inline)",
+          "tokens": [
+            "space.containerBlock",
+            "space.containerInline"
+          ]
+        }
       },
       "declarations": {
         "padding": {
@@ -2916,11 +4647,24 @@
         "mash://shrine-confirm/node/content"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-content)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-content)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.padding": {
+          "sourceProperty": "padding",
+          "kind": "expression",
+          "value": "var(--space-container-block) var(--space-container-inline)",
+          "tokens": [
+            "space.containerBlock",
+            "space.containerInline"
+          ]
+        }
       },
       "declarations": {
         "padding": {
@@ -2965,11 +4709,24 @@
         "mash://shrine-confirm/node/footer"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-footer)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-footer)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.padding": {
+          "sourceProperty": "padding",
+          "kind": "expression",
+          "value": "var(--space-container-block) var(--space-container-inline)",
+          "tokens": [
+            "space.containerBlock",
+            "space.containerInline"
+          ]
+        }
       },
       "declarations": {
         "padding": {
@@ -3014,11 +4771,24 @@
         "mash://shrine-confirm/node/footer"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-footer)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-footer)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "edge.blockStart": {
+          "sourceProperty": "border-block-start",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
       },
       "declarations": {
         "border-block-start": {
@@ -3035,16 +4805,50 @@
         "mash://shrine-confirm/node/title"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(title)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(title)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.margin": {
+          "sourceProperty": "margin",
+          "kind": "expression",
+          "value": "var(--layout-dimension-zero) var(--layout-dimension-zero) var(--space-container-block)",
+          "tokens": [
+            "layout.dimension.zero",
+            "space.containerBlock"
+          ]
+        },
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.text",
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--type-heading-font-weight) var(--type-heading-font-size) /\n      var(--type-heading-line-height) var(--type-heading-font-family)",
+          "tokens": [
+            "type.heading.fontFamily",
+            "type.heading.fontSize",
+            "type.heading.fontWeight",
+            "type.heading.lineHeight"
+          ]
+        }
       },
       "declarations": {
         "margin": {
-          "value": "0 0 var(--space-container-block)",
+          "value": "var(--layout-dimension-zero) var(--layout-dimension-zero) var(--space-container-block)",
           "tokens": [
+            "layout.dimension.zero",
             "space.containerBlock"
           ]
         },
@@ -3063,6 +4867,34 @@
             "type.heading.lineHeight"
           ]
         }
+      },
+      "layout": {
+        "margin": {
+          "blockStart": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          }
+        }
       }
     },
     {
@@ -3070,11 +4902,24 @@
         "mash://shrine-confirm/node/description"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(message)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(message)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "token",
+          "token": "color.textMuted",
+          "value": "var(--color-text-muted)",
+          "tokens": [
+            "color.textMuted"
+          ]
+        }
       },
       "declarations": {
         "color": {
@@ -3090,11 +4935,42 @@
         "mash://shrine-confirm/node/actions"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(actions)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(actions)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "flex",
+          "tokens": []
+        },
+        "layout.flexWrap": {
+          "sourceProperty": "flex-wrap",
+          "kind": "literal",
+          "value": "wrap",
+          "tokens": []
+        },
+        "layout.justifyContent": {
+          "sourceProperty": "justify-content",
+          "kind": "literal",
+          "value": "flex-end",
+          "tokens": []
+        },
+        "layout.gap": {
+          "sourceProperty": "gap",
+          "kind": "token",
+          "token": "space.controlGap",
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -3125,10 +5001,18 @@
         },
         "justify": "trailing",
         "gap": {
-          "value": "var(--space-control-gap)",
-          "tokens": [
-            "space.controlGap"
-          ]
+          "inline": {
+            "value": "var(--space-control-gap)",
+            "tokens": [
+              "space.controlGap"
+            ]
+          },
+          "block": {
+            "value": "var(--space-control-gap)",
+            "tokens": [
+              "space.controlGap"
+            ]
+          }
         }
       }
     },
@@ -3137,11 +5021,53 @@
         "mash://shrine-confirm/node/confirm"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "parameters": {
+        "--_mash-button-inline": {
+          "value": "var(--space-control-inline)",
+          "tokens": [
+            "space.controlInline"
+          ]
+        },
+        "--_mash-button-block": {
+          "value": "var(--space-control-block)",
+          "tokens": [
+            "space.controlBlock"
+          ]
+        },
+        "--_mash-button-font-size": {
+          "value": "var(--type-label-font-size)",
+          "tokens": [
+            "type.label.fontSize"
+          ]
+        },
+        "--_mash-button-font-weight": {
+          "value": "var(--type-label-font-weight)",
+          "tokens": [
+            "type.label.fontWeight"
+          ]
+        },
+        "--_mash-button-line-height": {
+          "value": "var(--type-label-line-height)",
+          "tokens": [
+            "type.label.lineHeight"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "inline-flex",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -3193,11 +5119,53 @@
         "mash://shrine-confirm/node/cancel"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "parameters": {
+        "--_mash-button-inline": {
+          "value": "var(--space-control-inline)",
+          "tokens": [
+            "space.controlInline"
+          ]
+        },
+        "--_mash-button-block": {
+          "value": "var(--space-control-block)",
+          "tokens": [
+            "space.controlBlock"
+          ]
+        },
+        "--_mash-button-font-size": {
+          "value": "var(--type-label-font-size)",
+          "tokens": [
+            "type.label.fontSize"
+          ]
+        },
+        "--_mash-button-font-weight": {
+          "value": "var(--type-label-font-weight)",
+          "tokens": [
+            "type.label.fontWeight"
+          ]
+        },
+        "--_mash-button-line-height": {
+          "value": "var(--type-label-line-height)",
+          "tokens": [
+            "type.label.lineHeight"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "inline-flex",
+          "tokens": []
+        }
       },
       "declarations": {
         "display": {
@@ -3249,12 +5217,53 @@
         "mash://shrine-confirm/node/confirm"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
       },
+      "parameters": {
+        "--_mash-button-tone": {
+          "value": "var(--color-action)",
+          "tokens": [
+            "color.action"
+          ]
+        },
+        "--_mash-button-hover": {
+          "value": "var(--color-action-hover)",
+          "tokens": [
+            "color.actionHover"
+          ]
+        },
+        "--_mash-button-pressed": {
+          "value": "var(--color-action-pressed)",
+          "tokens": [
+            "color.actionPressed"
+          ]
+        },
+        "--_mash-button-bg": {
+          "value": "var(--_mash-button-tone)",
+          "tokens": [
+            "color.action",
+            "color.critical",
+            "color.neutral"
+          ]
+        },
+        "--_mash-button-fg": {
+          "value": "var(--color-on-action)",
+          "tokens": [
+            "color.onAction"
+          ]
+        },
+        "--_mash-button-border": {
+          "value": "transparent",
+          "tokens": []
+        }
+      },
+      "presentation": {},
       "declarations": {
         "--_mash-button-tone": {
           "value": "var(--color-action)",
@@ -3299,12 +5308,48 @@
         "mash://shrine-confirm/node/confirm"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm[tone=\"critical\"]::part(confirm)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [
+          {
+            "kind": "node",
+            "nodeAddress": "mash://shrine-confirm/node/tone",
+            "operator": "equals",
+            "value": "critical"
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm[tone=\"critical\"]::part(confirm)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
       },
+      "parameters": {
+        "--_mash-button-tone": {
+          "value": "var(--color-critical)",
+          "tokens": [
+            "color.critical"
+          ]
+        },
+        "--_mash-button-hover": {
+          "value": "var(--color-critical-hover)",
+          "tokens": [
+            "color.criticalHover"
+          ]
+        },
+        "--_mash-button-pressed": {
+          "value": "var(--color-critical-pressed)",
+          "tokens": [
+            "color.criticalPressed"
+          ]
+        },
+        "--_mash-button-fg": {
+          "value": "var(--color-on-critical)",
+          "tokens": [
+            "color.onCritical"
+          ]
+        }
+      },
+      "presentation": {},
       "declarations": {
         "--_mash-button-tone": {
           "value": "var(--color-critical)",
@@ -3337,12 +5382,49 @@
         "mash://shrine-confirm/node/cancel"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
       },
+      "parameters": {
+        "--_mash-button-tone": {
+          "value": "var(--color-neutral)",
+          "tokens": [
+            "color.neutral"
+          ]
+        },
+        "--_mash-button-hover": {
+          "value": "var(--color-neutral-hover)",
+          "tokens": [
+            "color.neutralHover"
+          ]
+        },
+        "--_mash-button-pressed": {
+          "value": "var(--color-neutral-pressed)",
+          "tokens": [
+            "color.neutralPressed"
+          ]
+        },
+        "--_mash-button-bg": {
+          "value": "transparent",
+          "tokens": []
+        },
+        "--_mash-button-fg": {
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "--_mash-button-border": {
+          "value": "transparent",
+          "tokens": []
+        }
+      },
+      "presentation": {},
       "declarations": {
         "--_mash-button-tone": {
           "value": "var(--color-neutral)",
@@ -3383,11 +5465,114 @@
         "mash://shrine-confirm/node/confirm-control"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "inline-flex",
+          "tokens": []
+        },
+        "layout.alignItems": {
+          "sourceProperty": "align-items",
+          "kind": "literal",
+          "value": "center",
+          "tokens": []
+        },
+        "layout.justifyContent": {
+          "sourceProperty": "justify-content",
+          "kind": "literal",
+          "value": "center",
+          "tokens": []
+        },
+        "layout.margin": {
+          "sourceProperty": "margin",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "edge.all": {
+          "sourceProperty": "border",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--_mash-button-border)",
+          "tokens": [
+            "border.hairline"
+          ]
+        },
+        "edge.radius": {
+          "sourceProperty": "border-radius",
+          "kind": "token",
+          "token": "radius.control",
+          "value": "var(--radius-control)",
+          "tokens": [
+            "radius.control"
+          ]
+        },
+        "layout.padding": {
+          "sourceProperty": "padding",
+          "kind": "expression",
+          "value": "var(--_mash-button-block) var(--_mash-button-inline)",
+          "tokens": [
+            "space.controlBlock",
+            "space.controlInline"
+          ]
+        },
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "expression",
+          "value": "var(--_mash-button-bg)",
+          "tokens": [
+            "color.action",
+            "color.critical",
+            "color.neutral"
+          ]
+        },
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "expression",
+          "value": "var(--_mash-button-fg)",
+          "tokens": [
+            "color.onAction",
+            "color.onCritical",
+            "color.text"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--_mash-button-font-weight) var(--_mash-button-font-size) /\n      var(--_mash-button-line-height) var(--type-label-font-family)",
+          "tokens": [
+            "type.label.fontFamily",
+            "type.label.fontSize",
+            "type.label.fontWeight",
+            "type.label.lineHeight"
+          ]
+        },
+        "interaction.cursor": {
+          "sourceProperty": "cursor",
+          "kind": "literal",
+          "value": "pointer",
+          "tokens": []
+        },
+        "motion.transition": {
+          "sourceProperty": "transition",
+          "kind": "expression",
+          "value": "background-color var(--duration-control) var(--easing-control)",
+          "tokens": [
+            "duration.control",
+            "easing.control"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -3403,8 +5588,10 @@
           "tokens": []
         },
         "margin": {
-          "value": "0",
-          "tokens": []
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
         },
         "border": {
           "value": "var(--border-hairline) solid var(--_mash-button-border)",
@@ -3496,6 +5683,32 @@
               "space.controlInline"
             ]
           }
+        },
+        "margin": {
+          "blockStart": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          }
         }
       }
     },
@@ -3504,11 +5717,114 @@
         "mash://shrine-confirm/node/cancel-control"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.display": {
+          "sourceProperty": "display",
+          "kind": "literal",
+          "value": "inline-flex",
+          "tokens": []
+        },
+        "layout.alignItems": {
+          "sourceProperty": "align-items",
+          "kind": "literal",
+          "value": "center",
+          "tokens": []
+        },
+        "layout.justifyContent": {
+          "sourceProperty": "justify-content",
+          "kind": "literal",
+          "value": "center",
+          "tokens": []
+        },
+        "layout.margin": {
+          "sourceProperty": "margin",
+          "kind": "token",
+          "token": "layout.dimension.zero",
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "edge.all": {
+          "sourceProperty": "border",
+          "kind": "expression",
+          "value": "var(--border-hairline) solid var(--_mash-button-border)",
+          "tokens": [
+            "border.hairline"
+          ]
+        },
+        "edge.radius": {
+          "sourceProperty": "border-radius",
+          "kind": "token",
+          "token": "radius.control",
+          "value": "var(--radius-control)",
+          "tokens": [
+            "radius.control"
+          ]
+        },
+        "layout.padding": {
+          "sourceProperty": "padding",
+          "kind": "expression",
+          "value": "var(--_mash-button-block) var(--_mash-button-inline)",
+          "tokens": [
+            "space.controlBlock",
+            "space.controlInline"
+          ]
+        },
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "expression",
+          "value": "var(--_mash-button-bg)",
+          "tokens": [
+            "color.action",
+            "color.critical",
+            "color.neutral"
+          ]
+        },
+        "content.ink": {
+          "sourceProperty": "color",
+          "kind": "expression",
+          "value": "var(--_mash-button-fg)",
+          "tokens": [
+            "color.onAction",
+            "color.onCritical",
+            "color.text"
+          ]
+        },
+        "type.shorthand": {
+          "sourceProperty": "font",
+          "kind": "expression",
+          "value": "var(--_mash-button-font-weight) var(--_mash-button-font-size) /\n      var(--_mash-button-line-height) var(--type-label-font-family)",
+          "tokens": [
+            "type.label.fontFamily",
+            "type.label.fontSize",
+            "type.label.fontWeight",
+            "type.label.lineHeight"
+          ]
+        },
+        "interaction.cursor": {
+          "sourceProperty": "cursor",
+          "kind": "literal",
+          "value": "pointer",
+          "tokens": []
+        },
+        "motion.transition": {
+          "sourceProperty": "transition",
+          "kind": "expression",
+          "value": "background-color var(--duration-control) var(--easing-control)",
+          "tokens": [
+            "duration.control",
+            "easing.control"
+          ]
+        }
       },
       "declarations": {
         "display": {
@@ -3524,8 +5840,10 @@
           "tokens": []
         },
         "margin": {
-          "value": "0",
-          "tokens": []
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
         },
         "border": {
           "value": "var(--border-hairline) solid var(--_mash-button-border)",
@@ -3617,6 +5935,32 @@
               "space.controlInline"
             ]
           }
+        },
+        "margin": {
+          "blockStart": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--layout-dimension-zero)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          }
         }
       }
     },
@@ -3625,11 +5969,36 @@
         "mash://shrine-confirm/node/confirm-control"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control):hover:not(:disabled)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [
+          {
+            "kind": "interaction",
+            "state": "hover",
+            "active": true
+          },
+          {
+            "kind": "interaction",
+            "state": "disabled",
+            "active": false
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control):hover:not(:disabled)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "expression",
+          "value": "var(--_mash-button-hover)",
+          "tokens": [
+            "color.actionHover",
+            "color.criticalHover",
+            "color.neutralHover"
+          ]
+        }
       },
       "declarations": {
         "background": {
@@ -3647,11 +6016,36 @@
         "mash://shrine-confirm/node/cancel-control"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control):hover:not(:disabled)",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [
+          {
+            "kind": "interaction",
+            "state": "hover",
+            "active": true
+          },
+          {
+            "kind": "interaction",
+            "state": "disabled",
+            "active": false
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control):hover:not(:disabled)",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "surface.fill": {
+          "sourceProperty": "background",
+          "kind": "expression",
+          "value": "var(--_mash-button-hover)",
+          "tokens": [
+            "color.actionHover",
+            "color.criticalHover",
+            "color.neutralHover"
+          ]
+        }
       },
       "declarations": {
         "background": {
@@ -3669,11 +6063,39 @@
         "mash://shrine-confirm/node/confirm-control"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control):focus-visible",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [
+          {
+            "kind": "interaction",
+            "state": "focus-visible",
+            "active": true
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control):focus-visible",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "focus.ring": {
+          "sourceProperty": "outline",
+          "kind": "expression",
+          "value": "var(--border-focus-ring) solid var(--color-focus-ring)",
+          "tokens": [
+            "border.focusRing",
+            "color.focusRing"
+          ]
+        },
+        "focus.offset": {
+          "sourceProperty": "outline-offset",
+          "kind": "token",
+          "token": "border.focusRingOffset",
+          "value": "var(--border-focus-ring-offset)",
+          "tokens": [
+            "border.focusRingOffset"
+          ]
+        }
       },
       "declarations": {
         "outline": {
@@ -3696,11 +6118,39 @@
         "mash://shrine-confirm/node/cancel-control"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control):focus-visible",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [
+          {
+            "kind": "interaction",
+            "state": "focus-visible",
+            "active": true
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control):focus-visible",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "focus.ring": {
+          "sourceProperty": "outline",
+          "kind": "expression",
+          "value": "var(--border-focus-ring) solid var(--color-focus-ring)",
+          "tokens": [
+            "border.focusRing",
+            "color.focusRing"
+          ]
+        },
+        "focus.offset": {
+          "sourceProperty": "outline-offset",
+          "kind": "token",
+          "token": "border.focusRingOffset",
+          "value": "var(--border-focus-ring-offset)",
+          "tokens": [
+            "border.focusRingOffset"
+          ]
+        }
       },
       "declarations": {
         "outline": {
@@ -3723,11 +6173,33 @@
         "mash://shrine-confirm/node/confirm-control"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control):disabled",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [
+          {
+            "kind": "interaction",
+            "state": "disabled",
+            "active": true
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control):disabled",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "interaction.cursor": {
+          "sourceProperty": "cursor",
+          "kind": "literal",
+          "value": "not-allowed",
+          "tokens": []
+        },
+        "content.opacity": {
+          "sourceProperty": "opacity",
+          "kind": "literal",
+          "value": "0.65",
+          "tokens": []
+        }
       },
       "declarations": {
         "cursor": {
@@ -3745,11 +6217,33 @@
         "mash://shrine-confirm/node/cancel-control"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control):disabled",
-        "context": [
-          "@layer mash.catalogue"
-        ]
+        "conditions": [
+          {
+            "kind": "interaction",
+            "state": "disabled",
+            "active": true
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control):disabled",
+          "context": [
+            "@layer mash.catalogue"
+          ]
+        }
+      },
+      "presentation": {
+        "interaction.cursor": {
+          "sourceProperty": "cursor",
+          "kind": "literal",
+          "value": "not-allowed",
+          "tokens": []
+        },
+        "content.opacity": {
+          "sourceProperty": "opacity",
+          "kind": "literal",
+          "value": "0.65",
+          "tokens": []
+        }
       },
       "declarations": {
         "cursor": {
@@ -3767,17 +6261,46 @@
         "mash://sh-limb/node/root"
       ],
       "when": {
-        "renderer": "web",
-        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(root)",
-        "context": [
-          "@layer mash.catalogue",
-          "@media (max-width: 520px)"
-        ]
+        "conditions": [
+          {
+            "kind": "environment",
+            "feature": "viewport-inline-max",
+            "value": "520px"
+          }
+        ],
+        "web": {
+          "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(root)",
+          "context": [
+            "@layer mash.catalogue",
+            "@media (max-width: 520px)"
+          ]
+        }
+      },
+      "presentation": {
+        "layout.gridTemplateColumns": {
+          "sourceProperty": "grid-template-columns",
+          "kind": "expression",
+          "value": "minmax(var(--layout-dimension-zero), 1fr)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "layout.gap": {
+          "sourceProperty": "gap",
+          "kind": "token",
+          "token": "space.controlGap",
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
       },
       "declarations": {
         "grid-template-columns": {
-          "value": "minmax(0, 1fr)",
-          "tokens": []
+          "value": "minmax(var(--layout-dimension-zero), 1fr)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
         },
         "gap": {
           "value": "var(--space-control-gap)",
@@ -3788,10 +6311,26 @@
       },
       "layout": {
         "gap": {
-          "value": "var(--space-control-gap)",
-          "tokens": [
-            "space.controlGap"
-          ]
+          "inline": {
+            "value": "var(--space-control-gap)",
+            "tokens": [
+              "space.controlGap"
+            ]
+          },
+          "block": {
+            "value": "var(--space-control-gap)",
+            "tokens": [
+              "space.controlGap"
+            ]
+          }
+        },
+        "grid": {
+          "columns": {
+            "value": "minmax(var(--layout-dimension-zero), 1fr)",
+            "tokens": [
+              "layout.dimension.zero"
+            ]
+          }
         }
       }
     }

@@ -19,9 +19,17 @@
         "$value": "{dimension.reference.compact}",
         "$description": "A compact supporting region or short value measure."
       },
+      "supporting": {
+        "$value": "{dimension.reference.supporting}",
+        "$description": "A small supporting region or minimum workspace pane measure."
+      },
       "panel": {
         "$value": "{dimension.reference.panel}",
         "$description": "A supporting panel's preferred or minimum inline measure."
+      },
+      "inspector": {
+        "$value": "{dimension.reference.inspector}",
+        "$description": "A contextual inspector's preferred or maximum inline measure."
       },
       "dialog": {
         "$value": "{dimension.reference.dialog}",

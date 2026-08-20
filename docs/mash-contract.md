@@ -74,8 +74,9 @@ contains:
 - `default`: a typed attribute default, or an explicit statement that no value default exists;
 - `fallback`: what an omitted authored slot uses—empty content, a literal, one authored binding, or
   an ordered chain of authored bindings.
-- `reports`, on event bindings: payload paths and the semantic nodes whose values those fields
-  report.
+- `intent`, on event bindings: whether the output requests action or reports an observed result;
+- `relations`, on event bindings: typed payload paths and the semantic nodes those fields request
+  or report.
 
 Directions have precise meanings:
 
@@ -94,10 +95,18 @@ including the platform-independent `form-data` payload marker; enums carry `choi
 Mash types are expanded before export, so an adapter does not need to parse TypeScript to discover
 an event payload or configuration axis.
 
-Event reporting is inferred from the structured payload. When a top-level record field has the same
-stable ID as a non-event semantic node, the event binding records a `reports` relation from that
-field path to the node. Compound events can therefore report several controlled values without
-collapsing the event or inventing renderer-specific callback names.
+Event semantics are inferred from semantic roles rather than Web names. Action-family events and
+interaction roles such as `activate`, `select`, `submit`, `toggle`, and `reveal` are requests;
+value, state, progress, and measurement events are reports. When a top-level record field has the
+same stable ID as a non-event semantic node, the binding records a typed `requests` or `reports`
+relation from that field path to the node. Compound events can therefore relate several controlled
+values without collapsing the event or inventing renderer-specific callback names.
+
+The same inference rule keeps ordinary source terse. `@mashevent` is reserved for a real intent
+mismatch, such as a component named `*-change` that deliberately requests an owner-controlled
+value without mutating it. `@mashrelation` is reserved for a payload field whose name differs from
+the stable node it requests or reports. These annotations are build-time input only; the generated
+binding always carries the complete intent and relation data.
 
 Ordinary mappings need no source annotation. A surface named `title` infers the shared `title` role
 and node, the anonymous slot infers `content`, and event names normalize through the shared event
@@ -133,9 +142,11 @@ Each shipped catalogue has two synchronized artifacts:
 - `catalogue/mash.css` is the Web realization;
 - `catalogue/mash.json` accounts for every semantic node, marks whether it has a direct recipe or
   remains contract-only, marks its layout as constrained or unconstrained, indexes every
-  realization rule by node address, and records the exact DTCG token IDs used by that node.
-  Layout-bearing rules also carry normalized logical grouping, alignment, distribution, spacing,
-  overflow, positioning, and dimension constraints.
+  realization rule by node address, and records the exact DTCG token IDs used by that node. Every
+  rule carries portable semantic conditions and presentation traits alongside its Web selector and
+  declarations. Layout-bearing rules also carry normalized logical grouping, alignment,
+  distribution, per-axis gaps, content insets, margins, placement edges, layer, self-placement,
+  grid tracks, overflow, and min/preferred/max dimension constraints.
 
 `node scripts/build-catalogue-contract.mjs` generates the JSON from the Web recipe and
 `check:mash` rejects stale output or a selector that targets an undocumented part. Native adapters
@@ -156,6 +167,17 @@ The contract check also rejects visual declarations such as color, border, paddi
 shadow, and motion inside component shadow CSS; only interaction-critical structural mechanics stay
 with a definition.
 
+The portable presentation layer classifies each Web declaration into stable traits such as
+`surface.fill`, `content.ink`, `edge.radius`, `type.size`, `motion.transition`, and logical layout
+traits. Direct DTCG references are serialized as token values; compound expressions retain their
+ordered token dependencies. Conditions address semantic nodes (`checked`, `variant`, `open`),
+renderer-independent interaction states, environment features, or catalogue layout context.
+Renderer-only selectors are explicit and measurable instead of being silently treated as portable.
+Catalogue-private variables are serialized as ordered `parameters`. They remain an authoring and
+cascade mechanism, not a public component API; a native adapter resolves the matching parameter
+assignments before applying a presentation trait. This preserves compound variant recipes such as
+button tone × emphasis without forcing GPUI or Swift to parse CSS.
+
 ## Semantic layout vocabulary
 
 Layout recipes use logical rather than physical coordinates. `block`, `inline`, and `depth` survive
@@ -165,9 +187,11 @@ grid groups may declare an axis and wrapping. Alignment and distribution use sem
 `leading`, `center`, and `trailing`, never CSS-only `left` and `right`.
 
 Each node may independently declare min, preferred, and max dimensions on both logical axes, plus
-gap, four logical inset edges, overflow, and positioning. Fixed layout measures must reference DTCG
-tokens. Intrinsic values such as `auto`, `max-content`, percentages, and viewport-relative values
-remain portable recipe values because they describe a relationship rather than an authored length.
+per-axis gaps, four logical content inset and margin edges, positioned edges, layering,
+self-alignment, grid placement, overflow, and positioning. Fixed layout measures must reference
+DTCG tokens. Intrinsic values such as `auto`, `max-content`, percentages, and viewport-relative
+values remain portable recipe values because they describe a relationship rather than an authored
+length.
 
 The token graph supplies semantic grouping gaps and reusable layout dimensions—including zero,
 glyph, control, compact, panel, dialog, readable measure, content, record, and workspace measures.
@@ -188,15 +212,44 @@ and preserve unknown additive fields when forwarding a newer compatible contract
 and binding addresses are public identities: renaming or repurposing one is a breaking component
 contract change even when the JSON Schema version itself does not change.
 
-## Conformance boundary
+## Cross-renderer conformance
 
-Today the JSON Schema validates serialized shape, while the manifest generator validates
-shared-role membership, address uniqueness, and parent existence. Browser tests exercise the Web
-implementation's covered behaviour. The catalogue renders the real packages and recipes, so it is
-an evidence and review surface rather than a second implementation.
+`@mash/conformance` publishes one canonical SurfaceTree fixture for every component and behavior
+fixtures whose actions and expectations address semantic nodes only. A fixture says “activate the
+control node and expect the change node to report `checked`”; a Web runner finds the corresponding
+part and DOM event from its binding manifest, while GPUI uses its native builder and callback.
+Nested authored components are represented recursively, so composite behavior such as tree-item
+keyboard selection is still renderer-neutral.
 
-Cross-renderer behaviour conformance is still manual. A GPUI, React, or Swift adapter can consume
-the node graph and preserve its roles, inputs, state, outputs, and topology, but the repository does
-not yet run one renderer-neutral behaviour fixture suite against every adapter. Until that exists,
-matching addresses and schema validation prove contract alignment—not identical focus, keyboard,
-accessibility, or event behaviour on another platform.
+Each SurfaceTree node carries its language-neutral accepted value schemas, defaults, fallbacks,
+availability, and semantic channels (`content`, `input`, `state`, `output`, or `realization`). Those
+are synthesized from renderer bindings without retaining DOM names, so a native state handle can
+validate the same boolean, enum, record, or collection contract and recover the same fallback.
+
+The Web runner upgrades all 82 components, verifies every authored slot realization, and executes
+the shared behavior fixtures. The GPUI adapter embeds those same fixtures and rejects missing node
+or event handles, invalid language-neutral payloads, stale recipes, unknown targets, and GPUI Base
+mappings to unpublished components. Native implementations submit their realized node topology and
+event intents to `MashAdapter::compare_renderer_snapshot`; matching fixtures prove shared semantic
+topology and event meaning. Renderer-specific focus, accessibility, and pixels still require their
+native test suites; the fixture does not pretend a DOM and a GPUI scene graph use identical
+mechanics.
+
+## GPUI adapter
+
+`adapters/gpui` consumes the contract without translating Mash into Web terminology. `gpui-base`
+supplies unstyled native behavior; `MashAdapter` supplies SurfaceTree identity, token resolution,
+catalogue conditions, state and event handles, and presentation. `MashStyledExt::mash_node` applies
+a semantic-node recipe to any `gpui-base` primitive implementing `gpui::Styled`.
+
+The generated GPUI runtime deliberately strips Web selectors and declaration maps. It retains
+portable node conditions, semantic layout, presentation traits, token provenance, and ordered
+private recipe parameters. Cargo's checked-in lockfile pins both `gpui-base` and its single GPUI
+type graph; the crate pins the compatible Rust compiler in `rust-toolchain.toml`.
+
+`adapters/gpui/presentation-support.json` is the native presentation coverage gate. Every trait in
+both catalogues must have exactly one owner. Common sizing, flex/grid, spacing, edge, overflow,
+color, and typography traits flow through the generic `MashStyledExt`; focus, motion, SVG, input,
+generated content, and other node-specific traits are assigned to named specialized realizations.
+Generation fails for an unknown, unused, or multiply owned trait, and Rust tests prove that the
+published generic list matches the implementation.

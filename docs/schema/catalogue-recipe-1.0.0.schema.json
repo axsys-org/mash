@@ -10,6 +10,8 @@
     "componentContract",
     "layoutContract",
     "layoutVocabulary",
+    "presentationContract",
+    "presentationVocabulary",
     "nodes",
     "rules"
   ],
@@ -23,7 +25,7 @@
       "type": "string",
       "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
     },
-    "layoutContract": { "const": "1.0.0" },
+    "layoutContract": { "const": "1.1.0" },
     "layoutVocabulary": {
       "type": "object",
       "required": [
@@ -33,7 +35,8 @@
         "distributions",
         "overflow",
         "positions",
-        "dimensions"
+        "dimensions",
+        "edges"
       ],
       "additionalProperties": false,
       "properties": {
@@ -78,6 +81,63 @@
         "dimensions": {
           "type": "array",
           "items": { "enum": ["min", "preferred", "max"] }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "enum": ["blockStart", "blockEnd", "inlineStart", "inlineEnd"]
+          }
+        }
+      }
+    },
+    "presentationContract": { "const": "1.0.0" },
+    "presentationVocabulary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "aspects",
+        "eventIntents",
+        "relationKinds",
+        "conditionKinds"
+      ],
+      "properties": {
+        "aspects": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "surface",
+              "content",
+              "edge",
+              "focus",
+              "elevation",
+              "type",
+              "motion",
+              "interaction",
+              "media",
+              "generated",
+              "layout"
+            ]
+          }
+        },
+        "eventIntents": {
+          "type": "array",
+          "items": { "enum": ["request", "report"] }
+        },
+        "relationKinds": {
+          "type": "array",
+          "items": { "enum": ["requests", "reports"] }
+        },
+        "conditionKinds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "node",
+              "interaction",
+              "environment",
+              "context",
+              "renderer"
+            ]
+          }
         }
       }
     },
@@ -104,7 +164,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["targets", "when", "declarations"],
+        "required": ["targets", "when", "presentation", "declarations"],
         "properties": {
           "targets": {
             "type": "array",
@@ -114,29 +174,39 @@
           },
           "when": {
             "type": "object",
-            "required": ["renderer", "selector", "context"],
+            "required": ["conditions", "web"],
             "properties": {
-              "renderer": { "const": "web" },
-              "selector": { "type": "string" },
-              "context": { "type": "array", "items": { "type": "string" } }
+              "conditions": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/condition" }
+              },
+              "web": {
+                "type": "object",
+                "required": ["selector", "context"],
+                "additionalProperties": false,
+                "properties": {
+                  "selector": { "type": "string" },
+                  "context": { "type": "array", "items": { "type": "string" } }
+                }
+              }
             },
             "additionalProperties": false
           },
+          "presentation": {
+            "type": "object",
+            "propertyNames": {
+              "pattern": "^[a-z][a-zA-Z]*(?:\\.[a-z][a-zA-Z]*)+$"
+            },
+            "additionalProperties": { "$ref": "#/$defs/presentationValue" }
+          },
+          "parameters": {
+            "type": "object",
+            "propertyNames": { "pattern": "^--_" },
+            "additionalProperties": { "$ref": "#/$defs/recipeValue" }
+          },
           "declarations": {
             "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "required": ["value", "tokens"],
-              "properties": {
-                "value": { "type": "string" },
-                "tokens": {
-                  "type": "array",
-                  "items": { "type": "string" },
-                  "uniqueItems": true
-                }
-              },
-              "additionalProperties": false
-            }
+            "additionalProperties": { "$ref": "#/$defs/recipeValue" }
           },
           "layout": {
             "$ref": "#/$defs/layout"
@@ -147,6 +217,100 @@
     }
   },
   "$defs": {
+    "recipeValue": {
+      "type": "object",
+      "required": ["value", "tokens"],
+      "properties": {
+        "value": { "type": "string" },
+        "tokens": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "presentationValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceProperty", "kind", "value", "tokens"],
+      "properties": {
+        "sourceProperty": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["token", "literal", "expression"] },
+        "value": { "type": "string" },
+        "tokens": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "token": { "type": "string", "minLength": 1 }
+      }
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "nodeAddress", "operator"],
+          "properties": {
+            "kind": { "const": "node" },
+            "nodeAddress": { "type": "string", "pattern": "^mash://" },
+            "operator": {
+              "enum": [
+                "truthy",
+                "falsy",
+                "equals",
+                "starts-with",
+                "ends-with",
+                "contains"
+              ]
+            },
+            "value": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "state", "active"],
+          "properties": {
+            "kind": { "const": "interaction" },
+            "state": { "type": "string" },
+            "active": { "type": "boolean" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "feature", "value"],
+          "properties": {
+            "kind": { "const": "environment" },
+            "feature": { "type": "string" },
+            "value": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "name", "operator"],
+          "properties": {
+            "kind": { "const": "context" },
+            "name": { "type": "string" },
+            "operator": { "type": "string" },
+            "value": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "renderer", "selector"],
+          "properties": {
+            "kind": { "const": "renderer" },
+            "renderer": { "const": "web" },
+            "selector": { "type": "string" }
+          }
+        }
+      ]
+    },
     "measure": {
       "type": "object",
       "required": ["value", "tokens"],
@@ -199,7 +363,14 @@
             "stretch"
           ]
         },
-        "gap": { "$ref": "#/$defs/measure" },
+        "gap": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "inline": { "$ref": "#/$defs/measure" },
+            "block": { "$ref": "#/$defs/measure" }
+          }
+        },
         "dimensions": {
           "type": "object",
           "additionalProperties": false,
@@ -218,6 +389,55 @@
             "inlineEnd": { "$ref": "#/$defs/measure" }
           }
         },
+        "margin": {
+          "$ref": "#/$defs/edges"
+        },
+        "placement": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "blockStart": { "$ref": "#/$defs/measure" },
+            "blockEnd": { "$ref": "#/$defs/measure" },
+            "inlineStart": { "$ref": "#/$defs/measure" },
+            "inlineEnd": { "$ref": "#/$defs/measure" },
+            "layer": { "$ref": "#/$defs/measure" }
+          }
+        },
+        "self": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "align": {
+              "enum": ["leading", "center", "trailing", "stretch", "baseline"]
+            },
+            "justify": {
+              "enum": [
+                "leading",
+                "center",
+                "trailing",
+                "between",
+                "around",
+                "evenly",
+                "stretch"
+              ]
+            },
+            "grow": { "type": "string" },
+            "shrink": { "type": "string" },
+            "basis": { "$ref": "#/$defs/measure" },
+            "gridRow": { "type": "string" },
+            "gridColumn": { "type": "string" }
+          }
+        },
+        "grid": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "columns": { "$ref": "#/$defs/measure" },
+            "rows": { "$ref": "#/$defs/measure" },
+            "autoFlow": { "type": "string" }
+          }
+        },
+        "aspectRatio": { "type": "string" },
         "overflow": {
           "type": "object",
           "additionalProperties": false,
@@ -231,6 +451,16 @@
         "position": {
           "enum": ["flow", "relative", "absolute", "fixed", "sticky"]
         }
+      }
+    },
+    "edges": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "blockStart": { "$ref": "#/$defs/measure" },
+        "blockEnd": { "$ref": "#/$defs/measure" },
+        "inlineStart": { "$ref": "#/$defs/measure" },
+        "inlineEnd": { "$ref": "#/$defs/measure" }
       }
     }
   },

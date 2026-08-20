@@ -77,6 +77,22 @@ importers:
         specifier: 4.1.10
         version: 4.1.10(@types/node@26.2.0)(@vitest/browser-playwright@4.1.10)(vite@8.2.1(@types/node@26.2.0))
 
+  packages/conformance:
+    dependencies:
+      '@mash/shrine':
+        specifier: workspace:*
+        version: link:../shrine-components
+      '@mash/ui':
+        specifier: workspace:*
+        version: link:../components
+    devDependencies:
+      '@types/node':
+        specifier: 26.2.0
+        version: 26.2.0
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
   packages/shrine-components:
     dependencies:
       '@mash/ui':
@@ -125,6 +141,9 @@ importers:
 
   tests/integration:
     devDependencies:
+      '@mash/conformance':
+        specifier: workspace:*
+        version: link:../../packages/conformance
       '@mash/shrine':
         specifier: workspace:*
         version: link:../../packages/shrine-components

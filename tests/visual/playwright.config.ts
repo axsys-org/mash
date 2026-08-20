@@ -21,8 +21,9 @@ import { defineConfig, devices } from "@playwright/test";
  */
 
 // Worktree reviews often keep another catalog preview on the default port.
-// Let an explicit run select a clean port, while CI and ordinary local review
-// retain the documented default address.
+// Let an explicit run select a clean port. Never reuse an existing server:
+// doing so can test stale bytes from a different worktree while reporting them
+// as the current production build.
 const PORT = Number(process.env.MASH_CATALOG_PORT ?? 5175);
 const isCI = Boolean(process.env.CI);
 
@@ -63,7 +64,7 @@ export default defineConfig({
     // vite preview does not build.
     command: `pnpm --filter @mash/catalog exec vite preview --port ${PORT} --strictPort`,
     port: PORT,
-    reuseExistingServer: !isCI,
+    reuseExistingServer: false,
     stdout: "ignore",
     stderr: "pipe",
   },

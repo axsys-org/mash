@@ -20,7 +20,7 @@
   :where([data-mash-catalogue="mash"]) ui-radio::part(root),
   :where([data-mash-catalogue="mash"]) ui-switch::part(root) {
     display: inline-grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(var(--layout-dimension-zero), 1fr);
     align-items: center;
     gap: var(--space-control-gap);
     color: var(--color-text);
@@ -497,6 +497,12 @@
     background: var(--color-surface-sunken);
   }
 
+  :where([data-mash-catalogue="mash"]) ui-meter {
+    display: inline-block;
+    inline-size: var(--layout-dimension-panel);
+    max-inline-size: 100%;
+  }
+
   :where([data-mash-catalogue="mash"]) ui-meter::part(root) {
     inline-size: 100%;
     block-size: var(--space-control-block);
@@ -653,7 +659,7 @@
   :where([data-mash-catalogue="mash"]) ui-fieldset::part(root) {
     display: grid;
     gap: var(--space-control-gap);
-    margin: 0;
+    margin: var(--layout-dimension-zero);
     border: var(--border-hairline) solid var(--color-border);
     border-radius: var(--radius-container);
     padding: var(--space-container-block) var(--space-container-inline);
@@ -748,7 +754,7 @@
   :where([data-mash-catalogue="mash"]) ui-tooltip::part(backdrop) {
     position: fixed;
     z-index: var(--layer-overlay);
-    inset: 0;
+    inset: var(--layout-dimension-zero);
     display: grid;
     place-items: center;
     padding: var(--space-container-inline);
@@ -787,6 +793,8 @@
   :where([data-mash-catalogue="mash"]) ui-preview-card::part(popup),
   :where([data-mash-catalogue="mash"]) ui-tooltip::part(popup) {
     max-inline-size: min(100%, calc(var(--space-container-inline) * 18));
+    max-block-size: calc(100dvh - var(--space-container-inline) * 2);
+    overflow: auto;
     border: var(--border-hairline) solid var(--color-border);
     border-radius: var(--radius-container);
     padding: var(--space-container-block) var(--space-container-inline);
@@ -1952,7 +1960,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin: 0;
+    margin: var(--layout-dimension-zero);
     border: var(--border-hairline) solid var(--_mash-button-border);
     border-radius: var(--radius-control);
     padding: var(--_mash-button-block) var(--_mash-button-inline);
@@ -2392,7 +2400,7 @@
   }
   :where([data-mash-catalogue="mash"]) ui-tree-item::part(root) {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(var(--layout-dimension-zero), 1fr) auto;
     align-items: center;
     min-inline-size: var(--layout-dimension-zero);
   }
@@ -2414,7 +2422,7 @@
   :where([data-mash-catalogue="mash"]) ui-tree-item::part(control) {
     grid-column: 2;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(var(--layout-dimension-zero), 1fr) auto;
     align-items: center;
     min-inline-size: var(--layout-dimension-zero);
     inline-size: 100%;

@@ -10,7 +10,9 @@
         "$description": "40px at the default root size; the default compact interactive dimension."
       },
       "compact": { "$value": { "value": 8, "unit": "rem" } },
+      "supporting": { "$value": { "value": 12, "unit": "rem" } },
       "panel": { "$value": { "value": 16, "unit": "rem" } },
+      "inspector": { "$value": { "value": 20, "unit": "rem" } },
       "dialog": { "$value": { "value": 34, "unit": "rem" } },
       "measure": { "$value": { "value": 40, "unit": "rem" } },
       "content": { "$value": { "value": 48, "unit": "rem" } },

@@ -10,6 +10,11 @@ import {
   MASH_LAYOUT_VOCABULARY,
   mashLayoutFromDeclarations,
 } from "./mash-layout.mjs";
+import {
+  MASH_PRESENTATION_VERSION,
+  MASH_PRESENTATION_VOCABULARY,
+  mashPresentationFromDeclarations,
+} from "./mash-presentation.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const CHECK = process.argv.includes("--check");
@@ -34,6 +39,7 @@ const tokenGraph = JSON.parse(
 const tokenByVariable = new Map(
   Object.values(tokenGraph.tokens).map((token) => [token.cssVar, token.id]),
 );
+const tokenIds = new Set(Object.keys(tokenGraph.tokens));
 
 function declarations(source) {
   const found = {};
@@ -95,26 +101,35 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function ownerFor(source, declarationsByTag) {
+  let owner;
+  let ownerIndex = -1;
+  for (const [tagName, declaration] of declarationsByTag) {
+    for (const occurrence of source.matchAll(new RegExp(escapeRegExp(tagName), "g"))) {
+      const index = occurrence.index ?? -1;
+      const before = source[index - 1];
+      const after = source[index + tagName.length];
+      if ((before && /[\w-]/.test(before)) || (after && /[\w-]/.test(after))) continue;
+      if (index > ownerIndex) {
+        owner = declaration;
+        ownerIndex = index;
+      }
+    }
+  }
+  return owner;
+}
+
+function rootAddress(declaration) {
+  const root = declaration?.mash.nodes.find((node) => node.id === "root" || node.role === "root");
+  return root?.address ?? declaration?.mash.address;
+}
+
 function targetsFor(selector, declarationsByTag) {
   const targets = new Set();
   const partMatches = [...selector.matchAll(/::part\(([^)]+)\)/g)];
   if (partMatches.length > 0) {
     for (const match of partMatches) {
-      const prefix = selector.slice(0, match.index);
-      let owner;
-      let ownerIndex = -1;
-      for (const [tagName, declaration] of declarationsByTag) {
-        for (const occurrence of prefix.matchAll(new RegExp(escapeRegExp(tagName), "g"))) {
-          const index = occurrence.index ?? -1;
-          const before = prefix[index - 1];
-          const after = prefix[index + tagName.length];
-          if ((before && /[\w-]/.test(before)) || (after && /[\w-]/.test(after))) continue;
-          if (index > ownerIndex) {
-            owner = declaration;
-            ownerIndex = index;
-          }
-        }
-      }
+      const owner = ownerFor(selector.slice(0, match.index), declarationsByTag);
       if (!owner) continue;
       const binding = owner.mash.bindings.find(
         (candidate) => candidate.kind === "part" && candidate.name === match[1],
@@ -126,16 +141,129 @@ function targetsFor(selector, declarationsByTag) {
       }
       targets.add(binding.nodeAddress);
     }
-  } else {
-    for (const [tagName, declaration] of declarationsByTag) {
-      if (!new RegExp(`(^|[^\\w-])${escapeRegExp(tagName)}(?=$|[^\\w-])`).test(selector)) continue;
-      const root = declaration.mash.nodes.find(
-        (node) => node.id === "root" || node.role === "root",
+    return [...targets].sort();
+  }
+
+  const owner = ownerFor(selector, declarationsByTag);
+  if (!owner) return [];
+  const slotMatch = selector.match(/\[slot=["']([^"']+)["']\]/);
+  if (slotMatch) {
+    const slotOwner = ownerFor(selector.slice(0, slotMatch.index), declarationsByTag) ?? owner;
+    const binding = slotOwner.mash.bindings.find(
+      (candidate) => candidate.kind === "slot" && candidate.name === slotMatch[1],
+    );
+    if (!binding) {
+      throw new Error(
+        `${slotOwner.tagName} recipe targets undocumented slot ${slotMatch[1]} in ${selector}`,
       );
-      targets.add(root?.address ?? declaration.mash.address);
     }
+    targets.add(binding.nodeAddress);
+  } else {
+    targets.add(rootAddress(owner));
   }
   return [...targets].sort();
+}
+
+function conditionsFor(selector, context, declarationsByTag) {
+  const owner = ownerFor(selector.split("::part(")[0], declarationsByTag);
+  const conditions = [];
+  const append = (condition) => {
+    if (!conditions.some((candidate) => JSON.stringify(candidate) === JSON.stringify(condition))) {
+      conditions.push(condition);
+    }
+  };
+  const nodeFor = (name) =>
+    owner?.mash.nodes.find((node) => node.id === name || node.role === name)?.address;
+
+  for (const match of selector.matchAll(/\[([a-z][\w-]*)(?:([\^$*]?=)["']([^"']*)["'])?\]/g)) {
+    const [, name, rawOperator, value] = match;
+    if (name === "data-mash-catalogue" || name === "slot") continue;
+    const negative = selector.includes(`:not(${match[0]})`);
+    if (name === "data-mash-toolbar-dock") {
+      append({
+        kind: "context",
+        name: "dock",
+        operator: negative ? "absent" : rawOperator ? "equals" : "present",
+        ...(value !== undefined ? { value } : {}),
+      });
+      continue;
+    }
+    const semanticName = name.startsWith("aria-") ? name.slice(5) : name;
+    const nodeAddress = nodeFor(semanticName);
+    if (!nodeAddress) {
+      append({ kind: "renderer", renderer: "web", selector: match[0] });
+      continue;
+    }
+    const operators = { "^=": "starts-with", "$=": "ends-with", "*=": "contains" };
+    append({
+      kind: "node",
+      nodeAddress,
+      operator: negative ? "falsy" : rawOperator ? (operators[rawOperator] ?? "equals") : "truthy",
+      ...(value !== undefined ? { value } : {}),
+    });
+  }
+
+  for (const match of selector.matchAll(/:state\(([a-z][\w-]*)\)/g)) {
+    const nodeAddress = nodeFor(match[1]);
+    if (!nodeAddress) {
+      append({ kind: "renderer", renderer: "web", selector: match[0] });
+      continue;
+    }
+    append({
+      kind: "node",
+      nodeAddress,
+      operator: selector.includes(`:not(${match[0]})`) ? "falsy" : "truthy",
+    });
+  }
+
+  for (const match of selector.matchAll(
+    /:(focus-visible|focus-within|hover|active|disabled|checked)\b/g,
+  )) {
+    const name = match[1];
+    if (name === "disabled" || name === "checked") {
+      const nodeAddress = nodeFor(name);
+      if (nodeAddress) {
+        append({
+          kind: "node",
+          nodeAddress,
+          operator: selector.includes(`:not(:${name})`) ? "falsy" : "truthy",
+        });
+        continue;
+      }
+    }
+    append({
+      kind: "interaction",
+      state: name,
+      active: !selector.includes(`:not(:${name})`),
+    });
+  }
+
+  for (const match of selector.matchAll(/:dir\((rtl|ltr)\)/g)) {
+    append({ kind: "environment", feature: "direction", value: match[1] });
+  }
+
+  if (selector.includes("::-webkit-scrollbar")) {
+    append({ kind: "renderer", renderer: "web", selector: "::-webkit-scrollbar" });
+  }
+
+  for (const query of context) {
+    const reducedMotion = query.match(/prefers-reduced-motion:\s*(reduce|no-preference)/);
+    if (reducedMotion) {
+      append({ kind: "environment", feature: "reduced-motion", value: reducedMotion[1] });
+      continue;
+    }
+    const forcedColors = query.match(/forced-colors:\s*(active|none)/);
+    if (forcedColors) {
+      append({ kind: "environment", feature: "forced-colors", value: forcedColors[1] });
+      continue;
+    }
+    const maxInline = query.match(/max-width:\s*([^)]+)/);
+    if (maxInline) {
+      append({ kind: "environment", feature: "viewport-inline-max", value: maxInline[1].trim() });
+    }
+  }
+
+  return conditions;
 }
 
 function variableReferences(value) {
@@ -214,10 +342,19 @@ for (const packageConfig of packages) {
         ]),
       );
       const layout = mashLayoutFromDeclarations(rule.declarations, tokensFor);
+      const presentation = mashPresentationFromDeclarations(rule.declarations, tokensFor);
+      const parameters = Object.fromEntries(
+        Object.entries(realized).filter(([property]) => property.startsWith("--_")),
+      );
       requireLayoutTokens(layout, selector);
       recipeRules.push({
         targets,
-        when: { renderer: "web", selector, context: rule.context },
+        when: {
+          conditions: conditionsFor(selector, rule.context, declarationsByTag),
+          web: { selector, context: rule.context },
+        },
+        ...(Object.keys(parameters).length > 0 ? { parameters } : {}),
+        presentation,
         declarations: realized,
         ...(layout ? { layout } : {}),
       });
@@ -240,6 +377,8 @@ for (const packageConfig of packages) {
     componentContract: manifest.mash.version,
     layoutContract: MASH_LAYOUT_VERSION,
     layoutVocabulary: MASH_LAYOUT_VOCABULARY,
+    presentationContract: MASH_PRESENTATION_VERSION,
+    presentationVocabulary: MASH_PRESENTATION_VOCABULARY,
     source: `./${path.basename(packageConfig.css)}`,
     nodes: Object.fromEntries(
       [...nodeTokens]
@@ -255,6 +394,52 @@ for (const packageConfig of packages) {
     ),
     rules: recipeRules,
   };
+
+  const nodeAddresses = new Set(
+    declarationList.flatMap((declaration) => declaration.mash.nodes.map((node) => node.address)),
+  );
+  for (const rule of output.rules) {
+    for (const target of rule.targets) {
+      if (!nodeAddresses.has(target))
+        throw new Error(`Catalogue rule targets unknown node ${target}.`);
+    }
+    for (const condition of rule.when.conditions) {
+      if (condition.kind === "node" && !nodeAddresses.has(condition.nodeAddress)) {
+        throw new Error(`Catalogue condition targets unknown node ${condition.nodeAddress}.`);
+      }
+    }
+    const publicDeclarations = Object.keys(rule.declarations).filter(
+      (property) => !property.startsWith("--_"),
+    );
+    const parameterDeclarations = Object.keys(rule.declarations).filter((property) =>
+      property.startsWith("--_"),
+    );
+    if (
+      parameterDeclarations.length !== Object.keys(rule.parameters ?? {}).length ||
+      parameterDeclarations.some((property) => !(property in (rule.parameters ?? {})))
+    ) {
+      throw new Error(
+        `Catalogue rule ${rule.when.web.selector} has incomplete portable parameters.`,
+      );
+    }
+    if (Object.keys(rule.presentation).length !== publicDeclarations.length) {
+      throw new Error(
+        `Catalogue rule ${rule.when.web.selector} has incomplete presentation traits.`,
+      );
+    }
+    for (const [trait, presentation] of Object.entries(rule.presentation)) {
+      if (!MASH_PRESENTATION_VOCABULARY.aspects.includes(trait.split(".")[0])) {
+        throw new Error(`Catalogue rule emits unknown presentation trait ${trait}.`);
+      }
+      if (!(presentation.sourceProperty in rule.declarations)) {
+        throw new Error(`Catalogue trait ${trait} has no Web source declaration.`);
+      }
+      for (const token of presentation.tokens) {
+        if (!tokenIds.has(token))
+          throw new Error(`Catalogue trait ${trait} uses unknown token ${token}.`);
+      }
+    }
+  }
   const rendered = `${JSON.stringify(output, null, 2)}\n`;
   const outputPath = path.join(ROOT, packageConfig.output);
   if (CHECK) {

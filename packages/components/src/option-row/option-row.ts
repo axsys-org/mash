@@ -27,9 +27,9 @@ import { baseStyles } from "../internal/base-styles.js";
  * @mashrole slot default children children
  */
 export class UIOptionRow extends LitElement {
-  constructor() {
-    super();
-    this.setAttribute("role", "row");
+  override connectedCallback(): void {
+    super.connectedCallback();
+    if (!this.hasAttribute("role")) this.setAttribute("role", "row");
   }
 
   static override styles = [

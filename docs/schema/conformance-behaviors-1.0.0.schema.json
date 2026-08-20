@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mash.axsys.dev/schema/conformance-behaviors-1.0.0.json",
+  "title": "Mash cross-renderer behavior fixtures",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "version", "fixtures"],
+  "properties": {
+    "$schema": {
+      "const": "https://mash.axsys.dev/schema/conformance-behaviors-1.0.0.json"
+    },
+    "version": { "const": "1.0.0" },
+    "fixtures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "component", "steps", "expects"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "component": { "type": "string", "minLength": 1 },
+          "authored": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                { "type": "string" },
+                { "$ref": "#/$defs/authoredComponent" }
+              ]
+            }
+          },
+          "initial": { "type": "object" },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["action", "node"],
+              "properties": {
+                "action": { "enum": ["activate", "focus", "key", "set"] },
+                "node": { "type": "string", "minLength": 1 },
+                "key": { "type": "string" },
+                "value": {}
+              }
+            }
+          },
+          "expects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["event", "intent"],
+              "properties": {
+                "event": { "type": "string", "minLength": 1 },
+                "intent": { "enum": ["request", "report"] },
+                "detail": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "authoredComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component"],
+      "properties": {
+        "component": { "type": "string", "minLength": 1 },
+        "initial": { "type": "object" },
+        "authored": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "string" },
+              { "$ref": "#/$defs/authoredComponent" }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
