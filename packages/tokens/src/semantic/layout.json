@@ -1,0 +1,48 @@
+{
+  "layout": {
+    "$type": "dimension",
+    "$description": "Semantic measures for constraints attached directly to Mash SurfaceTree nodes. Whether a measure is a minimum, preferred, or maximum value belongs to the node recipe, not to the token name.",
+    "dimension": {
+      "zero": {
+        "$value": "{dimension.reference.0}",
+        "$description": "A zero minimum that permits a nested region to shrink and scroll correctly."
+      },
+      "glyph": {
+        "$value": "{dimension.reference.glyph}",
+        "$description": "A compact icon, indicator, or spinner measure."
+      },
+      "control": {
+        "$value": "{dimension.reference.control}",
+        "$description": "The default compact interactive block or inline measure."
+      },
+      "compact": {
+        "$value": "{dimension.reference.compact}",
+        "$description": "A compact supporting region or short value measure."
+      },
+      "panel": {
+        "$value": "{dimension.reference.panel}",
+        "$description": "A supporting panel's preferred or minimum inline measure."
+      },
+      "dialog": {
+        "$value": "{dimension.reference.dialog}",
+        "$description": "A focused dialog or confirmation surface's maximum inline measure."
+      },
+      "measure": {
+        "$value": "{dimension.reference.measure}",
+        "$description": "A readable maximum line or form measure."
+      },
+      "content": {
+        "$value": "{dimension.reference.content}",
+        "$description": "A broad content surface's maximum inline measure."
+      },
+      "record": {
+        "$value": "{dimension.reference.record}",
+        "$description": "A broad structured record surface's maximum inline measure."
+      },
+      "workspace": {
+        "$value": "{dimension.reference.workspace}",
+        "$description": "A wide workspace composition measure."
+      }
+    }
+  }
+}

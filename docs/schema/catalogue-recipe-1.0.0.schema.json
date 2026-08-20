@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mash.axsys.dev/schema/catalogue-recipe-1.0.0.json",
+  "title": "Mash catalogue recipe",
+  "type": "object",
+  "required": [
+    "$schema",
+    "version",
+    "name",
+    "componentContract",
+    "layoutContract",
+    "layoutVocabulary",
+    "nodes",
+    "rules"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://mash.axsys.dev/schema/catalogue-recipe-1.0.0.json"
+    },
+    "version": { "const": "1.0.0" },
+    "name": { "type": "string", "minLength": 1 },
+    "componentContract": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "layoutContract": { "const": "1.0.0" },
+    "layoutVocabulary": {
+      "type": "object",
+      "required": [
+        "axes",
+        "groups",
+        "alignments",
+        "distributions",
+        "overflow",
+        "positions",
+        "dimensions"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "axes": {
+          "type": "array",
+          "items": { "enum": ["block", "inline", "depth"] }
+        },
+        "groups": {
+          "type": "array",
+          "items": { "enum": ["none", "contents", "flow", "grid", "overlay"] }
+        },
+        "alignments": {
+          "type": "array",
+          "items": {
+            "enum": ["leading", "center", "trailing", "stretch", "baseline"]
+          }
+        },
+        "distributions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "leading",
+              "center",
+              "trailing",
+              "between",
+              "around",
+              "evenly",
+              "stretch"
+            ]
+          }
+        },
+        "overflow": {
+          "type": "array",
+          "items": { "enum": ["visible", "clip", "hidden", "auto", "scroll"] }
+        },
+        "positions": {
+          "type": "array",
+          "items": {
+            "enum": ["flow", "relative", "absolute", "fixed", "sticky"]
+          }
+        },
+        "dimensions": {
+          "type": "array",
+          "items": { "enum": ["min", "preferred", "max"] }
+        }
+      }
+    },
+    "source": { "type": "string" },
+    "nodes": {
+      "type": "object",
+      "propertyNames": { "pattern": "^mash://" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["tokens", "coverage", "layout"],
+        "properties": {
+          "tokens": {
+            "type": "array",
+            "items": { "type": "string" },
+            "uniqueItems": true
+          },
+          "coverage": { "enum": ["direct", "contract-only"] },
+          "layout": { "enum": ["constrained", "unconstrained"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["targets", "when", "declarations"],
+        "properties": {
+          "targets": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^mash://" },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "when": {
+            "type": "object",
+            "required": ["renderer", "selector", "context"],
+            "properties": {
+              "renderer": { "const": "web" },
+              "selector": { "type": "string" },
+              "context": { "type": "array", "items": { "type": "string" } }
+            },
+            "additionalProperties": false
+          },
+          "declarations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "required": ["value", "tokens"],
+              "properties": {
+                "value": { "type": "string" },
+                "tokens": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "uniqueItems": true
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "layout": {
+            "$ref": "#/$defs/layout"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "measure": {
+      "type": "object",
+      "required": ["value", "tokens"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "string", "minLength": 1 },
+        "tokens": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "axisDimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "min": { "$ref": "#/$defs/measure" },
+        "preferred": { "$ref": "#/$defs/measure" },
+        "max": { "$ref": "#/$defs/measure" }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "group": {
+          "type": "object",
+          "required": ["kind"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "enum": ["none", "contents", "flow", "grid", "overlay"] },
+            "axis": { "enum": ["block", "inline", "depth"] },
+            "reverse": { "type": "boolean" },
+            "wrap": { "type": "boolean" }
+          }
+        },
+        "align": {
+          "enum": ["leading", "center", "trailing", "stretch", "baseline"]
+        },
+        "justify": {
+          "enum": [
+            "leading",
+            "center",
+            "trailing",
+            "between",
+            "around",
+            "evenly",
+            "stretch"
+          ]
+        },
+        "gap": { "$ref": "#/$defs/measure" },
+        "dimensions": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "inline": { "$ref": "#/$defs/axisDimensions" },
+            "block": { "$ref": "#/$defs/axisDimensions" }
+          }
+        },
+        "inset": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "blockStart": { "$ref": "#/$defs/measure" },
+            "blockEnd": { "$ref": "#/$defs/measure" },
+            "inlineStart": { "$ref": "#/$defs/measure" },
+            "inlineEnd": { "$ref": "#/$defs/measure" }
+          }
+        },
+        "overflow": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "inline": {
+              "enum": ["visible", "clip", "hidden", "auto", "scroll"]
+            },
+            "block": { "enum": ["visible", "clip", "hidden", "auto", "scroll"] }
+          }
+        },
+        "position": {
+          "enum": ["flow", "relative", "absolute", "fixed", "sticky"]
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -5,7 +5,11 @@ import { expect, test } from "@playwright/test";
 const bundle = resolve(import.meta.dirname, "../../../apps/catalog/dist/mash.js");
 
 const expectedTags = [
+  "sh-limb",
   "sh-locator",
+  "sh-myth",
+  "sh-pail",
+  "sh-slot",
   "sh-triptych",
   "shrine-confirm",
   "ui-accordion",
@@ -87,7 +91,11 @@ const expectedTags = [
 
 const expectedGlobalExports = [
   "ShrineConfirm",
+  "ShrineLimb",
   "ShrineLocator",
+  "ShrineMyth",
+  "ShrinePail",
+  "ShrineSlot",
   "ShrineTriptych",
   "UIAccordion",
   "UIAccordionItem",

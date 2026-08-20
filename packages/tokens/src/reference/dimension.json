@@ -1,0 +1,21 @@
+{
+  "dimension": {
+    "$type": "dimension",
+    "reference": {
+      "$description": "Renderer-neutral length primitives used by semantic layout constraints. These are raw measures; recipes consume the semantic layout layer instead.",
+      "0": { "$value": { "value": 0, "unit": "rem" } },
+      "glyph": { "$value": { "value": 1, "unit": "rem" } },
+      "control": {
+        "$value": { "value": 2.5, "unit": "rem" },
+        "$description": "40px at the default root size; the default compact interactive dimension."
+      },
+      "compact": { "$value": { "value": 8, "unit": "rem" } },
+      "panel": { "$value": { "value": 16, "unit": "rem" } },
+      "dialog": { "$value": { "value": 34, "unit": "rem" } },
+      "measure": { "$value": { "value": 40, "unit": "rem" } },
+      "content": { "$value": { "value": 48, "unit": "rem" } },
+      "record": { "$value": { "value": 60, "unit": "rem" } },
+      "workspace": { "$value": { "value": 64, "unit": "rem" } }
+    }
+  }
+}

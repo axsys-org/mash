@@ -1,41 +1,29 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, html, type TemplateResult } from "lit";
+
+import { baseStyles } from "../internal/base-styles.js";
 
 /**
- * TODO: what this component is for, and when to reach for it.
+ * A stable location region for Shrine workspace chrome.
+ *
+ * Use it when a composition needs to expose the current semantic location
+ * without choosing whether that location is rendered as a path, breadcrumb,
+ * record title, or another renderer-native locator.
  *
  * @tag sh-locator
- * @summary TODO: one line describing what it does.
+ * @summary Projects the current Shrine location through a portable locator node.
  *
- * @slot - TODO: describe the default slot.
+ * @example Namespace location
+ * <sh-locator><ui-path path="/interzone/projects/billing-migration"></ui-path></sh-locator>
+ *
+ * @slot - The current semantic location.
  * @csspart root - The outermost element.
+ *
+ * @mashrole slot default locator locator
+ * @mashrole part root locator locator
+ * @mashnode locator locator
  */
 export class ShrineLocator extends LitElement {
-  // Reactive properties go here, as a plain object — this system uses no
-  // decorators. Declare the matching fields with `declare` and assign their
-  // defaults in a constructor. Every attribute needs a JSDoc description, or
-  // the manifest build fails.
-  //
-  // static override properties = {
-  //   tone: { type: String, reflect: true },
-  // };
-  //
-  // /** TODO: describe this attribute. */
-  // declare tone: ShrineLocatorTone;
-
-  static override styles = css`
-    :host {
-      display: block;
-      box-sizing: border-box;
-    }
-
-    :host([hidden]) {
-      display: none !important;
-    }
-
-    /* Style from the semantic tokens (--color-*, --space-*, --radius-*).
-       Never reference --ref-* primitives, and keep anything you compute in a
-       private --_* variable rather than exposing it. */
-  `;
+  static override styles = baseStyles;
 
   protected override render(): TemplateResult {
     return html`<div part="root"><slot></slot></div>`;

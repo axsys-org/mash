@@ -426,6 +426,138 @@ pre {
   font-size: 13px;
 }
 
+/* --- semantic SurfaceTree ------------------------------------------------ */
+
+.surface-tree-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.surface-tree-heading h3 {
+  margin: 0;
+}
+
+.surface-toggle {
+  padding: 4px 10px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 999px;
+  background: none;
+  color: var(--chrome-muted);
+  font: inherit;
+  font-family: var(--chrome-mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.surface-toggle:hover,
+.surface-toggle.is-active {
+  border-color: var(--chrome-accent);
+  color: var(--chrome-accent);
+}
+
+.surface-tree,
+.surface-tree-children {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.surface-tree-children {
+  margin-inline-start: 16px;
+  padding-inline-start: 12px;
+  border-inline-start: 1px solid var(--chrome-line);
+}
+
+.surface-node {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.75fr) minmax(240px, 1.5fr) minmax(180px, 1fr);
+  gap: 8px 14px;
+  padding: 9px 10px;
+  border-block-end: 1px solid var(--chrome-line);
+}
+
+.surface-node:hover {
+  background: var(--chrome-code-bg);
+}
+
+.surface-node-identity,
+.surface-node-layout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.surface-node-id {
+  color: var(--chrome-fg);
+  font-weight: 600;
+}
+
+.surface-node-role,
+.layout-chip,
+.surface-node-token {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--chrome-accent) 10%, transparent);
+  color: var(--chrome-accent);
+}
+
+.surface-node-owner,
+.layout-empty,
+.surface-node-bindings {
+  color: var(--chrome-muted);
+  font-size: 11px;
+}
+
+.layout-chip {
+  color: var(--chrome-fg);
+  font-size: 10px;
+}
+
+.surface-node-token {
+  background: color-mix(in oklab, var(--chrome-fg) 7%, transparent);
+  color: var(--chrome-muted);
+  font-size: 10px;
+}
+
+.surface-node-bindings {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  overflow-wrap: anywhere;
+}
+
+.surface-binding {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 7px;
+}
+
+.surface-binding-name {
+  color: var(--chrome-fg);
+}
+
+.surface-binding-fallback {
+  color: var(--chrome-accent);
+}
+
+.surface-binding-report {
+  color: var(--chrome-accent);
+}
+
+.surface-binding-effective {
+  color: var(--chrome-fg);
+}
+
+@media (max-width: 900px) {
+  .surface-node {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* --- token provenance ---------------------------------------------------- */
 
 .token-list {

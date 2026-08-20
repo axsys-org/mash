@@ -62,6 +62,7 @@
       "import": "./dist/badge/register.js"
     },
     "./catalogue/mash.css": "./src/catalogue/mash.css",
+    "./catalogue/mash.json": "./src/catalogue/mash.json",
     "./checkbox": {
       "types": "./dist/checkbox/checkbox.d.ts",
       "import": "./dist/checkbox/checkbox.js"

@@ -17,7 +17,14 @@
  * across package boundaries here is fine.
  */
 
-const SRC_TO_DIST = /^src\//;
+import {
+  MASH_ROLES,
+  mashBinding,
+  mashManifestMetadata,
+  mashSemanticNode,
+} from "./mash-contract.mjs";
+
+const SRC_TO_DIST = /^\/?src\//;
 
 /** `src/button/button.ts` -> `dist/button/button.js` */
 const toDistPath = (path) => path.replace(SRC_TO_DIST, "dist/").replace(/\.ts$/, ".js");
@@ -36,21 +43,18 @@ const toDistPath = (path) => path.replace(SRC_TO_DIST, "dist/").replace(/\.ts$/,
 const distPaths = {
   name: "mash/dist-paths",
   packageLinkPhase({ customElementsManifest }) {
-    for (const mod of customElementsManifest.modules ?? []) {
-      mod.path = toDistPath(mod.path);
-
-      for (const entry of mod.exports ?? []) {
-        if (entry.declaration?.module) {
-          entry.declaration.module = toDistPath(entry.declaration.module);
-        }
+    const rewrite = (value) => {
+      if (Array.isArray(value)) return value.map(rewrite);
+      if (!value || typeof value !== "object") return value;
+      for (const [key, child] of Object.entries(value)) {
+        value[key] =
+          key === "module" && typeof child === "string" ? toDistPath(child) : rewrite(child);
       }
+      return value;
+    };
 
-      for (const declaration of mod.declarations ?? []) {
-        if (declaration.superclass?.module) {
-          declaration.superclass.module = toDistPath(declaration.superclass.module);
-        }
-      }
-    }
+    rewrite(customElementsManifest);
+    for (const mod of customElementsManifest.modules ?? []) mod.path = toDistPath(mod.path);
   },
 };
 
@@ -163,7 +167,385 @@ function createCaptureExamples() {
   };
 }
 
+/**
+ * Capture explicit renderer-neutral role mappings from component JSDoc.
+ *
+ * Most named surfaces map directly (`title` is the Mash `title` role). Use an
+ * override when platform syntax differs from meaning, especially an anonymous
+ * default slot:
+ *
+ *   @mashrole slot default label
+ */
+function createCaptureMashRoles() {
+  const validKinds = new Set(["attribute", "slot", "part", "state", "event"]);
+
+  return {
+    name: "mash/capture-contract-roles",
+
+    analyzePhase({ ts, node, moduleDoc }) {
+      if (!ts.isClassDeclaration(node) || !node.name) return;
+      const declaration = moduleDoc.declarations?.find((d) => d.name === node.name.text);
+      if (!declaration) return;
+
+      const mappings = [];
+      const mappingKeys = new Set();
+      for (const tag of ts.getJSDocTags(node)) {
+        if (tag.tagName.text !== "mashrole") continue;
+        const raw = Array.isArray(tag.comment)
+          ? tag.comment.map((part) => part.text ?? "").join("")
+          : String(tag.comment ?? "");
+        const [kind, rawName, role, nodeId] = raw.trim().split(/\s+/);
+        if (!kind || !rawName || !role || !validKinds.has(kind)) {
+          throw new Error(
+            `${node.name.text} has invalid @mashrole "${raw}"; expected ` +
+              "@mashrole <attribute|slot|part|state|event> <name|default> <role>.",
+          );
+        }
+        if (!MASH_ROLES[role]) {
+          throw new Error(`${node.name.text} maps to unknown Mash role \`${role}\`.`);
+        }
+        const mappingKey = `${kind}:${rawName === "default" ? "" : rawName}`;
+        if (mappingKeys.has(mappingKey)) {
+          throw new Error(`${node.name.text} maps Mash surface \`${mappingKey}\` more than once.`);
+        }
+        mappingKeys.add(mappingKey);
+        mappings.push({
+          kind,
+          name: rawName === "default" ? "" : rawName,
+          role,
+          nodeId: nodeId ?? role,
+        });
+      }
+      if (mappings.length > 0) declaration.__mashRoleMappings = mappings;
+
+      const fallbacks = [];
+      const fallbackKeys = new Set();
+      for (const tag of ts.getJSDocTags(node)) {
+        if (tag.tagName.text !== "mashfallback") continue;
+        const raw = Array.isArray(tag.comment)
+          ? tag.comment.map((part) => part.text ?? "").join("")
+          : String(tag.comment ?? "");
+        const literalMatch = raw.trim().match(/^slot\s+(\S+)\s+literal\s+(.+)$/s);
+        const bindingsMatch = raw.trim().match(/^slot\s+(\S+)\s+bindings\s+(.+)$/s);
+        if (!literalMatch && !bindingsMatch) {
+          throw new Error(
+            `${node.name.text} has invalid @mashfallback "${raw}"; expected ` +
+              "@mashfallback slot <name|default> literal <JSON-value> or " +
+              "@mashfallback slot <name|default> bindings <attribute|slot>:<name> [...].",
+          );
+        }
+        const rawName = (literalMatch ?? bindingsMatch)[1];
+        const name = rawName === "default" ? "" : rawName;
+        const key = `slot:${name}`;
+        if (fallbackKeys.has(key)) {
+          throw new Error(`${node.name.text} declares fallback for Mash surface \`${key}\` twice.`);
+        }
+        fallbackKeys.add(key);
+        if (literalMatch) {
+          let value;
+          try {
+            value = JSON.parse(literalMatch[2]);
+          } catch {
+            throw new Error(
+              `${node.name.text} has non-JSON @mashfallback value \`${literalMatch[2]}\`.`,
+            );
+          }
+          fallbacks.push({ kind: "slot", name, mode: "literal", value });
+          continue;
+        }
+
+        const targets = bindingsMatch[2]
+          .trim()
+          .split(/\s+/)
+          .map((target) => {
+            const match = target.match(/^(attribute|slot):(.+)$/);
+            if (!match) {
+              throw new Error(
+                `${node.name.text} has invalid @mashfallback binding \`${target}\`; expected ` +
+                  "<attribute|slot>:<name|default>.",
+              );
+            }
+            return { kind: match[1], name: match[2] === "default" ? "" : match[2] };
+          });
+        fallbacks.push({ kind: "slot", name, mode: "bindings", targets });
+      }
+      if (fallbacks.length > 0) declaration.__mashFallbackMappings = fallbacks;
+
+      const nodes = [];
+      const nodeIds = new Set();
+      for (const tag of ts.getJSDocTags(node)) {
+        if (tag.tagName.text !== "mashnode") continue;
+        const raw = Array.isArray(tag.comment)
+          ? tag.comment.map((part) => part.text ?? "").join("")
+          : String(tag.comment ?? "");
+        const [id, role, parent] = raw.trim().split(/\s+/);
+        if (!id || !role) {
+          throw new Error(
+            `${node.name.text} has invalid @mashnode "${raw}"; expected ` +
+              "@mashnode <stable-id> <role> [parent-id].",
+          );
+        }
+        if (!MASH_ROLES[role]) {
+          throw new Error(`${node.name.text} declares unknown Mash role \`${role}\`.`);
+        }
+        if (nodeIds.has(id)) {
+          throw new Error(`${node.name.text} declares Mash node \`${id}\` more than once.`);
+        }
+        nodeIds.add(id);
+        nodes.push({ id, role, parent });
+      }
+      if (nodes.length > 0) declaration.__mashNodes = nodes;
+    },
+  };
+}
+
+/** Embed one addressable Mash contract into every generated declaration. */
+const embedMashContract = {
+  name: "mash/embed-contract",
+  packageLinkPhase({ customElementsManifest }) {
+    customElementsManifest.mash = mashManifestMetadata();
+
+    const surfaces = [
+      ["attribute", "attributes"],
+      ["slot", "slots"],
+      ["part", "cssParts"],
+      ["state", "cssStates"],
+      ["event", "events"],
+    ];
+
+    for (const mod of customElementsManifest.modules ?? []) {
+      for (const declaration of mod.declarations ?? []) {
+        if (!declaration.customElement || !declaration.tagName) continue;
+        const overrides = new Map(
+          (declaration.__mashRoleMappings ?? []).map((mapping) => [
+            `${mapping.kind}:${mapping.name}`,
+            mapping,
+          ]),
+        );
+        const declaredNodes = declaration.__mashNodes ?? [];
+        const fallbackOverrides = new Map(
+          (declaration.__mashFallbackMappings ?? []).map((fallback) => [
+            `${fallback.kind}:${fallback.name}`,
+            fallback,
+          ]),
+        );
+        delete declaration.__mashRoleMappings;
+        delete declaration.__mashNodes;
+        delete declaration.__mashFallbackMappings;
+
+        const bindings = [];
+        const nodeRecords = new Map(
+          declaredNodes.map((node) => [node.id, { ...node, bindings: [] }]),
+        );
+        for (const [kind, property] of surfaces) {
+          for (const exposed of declaration[property] ?? []) {
+            const override = overrides.get(`${kind}:${exposed.name}`);
+            if (override) overrides.delete(`${kind}:${exposed.name}`);
+            const role = override?.role;
+            const nodeId = override?.nodeId ?? role;
+            const inferredRole = mashBinding(
+              declaration.tagName,
+              kind,
+              exposed.name,
+              undefined,
+              undefined,
+              exposed,
+            );
+            const mapping =
+              override &&
+              (override.role !== inferredRole.role ||
+                override.nodeId !== inferredRole.nodeAddress.split("/").at(-1))
+                ? "explicit"
+                : "inferred";
+            const binding = mashBinding(
+              declaration.tagName,
+              kind,
+              exposed.name,
+              role,
+              nodeId,
+              exposed,
+              mapping,
+            );
+            if (!binding.shared) {
+              throw new Error(
+                `${declaration.tagName} exposes ${kind} \`${exposed.name || "default"}\` ` +
+                  `without a shared Mash role. Add it to MASH_ROLES or map it explicitly.`,
+              );
+            }
+            exposed.mash = binding;
+            bindings.push(binding);
+
+            const inferredId = binding.nodeAddress.split("/").at(-1);
+            const existing = nodeRecords.get(inferredId);
+            if (existing && existing.role !== binding.role) {
+              throw new Error(
+                `${declaration.tagName} Mash node \`${inferredId}\` mixes roles ` +
+                  `\`${existing.role}\` and \`${binding.role}\`.`,
+              );
+            }
+            if (existing) existing.bindings.push(binding);
+            else {
+              nodeRecords.set(inferredId, {
+                id: inferredId,
+                role: binding.role,
+                parent: undefined,
+                bindings: [binding],
+              });
+            }
+          }
+        }
+
+        if (overrides.size > 0) {
+          throw new Error(
+            `${declaration.tagName} has @mashrole mappings for surfaces that do not exist: ` +
+              [...overrides.keys()].join(", "),
+          );
+        }
+
+        const bindingBySurface = new Map(
+          bindings.map((binding) => [`${binding.kind}:${binding.name}`, binding]),
+        );
+
+        // Omitted authored content resolves predictably. An explicit literal
+        // wins, then a same-node input binding, then the anonymous content
+        // slot used by named compatibility slots. Everything else is empty.
+        // This records the existing component contract without serializing
+        // authored instance content into the schema.
+        for (const record of nodeRecords.values()) {
+          const attributes = record.bindings.filter((binding) => binding.kind === "attribute");
+          const slots = record.bindings.filter((binding) => binding.kind === "slot");
+          const defaultSlot = slots.find((binding) => binding.name === "");
+
+          for (const binding of slots) {
+            const key = `slot:${binding.name}`;
+            const override = fallbackOverrides.get(key);
+            if (override) {
+              if (override.mode === "literal") {
+                binding.fallback = { kind: "literal", value: override.value };
+              } else {
+                const targets = override.targets.map((target) => {
+                  const candidate = bindingBySurface.get(`${target.kind}:${target.name}`);
+                  if (!candidate) {
+                    throw new Error(
+                      `${declaration.tagName} fallback for slot \`${binding.name || "default"}\` ` +
+                        `targets missing ${target.kind} \`${target.name || "default"}\`.`,
+                    );
+                  }
+                  if (candidate.address === binding.address) {
+                    throw new Error(
+                      `${declaration.tagName} fallback for slot \`${binding.name || "default"}\` targets itself.`,
+                    );
+                  }
+                  return candidate.address;
+                });
+                binding.fallback =
+                  targets.length === 1
+                    ? { kind: "binding", bindingAddress: targets[0] }
+                    : { kind: "chain", bindingAddresses: targets };
+              }
+              fallbackOverrides.delete(key);
+              continue;
+            }
+
+            const matchingAttribute = attributes.find(
+              (attribute) => attribute.name === binding.name,
+            );
+            const onlyAttribute = attributes.length === 1 ? attributes[0] : undefined;
+            const input = matchingAttribute ?? onlyAttribute;
+            const targets = [input, binding.name ? defaultSlot : undefined].filter(Boolean);
+            if (targets.length === 1) {
+              binding.fallback = { kind: "binding", bindingAddress: targets[0].address };
+            } else if (targets.length > 1) {
+              binding.fallback = {
+                kind: "chain",
+                bindingAddresses: targets.map((target) => target.address),
+              };
+            }
+          }
+        }
+
+        if (fallbackOverrides.size > 0) {
+          throw new Error(
+            `${declaration.tagName} has @mashfallback mappings for slots that do not exist: ` +
+              [...fallbackOverrides.keys()].join(", "),
+          );
+        }
+
+        // Event payload fields report semantic nodes when their field name is
+        // also a stable node id. This preserves the event as a first-class
+        // output binding while making its relationship to controlled values
+        // machine-readable. A compound event can report several nodes without
+        // pretending that one Web event has only one semantic target.
+        for (const binding of bindings) {
+          if (binding.kind !== "event" || binding.value.detail?.kind !== "record") continue;
+          for (const field of Object.keys(binding.value.detail.fields)) {
+            const target = nodeRecords.get(field);
+            if (!target || target.bindings.every((candidate) => candidate.kind === "event"))
+              continue;
+            binding.reports.push({
+              path: [field],
+              nodeAddress: `mash://${declaration.tagName}/node/${field}`,
+            });
+          }
+        }
+
+        // Every component is one rooted semantic SurfaceTree. Components may
+        // name a richer root role (`scroller`, for example), so prefer an
+        // explicit role=root node, then a stable `root` id. If neither exists,
+        // add a semantic-only root rather than forcing Web markup to invent a
+        // wrapper solely for the contract.
+        let rootRecord = [...nodeRecords.values()].find((record) => record.role === "root");
+        rootRecord ??= nodeRecords.get("root");
+        if (!rootRecord) {
+          rootRecord = { id: "root", role: "root", parent: undefined, bindings: [] };
+          nodeRecords.set("root", rootRecord);
+        }
+        for (const record of nodeRecords.values()) {
+          if (record !== rootRecord && !record.parent) record.parent = rootRecord.id;
+        }
+
+        for (const node of nodeRecords.values()) {
+          if (node.parent && !nodeRecords.has(node.parent)) {
+            throw new Error(
+              `${declaration.tagName} Mash node \`${node.id}\` has missing parent \`${node.parent}\`.`,
+            );
+          }
+        }
+
+        const nodes = [...nodeRecords.values()].map((node) =>
+          mashSemanticNode(declaration.tagName, node.id, node.role, node.parent, node.bindings),
+        );
+        const addresses = [
+          ...nodes.map((node) => node.address),
+          ...bindings.map((binding) => binding.address),
+        ];
+        if (new Set(addresses).size !== addresses.length) {
+          throw new Error(`${declaration.tagName} emits duplicate Mash addresses.`);
+        }
+        declaration.mash = {
+          version: customElementsManifest.mash.version,
+          address: `mash://${declaration.tagName}`,
+          nodes,
+          bindings,
+        };
+      }
+    }
+  },
+};
+
 const isInternal = (member) => member.name?.startsWith("_");
+
+/** Keep internal bases visible during analysis so inheritance resolves, then omit them publicly. */
+const hideInternalDeclarations = {
+  name: "mash/hide-internal-declarations",
+  packageLinkPhase({ customElementsManifest }) {
+    for (const mod of customElementsManifest.modules ?? []) {
+      if (!/(^|\/)internal\//.test(mod.path)) continue;
+      mod.declarations = [];
+      mod.exports = [];
+    }
+  },
+};
 
 /**
  * Drop internal members from the manifest.
@@ -230,6 +612,10 @@ function createRequireElementMetadata(tagPrefix) {
           if (!declaration.tagName) {
             problems.push(`${where} has no tag name — add a \`@tag ${tagPrefix}-foo\` JSDoc tag.`);
           }
+          const serialized = JSON.stringify(declaration);
+          if (/"module":"\/?src\//.test(serialized)) {
+            problems.push(`${where} contains a source-only module reference.`);
+          }
           if (!declaration.description && !declaration.summary) {
             problems.push(`${where} has no description — add a JSDoc block to the class.`);
           }
@@ -254,6 +640,13 @@ function createRequireElementMetadata(tagPrefix) {
                   `it from a non-literal \`new CustomEvent(...)\` argument — use a string literal.`,
               );
             }
+          }
+
+          for (const property of declaration.cssProperties ?? []) {
+            problems.push(
+              `${where} exposes CSS property \`${property.name}\`. Mash component contracts ` +
+                "use semantic tokens plus slots, parts, state, and events; move layout to a catalogue recipe.",
+            );
           }
         }
       }
@@ -280,7 +673,7 @@ export function mashManifestConfig({ tagPrefix }) {
     // Internal implementation modules can define reusable Lit base classes,
     // but they are not custom-element contracts and must never become catalog
     // entries or generated wrapper targets.
-    exclude: ["src/**/*.test.ts", "src/test-support/**", "src/internal/**"],
+    exclude: ["src/**/*.test.ts", "src/test-support/**"],
     outdir: ".",
     litelement: true,
     // Order matters: internals are removed before the metadata gate runs, so
@@ -289,7 +682,10 @@ export function mashManifestConfig({ tagPrefix }) {
       distPaths,
       createExpandUnionTypes(),
       createCaptureExamples(),
+      createCaptureMashRoles(),
+      hideInternalDeclarations,
       hideInternalMembers,
+      embedMashContract,
       createRequireElementMetadata(tagPrefix),
       sortManifestModules,
     ],

@@ -784,6 +784,6 @@ export function exampleNamed(
 }
 
 /** Whether synthesising standalone slots would create an invalid component tree. */
-export function controlsPreviewAllowed(_component: ComponentSchema): boolean {
-  return true;
+export function controlsPreviewAllowed(component: ComponentSchema): boolean {
+  return component.slots.every((slot) => slot.mash?.availability !== "required");
 }

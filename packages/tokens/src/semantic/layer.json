@@ -1,0 +1,22 @@
+{
+  "layer": {
+    "$type": "number",
+    "$description": "Renderer-neutral ordering for surfaces that share one presentation plane.",
+    "base": {
+      "$value": "{depth.reference.base}",
+      "$description": "Ordinary in-flow content."
+    },
+    "raised": {
+      "$value": "{depth.reference.raised}",
+      "$description": "Controls or local overlays raised above adjacent content."
+    },
+    "overlay": {
+      "$value": "{depth.reference.overlay}",
+      "$description": "Floating surfaces and their dismissal layers."
+    },
+    "inspection": {
+      "$value": "{depth.reference.inspection}",
+      "$description": "Developer inspection affordances that must remain above the rendered surface."
+    }
+  }
+}

@@ -1,0 +1,3799 @@
+{
+  "$schema": "https://mash.axsys.dev/schema/catalogue-recipe-1.0.0.json",
+  "version": "1.0.0",
+  "name": "mash",
+  "componentContract": "1.0.0",
+  "layoutContract": "1.0.0",
+  "layoutVocabulary": {
+    "axes": [
+      "block",
+      "inline",
+      "depth"
+    ],
+    "groups": [
+      "none",
+      "contents",
+      "flow",
+      "grid",
+      "overlay"
+    ],
+    "alignments": [
+      "leading",
+      "center",
+      "trailing",
+      "stretch",
+      "baseline"
+    ],
+    "distributions": [
+      "leading",
+      "center",
+      "trailing",
+      "between",
+      "around",
+      "evenly",
+      "stretch"
+    ],
+    "overflow": [
+      "visible",
+      "clip",
+      "hidden",
+      "auto",
+      "scroll"
+    ],
+    "positions": [
+      "flow",
+      "relative",
+      "absolute",
+      "fixed",
+      "sticky"
+    ],
+    "dimensions": [
+      "min",
+      "preferred",
+      "max"
+    ]
+  },
+  "source": "./mash.css",
+  "nodes": {
+    "mash://sh-limb/node/label": {
+      "tokens": [
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-limb/node/root": {
+      "tokens": [
+        "space.controlGap",
+        "space.controlInline"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-limb/node/value": {
+      "tokens": [
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-locator/node/locator": {
+      "tokens": [
+        "border.hairline",
+        "color.border",
+        "color.surfaceSunken",
+        "color.textMuted",
+        "space.controlBlock",
+        "space.controlInline",
+        "type.code.fontFamily",
+        "type.code.fontSize",
+        "type.code.fontWeight",
+        "type.code.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-locator/node/root": {
+      "tokens": [],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-myth/node/actions": {
+      "tokens": [
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-myth/node/content": {
+      "tokens": [
+        "space.containerBlock",
+        "space.containerInline"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-myth/node/header": {
+      "tokens": [
+        "space.containerBlock",
+        "space.containerGap",
+        "space.containerInline"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-myth/node/identity": {
+      "tokens": [
+        "layout.dimension.zero",
+        "space.controlGap"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-myth/node/kind": {
+      "tokens": [
+        "color.action",
+        "color.onAction",
+        "layout.dimension.zero",
+        "radius.pill",
+        "space.controlBlockSmall",
+        "space.controlInlineSmall",
+        "type.labelSmall.fontFamily",
+        "type.labelSmall.fontSize",
+        "type.labelSmall.fontWeight",
+        "type.labelSmall.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-myth/node/limbs": {
+      "tokens": [
+        "space.controlGap"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-myth/node/path": {
+      "tokens": [
+        "color.textMuted",
+        "layout.dimension.zero",
+        "type.code.fontFamily",
+        "type.code.fontSize",
+        "type.code.fontWeight",
+        "type.code.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-myth/node/root": {
+      "tokens": [
+        "border.hairline",
+        "color.border",
+        "color.surface",
+        "color.text",
+        "layout.dimension.record",
+        "radius.container",
+        "type.body.fontFamily",
+        "type.body.fontSize",
+        "type.body.fontWeight",
+        "type.body.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-myth/node/title": {
+      "tokens": [
+        "color.text",
+        "layout.dimension.zero",
+        "type.heading.fontFamily",
+        "type.heading.fontSize",
+        "type.heading.fontWeight",
+        "type.heading.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-pail/node/root": {
+      "tokens": [
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-pail/node/value": {
+      "tokens": [
+        "color.text",
+        "type.body.fontFamily",
+        "type.body.fontSize",
+        "type.body.fontWeight",
+        "type.body.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "unconstrained"
+    },
+    "mash://sh-slot/node/label": {
+      "tokens": [
+        "color.textMuted",
+        "type.code.fontFamily",
+        "type.code.fontSize",
+        "type.code.fontWeight",
+        "type.code.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "unconstrained"
+    },
+    "mash://sh-slot/node/root": {
+      "tokens": [
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/inspector": {
+      "tokens": [
+        "border.hairline",
+        "color.border",
+        "color.surfaceSunken",
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/inspector-content": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://sh-triptych/node/inspector-locator": {
+      "tokens": [
+        "border.hairline",
+        "color.border",
+        "space.controlBlock"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/inspector-open": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://sh-triptych/node/inspector-scroller": {
+      "tokens": [
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/inspector-viewport": {
+      "tokens": [],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/main": {
+      "tokens": [
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/main-content": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://sh-triptych/node/main-locator": {
+      "tokens": [
+        "border.hairline",
+        "color.border",
+        "space.controlBlock"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/main-scroller": {
+      "tokens": [
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/main-viewport": {
+      "tokens": [],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/navigate": {
+      "tokens": [
+        "border.hairline",
+        "color.border",
+        "space.containerBlock",
+        "space.controlBlock"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/shell": {
+      "tokens": [
+        "color.canvas",
+        "color.text"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/sidebar": {
+      "tokens": [
+        "border.hairline",
+        "color.border",
+        "color.surfaceSunken",
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/sidebar-content": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://sh-triptych/node/sidebar-scroller": {
+      "tokens": [
+        "layout.dimension.zero"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://sh-triptych/node/sidebar-viewport": {
+      "tokens": [],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://shrine-confirm/node/actions": {
+      "tokens": [
+        "space.controlGap"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://shrine-confirm/node/cancel": {
+      "tokens": [
+        "color.neutral",
+        "color.neutralHover",
+        "color.neutralPressed",
+        "color.text",
+        "space.controlBlock",
+        "space.controlInline",
+        "type.label.fontSize",
+        "type.label.fontWeight",
+        "type.label.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://shrine-confirm/node/cancel-control": {
+      "tokens": [
+        "border.focusRing",
+        "border.focusRingOffset",
+        "border.hairline",
+        "color.action",
+        "color.actionHover",
+        "color.critical",
+        "color.criticalHover",
+        "color.focusRing",
+        "color.neutral",
+        "color.neutralHover",
+        "color.onAction",
+        "color.onCritical",
+        "color.text",
+        "duration.control",
+        "easing.control",
+        "radius.control",
+        "space.controlBlock",
+        "space.controlInline",
+        "type.label.fontFamily",
+        "type.label.fontSize",
+        "type.label.fontWeight",
+        "type.label.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://shrine-confirm/node/cancel-label": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/cancel-prefix": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/cancel-spinner": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/cancel-suffix": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/confirm": {
+      "tokens": [
+        "color.action",
+        "color.actionHover",
+        "color.actionPressed",
+        "color.critical",
+        "color.criticalHover",
+        "color.criticalPressed",
+        "color.neutral",
+        "color.onAction",
+        "color.onCritical",
+        "space.controlBlock",
+        "space.controlInline",
+        "type.label.fontSize",
+        "type.label.fontWeight",
+        "type.label.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://shrine-confirm/node/confirm-control": {
+      "tokens": [
+        "border.focusRing",
+        "border.focusRingOffset",
+        "border.hairline",
+        "color.action",
+        "color.actionHover",
+        "color.critical",
+        "color.criticalHover",
+        "color.focusRing",
+        "color.neutral",
+        "color.neutralHover",
+        "color.onAction",
+        "color.onCritical",
+        "color.text",
+        "duration.control",
+        "easing.control",
+        "radius.control",
+        "space.controlBlock",
+        "space.controlInline",
+        "type.label.fontFamily",
+        "type.label.fontSize",
+        "type.label.fontWeight",
+        "type.label.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://shrine-confirm/node/confirm-label": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/confirm-prefix": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/confirm-spinner": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/confirm-suffix": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/content": {
+      "tokens": [
+        "space.containerBlock",
+        "space.containerInline"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://shrine-confirm/node/description": {
+      "tokens": [
+        "color.textMuted"
+      ],
+      "coverage": "direct",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/footer": {
+      "tokens": [
+        "border.hairline",
+        "color.border",
+        "space.containerBlock",
+        "space.containerInline"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://shrine-confirm/node/header": {
+      "tokens": [
+        "space.containerBlock",
+        "space.containerInline"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://shrine-confirm/node/pending": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/root": {
+      "tokens": [
+        "border.hairline",
+        "color.border",
+        "color.shadow",
+        "color.surfaceRaised",
+        "color.text",
+        "layout.dimension.dialog",
+        "radius.container",
+        "type.body.fontFamily",
+        "type.body.fontSize",
+        "type.body.fontWeight",
+        "type.body.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "constrained"
+    },
+    "mash://shrine-confirm/node/title": {
+      "tokens": [
+        "color.text",
+        "space.containerBlock",
+        "type.heading.fontFamily",
+        "type.heading.fontSize",
+        "type.heading.fontWeight",
+        "type.heading.lineHeight"
+      ],
+      "coverage": "direct",
+      "layout": "unconstrained"
+    },
+    "mash://shrine-confirm/node/tone": {
+      "tokens": [],
+      "coverage": "contract-only",
+      "layout": "unconstrained"
+    }
+  },
+  "rules": [
+    {
+      "targets": [
+        "mash://sh-locator/node/root"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-locator",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-locator/node/locator"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-locator::part(root)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "min-block-size": {
+          "value": "calc(var(--space-control-block) + var(--space-control-block))",
+          "tokens": [
+            "space.controlBlock"
+          ]
+        },
+        "padding": {
+          "value": "var(--space-control-block) var(--space-control-inline)",
+          "tokens": [
+            "space.controlBlock",
+            "space.controlInline"
+          ]
+        },
+        "border-block-end": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        },
+        "background": {
+          "value": "var(--color-surface-sunken)",
+          "tokens": [
+            "color.surfaceSunken"
+          ]
+        },
+        "color": {
+          "value": "var(--color-text-muted)",
+          "tokens": [
+            "color.textMuted"
+          ]
+        },
+        "font": {
+          "value": "var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)\n      var(--type-code-font-family)",
+          "tokens": [
+            "type.code.fontFamily",
+            "type.code.fontSize",
+            "type.code.fontWeight",
+            "type.code.lineHeight"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        },
+        "dimensions": {
+          "block": {
+            "min": {
+              "value": "calc(var(--space-control-block) + var(--space-control-block))",
+              "tokens": [
+                "space.controlBlock"
+              ]
+            }
+          }
+        },
+        "inset": {
+          "blockStart": {
+            "value": "var(--space-control-block)",
+            "tokens": [
+              "space.controlBlock"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--space-control-block)",
+            "tokens": [
+              "space.controlBlock"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--space-control-inline)",
+            "tokens": [
+              "space.controlInline"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--space-control-inline)",
+            "tokens": [
+              "space.controlInline"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/shell"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "block-size": {
+          "value": "100dvh",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        },
+        "dimensions": {
+          "block": {
+            "preferred": {
+              "value": "100dvh",
+              "tokens": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/shell"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(shell)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "grid",
+          "tokens": []
+        },
+        "grid-template-columns": {
+          "value": "minmax(12rem, 15rem) minmax(0, 1fr) minmax(16rem, 20rem)",
+          "tokens": []
+        },
+        "block-size": {
+          "value": "100%",
+          "tokens": []
+        },
+        "overflow": {
+          "value": "hidden",
+          "tokens": []
+        },
+        "background": {
+          "value": "var(--color-canvas)",
+          "tokens": [
+            "color.canvas"
+          ]
+        },
+        "color": {
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "grid",
+          "axis": "block"
+        },
+        "dimensions": {
+          "block": {
+            "preferred": {
+              "value": "100%",
+              "tokens": []
+            }
+          }
+        },
+        "overflow": {
+          "inline": "hidden",
+          "block": "hidden"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/shell"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych:not([inspector-open])::part(shell)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "grid-template-columns": {
+          "value": "minmax(12rem, 15rem) minmax(0, 1fr)",
+          "tokens": []
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/sidebar"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "grid",
+          "tokens": []
+        },
+        "grid-template-rows": {
+          "value": "minmax(0, 1fr) auto",
+          "tokens": []
+        },
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "min-block-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "overflow": {
+          "value": "hidden",
+          "tokens": []
+        },
+        "border-inline-end": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        },
+        "background": {
+          "value": "var(--color-surface-sunken)",
+          "tokens": [
+            "color.surfaceSunken"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "grid",
+          "axis": "block"
+        },
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          },
+          "block": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        },
+        "overflow": {
+          "inline": "hidden",
+          "block": "hidden"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/main"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "grid",
+          "tokens": []
+        },
+        "grid-template-rows": {
+          "value": "auto minmax(0, 1fr)",
+          "tokens": []
+        },
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "min-block-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "overflow": {
+          "value": "hidden",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "grid",
+          "axis": "block"
+        },
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          },
+          "block": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        },
+        "overflow": {
+          "inline": "hidden",
+          "block": "hidden"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/inspector"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "grid",
+          "tokens": []
+        },
+        "grid-template-rows": {
+          "value": "auto minmax(0, 1fr)",
+          "tokens": []
+        },
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "min-block-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "overflow": {
+          "value": "hidden",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "grid",
+          "axis": "block"
+        },
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          },
+          "block": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        },
+        "overflow": {
+          "inline": "hidden",
+          "block": "hidden"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/inspector"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "border-inline-start": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        },
+        "background": {
+          "value": "var(--color-surface-sunken)",
+          "tokens": [
+            "color.surfaceSunken"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/sidebar-scroller"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar-body)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "min-block-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "block-size": {
+          "value": "100%",
+          "tokens": []
+        },
+        "overflow": {
+          "value": "hidden",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        },
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          },
+          "block": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            },
+            "preferred": {
+              "value": "100%",
+              "tokens": []
+            }
+          }
+        },
+        "overflow": {
+          "inline": "hidden",
+          "block": "hidden"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/main-scroller"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main-body)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "min-block-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "block-size": {
+          "value": "100%",
+          "tokens": []
+        },
+        "overflow": {
+          "value": "hidden",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        },
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          },
+          "block": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            },
+            "preferred": {
+              "value": "100%",
+              "tokens": []
+            }
+          }
+        },
+        "overflow": {
+          "inline": "hidden",
+          "block": "hidden"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/inspector-scroller"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-body)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "min-block-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "block-size": {
+          "value": "100%",
+          "tokens": []
+        },
+        "overflow": {
+          "value": "hidden",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        },
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          },
+          "block": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            },
+            "preferred": {
+              "value": "100%",
+              "tokens": []
+            }
+          }
+        },
+        "overflow": {
+          "inline": "hidden",
+          "block": "hidden"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/sidebar-scroller"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar-scroll-root)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "block-size": {
+          "value": "100%",
+          "tokens": []
+        },
+        "min-block-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "overflow": {
+          "value": "hidden",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "block": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            },
+            "preferred": {
+              "value": "100%",
+              "tokens": []
+            }
+          }
+        },
+        "overflow": {
+          "inline": "hidden",
+          "block": "hidden"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/main-scroller"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main-scroll-root)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "block-size": {
+          "value": "100%",
+          "tokens": []
+        },
+        "min-block-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "overflow": {
+          "value": "hidden",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "block": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            },
+            "preferred": {
+              "value": "100%",
+              "tokens": []
+            }
+          }
+        },
+        "overflow": {
+          "inline": "hidden",
+          "block": "hidden"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/inspector-scroller"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-scroll-root)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "block-size": {
+          "value": "100%",
+          "tokens": []
+        },
+        "min-block-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "overflow": {
+          "value": "hidden",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "block": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            },
+            "preferred": {
+              "value": "100%",
+              "tokens": []
+            }
+          }
+        },
+        "overflow": {
+          "inline": "hidden",
+          "block": "hidden"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/sidebar-viewport"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar-viewport)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "block-size": {
+          "value": "100%",
+          "tokens": []
+        },
+        "overflow": {
+          "value": "auto",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "block": {
+            "preferred": {
+              "value": "100%",
+              "tokens": []
+            }
+          }
+        },
+        "overflow": {
+          "inline": "auto",
+          "block": "auto"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/main-viewport"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(main-viewport)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "block-size": {
+          "value": "100%",
+          "tokens": []
+        },
+        "overflow": {
+          "value": "auto",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "block": {
+            "preferred": {
+              "value": "100%",
+              "tokens": []
+            }
+          }
+        },
+        "overflow": {
+          "inline": "auto",
+          "block": "auto"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/inspector-viewport"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-viewport)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "block-size": {
+          "value": "100%",
+          "tokens": []
+        },
+        "overflow": {
+          "value": "auto",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "block": {
+            "preferred": {
+              "value": "100%",
+              "tokens": []
+            }
+          }
+        },
+        "overflow": {
+          "inline": "auto",
+          "block": "auto"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/main-locator"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(locator)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-block-size": {
+          "value": "calc(var(--space-control-block) + var(--space-control-block))",
+          "tokens": [
+            "space.controlBlock"
+          ]
+        },
+        "border-block-end": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "block": {
+            "min": {
+              "value": "calc(var(--space-control-block) + var(--space-control-block))",
+              "tokens": [
+                "space.controlBlock"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/inspector-locator"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector-locator)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-block-size": {
+          "value": "calc(var(--space-control-block) + var(--space-control-block))",
+          "tokens": [
+            "space.controlBlock"
+          ]
+        },
+        "border-block-end": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "block": {
+            "min": {
+              "value": "calc(var(--space-control-block) + var(--space-control-block))",
+              "tokens": [
+                "space.controlBlock"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/navigate"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(navigate)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-block-size": {
+          "value": "calc(var(--space-container-block) + var(--space-control-block))",
+          "tokens": [
+            "space.containerBlock",
+            "space.controlBlock"
+          ]
+        },
+        "border-block-start": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "block": {
+            "min": {
+              "value": "calc(var(--space-container-block) + var(--space-control-block))",
+              "tokens": [
+                "space.containerBlock",
+                "space.controlBlock"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/shell"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(shell)",
+        "context": [
+          "@layer mash.catalogue",
+          "@media (max-width: 52rem)"
+        ]
+      },
+      "declarations": {
+        "grid-template-columns": {
+          "value": "minmax(0, 1fr)",
+          "tokens": []
+        },
+        "grid-template-rows": {
+          "value": "minmax(8rem, 0.8fr) minmax(12rem, 2fr) minmax(8rem, 0.8fr)",
+          "tokens": []
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/shell"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych:not([inspector-open])::part(shell)",
+        "context": [
+          "@layer mash.catalogue",
+          "@media (max-width: 52rem)"
+        ]
+      },
+      "declarations": {
+        "grid-template-columns": {
+          "value": "minmax(0, 1fr)",
+          "tokens": []
+        },
+        "grid-template-rows": {
+          "value": "minmax(8rem, 0.8fr) minmax(12rem, 2fr) minmax(8rem, 0.8fr)",
+          "tokens": []
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/shell"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych:not([inspector-open])::part(shell)",
+        "context": [
+          "@layer mash.catalogue",
+          "@media (max-width: 52rem)"
+        ]
+      },
+      "declarations": {
+        "grid-template-rows": {
+          "value": "minmax(8rem, 0.8fr) minmax(12rem, 2fr)",
+          "tokens": []
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/sidebar"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(sidebar)",
+        "context": [
+          "@layer mash.catalogue",
+          "@media (max-width: 52rem)"
+        ]
+      },
+      "declarations": {
+        "border-inline-end": {
+          "value": "0",
+          "tokens": []
+        },
+        "border-block-end": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-triptych/node/inspector"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-triptych::part(inspector)",
+        "context": [
+          "@layer mash.catalogue",
+          "@media (max-width: 52rem)"
+        ]
+      },
+      "declarations": {
+        "border-inline-start": {
+          "value": "0",
+          "tokens": []
+        },
+        "border-block-start": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/root"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "inline-size": {
+          "value": "min(100%, var(--layout-dimension-record))",
+          "tokens": [
+            "layout.dimension.record"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        },
+        "dimensions": {
+          "inline": {
+            "preferred": {
+              "value": "min(100%, var(--layout-dimension-record))",
+              "tokens": [
+                "layout.dimension.record"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/root"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(root)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "border": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        },
+        "border-radius": {
+          "value": "var(--radius-container)",
+          "tokens": [
+            "radius.container"
+          ]
+        },
+        "background": {
+          "value": "var(--color-surface)",
+          "tokens": [
+            "color.surface"
+          ]
+        },
+        "color": {
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "font": {
+          "value": "var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)\n      var(--type-body-font-family)",
+          "tokens": [
+            "type.body.fontFamily",
+            "type.body.fontSize",
+            "type.body.fontWeight",
+            "type.body.lineHeight"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/content"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-content)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "padding": {
+          "value": "var(--space-container-block) var(--space-container-inline)",
+          "tokens": [
+            "space.containerBlock",
+            "space.containerInline"
+          ]
+        }
+      },
+      "layout": {
+        "inset": {
+          "blockStart": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--space-container-inline)",
+            "tokens": [
+              "space.containerInline"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--space-container-inline)",
+            "tokens": [
+              "space.containerInline"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/header"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-header)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "grid",
+          "tokens": []
+        },
+        "grid-template-columns": {
+          "value": "minmax(0, 1fr) auto auto",
+          "tokens": []
+        },
+        "align-items": {
+          "value": "start",
+          "tokens": []
+        },
+        "gap": {
+          "value": "var(--space-container-gap)",
+          "tokens": [
+            "space.containerGap"
+          ]
+        },
+        "padding": {
+          "value": "var(--space-container-block) var(--space-container-inline)",
+          "tokens": [
+            "space.containerBlock",
+            "space.containerInline"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "grid",
+          "axis": "block"
+        },
+        "align": "leading",
+        "gap": {
+          "value": "var(--space-container-gap)",
+          "tokens": [
+            "space.containerGap"
+          ]
+        },
+        "inset": {
+          "blockStart": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--space-container-inline)",
+            "tokens": [
+              "space.containerInline"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--space-container-inline)",
+            "tokens": [
+              "space.containerInline"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/identity"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(identity)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "grid",
+          "tokens": []
+        },
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "gap": {
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "grid",
+          "axis": "block"
+        },
+        "gap": {
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        },
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/title"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-title)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/path"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-description)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/kind"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-value)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/actions"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(card-actions)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/title"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(title)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "margin": {
+          "value": "0",
+          "tokens": []
+        },
+        "overflow-wrap": {
+          "value": "anywhere",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/path"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(path)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "margin": {
+          "value": "0",
+          "tokens": []
+        },
+        "overflow-wrap": {
+          "value": "anywhere",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/title"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(title)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "color": {
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "font": {
+          "value": "var(--type-heading-font-weight) var(--type-heading-font-size) /\n      var(--type-heading-line-height) var(--type-heading-font-family)",
+          "tokens": [
+            "type.heading.fontFamily",
+            "type.heading.fontSize",
+            "type.heading.fontWeight",
+            "type.heading.lineHeight"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/path"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(path)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "color": {
+          "value": "var(--color-text-muted)",
+          "tokens": [
+            "color.textMuted"
+          ]
+        },
+        "font": {
+          "value": "var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)\n      var(--type-code-font-family)",
+          "tokens": [
+            "type.code.fontFamily",
+            "type.code.fontSize",
+            "type.code.fontWeight",
+            "type.code.lineHeight"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/kind"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(kind)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "inline-flex",
+          "tokens": []
+        },
+        "flex": {
+          "value": "0 0 auto",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "inline",
+          "reverse": false,
+          "wrap": false
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/kind"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(kind-content)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "inline-flex",
+          "tokens": []
+        },
+        "align-items": {
+          "value": "center",
+          "tokens": []
+        },
+        "padding": {
+          "value": "var(--space-control-block-small) var(--space-control-inline-small)",
+          "tokens": [
+            "space.controlBlockSmall",
+            "space.controlInlineSmall"
+          ]
+        },
+        "border-radius": {
+          "value": "var(--radius-pill)",
+          "tokens": [
+            "radius.pill"
+          ]
+        },
+        "background": {
+          "value": "var(--color-action)",
+          "tokens": [
+            "color.action"
+          ]
+        },
+        "color": {
+          "value": "var(--color-on-action)",
+          "tokens": [
+            "color.onAction"
+          ]
+        },
+        "font": {
+          "value": "var(--type-label-small-font-weight) var(--type-label-small-font-size) /\n      var(--type-label-small-line-height) var(--type-label-small-font-family)",
+          "tokens": [
+            "type.labelSmall.fontFamily",
+            "type.labelSmall.fontSize",
+            "type.labelSmall.fontWeight",
+            "type.labelSmall.lineHeight"
+          ]
+        },
+        "letter-spacing": {
+          "value": "0.08em",
+          "tokens": []
+        },
+        "text-transform": {
+          "value": "uppercase",
+          "tokens": []
+        },
+        "white-space": {
+          "value": "nowrap",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "inline",
+          "reverse": false,
+          "wrap": false
+        },
+        "align": "center",
+        "inset": {
+          "blockStart": {
+            "value": "var(--space-control-block-small)",
+            "tokens": [
+              "space.controlBlockSmall"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--space-control-block-small)",
+            "tokens": [
+              "space.controlBlockSmall"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--space-control-inline-small)",
+            "tokens": [
+              "space.controlInlineSmall"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--space-control-inline-small)",
+            "tokens": [
+              "space.controlInlineSmall"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-myth/node/limbs"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-myth::part(limbs)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "grid",
+          "tokens": []
+        },
+        "gap": {
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "grid",
+          "axis": "block"
+        },
+        "gap": {
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-limb/node/root"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-limb/node/root"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(root)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "grid",
+          "tokens": []
+        },
+        "grid-template-columns": {
+          "value": "minmax(0, max-content) minmax(0, 1fr)",
+          "tokens": []
+        },
+        "align-items": {
+          "value": "baseline",
+          "tokens": []
+        },
+        "gap": {
+          "value": "var(--space-control-inline)",
+          "tokens": [
+            "space.controlInline"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "grid",
+          "axis": "block"
+        },
+        "align": "baseline",
+        "gap": {
+          "value": "var(--space-control-inline)",
+          "tokens": [
+            "space.controlInline"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-limb/node/label"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(label)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-limb/node/label"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(slot)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-limb/node/value"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(value)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        }
+      },
+      "layout": {
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-slot/node/root"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-slot",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "overflow-wrap": {
+          "value": "anywhere",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        },
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-pail/node/root"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-pail",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "min-inline-size": {
+          "value": "var(--layout-dimension-zero)",
+          "tokens": [
+            "layout.dimension.zero"
+          ]
+        },
+        "overflow-wrap": {
+          "value": "anywhere",
+          "tokens": []
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        },
+        "dimensions": {
+          "inline": {
+            "min": {
+              "value": "var(--layout-dimension-zero)",
+              "tokens": [
+                "layout.dimension.zero"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-slot/node/label"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-slot::part(root)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "color": {
+          "value": "var(--color-text-muted)",
+          "tokens": [
+            "color.textMuted"
+          ]
+        },
+        "font": {
+          "value": "var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)\n      var(--type-code-font-family)",
+          "tokens": [
+            "type.code.fontFamily",
+            "type.code.fontSize",
+            "type.code.fontWeight",
+            "type.code.lineHeight"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-pail/node/value"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-pail::part(root)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "color": {
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "font": {
+          "value": "var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)\n      var(--type-body-font-family)",
+          "tokens": [
+            "type.body.fontFamily",
+            "type.body.fontSize",
+            "type.body.fontWeight",
+            "type.body.lineHeight"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/root"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "inline-size": {
+          "value": "min(100%, var(--layout-dimension-dialog))",
+          "tokens": [
+            "layout.dimension.dialog"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        },
+        "dimensions": {
+          "inline": {
+            "preferred": {
+              "value": "min(100%, var(--layout-dimension-dialog))",
+              "tokens": [
+                "layout.dimension.dialog"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/root"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "block",
+          "tokens": []
+        },
+        "border": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        },
+        "border-radius": {
+          "value": "var(--radius-container)",
+          "tokens": [
+            "radius.container"
+          ]
+        },
+        "background": {
+          "value": "var(--color-surface-raised)",
+          "tokens": [
+            "color.surfaceRaised"
+          ]
+        },
+        "color": {
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "box-shadow": {
+          "value": "0 1px 2px var(--color-shadow),\n      0 4px 12px var(--color-shadow)",
+          "tokens": [
+            "color.shadow"
+          ]
+        },
+        "font": {
+          "value": "var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)\n      var(--type-body-font-family)",
+          "tokens": [
+            "type.body.fontFamily",
+            "type.body.fontSize",
+            "type.body.fontWeight",
+            "type.body.lineHeight"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "block"
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/header"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-header)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "padding": {
+          "value": "var(--space-container-block) var(--space-container-inline)",
+          "tokens": [
+            "space.containerBlock",
+            "space.containerInline"
+          ]
+        }
+      },
+      "layout": {
+        "inset": {
+          "blockStart": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--space-container-inline)",
+            "tokens": [
+              "space.containerInline"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--space-container-inline)",
+            "tokens": [
+              "space.containerInline"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/content"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-content)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "padding": {
+          "value": "var(--space-container-block) var(--space-container-inline)",
+          "tokens": [
+            "space.containerBlock",
+            "space.containerInline"
+          ]
+        }
+      },
+      "layout": {
+        "inset": {
+          "blockStart": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--space-container-inline)",
+            "tokens": [
+              "space.containerInline"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--space-container-inline)",
+            "tokens": [
+              "space.containerInline"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/footer"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-footer)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "padding": {
+          "value": "var(--space-container-block) var(--space-container-inline)",
+          "tokens": [
+            "space.containerBlock",
+            "space.containerInline"
+          ]
+        }
+      },
+      "layout": {
+        "inset": {
+          "blockStart": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--space-container-block)",
+            "tokens": [
+              "space.containerBlock"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--space-container-inline)",
+            "tokens": [
+              "space.containerInline"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--space-container-inline)",
+            "tokens": [
+              "space.containerInline"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/footer"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(card-footer)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "border-block-start": {
+          "value": "var(--border-hairline) solid var(--color-border)",
+          "tokens": [
+            "border.hairline",
+            "color.border"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/title"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(title)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "margin": {
+          "value": "0 0 var(--space-container-block)",
+          "tokens": [
+            "space.containerBlock"
+          ]
+        },
+        "color": {
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "font": {
+          "value": "var(--type-heading-font-weight) var(--type-heading-font-size) /\n      var(--type-heading-line-height) var(--type-heading-font-family)",
+          "tokens": [
+            "type.heading.fontFamily",
+            "type.heading.fontSize",
+            "type.heading.fontWeight",
+            "type.heading.lineHeight"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/description"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(message)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "color": {
+          "value": "var(--color-text-muted)",
+          "tokens": [
+            "color.textMuted"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/actions"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(actions)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "flex",
+          "tokens": []
+        },
+        "flex-wrap": {
+          "value": "wrap",
+          "tokens": []
+        },
+        "justify-content": {
+          "value": "flex-end",
+          "tokens": []
+        },
+        "gap": {
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "inline",
+          "reverse": false,
+          "wrap": true
+        },
+        "justify": "trailing",
+        "gap": {
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/confirm"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "inline-flex",
+          "tokens": []
+        },
+        "--_mash-button-inline": {
+          "value": "var(--space-control-inline)",
+          "tokens": [
+            "space.controlInline"
+          ]
+        },
+        "--_mash-button-block": {
+          "value": "var(--space-control-block)",
+          "tokens": [
+            "space.controlBlock"
+          ]
+        },
+        "--_mash-button-font-size": {
+          "value": "var(--type-label-font-size)",
+          "tokens": [
+            "type.label.fontSize"
+          ]
+        },
+        "--_mash-button-font-weight": {
+          "value": "var(--type-label-font-weight)",
+          "tokens": [
+            "type.label.fontWeight"
+          ]
+        },
+        "--_mash-button-line-height": {
+          "value": "var(--type-label-line-height)",
+          "tokens": [
+            "type.label.lineHeight"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "inline",
+          "reverse": false,
+          "wrap": false
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/cancel"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "inline-flex",
+          "tokens": []
+        },
+        "--_mash-button-inline": {
+          "value": "var(--space-control-inline)",
+          "tokens": [
+            "space.controlInline"
+          ]
+        },
+        "--_mash-button-block": {
+          "value": "var(--space-control-block)",
+          "tokens": [
+            "space.controlBlock"
+          ]
+        },
+        "--_mash-button-font-size": {
+          "value": "var(--type-label-font-size)",
+          "tokens": [
+            "type.label.fontSize"
+          ]
+        },
+        "--_mash-button-font-weight": {
+          "value": "var(--type-label-font-weight)",
+          "tokens": [
+            "type.label.fontWeight"
+          ]
+        },
+        "--_mash-button-line-height": {
+          "value": "var(--type-label-line-height)",
+          "tokens": [
+            "type.label.lineHeight"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "inline",
+          "reverse": false,
+          "wrap": false
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/confirm"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "--_mash-button-tone": {
+          "value": "var(--color-action)",
+          "tokens": [
+            "color.action"
+          ]
+        },
+        "--_mash-button-hover": {
+          "value": "var(--color-action-hover)",
+          "tokens": [
+            "color.actionHover"
+          ]
+        },
+        "--_mash-button-pressed": {
+          "value": "var(--color-action-pressed)",
+          "tokens": [
+            "color.actionPressed"
+          ]
+        },
+        "--_mash-button-bg": {
+          "value": "var(--_mash-button-tone)",
+          "tokens": [
+            "color.action",
+            "color.critical",
+            "color.neutral"
+          ]
+        },
+        "--_mash-button-fg": {
+          "value": "var(--color-on-action)",
+          "tokens": [
+            "color.onAction"
+          ]
+        },
+        "--_mash-button-border": {
+          "value": "transparent",
+          "tokens": []
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/confirm"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm[tone=\"critical\"]::part(confirm)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "--_mash-button-tone": {
+          "value": "var(--color-critical)",
+          "tokens": [
+            "color.critical"
+          ]
+        },
+        "--_mash-button-hover": {
+          "value": "var(--color-critical-hover)",
+          "tokens": [
+            "color.criticalHover"
+          ]
+        },
+        "--_mash-button-pressed": {
+          "value": "var(--color-critical-pressed)",
+          "tokens": [
+            "color.criticalPressed"
+          ]
+        },
+        "--_mash-button-fg": {
+          "value": "var(--color-on-critical)",
+          "tokens": [
+            "color.onCritical"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/cancel"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "--_mash-button-tone": {
+          "value": "var(--color-neutral)",
+          "tokens": [
+            "color.neutral"
+          ]
+        },
+        "--_mash-button-hover": {
+          "value": "var(--color-neutral-hover)",
+          "tokens": [
+            "color.neutralHover"
+          ]
+        },
+        "--_mash-button-pressed": {
+          "value": "var(--color-neutral-pressed)",
+          "tokens": [
+            "color.neutralPressed"
+          ]
+        },
+        "--_mash-button-bg": {
+          "value": "transparent",
+          "tokens": []
+        },
+        "--_mash-button-fg": {
+          "value": "var(--color-text)",
+          "tokens": [
+            "color.text"
+          ]
+        },
+        "--_mash-button-border": {
+          "value": "transparent",
+          "tokens": []
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/confirm-control"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "inline-flex",
+          "tokens": []
+        },
+        "align-items": {
+          "value": "center",
+          "tokens": []
+        },
+        "justify-content": {
+          "value": "center",
+          "tokens": []
+        },
+        "margin": {
+          "value": "0",
+          "tokens": []
+        },
+        "border": {
+          "value": "var(--border-hairline) solid var(--_mash-button-border)",
+          "tokens": [
+            "border.hairline"
+          ]
+        },
+        "border-radius": {
+          "value": "var(--radius-control)",
+          "tokens": [
+            "radius.control"
+          ]
+        },
+        "padding": {
+          "value": "var(--_mash-button-block) var(--_mash-button-inline)",
+          "tokens": [
+            "space.controlBlock",
+            "space.controlInline"
+          ]
+        },
+        "background": {
+          "value": "var(--_mash-button-bg)",
+          "tokens": [
+            "color.action",
+            "color.critical",
+            "color.neutral"
+          ]
+        },
+        "color": {
+          "value": "var(--_mash-button-fg)",
+          "tokens": [
+            "color.onAction",
+            "color.onCritical",
+            "color.text"
+          ]
+        },
+        "font": {
+          "value": "var(--_mash-button-font-weight) var(--_mash-button-font-size) /\n      var(--_mash-button-line-height) var(--type-label-font-family)",
+          "tokens": [
+            "type.label.fontFamily",
+            "type.label.fontSize",
+            "type.label.fontWeight",
+            "type.label.lineHeight"
+          ]
+        },
+        "cursor": {
+          "value": "pointer",
+          "tokens": []
+        },
+        "transition": {
+          "value": "background-color var(--duration-control) var(--easing-control)",
+          "tokens": [
+            "duration.control",
+            "easing.control"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "inline",
+          "reverse": false,
+          "wrap": false
+        },
+        "align": "center",
+        "justify": "center",
+        "inset": {
+          "blockStart": {
+            "value": "var(--_mash-button-block)",
+            "tokens": [
+              "space.controlBlock"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--_mash-button-block)",
+            "tokens": [
+              "space.controlBlock"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--_mash-button-inline)",
+            "tokens": [
+              "space.controlInline"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--_mash-button-inline)",
+            "tokens": [
+              "space.controlInline"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/cancel-control"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "display": {
+          "value": "inline-flex",
+          "tokens": []
+        },
+        "align-items": {
+          "value": "center",
+          "tokens": []
+        },
+        "justify-content": {
+          "value": "center",
+          "tokens": []
+        },
+        "margin": {
+          "value": "0",
+          "tokens": []
+        },
+        "border": {
+          "value": "var(--border-hairline) solid var(--_mash-button-border)",
+          "tokens": [
+            "border.hairline"
+          ]
+        },
+        "border-radius": {
+          "value": "var(--radius-control)",
+          "tokens": [
+            "radius.control"
+          ]
+        },
+        "padding": {
+          "value": "var(--_mash-button-block) var(--_mash-button-inline)",
+          "tokens": [
+            "space.controlBlock",
+            "space.controlInline"
+          ]
+        },
+        "background": {
+          "value": "var(--_mash-button-bg)",
+          "tokens": [
+            "color.action",
+            "color.critical",
+            "color.neutral"
+          ]
+        },
+        "color": {
+          "value": "var(--_mash-button-fg)",
+          "tokens": [
+            "color.onAction",
+            "color.onCritical",
+            "color.text"
+          ]
+        },
+        "font": {
+          "value": "var(--_mash-button-font-weight) var(--_mash-button-font-size) /\n      var(--_mash-button-line-height) var(--type-label-font-family)",
+          "tokens": [
+            "type.label.fontFamily",
+            "type.label.fontSize",
+            "type.label.fontWeight",
+            "type.label.lineHeight"
+          ]
+        },
+        "cursor": {
+          "value": "pointer",
+          "tokens": []
+        },
+        "transition": {
+          "value": "background-color var(--duration-control) var(--easing-control)",
+          "tokens": [
+            "duration.control",
+            "easing.control"
+          ]
+        }
+      },
+      "layout": {
+        "group": {
+          "kind": "flow",
+          "axis": "inline",
+          "reverse": false,
+          "wrap": false
+        },
+        "align": "center",
+        "justify": "center",
+        "inset": {
+          "blockStart": {
+            "value": "var(--_mash-button-block)",
+            "tokens": [
+              "space.controlBlock"
+            ]
+          },
+          "blockEnd": {
+            "value": "var(--_mash-button-block)",
+            "tokens": [
+              "space.controlBlock"
+            ]
+          },
+          "inlineStart": {
+            "value": "var(--_mash-button-inline)",
+            "tokens": [
+              "space.controlInline"
+            ]
+          },
+          "inlineEnd": {
+            "value": "var(--_mash-button-inline)",
+            "tokens": [
+              "space.controlInline"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/confirm-control"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control):hover:not(:disabled)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "background": {
+          "value": "var(--_mash-button-hover)",
+          "tokens": [
+            "color.actionHover",
+            "color.criticalHover",
+            "color.neutralHover"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/cancel-control"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control):hover:not(:disabled)",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "background": {
+          "value": "var(--_mash-button-hover)",
+          "tokens": [
+            "color.actionHover",
+            "color.criticalHover",
+            "color.neutralHover"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/confirm-control"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control):focus-visible",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "outline": {
+          "value": "var(--border-focus-ring) solid var(--color-focus-ring)",
+          "tokens": [
+            "border.focusRing",
+            "color.focusRing"
+          ]
+        },
+        "outline-offset": {
+          "value": "var(--border-focus-ring-offset)",
+          "tokens": [
+            "border.focusRingOffset"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/cancel-control"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control):focus-visible",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "outline": {
+          "value": "var(--border-focus-ring) solid var(--color-focus-ring)",
+          "tokens": [
+            "border.focusRing",
+            "color.focusRing"
+          ]
+        },
+        "outline-offset": {
+          "value": "var(--border-focus-ring-offset)",
+          "tokens": [
+            "border.focusRingOffset"
+          ]
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/confirm-control"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(confirm-control):disabled",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "cursor": {
+          "value": "not-allowed",
+          "tokens": []
+        },
+        "opacity": {
+          "value": "0.65",
+          "tokens": []
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://shrine-confirm/node/cancel-control"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) shrine-confirm::part(cancel-control):disabled",
+        "context": [
+          "@layer mash.catalogue"
+        ]
+      },
+      "declarations": {
+        "cursor": {
+          "value": "not-allowed",
+          "tokens": []
+        },
+        "opacity": {
+          "value": "0.65",
+          "tokens": []
+        }
+      }
+    },
+    {
+      "targets": [
+        "mash://sh-limb/node/root"
+      ],
+      "when": {
+        "renderer": "web",
+        "selector": ":where([data-mash-catalogue=\"mash\"]) sh-limb::part(root)",
+        "context": [
+          "@layer mash.catalogue",
+          "@media (max-width: 520px)"
+        ]
+      },
+      "declarations": {
+        "grid-template-columns": {
+          "value": "minmax(0, 1fr)",
+          "tokens": []
+        },
+        "gap": {
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
+      },
+      "layout": {
+        "gap": {
+          "value": "var(--space-control-gap)",
+          "tokens": [
+            "space.controlGap"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,694 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mash.axsys.dev/schema/component-contract-1.0.0.json",
+  "title": "Mash component contract 1.0.0",
+  "description": "Validates either the root Mash metadata or one component declaration's Mash semantic-node contract embedded in a Custom Elements Manifest.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/manifestMetadata"
+    },
+    {
+      "$ref": "#/$defs/componentContract"
+    }
+  ],
+  "$defs": {
+    "roleName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    },
+    "familyName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    },
+    "nodeId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    },
+    "componentAddress": {
+      "type": "string",
+      "pattern": "^mash://[a-z][a-z0-9]*(?:-[a-z0-9]+)+$"
+    },
+    "nodeAddress": {
+      "type": "string",
+      "pattern": "^mash://[a-z][a-z0-9]*(?:-[a-z0-9]+)+/node/[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    },
+    "bindingAddress": {
+      "type": "string",
+      "pattern": "^mash://[a-z][a-z0-9]*(?:-[a-z0-9]+)+/binding/(?:attribute|slot|part|state|event)/(?:default|[a-z][a-z0-9]*(?:-[a-z0-9]+)*)$"
+    },
+    "roleDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "family", "description"],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/roleName"
+        },
+        "family": {
+          "$ref": "#/$defs/familyName"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "manifestMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "version", "roles", "aliases"],
+      "properties": {
+        "schema": {
+          "const": "https://mash.axsys.dev/schema/component-contract-1.0.0.json"
+        },
+        "version": {
+          "const": "1.0.0"
+        },
+        "roles": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/roleName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/roleDefinition"
+          }
+        },
+        "aliases": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/roleName"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/roleName"
+          }
+        }
+      }
+    },
+    "primitiveValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "unknown",
+            "void",
+            "string",
+            "number",
+            "boolean",
+            "form-data",
+            "node"
+          ]
+        }
+      }
+    },
+    "enumValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "choices"],
+      "properties": {
+        "kind": {
+          "const": "enum"
+        },
+        "choices": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "arrayValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "items"],
+      "properties": {
+        "kind": {
+          "const": "array"
+        },
+        "items": {
+          "$ref": "#/$defs/value"
+        }
+      }
+    },
+    "recordValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "fields"],
+      "properties": {
+        "kind": {
+          "const": "record"
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/value"
+          }
+        }
+      }
+    },
+    "nullableValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": {
+          "const": "nullable"
+        },
+        "value": {
+          "$ref": "#/$defs/value"
+        }
+      }
+    },
+    "namedValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name"],
+      "properties": {
+        "kind": {
+          "const": "reference"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "eventValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "detail"],
+      "properties": {
+        "kind": {
+          "const": "event"
+        },
+        "detail": {
+          "$ref": "#/$defs/value"
+        }
+      }
+    },
+    "value": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/primitiveValue"
+        },
+        {
+          "$ref": "#/$defs/enumValue"
+        },
+        {
+          "$ref": "#/$defs/arrayValue"
+        },
+        {
+          "$ref": "#/$defs/recordValue"
+        },
+        {
+          "$ref": "#/$defs/nullableValue"
+        },
+        {
+          "$ref": "#/$defs/namedValue"
+        },
+        {
+          "$ref": "#/$defs/eventValue"
+        }
+      ]
+    },
+    "defaultSpec": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": {
+              "const": "none"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {
+              "const": "value"
+            },
+            "value": true
+          }
+        }
+      ]
+    },
+    "fallbackSpec": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": {
+              "enum": ["none", "empty"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {
+              "const": "literal"
+            },
+            "value": true
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "bindingAddress"],
+          "properties": {
+            "kind": {
+              "const": "binding"
+            },
+            "bindingAddress": {
+              "$ref": "#/$defs/bindingAddress"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "bindingAddresses"],
+          "properties": {
+            "kind": {
+              "const": "chain"
+            },
+            "bindingAddresses": {
+              "type": "array",
+              "minItems": 2,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/bindingAddress"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "nodeAddress"],
+      "properties": {
+        "path": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "nodeAddress": {
+          "$ref": "#/$defs/nodeAddress"
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "address",
+        "nodeAddress",
+        "renderer",
+        "kind",
+        "name",
+        "role",
+        "family",
+        "shared",
+        "mapping",
+        "availability",
+        "direction",
+        "value",
+        "default",
+        "fallback"
+      ],
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/bindingAddress"
+        },
+        "nodeAddress": {
+          "$ref": "#/$defs/nodeAddress"
+        },
+        "renderer": {
+          "const": "web"
+        },
+        "kind": {
+          "enum": ["attribute", "slot", "part", "state", "event"]
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^(?:|[a-z][a-z0-9]*(?:-[a-z0-9]+)*)$"
+        },
+        "role": {
+          "$ref": "#/$defs/roleName"
+        },
+        "family": {
+          "$ref": "#/$defs/familyName"
+        },
+        "shared": {
+          "const": true
+        },
+        "mapping": {
+          "enum": ["inferred", "explicit"]
+        },
+        "availability": {
+          "enum": ["optional", "required", "provided"]
+        },
+        "direction": {
+          "enum": ["input", "content", "realization", "state", "output"]
+        },
+        "value": {
+          "$ref": "#/$defs/value"
+        },
+        "default": {
+          "$ref": "#/$defs/defaultSpec"
+        },
+        "fallback": {
+          "$ref": "#/$defs/fallbackSpec"
+        },
+        "reports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/report"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "attribute"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "direction": {
+                "const": "input"
+              },
+              "availability": {
+                "enum": ["optional", "required"]
+              },
+              "fallback": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "none"
+                  }
+                },
+                "required": ["kind"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "slot"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "direction": {
+                "const": "content"
+              },
+              "availability": {
+                "enum": ["optional", "required"]
+              },
+              "default": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "none"
+                  }
+                },
+                "required": ["kind"]
+              },
+              "fallback": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "enum": ["empty", "literal", "binding", "chain"]
+                  }
+                },
+                "required": ["kind"]
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "node"
+                  }
+                },
+                "required": ["kind"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "part"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "direction": {
+                "const": "realization"
+              },
+              "availability": {
+                "const": "provided"
+              },
+              "default": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "none"
+                  }
+                },
+                "required": ["kind"]
+              },
+              "fallback": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "none"
+                  }
+                },
+                "required": ["kind"]
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "node"
+                  }
+                },
+                "required": ["kind"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "state"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "direction": {
+                "const": "state"
+              },
+              "availability": {
+                "const": "provided"
+              },
+              "default": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "none"
+                  }
+                },
+                "required": ["kind"]
+              },
+              "fallback": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "none"
+                  }
+                },
+                "required": ["kind"]
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "boolean"
+                  }
+                },
+                "required": ["kind"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "event"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["reports"],
+            "properties": {
+              "direction": {
+                "const": "output"
+              },
+              "availability": {
+                "const": "provided"
+              },
+              "default": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "none"
+                  }
+                },
+                "required": ["kind"]
+              },
+              "fallback": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "none"
+                  }
+                },
+                "required": ["kind"]
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "const": "event"
+                  }
+                },
+                "required": ["kind"]
+              },
+              "reports": {
+                "type": "array"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": ["attribute", "slot", "part", "state"]
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "not": {
+              "required": ["reports"]
+            }
+          }
+        }
+      ]
+    },
+    "semanticNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "address",
+        "role",
+        "family",
+        "shared",
+        "ownership",
+        "bindings"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nodeId"
+        },
+        "address": {
+          "$ref": "#/$defs/nodeAddress"
+        },
+        "role": {
+          "$ref": "#/$defs/roleName"
+        },
+        "family": {
+          "$ref": "#/$defs/familyName"
+        },
+        "shared": {
+          "const": true
+        },
+        "ownership": {
+          "enum": ["authored", "controlled", "reported", "realized"]
+        },
+        "parent": {
+          "$ref": "#/$defs/nodeAddress"
+        },
+        "bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/binding"
+          }
+        }
+      }
+    },
+    "componentContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "address", "nodes", "bindings"],
+      "properties": {
+        "version": {
+          "const": "1.0.0"
+        },
+        "address": {
+          "$ref": "#/$defs/componentAddress"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/semanticNode"
+          }
+        },
+        "bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/binding"
+          }
+        }
+      }
+    }
+  }
+}

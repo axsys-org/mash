@@ -1,0 +1,826 @@
+{
+  "source": {
+    "repository": "https://github.com/longbridge/gpui-component",
+    "revision": "b77f352589503a114cdf709507c0738a88e28364",
+    "catalogue": "https://longbridge.github.io/gpui-component/base/",
+    "capturedAt": "2026-08-19"
+  },
+  "levels": {
+    "missing": "No Mash realization has been published.",
+    "partial": "A Mash realization exists, but anatomy, behavior, or catalogue proof remains incomplete.",
+    "aligned": "The pinned GPUI Base anatomy and behavior have renderer-specific fixtures and complete catalogue proof."
+  },
+  "primitives": [
+    {
+      "slug": "accordion",
+      "status": "aligned",
+      "web": [
+        { "kind": "component", "tag": "ui-accordion" },
+        { "kind": "component", "tag": "ui-accordion-item" }
+      ],
+      "evidence": {
+        "upstream": ["crates/base/src/accordion.rs"],
+        "behaviors": [
+          "single and multiple ownership",
+          "labelled disclosure",
+          "heading level",
+          "disabled state",
+          "open-state requests"
+        ],
+        "tests": [
+          "packages/components/src/accordion-item/accordion-item.test.ts",
+          "packages/components/src/base-ui-controls.test.ts"
+        ],
+        "examples": [{ "tag": "ui-accordion", "name": "Account settings" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "alert-dialog",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-alert-dialog" }],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/alert_dialog.rs",
+          "crates/base/src/dialog.rs"
+        ],
+        "behaviors": [
+          "modal focus containment",
+          "focus return",
+          "Escape policy",
+          "outside-dismiss policy",
+          "confirm and cancel reasons"
+        ],
+        "tests": ["packages/components/src/overlay-realization.test.ts"],
+        "examples": [{ "tag": "ui-alert-dialog", "name": "Delete record" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "avatar",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-avatar" }],
+      "evidence": {
+        "upstream": ["crates/base/src/avatar.rs"],
+        "behaviors": [
+          "authored image",
+          "fallback when absent",
+          "fallback after image error"
+        ],
+        "tests": ["packages/components/src/avatar/avatar.test.ts"],
+        "examples": [{ "tag": "ui-avatar", "name": "Image and fallback" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "button",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-button" }],
+      "evidence": {
+        "upstream": ["crates/base/src/button.rs"],
+        "behaviors": [
+          "pointer activation",
+          "keyboard activation",
+          "disabled suppression",
+          "persistent selected state",
+          "focus delegation"
+        ],
+        "tests": ["packages/components/src/button/button.test.ts"],
+        "examples": [
+          { "tag": "ui-button", "name": "Foundation matrix" },
+          { "tag": "ui-button", "name": "Content variants" }
+        ],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "calendar",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-calendar" }],
+      "evidence": {
+        "upstream": ["crates/base/src/calendar.rs"],
+        "behaviors": [
+          "single and range selection",
+          "day month and year views",
+          "multi-month realization",
+          "disabled bounds and explicit dates",
+          "keyboard grid navigation",
+          "first weekday",
+          "selection state parts"
+        ],
+        "tests": ["packages/components/src/calendar/calendar.test.ts"],
+        "examples": [{ "tag": "ui-calendar", "name": "Billing window" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "checkbox",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-checkbox" }],
+      "evidence": {
+        "upstream": ["crates/base/src/checkbox.rs"],
+        "behaviors": [
+          "checked state",
+          "indeterminate state",
+          "keyboard activation",
+          "form participation",
+          "disabled state"
+        ],
+        "tests": ["packages/components/src/checkbox/checkbox.test.ts"],
+        "examples": [{ "tag": "ui-checkbox", "name": "Form option" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "collapsible",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-collapsible" }],
+      "evidence": {
+        "upstream": ["crates/base/src/collapsible.rs"],
+        "behaviors": [
+          "controlled open state",
+          "trigger activation",
+          "labelled content",
+          "keyboard activation"
+        ],
+        "tests": ["packages/components/src/base-ui-controls.test.ts"],
+        "examples": [{ "tag": "ui-collapsible", "name": "Advanced options" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "color-picker",
+      "status": "aligned",
+      "web": [
+        { "kind": "component", "tag": "ui-color-picker" },
+        { "kind": "component", "tag": "ui-color-swatch" }
+      ],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/color_picker.rs",
+          "crates/base/src/slider.rs",
+          "crates/base/src/positioner.rs"
+        ],
+        "behaviors": [
+          "committed and preview color",
+          "swatch hover preview",
+          "swatch commit",
+          "HSLA channels",
+          "hex normalization",
+          "authored clear action",
+          "anchored open state"
+        ],
+        "tests": ["packages/components/src/color-picker/color-picker.test.ts"],
+        "examples": [{ "tag": "ui-color-picker", "name": "Accent color" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "combobox",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-combobox" }],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/combobox.rs",
+          "crates/base/src/select.rs",
+          "crates/base/src/popup.rs",
+          "crates/base/src/virtual_list.rs"
+        ],
+        "behaviors": [
+          "single and multiple selection",
+          "editable filtering",
+          "list and grid keyboard navigation",
+          "RTL grid navigation",
+          "async authored collections",
+          "chip removal and clear action",
+          "anchored popup positioning",
+          "reasoned open changes"
+        ],
+        "tests": ["packages/components/src/base-ui-controls.test.ts"],
+        "examples": [{ "tag": "ui-combobox", "name": "Assign owner" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "date-picker",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-date-picker" }],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/date_picker.rs",
+          "crates/base/src/calendar.rs",
+          "crates/base/src/popover.rs"
+        ],
+        "behaviors": [
+          "authored calendar composition",
+          "date commit",
+          "anchored open state",
+          "Escape and outside dismissal",
+          "focus return"
+        ],
+        "tests": [
+          "packages/components/src/date-picker/date-picker.test.ts",
+          "packages/components/src/calendar/calendar.test.ts",
+          "packages/components/src/overlay-realization.test.ts"
+        ],
+        "examples": [{ "tag": "ui-date-picker", "name": "Due date" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "dialog",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-dialog" }],
+      "evidence": {
+        "upstream": ["crates/base/src/dialog.rs"],
+        "behaviors": [
+          "modal focus containment",
+          "focus return",
+          "Escape dismissal",
+          "outside dismissal",
+          "imperative show and dismiss",
+          "reasoned open changes"
+        ],
+        "tests": [
+          "packages/components/src/overlay-realization.test.ts",
+          "packages/components/src/base-ui-controls.test.ts"
+        ],
+        "examples": [{ "tag": "ui-dialog", "name": "Rename project" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "editor",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-editor" }],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/input/editor/mod.rs",
+          "crates/base/src/input/editor/search.rs",
+          "crates/base/src/input/editor/indent.rs",
+          "crates/base/src/input/editor/diagnostics.rs",
+          "crates/base/src/input/editor/lsp/overlay.rs"
+        ],
+        "behaviors": [
+          "native text input IME clipboard and undo",
+          "source selection with line and column positions",
+          "single and multi-line indentation",
+          "literal search wrap and replacement",
+          "line numbers soft wrapping and scroll reporting",
+          "diagnostic decoration color fold and indent provider nodes",
+          "completion hover code-action and search slots",
+          "portable provider command events"
+        ],
+        "tests": ["packages/components/src/editor/editor.test.ts"],
+        "examples": [{ "tag": "ui-editor", "name": "Mash declaration" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "hover-card",
+      "status": "aligned",
+      "web": [{ "kind": "alias", "tag": "ui-preview-card" }],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/hover_card.rs",
+          "crates/base/src/positioner.rs"
+        ],
+        "behaviors": [
+          "hover and focus opening",
+          "open delay",
+          "close grace period",
+          "pointer transition into popup",
+          "anchored placement"
+        ],
+        "tests": ["packages/components/src/overlay-realization.test.ts"],
+        "examples": [{ "tag": "ui-preview-card", "name": "Project preview" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "input",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-input" }],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/input/input/mod.rs",
+          "crates/base/src/input/base/mod.rs"
+        ],
+        "behaviors": [
+          "native text editing",
+          "selection",
+          "form value",
+          "validation",
+          "disabled and readonly state"
+        ],
+        "tests": ["packages/components/src/input/input.test.ts"],
+        "examples": [{ "tag": "ui-input", "name": "Search input" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "link",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-link" }],
+      "evidence": {
+        "upstream": ["crates/base/src/link.rs"],
+        "behaviors": [
+          "native destination",
+          "keyboard activation",
+          "disabled suppression",
+          "accessible label fallback"
+        ],
+        "tests": ["packages/components/src/link/link.test.ts"],
+        "examples": [{ "tag": "ui-link", "name": "Project destination" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "number-input",
+      "status": "aligned",
+      "web": [{ "kind": "alias", "tag": "ui-number-field" }],
+      "evidence": {
+        "upstream": ["crates/base/src/number_input.rs"],
+        "behaviors": [
+          "bounded numeric editing",
+          "directional step controls",
+          "cancellable step requests",
+          "form participation",
+          "disabled and required state"
+        ],
+        "tests": [
+          "packages/components/src/number-field/number-field.test.ts",
+          "packages/components/src/base-ui-controls.test.ts"
+        ],
+        "examples": [{ "tag": "ui-number-field", "name": "Seats" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "otp-input",
+      "status": "aligned",
+      "web": [{ "kind": "alias", "tag": "ui-otp-field" }],
+      "evidence": {
+        "upstream": ["crates/base/src/otp_input.rs"],
+        "behaviors": [
+          "fixed-length input",
+          "paste distribution",
+          "Backspace navigation",
+          "complete event",
+          "masked mode",
+          "form participation"
+        ],
+        "tests": [
+          "packages/components/src/otp-field/otp-field.test.ts",
+          "packages/components/src/base-ui-controls.test.ts"
+        ],
+        "examples": [{ "tag": "ui-otp-field", "name": "Verification code" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "pagination",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-pagination" }],
+      "evidence": {
+        "upstream": ["crates/base/src/pagination.rs"],
+        "behaviors": [
+          "stable page window",
+          "previous and next bounds",
+          "page request events",
+          "disabled state",
+          "accessible current page"
+        ],
+        "tests": ["packages/components/src/pagination/pagination.test.ts"],
+        "examples": [{ "tag": "ui-pagination", "name": "Result pages" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "popover",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-popover" }],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/popover.rs",
+          "crates/base/src/positioner.rs"
+        ],
+        "behaviors": [
+          "trigger delegation",
+          "anchored placement",
+          "collision flipping",
+          "viewport clamping",
+          "Escape and outside dismissal",
+          "focus return"
+        ],
+        "tests": ["packages/components/src/overlay-realization.test.ts"],
+        "examples": [{ "tag": "ui-popover", "name": "Project actions" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "popup",
+      "status": "aligned",
+      "web": [{ "kind": "node", "tag": "ui-popover", "node": "popup" }],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/popup.rs",
+          "crates/base/src/positioner.rs"
+        ],
+        "behaviors": [
+          "semantic anchor",
+          "preferred side",
+          "cross-axis alignment",
+          "offset",
+          "collision flipping",
+          "viewport clamping"
+        ],
+        "tests": ["packages/components/src/overlay-realization.test.ts"],
+        "examples": [{ "tag": "ui-popover", "name": "Project actions" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "progress",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-progress" }],
+      "evidence": {
+        "upstream": ["crates/base/src/progress.rs"],
+        "behaviors": [
+          "bounded value",
+          "normalized range",
+          "indeterminate state",
+          "accessible progress semantics"
+        ],
+        "tests": ["packages/components/src/progress/progress.test.ts"],
+        "examples": [{ "tag": "ui-progress", "name": "Progress meanings" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "radio",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-radio" }],
+      "evidence": {
+        "upstream": ["crates/base/src/radio.rs"],
+        "behaviors": [
+          "checked state",
+          "keyboard activation",
+          "group position metadata",
+          "form participation",
+          "disabled state"
+        ],
+        "tests": ["packages/components/src/base-ui-controls.test.ts"],
+        "examples": [{ "tag": "ui-radio", "name": "Project visibility" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "radio-group",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-radio-group" }],
+      "evidence": {
+        "upstream": ["crates/base/src/radio_group.rs"],
+        "behaviors": [
+          "single selection",
+          "roving Arrow navigation",
+          "logical RTL navigation",
+          "group labelling",
+          "disabled state"
+        ],
+        "tests": ["packages/components/src/base-ui-controls.test.ts"],
+        "examples": [{ "tag": "ui-radio-group", "name": "Project visibility" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "resizable",
+      "status": "aligned",
+      "web": [
+        { "kind": "component", "tag": "ui-resizable" },
+        { "kind": "component", "tag": "ui-resizable-panel" },
+        { "kind": "component", "tag": "ui-resizable-handle" }
+      ],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/resizable/mod.rs",
+          "crates/base/src/resizable/panel.rs",
+          "crates/base/src/resizable/resize_handle.rs"
+        ],
+        "behaviors": [
+          "adjacent panel resizing",
+          "minimum and maximum constraints",
+          "keyboard resizing",
+          "programmatic resize and reset",
+          "visible panels",
+          "resize lifecycle events"
+        ],
+        "tests": ["packages/components/src/resizable/resizable.test.ts"],
+        "examples": [{ "tag": "ui-resizable", "name": "Inspector split" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "scrollbar",
+      "status": "aligned",
+      "web": [{ "kind": "alias", "tag": "ui-scroll-area" }],
+      "evidence": {
+        "upstream": ["crates/base/src/scrollbar.rs"],
+        "behaviors": [
+          "native scroll handle",
+          "block and inline axes",
+          "track paging and thumb dragging",
+          "keyboard scrollbar control",
+          "always hover and scrolling visibility modes",
+          "idle visibility hold",
+          "RTL logical offsets"
+        ],
+        "tests": ["packages/components/src/scroll-area/scroll-area.test.ts"],
+        "examples": [{ "tag": "ui-scroll-area", "name": "Activity log" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "select",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-select" }],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/select.rs",
+          "crates/base/src/popup.rs",
+          "crates/base/src/virtual_list.rs"
+        ],
+        "behaviors": [
+          "single and multiple selection",
+          "button and listbox semantics",
+          "typeahead and keyboard navigation",
+          "async authored collections",
+          "form participation",
+          "anchored popup positioning",
+          "reasoned open changes"
+        ],
+        "tests": ["packages/components/src/base-ui-controls.test.ts"],
+        "examples": [{ "tag": "ui-select", "name": "Project visibility" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "sheet",
+      "status": "aligned",
+      "web": [{ "kind": "alias", "tag": "ui-drawer" }],
+      "evidence": {
+        "upstream": ["crates/base/src/sheet.rs", "crates/base/src/dialog.rs"],
+        "behaviors": [
+          "modal focus containment",
+          "logical side",
+          "outside dismissal",
+          "Escape dismissal",
+          "focus return"
+        ],
+        "tests": ["packages/components/src/overlay-realization.test.ts"],
+        "examples": [{ "tag": "ui-drawer", "name": "Activity drawer" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "slider",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-slider" }],
+      "evidence": {
+        "upstream": ["crates/base/src/slider.rs"],
+        "behaviors": [
+          "single and range values",
+          "linear and logarithmic scale",
+          "horizontal and vertical orientation",
+          "reversed direction",
+          "track indicator and thumb anatomy",
+          "native keyboard input"
+        ],
+        "tests": [
+          "packages/components/src/slider/slider.test.ts",
+          "packages/components/src/base-ui-controls.test.ts"
+        ],
+        "examples": [{ "tag": "ui-slider", "name": "Price range" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "switch",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-switch" }],
+      "evidence": {
+        "upstream": ["crates/base/src/switch.rs"],
+        "behaviors": [
+          "checked state",
+          "keyboard activation",
+          "change request",
+          "disabled state",
+          "track and thumb anatomy"
+        ],
+        "tests": ["packages/components/src/switch/switch.test.ts"],
+        "examples": [{ "tag": "ui-switch", "name": "Setting" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "table",
+      "status": "aligned",
+      "web": [
+        { "kind": "component", "tag": "ui-table" },
+        { "kind": "component", "tag": "ui-table-header" },
+        { "kind": "component", "tag": "ui-table-body" },
+        { "kind": "component", "tag": "ui-table-row" },
+        { "kind": "component", "tag": "ui-table-head" },
+        { "kind": "component", "tag": "ui-table-cell" },
+        { "kind": "component", "tag": "ui-table-caption" }
+      ],
+      "evidence": {
+        "upstream": ["crates/base/src/table.rs"],
+        "behaviors": [
+          "captioned table semantics",
+          "header and body grouping",
+          "row and column counts",
+          "row and cell position metadata"
+        ],
+        "tests": ["packages/components/src/table/table.test.ts"],
+        "examples": [{ "tag": "ui-table", "name": "Project status table" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "tabs",
+      "status": "aligned",
+      "web": [
+        { "kind": "component", "tag": "ui-tabs" },
+        { "kind": "component", "tag": "ui-tab" },
+        { "kind": "component", "tag": "ui-tab-panel" }
+      ],
+      "evidence": {
+        "upstream": ["crates/base/src/tabs.rs"],
+        "behaviors": [
+          "controlled selection",
+          "tab and panel relationships",
+          "collection position metadata",
+          "logical RTL navigation",
+          "Home and End navigation",
+          "disabled tab skipping"
+        ],
+        "tests": ["packages/components/src/base-ui-controls.test.ts"],
+        "examples": [{ "tag": "ui-tabs", "name": "Project settings" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "textarea",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-textarea" }],
+      "evidence": {
+        "upstream": ["crates/base/src/input/textarea/mod.rs"],
+        "behaviors": [
+          "native multiline editing",
+          "form value",
+          "validation",
+          "disabled and readonly state"
+        ],
+        "tests": ["packages/components/src/textarea/textarea.test.ts"],
+        "examples": [{ "tag": "ui-textarea", "name": "Project notes" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "toast",
+      "status": "aligned",
+      "web": [
+        { "kind": "component", "tag": "ui-toast" },
+        { "kind": "component", "tag": "ui-toast-stack" }
+      ],
+      "evidence": {
+        "upstream": ["crates/base/src/toast.rs"],
+        "behaviors": [
+          "live-region announcement",
+          "timeout dismissal",
+          "pause and resume",
+          "stack placement",
+          "collapsed limit and expansion",
+          "Escape dismissal",
+          "dismiss-all requests"
+        ],
+        "tests": ["packages/components/src/toast-stack/toast-stack.test.ts"],
+        "examples": [
+          { "tag": "ui-toast", "name": "Saved" },
+          { "tag": "ui-toast-stack", "name": "Notification stack" }
+        ],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "toggle",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-toggle" }],
+      "evidence": {
+        "upstream": ["crates/base/src/toggle.rs"],
+        "behaviors": [
+          "pressed state",
+          "keyboard activation",
+          "change reporting",
+          "disabled state"
+        ],
+        "tests": ["packages/components/src/toggle/toggle.test.ts"],
+        "examples": [{ "tag": "ui-toggle", "name": "Formatting control" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "toggle-group",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-toggle-group" }],
+      "evidence": {
+        "upstream": ["crates/base/src/toggle_group.rs"],
+        "behaviors": [
+          "single and multiple selection",
+          "roving Arrow navigation",
+          "logical RTL navigation",
+          "group labelling",
+          "disabled state"
+        ],
+        "tests": ["packages/components/src/base-ui-controls.test.ts"],
+        "examples": [{ "tag": "ui-toggle-group", "name": "Text alignment" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "tooltip",
+      "status": "aligned",
+      "web": [{ "kind": "component", "tag": "ui-tooltip" }],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/tooltip.rs",
+          "crates/base/src/positioner.rs"
+        ],
+        "behaviors": [
+          "hover and focus opening",
+          "open delay",
+          "close grace period",
+          "non-interactive popup",
+          "anchored placement"
+        ],
+        "tests": ["packages/components/src/overlay-realization.test.ts"],
+        "examples": [{ "tag": "ui-tooltip", "name": "Compact action" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "tree",
+      "status": "aligned",
+      "web": [
+        { "kind": "component", "tag": "ui-tree" },
+        { "kind": "component", "tag": "ui-tree-item" }
+      ],
+      "evidence": {
+        "upstream": [
+          "crates/base/src/tree.rs",
+          "crates/base/src/virtual_list.rs"
+        ],
+        "behaviors": [
+          "nested and flattened renderer topology",
+          "stable item identity",
+          "roving focus with wrapped navigation",
+          "multi-character typeahead",
+          "controlled selection and expansion requests",
+          "reveal and scroll targeting",
+          "collection level and position metadata",
+          "virtual-list compatible identity model"
+        ],
+        "tests": [
+          "packages/components/src/tree/tree.test.ts",
+          "packages/components/src/tree-item/tree-item.test.ts"
+        ],
+        "examples": [{ "tag": "ui-tree-item", "name": "Shrine hierarchy" }],
+        "headless": "token-free"
+      }
+    },
+    {
+      "slug": "virtual-list",
+      "status": "aligned",
+      "web": [
+        { "kind": "component", "tag": "ui-virtual-list" },
+        { "kind": "component", "tag": "ui-virtual-item" }
+      ],
+      "evidence": {
+        "upstream": ["crates/base/src/virtual_list.rs"],
+        "behaviors": [
+          "variable item extents",
+          "visible range composition",
+          "overscan",
+          "deferred scroll targeting",
+          "start center end and nearest alignment",
+          "scroll to bottom",
+          "collection position metadata"
+        ],
+        "tests": ["packages/components/src/virtual-list/virtual-list.test.ts"],
+        "examples": [{ "tag": "ui-virtual-list", "name": "Project activity" }],
+        "headless": "token-free"
+      }
+    }
+  ]
+}

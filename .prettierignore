@@ -6,3 +6,5 @@ pnpm-lock.yaml
 # create spurious diffs on every build.
 packages/tokens/dist/
 packages/components/custom-elements.json
+packages/components/src/catalogue/mash.json
+packages/shrine-components/src/catalogue/mash.json
