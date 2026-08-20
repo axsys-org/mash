@@ -1,0 +1,616 @@
+mod components;
+
+use gpui::{
+    App, AppContext as _, Application, Context, InteractiveElement as _, IntoElement,
+    ParentElement as _, Render, ScrollHandle, StatefulInteractiveElement as _, Styled as _, Window,
+    WindowOptions, actions, div, prelude::FluentBuilder as _, px, rgb, size,
+};
+use gpui::{KeyBinding, WindowBounds};
+use gpui_base::input::InputEditorStyle;
+use gpui_base::input::{EditorState, InputState, TextareaState};
+use gpui_base::slider::SliderState;
+use gpui_base::{
+    Accordion, AccordionHeader, AccordionItem, AccordionPanel, AccordionTrigger, AlertDialog,
+    AlertDialogAction, AlertDialogBackdrop, AlertDialogCancel, AlertDialogDescription,
+    AlertDialogPopup, AlertDialogTitle, Avatar, AvatarFallback, Button, Calendar, CalendarItemKind,
+    CalendarState, Checkbox, CheckboxIndicator, CheckboxState, Collapsible, ColorPicker,
+    ColorPickerState, ColorSwatch, Combobox, DatePicker, Dialog, DialogBackdrop, DialogDescription,
+    DialogPopup, DialogTitle, Editor, HoverCard, Input, InputBase, OtpState, Popup, Scrollbar,
+    ScrollbarMode, Select, Sheet, Slider, SliderIndicator, SliderThumb, SliderTrack, Switch,
+    SwitchThumb, SwitchTrack, Tab, Table, TableBody, TableCaption, TableCell, TableHead,
+    TableHeader, TableRow, Tabs, Textarea, Toast, ToastStack, ToastStackState,
+    ToastTransitionStatus, Toggle, ToggleGroup, Tooltip, Tree, TreeItem, TreeState,
+    VirtualListScrollHandle, v_virtual_list,
+};
+use mash_gpui::{MashAdapter, MashRecipeContext, MashStyledExt, MashTheme};
+use std::rc::Rc;
+
+actions!(mash_catalogue, [Quit]);
+
+const EDITOR_EXAMPLE: &str = r#"use std::collections::HashMap;
+
+#[derive(Debug, Clone)]
+struct Workspace {
+    name: String,
+    files: HashMap<String, usize>,
+}
+
+impl Workspace {
+    fn new(name: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            files: HashMap::new(),
+        }
+    }
+
+    fn index(&mut self, path: &str, lines: usize) {
+        // Keep the latest line count for each source file.
+        self.files.insert(path.to_owned(), lines);
+    }
+
+    fn summary(&self) -> String {
+        let total: usize = self.files.values().sum();
+        format!("{}: {} files, {total} lines", self.name, self.files.len())
+    }
+}
+
+fn main() {
+    let mut workspace = Workspace::new("gpui-component");
+    workspace.index("src/main.rs", 128);
+    workspace.index("src/editor.rs", 372);
+    println!("{}", workspace.summary());
+}
+"#;
+
+pub const COMPONENTS: &[&str] = &[
+    "accordion",
+    "alert-dialog",
+    "avatar",
+    "button",
+    "calendar",
+    "checkbox",
+    "collapsible",
+    "color-picker",
+    "combobox",
+    "date-picker",
+    "dialog",
+    "editor",
+    "hover-card",
+    "input",
+    "link",
+    "number-input",
+    "otp-input",
+    "pagination",
+    "popover",
+    "popup",
+    "progress",
+    "radio",
+    "radio-group",
+    "resizable",
+    "scrollbar",
+    "select",
+    "sheet",
+    "slider",
+    "switch",
+    "table",
+    "tabs",
+    "textarea",
+    "toast",
+    "toggle",
+    "toggle-group",
+    "tooltip",
+    "tree",
+    "virtual-list",
+];
+
+/// Every Mash component realized by the 38 pinned GPUI Base families. Compound
+/// families keep their semantic children explicit instead of collapsing them
+/// into one native root.
+#[cfg(test)]
+pub const BOUND_COMPONENTS: &[&str] = &[
+    "ui-accordion",
+    "ui-accordion-item",
+    "ui-alert-dialog",
+    "ui-avatar",
+    "ui-button",
+    "ui-calendar",
+    "ui-checkbox",
+    "ui-collapsible",
+    "ui-color-picker",
+    "ui-color-swatch",
+    "ui-combobox",
+    "ui-date-picker",
+    "ui-dialog",
+    "ui-editor",
+    "ui-preview-card",
+    "ui-input",
+    "ui-link",
+    "ui-number-field",
+    "ui-otp-field",
+    "ui-pagination",
+    "ui-popover",
+    "ui-progress",
+    "ui-radio",
+    "ui-radio-group",
+    "ui-resizable",
+    "ui-resizable-panel",
+    "ui-resizable-handle",
+    "ui-scroll-area",
+    "ui-select",
+    "ui-drawer",
+    "ui-slider",
+    "ui-switch",
+    "ui-table",
+    "ui-table-header",
+    "ui-table-body",
+    "ui-table-row",
+    "ui-table-head",
+    "ui-table-cell",
+    "ui-table-caption",
+    "ui-tabs",
+    "ui-tab",
+    "ui-tab-panel",
+    "ui-textarea",
+    "ui-toast",
+    "ui-toast-stack",
+    "ui-toggle",
+    "ui-toggle-group",
+    "ui-tooltip",
+    "ui-tree",
+    "ui-tree-item",
+    "ui-virtual-list",
+    "ui-virtual-item",
+];
+
+pub struct BaseShowcase {
+    component: String,
+    navigation_enabled: bool,
+    checkbox_checked: bool,
+    radio_selected: usize,
+    switch_checked: bool,
+    toggle_pressed: bool,
+    toggle_group_selection: u8,
+    selected_tab: usize,
+    select_open: bool,
+    select_index: usize,
+    sheet_open: bool,
+    toast_visible: bool,
+    toast_stack: ToastStackState,
+    tooltip_visible: bool,
+    accordion_items: [bool; 3],
+    alert_dialog_open: bool,
+    collapsible_open: bool,
+    combobox_open: bool,
+    combobox_query: gpui::Entity<InputState>,
+    combobox_selection: String,
+    color_picker: gpui::Entity<ColorPickerState>,
+    date_open: bool,
+    dialog_open: bool,
+    popup_open: bool,
+    page: usize,
+    slider: gpui::Entity<SliderState>,
+    input: gpui::Entity<InputState>,
+    textarea: gpui::Entity<TextareaState>,
+    editor: gpui::Entity<EditorState>,
+    otp: gpui::Entity<OtpState>,
+    calendar: gpui::Entity<CalendarState>,
+    tree: gpui::Entity<TreeState>,
+    date_focus: gpui::FocusHandle,
+    scroll: ScrollHandle,
+    example_scroll: ScrollHandle,
+    virtual_scroll: VirtualListScrollHandle,
+    theme: MashTheme,
+}
+
+impl BaseShowcase {
+    pub fn new(component: impl Into<String>, window: &mut Window, cx: &mut Context<Self>) -> Self {
+        let component = component.into();
+        let input = cx.new(|cx| {
+            let mut state = InputState::new(window, cx)
+                .placeholder("Type something…")
+                .default_value(if component == "number-input" {
+                    "12"
+                } else {
+                    "Hello GPUI"
+                });
+            state.set_editor_style(InputEditorStyle {
+                foreground: rgb(0x171717).into(),
+                muted_foreground: rgb(0x737373).into(),
+                selection: gpui::hsla(0.6, 0.8, 0.7, 0.45),
+                caret: rgb(0x171717).into(),
+                ..InputEditorStyle::default()
+            });
+            state
+        });
+        let otp = cx.new(|cx| OtpState::new(6, window, cx).default_value("12"));
+        let textarea = cx.new(|cx| {
+            TextareaState::new(window, cx)
+                .rows(3)
+                .default_value("Build focused interfaces.\nKeep behavior composable.")
+        });
+        let textarea_base = textarea.clone();
+        textarea_base.update(cx, |state, _| {
+            state.set_editor_style(InputEditorStyle {
+                foreground: rgb(0x171717).into(),
+                muted_foreground: rgb(0x737373).into(),
+                selection: gpui::hsla(0.6, 0.8, 0.7, 0.45),
+                caret: rgb(0x171717).into(),
+                ..InputEditorStyle::default()
+            });
+        });
+        let editor = cx.new(|cx| {
+            EditorState::new(window, cx)
+                .language("rust")
+                .line_number(true)
+                .folding(true)
+                .show_whitespaces(true)
+                .default_value(EDITOR_EXAMPLE)
+        });
+        let editor_base = editor.clone();
+        editor_base.update(cx, |state, _| {
+            state.set_editor_style(InputEditorStyle {
+                foreground: rgb(0x171717).into(),
+                muted_foreground: rgb(0x737373).into(),
+                selection: gpui::hsla(0.6, 0.8, 0.7, 0.45),
+                caret: rgb(0x171717).into(),
+                ..InputEditorStyle::default()
+            });
+        });
+        let combobox_query = cx.new(|cx| {
+            let mut state = InputState::new(window, cx).placeholder("Search frameworks…");
+            state.set_editor_style(InputEditorStyle {
+                foreground: rgb(0x171717).into(),
+                muted_foreground: rgb(0x737373).into(),
+                selection: gpui::hsla(0.6, 0.8, 0.7, 0.45),
+                caret: rgb(0x171717).into(),
+                ..InputEditorStyle::default()
+            });
+            state
+        });
+        cx.subscribe(
+            &combobox_query,
+            |_, _, _: &gpui_base::input::InputEvent, cx| cx.notify(),
+        )
+        .detach();
+        if matches!(component.as_str(), "input" | "number-input") {
+            input.update(cx, |state, cx| state.focus(window, cx));
+        } else if component == "textarea" {
+            textarea.update(cx, |state, cx| state.focus(window, cx));
+        } else if component == "editor" {
+            editor.update(cx, |state, cx| state.focus(window, cx));
+        } else if component == "otp-input" {
+            otp.update(cx, |state, cx| state.focus(window, cx));
+        }
+
+        let slider = cx.new(|_| SliderState::new().min(0.).max(100.).default_value(64.));
+        cx.observe(&slider, |_, _, cx| cx.notify()).detach();
+
+        let color_picker =
+            cx.new(|cx| ColorPickerState::new(window, cx).default_value(rgb(0x2563eb)));
+        cx.observe(&color_picker, |_, _, cx| cx.notify()).detach();
+
+        Self {
+            navigation_enabled: component == "overview",
+            component,
+            checkbox_checked: true,
+            radio_selected: 0,
+            switch_checked: true,
+            toggle_pressed: true,
+            toggle_group_selection: 0,
+            selected_tab: 0,
+            select_open: false,
+            select_index: 0,
+            sheet_open: false,
+            toast_visible: false,
+            toast_stack: ToastStackState::default(),
+            tooltip_visible: false,
+            accordion_items: [true, false, false],
+            alert_dialog_open: false,
+            collapsible_open: false,
+            combobox_open: false,
+            combobox_query,
+            combobox_selection: "Select framework".into(),
+            color_picker,
+            date_open: false,
+            dialog_open: false,
+            popup_open: false,
+            page: 3,
+            slider,
+            input,
+            textarea,
+            editor,
+            otp,
+            calendar: cx.new(|cx| CalendarState::new(window, cx)),
+            tree: cx.new(|cx| {
+                TreeState::new(cx).items(vec![
+                    TreeItem::new("src", "src").expanded(true).children(vec![
+                        TreeItem::new("components", "components")
+                            .expanded(true)
+                            .children(vec![
+                                TreeItem::new("button", "button.rs"),
+                                TreeItem::new("tree-file", "tree.rs"),
+                            ]),
+                        TreeItem::new("lib", "lib.rs"),
+                    ]),
+                    TreeItem::new("examples", "examples")
+                        .children(vec![TreeItem::new("showcase", "showcase.rs")]),
+                    TreeItem::new("cargo", "Cargo.toml"),
+                ])
+            }),
+            date_focus: cx.focus_handle(),
+            scroll: ScrollHandle::new(),
+            example_scroll: ScrollHandle::new(),
+            virtual_scroll: VirtualListScrollHandle::new(),
+            theme: MashTheme::Light,
+        }
+    }
+
+    fn overview(&self, cx: &mut Context<Self>) -> impl IntoElement {
+        let entity = cx.entity().downgrade();
+        div()
+            .w(px(720.))
+            .max_w_full()
+            .flex()
+            .flex_col()
+            .gap_4()
+            .child(
+                div()
+                    .flex()
+                    .flex_col()
+                    .gap_1()
+                    .child(
+                        div()
+                            .text_lg()
+                            .font_weight(gpui::FontWeight::SEMIBOLD)
+                            .child("Mash × GPUI Base"),
+                    )
+                    .child(div().text_sm().text_color(rgb(0x737373)).child(
+                        "Thirty-eight native behavior families, styled from one Mash catalogue.",
+                    )),
+            )
+            .child(div().w_full().grid().grid_cols(3).gap_1().children(
+                COMPONENTS.iter().enumerate().map(|(ix, name)| {
+                    let entity = entity.clone();
+                    Button::new(("overview-item", ix))
+                        .h_9()
+                        .px_3()
+                        .flex()
+                        .items_center()
+                        .justify_start()
+                        .border_1()
+                        .border_color(rgb(0xd4d4d4))
+                        .bg(rgb(0xffffff))
+                        .text_xs()
+                        .mash_node(
+                            &MashAdapter::embedded(),
+                            "ui-button",
+                            "control",
+                            self.theme,
+                            &MashRecipeContext::new().value("variant", "secondary"),
+                        )
+                        .child(*name)
+                        .on_click(move |_, _, cx| {
+                            _ = entity.update(cx, |this, cx| {
+                                this.component = (*name).to_owned();
+                                cx.notify();
+                            });
+                        })
+                }),
+            ))
+    }
+}
+
+impl Render for BaseShowcase {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let content = match self.component.as_str() {
+            "accordion" => self.accordion(cx).into_any_element(),
+            "alert-dialog" => self.alert_dialog(cx).into_any_element(),
+            "avatar" => self.avatar().into_any_element(),
+            "button" => self.button().into_any_element(),
+            "calendar" => self.calendar().into_any_element(),
+            "checkbox" => self.checkbox(cx).into_any_element(),
+            "collapsible" => self.collapsible(cx).into_any_element(),
+            "color-picker" => self.color_picker(window, cx).into_any_element(),
+            "combobox" => self.combobox(window, cx).into_any_element(),
+            "date-picker" => self.date_picker(cx).into_any_element(),
+            "dialog" => self.dialog(cx).into_any_element(),
+            "editor" => self.editor().into_any_element(),
+            "hover-card" => self.hover_card().into_any_element(),
+            "input" => self.input().into_any_element(),
+            "link" => self.link().into_any_element(),
+            "number-input" => self.number_input(cx).into_any_element(),
+            "otp-input" => self.otp_input(cx).into_any_element(),
+            "pagination" => self.pagination(cx).into_any_element(),
+            "popover" => self.popover().into_any_element(),
+            "popup" => self.popup(cx).into_any_element(),
+            "progress" => self.progress().into_any_element(),
+            "radio" => self.radio(cx).into_any_element(),
+            "radio-group" => self.radio_group(cx).into_any_element(),
+            "resizable" => self.resizable().into_any_element(),
+            "scrollbar" => self.scrollbar().into_any_element(),
+            "slider" => self.slider(cx).into_any_element(),
+            "select" => self.select(false, cx).into_any_element(),
+            "sheet" => self.sheet(cx).into_any_element(),
+            "switch" => self.switch(cx).into_any_element(),
+            "table" => self.table().into_any_element(),
+            "tabs" => self.tabs(cx).into_any_element(),
+            "textarea" => self.textarea().into_any_element(),
+            "toast" => self.toast(cx).into_any_element(),
+            "toggle" => self.toggle(cx).into_any_element(),
+            "toggle-group" => self.toggle_group(cx).into_any_element(),
+            "tooltip" => self.tooltip(cx).into_any_element(),
+            "tree" => self.tree().into_any_element(),
+            "virtual-list" => self.virtual_list(cx).into_any_element(),
+            _ => self.overview(cx).into_any_element(),
+        };
+        let show_back = self.navigation_enabled && self.component != "overview";
+        let entity = cx.entity().downgrade();
+        let theme_entity = entity.clone();
+        let theme = self.theme;
+        div()
+            .size_full()
+            .flex()
+            .flex_col()
+            .mash_node(
+                &MashAdapter::embedded(),
+                "ui-card",
+                "root",
+                theme,
+                &MashRecipeContext::new(),
+            )
+            .text_xs()
+            .font_family("Inter Variable")
+            .when(show_back, |this| {
+                this.child(
+                    div()
+                        .h_10()
+                        .flex_none()
+                        .px_3()
+                        .flex()
+                        .items_center()
+                        .border_b_1()
+                        .border_color(rgb(0xe5e5e5))
+                        .child(
+                            Button::new("back-to-overview")
+                                .h_7()
+                                .px_2()
+                                .flex()
+                                .items_center()
+                                .justify_center()
+                                .border_1()
+                                .border_color(rgb(0x171717))
+                                .mash_node(
+                                    &MashAdapter::embedded(),
+                                    "ui-button",
+                                    "control",
+                                    theme,
+                                    &MashRecipeContext::new().value("variant", "secondary"),
+                                )
+                                .child("All components")
+                                .on_click(move |_, _, cx| {
+                                    _ = entity.update(cx, |this, cx| {
+                                        this.component = "overview".to_owned();
+                                        cx.notify();
+                                    });
+                                }),
+                        )
+                        .child(
+                            Button::new("toggle-theme")
+                                .ml_auto()
+                                .child(if theme == MashTheme::Light {
+                                    "Dark"
+                                } else {
+                                    "Light"
+                                })
+                                .mash_node(
+                                    &MashAdapter::embedded(),
+                                    "ui-button",
+                                    "control",
+                                    theme,
+                                    &MashRecipeContext::new().value("variant", "quiet"),
+                                )
+                                .on_click(move |_, _, cx| {
+                                    _ = theme_entity.update(cx, |this, cx| {
+                                        this.theme = match this.theme {
+                                            MashTheme::Light => MashTheme::Dark,
+                                            MashTheme::Dark => MashTheme::Light,
+                                        };
+                                        cx.notify();
+                                    });
+                                }),
+                        ),
+                )
+            })
+            .child(
+                div()
+                    .id("showcase-scroll")
+                    .flex_1()
+                    .min_h_0()
+                    .overflow_y_scroll()
+                    .track_scroll(&self.scroll)
+                    .child(
+                        div()
+                            .min_h_full()
+                            .w_full()
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .p_4()
+                            .child(div().flex_none().child(content)),
+                    ),
+            )
+    }
+}
+
+pub fn run(app: Application, component: impl Into<String>) {
+    let component = component.into();
+    app.run(move |cx: &mut App| {
+        gpui_base::init(cx);
+        cx.bind_keys([KeyBinding::new("cmd-q", Quit, None)]);
+        cx.on_action(|_: &Quit, cx| cx.quit());
+        cx.on_window_closed(|cx, _| {
+            if cx.windows().is_empty() {
+                cx.quit();
+            }
+        })
+        .detach();
+        let options = WindowOptions {
+            window_bounds: Some(WindowBounds::centered(size(px(840.), px(640.)), cx)),
+            ..WindowOptions::default()
+        };
+        cx.open_window(options, move |window, cx| {
+            cx.new(|cx| BaseShowcase::new(component, window, cx))
+        })
+        .expect("failed to open gpui-base example window");
+        cx.activate(true);
+    });
+}
+
+pub fn run_native(component: &str) {
+    run(gpui_platform::application(), component.to_owned());
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeSet;
+
+    use super::{BOUND_COMPONENTS, BaseShowcase, COMPONENTS};
+    use mash_gpui::{MashAdapter, MashTheme};
+
+    #[test]
+    fn catalogue_covers_every_pinned_gpui_base_family_and_component() {
+        let mash = MashAdapter::embedded();
+        let expected_families = mash
+            .gpui_base_primitives()
+            .iter()
+            .map(|primitive| primitive.slug.as_str())
+            .collect::<BTreeSet<_>>();
+        let actual_families = COMPONENTS.iter().copied().collect::<BTreeSet<_>>();
+        assert_eq!(actual_families, expected_families);
+
+        let expected_components = mash
+            .gpui_base_primitives()
+            .iter()
+            .flat_map(|primitive| primitive.components.iter().map(String::as_str))
+            .collect::<BTreeSet<_>>();
+        let actual_components = BOUND_COMPONENTS.iter().copied().collect::<BTreeSet<_>>();
+        assert_eq!(actual_components, expected_components);
+    }
+
+    #[gpui::test]
+    fn every_native_family_renders_in_both_mash_themes(cx: &mut gpui::TestAppContext) {
+        cx.update(gpui_base::init);
+        let (view, cx) = cx.add_window_view(|window, cx| BaseShowcase::new("overview", window, cx));
+
+        for theme in [MashTheme::Light, MashTheme::Dark] {
+            for component in COMPONENTS {
+                view.update(cx, |catalogue, cx| {
+                    catalogue.component = (*component).to_owned();
+                    catalogue.theme = theme;
+                    cx.notify();
+                });
+                cx.update(|window, cx| window.draw(cx).clear(cx));
+            }
+        }
+    }
+}

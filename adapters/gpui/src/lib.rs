@@ -6,6 +6,7 @@
 //! adapter between them; it is not another component namespace.
 
 mod contract;
+mod native;
 mod recipe;
 mod style;
 mod theme;
@@ -16,6 +17,7 @@ pub use contract::{
     RendererNodeSnapshot, RendererSnapshot,
 };
 pub use gpui_base as base;
+pub use native::{NativeBinding, NativeNodeBinding};
 pub use recipe::{
     CatalogueInfo, MashRecipeContext, ResolvedParameter, ResolvedRecipe, ResolvedTrait,
 };

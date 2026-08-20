@@ -224,6 +224,12 @@ one native realization owner: 65 common traits are applied generically through `
 motion, focus, input, generated-content, and other renderer-specific traits remain explicit
 specialized-node obligations instead of being silently discarded.
 
+The adapter now includes a runnable native catalogue for all 38 GPUI Base families and all 52 Mash
+components mapped through them. `pnpm dev:gpui` opens the overview; a family slug such as
+`pnpm dev:gpui -- tree` opens that interactive native example directly. The catalogue uses
+`NativeBinding` for family scoping and semantic-node recipe application while GPUI Base retains
+ownership of native behavior.
+
 ### Definition and registration are separate
 
 ```ts
