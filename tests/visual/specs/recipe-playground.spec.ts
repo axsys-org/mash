@@ -3,6 +3,14 @@ import sharedPatch from "../../../packages/conformance/fixtures/recipe-patch.jso
 
 const controlNode = "mash://ui-button/node/control";
 
+async function chooseMashOption(
+  control: import("@playwright/test").Locator,
+  value: string,
+): Promise<void> {
+  await control.click();
+  await control.locator(`ui-option[value="${value}"]`).click();
+}
+
 async function buttonStyle(page: import("@playwright/test").Page) {
   return page
     .frameLocator("iframe.stage-frame")
@@ -20,9 +28,9 @@ test("live recipe edits survive theme, density, URL sharing, and export", async 
 
   const before = await buttonStyle(page);
   let fill = page.locator('[data-recipe-trait="surface.fill"]').first();
-  await fill.locator(".recipe-kind-control").selectOption("token");
+  await chooseMashOption(fill.locator(".recipe-kind-control"), "token");
   fill = page.locator('[data-recipe-trait="surface.fill"]').first();
-  await fill.locator(".recipe-value-control").selectOption("color.critical");
+  await chooseMashOption(fill.locator(".recipe-value-control"), "color.critical");
 
   const patched = await buttonStyle(page);
   expect(patched.background).not.toBe(before.background);
@@ -86,10 +94,11 @@ test("the shared portable patch is realized by the Web adapter", async ({ page }
 test("invalid values are explained and never enter the portable patch", async ({ page }) => {
   await page.goto(`/components/ui-button?example=controls&node=${encodeURIComponent(controlNode)}`);
   let fill = page.locator('[data-recipe-trait="surface.fill"]').first();
-  await fill.locator(".recipe-kind-control").selectOption("literal");
+  await chooseMashOption(fill.locator(".recipe-kind-control"), "literal");
   fill = page.locator('[data-recipe-trait="surface.fill"]').first();
-  await fill.locator(".recipe-value-control").fill("definitely-not-a-background");
-  await fill.locator(".recipe-value-control").press("Tab");
+  const literal = fill.locator(".recipe-value-control").locator("input");
+  await literal.fill("definitely-not-a-background");
+  await literal.press("Tab");
   await expect(fill.locator(".recipe-field-error")).toContainText("not valid for background");
   expect(page.url()).not.toContain("definitely-not-a-background");
 });
@@ -100,13 +109,13 @@ test("layout fields edit physical measures and logical direction intent", async 
 
   let padding = page.locator('[data-recipe-trait="layout.padding"]').first();
   await expect(padding.getByText("layout.inset.blockStart")).toBeVisible();
-  await padding.locator(".recipe-kind-control").selectOption("token");
+  await chooseMashOption(padding.locator(".recipe-kind-control"), "token");
   padding = page.locator('[data-recipe-trait="layout.padding"]').first();
-  await padding.locator(".recipe-value-control").selectOption("space.region");
+  await chooseMashOption(padding.locator(".recipe-value-control"), "space.region");
 
   const distribution = page.locator('[data-recipe-trait="layout.justifyContent"]').first();
   await expect(distribution.getByText("layout.distribute")).toBeVisible();
-  await distribution.locator(".recipe-value-control").selectOption("trailing");
+  await distribution.locator('ui-toggle[value="trailing"]').click();
 
   const after = await page
     .frameLocator("iframe.stage-frame")

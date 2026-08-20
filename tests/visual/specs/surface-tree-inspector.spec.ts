@@ -13,7 +13,7 @@ test("SurfaceTree selection, provenance, realization, and deep links stay connec
 
   const inspector = page.locator(`[data-selected-node-address="${labelNode}"]`);
   await expect(inspector).toBeVisible();
-  await expect(inspector.getByText("ui-button", { exact: true })).toBeVisible();
+  await expect(inspector.locator(".surface-selection-owner")).toHaveText("ui-button");
   await expect(inspector.locator("[data-selected-binding-address]")).toHaveCount(2);
   await expect(inspector.getByText(/fallback/).first()).toBeVisible();
   await expect(inspector.getByText(/active \d+\/\d+ rules/)).toBeVisible();
@@ -65,4 +65,32 @@ test("an unrealized semantic region is reported rather than silently omitted", a
   await expect(inspector).toBeVisible();
   await expect(inspector.locator(".surface-realization-summary")).toContainText("0 regions");
   await expect(inspector.locator(".surface-realization-summary")).toHaveClass(/is-missing/);
+});
+
+test("the docked property panel is composed from Mash controls", async ({ page }) => {
+  const control = "mash://ui-button/node/control";
+  await page.goto(`/components/ui-button?example=controls&node=${encodeURIComponent(control)}`);
+
+  const panel = page.getByRole("complementary", { name: "Semantic properties inspector" });
+  await expect(panel).toBeVisible();
+  await expect(panel.locator("ui-accordion.inspector-sections")).toHaveCount(1);
+  await expect(panel.locator("ui-accordion-item.inspector-section")).not.toHaveCount(0);
+  await expect(panel.locator("ui-field.recipe-field")).not.toHaveCount(0);
+  await expect(panel.locator("ui-select.recipe-kind-control")).not.toHaveCount(0);
+  await expect(panel.locator("ui-input.recipe-value-control")).not.toHaveCount(0);
+  await expect(panel.locator("ui-toggle-group.inspector-choice-group")).not.toHaveCount(0);
+  await expect(panel.locator("ui-button.inspector-action")).not.toHaveCount(0);
+
+  const box = await panel.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect(box!.width).toBeGreaterThanOrEqual(300);
+  expect(box!.width).toBeLessThanOrEqual(320);
+  expect(Math.round(box!.x + box!.width)).toBe(viewport!.width);
+
+  await panel.locator("ui-toggle.inspector-picker").click();
+  await expect(
+    page.frameLocator("iframe.stage-frame").locator(".mash-semantic-box:not([hidden])").first(),
+  ).toBeVisible();
 });

@@ -282,6 +282,9 @@ It derives its content from the two generated schemas:
 - the SurfaceTree inspector selects stable semantic nodes, distinguishes aliases through their
   topology, lists each Web binding separately, and reverse-maps visible preview regions to the node
   and binding that realized them
+- the selected node opens in a docked property panel: dense sections follow the same hierarchy as a
+  design-tool inspector, while every editor control is a real Mash `ui-field`, `ui-input`,
+  `ui-select`, `ui-toggle-group`, `ui-accordion`, or `ui-button` rather than parallel catalog chrome
 - **tokens used** is read from the rendered element's own adopted stylesheets, then traced through
   `tokens.json` to the primitive holding the value
 
@@ -323,6 +326,11 @@ layout properties show their `group`, `orientation`, `distribution`, `min/ideal/
 overflow, and anchor intent, and every rule remains scoped to its portable conditions. Values stay
 explicitly `token`, `literal`, `expression`, or `inherited`; expressions reference portable token
 IDs as `{space.controlBlock}` rather than serializing CSS custom properties.
+
+The right-hand property panel keeps the canvas and controls visible together. Its **Pick** toggle
+reveals the semantic regions over the preview; choosing one updates the panel and deep link. Recipe
+fields are grouped into generated Layout, Typography, Appearance, Border, Effects, and Motion
+sections, so new traits inherit the inspector without component-specific UI code.
 
 Edits are applied by a late Web realization in the preview, survive light/dark and
 compact/comfortable/spacious comparisons, and are serialized into the URL. **Copy portable patch**
