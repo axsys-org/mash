@@ -476,10 +476,19 @@ pre {
   gap: 8px 14px;
   padding: 9px 10px;
   border-block-end: 1px solid var(--chrome-line);
+  cursor: pointer;
+  outline: none;
 }
 
-.surface-node:hover {
+.surface-node:hover,
+.surface-node:focus-visible,
+.surface-node.is-selected {
   background: var(--chrome-code-bg);
+}
+
+.surface-node:focus-visible,
+.surface-node.is-selected {
+  box-shadow: inset 3px 0 0 var(--chrome-accent);
 }
 
 .surface-node-identity,
@@ -550,6 +559,155 @@ pre {
 
 .surface-binding-effective {
   color: var(--chrome-fg);
+}
+
+.surface-selection {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 18px;
+  padding: 14px;
+  border: 1px solid var(--chrome-accent);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--chrome-accent) 5%, var(--chrome-bg));
+}
+
+.surface-selection h4,
+.surface-selection h5,
+.surface-selection p {
+  margin: 0;
+}
+
+.surface-selection h4 {
+  margin-block-end: 3px;
+}
+
+.surface-selection h5 {
+  font-size: 12px;
+}
+
+.surface-selection-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+
+.surface-realization-summary {
+  flex: none;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--chrome-code-bg);
+  color: var(--chrome-fg);
+  font-family: var(--chrome-mono);
+  font-size: 10px;
+}
+
+.surface-realization-summary.is-missing,
+.surface-binding-detail.is-missing {
+  border-style: dashed;
+  opacity: 0.68;
+}
+
+.surface-selection-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.surface-selection-facts div {
+  display: grid;
+  gap: 2px;
+}
+
+.surface-selection-facts dt {
+  color: var(--chrome-muted);
+  font-family: var(--chrome-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.surface-selection-facts dd {
+  margin: 0;
+  font-size: 12px;
+}
+
+.surface-selection-bindings,
+.surface-selection-rules {
+  display: grid;
+  gap: 7px;
+}
+
+.surface-binding-detail {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px 9px;
+  padding: 8px 9px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 7px;
+  color: var(--chrome-muted);
+  font-size: 11px;
+}
+
+.surface-binding-detail.is-selected {
+  border-color: var(--chrome-accent);
+  background: color-mix(in oklab, var(--chrome-accent) 8%, transparent);
+}
+
+.surface-rule {
+  border: 1px solid var(--chrome-line);
+  border-radius: 7px;
+}
+
+.surface-rule.is-active {
+  border-color: var(--chrome-accent);
+}
+
+.surface-rule summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 9px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.surface-rule-state {
+  color: var(--chrome-muted);
+  font-family: var(--chrome-mono);
+  font-size: 10px;
+}
+
+.surface-rule.is-active .surface-rule-state {
+  color: var(--chrome-accent);
+}
+
+.surface-rule-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 9px 9px;
+}
+
+.surface-trait {
+  flex: 1 1 280px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  background: var(--chrome-code-bg);
+  color: var(--chrome-muted);
+  overflow-wrap: anywhere;
+}
+
+.surface-token-traces {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--chrome-muted);
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 900px) {

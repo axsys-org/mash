@@ -6,10 +6,13 @@ import { familiesFor } from "./families.js";
 import {
   components,
   catalogueNodeFor,
+  componentForNode,
   layoutRulesFor,
   provenance,
+  recipeRulesFor,
   themes,
   tokenByCssVar,
+  tokens,
   valueOf,
   type ComponentSchema,
   type Described,
@@ -31,6 +34,10 @@ export interface State {
    * curated demo is a better first impression than an empty element.
    */
   example: string | null;
+  /** Globally stable semantic node selected in the SurfaceTree inspector. */
+  node: string | null;
+  /** Optional Web binding selected through a concrete preview realization. */
+  binding: string | null;
 }
 
 export function initialState(component: ComponentSchema): State {
@@ -42,6 +49,8 @@ export function initialState(component: ComponentSchema): State {
       component.slots.map((slot) => [slot.name, slot.name ? "" : defaultSlotContent(component)]),
     ),
     example: examplesFor(component)[0]?.name ?? null,
+    node: null,
+    binding: null,
   };
 }
 
@@ -420,20 +429,167 @@ function eventRelationLabels(binding: MashBinding): string[] {
   );
 }
 
+function bindingName(component: ComponentSchema, binding: MashBinding): string {
+  const base = `${binding.kind}:${binding.name || "default"}`;
+  if (binding.kind !== "attribute") return base;
+  const property = component.attributes.find(
+    (attribute) => attribute.mash?.address === binding.address,
+  )?.fieldName;
+  return property && property !== binding.name ? `${base} ↔ property:${property}` : base;
+}
+
 function setSurfaceHighlight(
   frame: HTMLIFrameElement,
   address: string | null,
+  bindingAddress: string | null = null,
   showAll = showSurfaceTree,
 ): void {
   const boxes = frame.contentDocument?.querySelectorAll<HTMLElement>(".mash-semantic-box") ?? [];
   for (const box of boxes) {
-    const selected = box.dataset.mashNodeAddress === address;
+    const bindings = JSON.parse(box.dataset.mashBindingAddresses ?? "[]") as string[];
+    const selected =
+      box.dataset.mashNodeAddress === address &&
+      (!bindingAddress || bindings.includes(bindingAddress));
     box.hidden = !(showAll || selected);
     box.dataset.selected = selected ? "true" : "false";
   }
 }
 
-function mashContractTree(component: ComponentSchema, frame: HTMLIFrameElement): HTMLElement {
+function tokenTrace(tokenId: string, theme: string): string {
+  const token = tokens[tokenId];
+  if (!token) return tokenId;
+  return provenance(token, theme)
+    .map((step) => `${step.id} = ${step.value}`)
+    .join(" → ");
+}
+
+function selectedNodeInspector(state: State): HTMLElement | null {
+  if (!state.node) return null;
+  const owner = componentForNode(state.node);
+  const node = owner?.mash?.nodes.find((candidate) => candidate.address === state.node);
+  if (!owner || !node) return null;
+
+  const parent = owner.mash?.nodes.find((candidate) => candidate.address === node.parent);
+  const children = owner.mash?.nodes.filter((candidate) => candidate.parent === node.address) ?? [];
+  const rules = recipeRulesFor(owner.packageName, node.address);
+  const ruleTokens = [
+    ...new Set(
+      rules.flatMap((rule) =>
+        Object.values(rule.presentation).flatMap((presentation) => presentation.tokens),
+      ),
+    ),
+  ].sort();
+
+  return el(
+    "article",
+    { class: "surface-selection", "data-selected-node-address": node.address },
+    el(
+      "div",
+      { class: "surface-selection-heading" },
+      el("div", {}, el("h4", { text: node.id }), el("code", { text: node.address })),
+      el("span", { class: "surface-realization-summary", text: "awaiting preview" }),
+    ),
+    el(
+      "dl",
+      { class: "surface-selection-facts" },
+      el("div", {}, el("dt", { text: "contract" }), el("dd", { text: owner.tagName })),
+      el("div", {}, el("dt", { text: "role" }), el("dd", { text: node.role })),
+      el("div", {}, el("dt", { text: "family" }), el("dd", { text: node.family })),
+      el("div", {}, el("dt", { text: "ownership" }), el("dd", { text: node.ownership })),
+      el("div", {}, el("dt", { text: "shared" }), el("dd", { text: String(node.shared) })),
+      el(
+        "div",
+        {},
+        el("dt", { text: "topology" }),
+        el("dd", {
+          text: `${parent ? `parent ${parent.id}` : "root"} · ${children.length ? `children ${children.map((child) => child.id).join(", ")}` : "leaf"}`,
+        }),
+      ),
+    ),
+    el("h5", { text: `Bindings (${node.bindings.length})` }),
+    el(
+      "div",
+      { class: "surface-selection-bindings" },
+      ...(node.bindings.length
+        ? node.bindings.map((binding) =>
+            el(
+              "div",
+              {
+                class:
+                  binding.address === state.binding
+                    ? "surface-binding-detail is-selected"
+                    : "surface-binding-detail",
+                "data-selected-binding-address": binding.address,
+              },
+              el("code", { text: bindingName(owner, binding) }),
+              el("span", {
+                text: `${binding.mapping} · ${binding.availability} · ${binding.direction}`,
+              }),
+              el("span", { text: `value ${binding.value.kind}` }),
+              fallbackLabel(binding) ? el("span", { text: fallbackLabel(binding)! }) : null,
+              ...eventRelationLabels(binding).map((label) => el("span", { text: label })),
+              el("strong", { class: "surface-binding-effective", text: "awaiting preview" }),
+            ),
+          )
+        : [el("p", { class: "note", text: "Semantic-only node with no Web binding." })]),
+    ),
+    el("h5", { text: `Recipe provenance (${rules.length})` }),
+    el(
+      "div",
+      { class: "surface-selection-rules" },
+      ...(rules.length
+        ? rules.map((rule, index) =>
+            el(
+              "details",
+              {
+                class: "surface-rule",
+                "data-selected-rule-index": index,
+              },
+              el(
+                "summary",
+                {},
+                el("span", { class: "surface-rule-state", text: "awaiting preview" }),
+                el("code", { text: rule.when.web.selector }),
+              ),
+              el(
+                "div",
+                { class: "surface-rule-body" },
+                ...rule.when.conditions.map((condition) =>
+                  el("code", { class: "layout-chip", text: conditionLabel(condition) }),
+                ),
+                ...layoutLabels([rule]).map((label) =>
+                  el("code", { class: "layout-chip", text: label }),
+                ),
+                ...Object.entries(rule.presentation).map(([trait, presentation]) =>
+                  el("code", {
+                    class: "surface-trait",
+                    text: `${trait} ← ${presentation.token ?? presentation.value} [${presentation.kind}]`,
+                  }),
+                ),
+              ),
+            ),
+          )
+        : [el("p", { class: "note", text: "No direct recipe; this node is contract-only." })]),
+    ),
+    el("h5", { text: `Token provenance (${ruleTokens.length})` }),
+    el(
+      "ul",
+      { class: "surface-token-traces" },
+      ...(ruleTokens.length
+        ? ruleTokens.map((token) =>
+            el("li", {}, el("code", { text: tokenTrace(token, state.theme) })),
+          )
+        : [el("li", { class: "note", text: "No token dependency on this node." })]),
+    ),
+  );
+}
+
+function mashContractTree(
+  component: ComponentSchema,
+  state: State,
+  callbacks: AppCallbacks,
+  frame: HTMLIFrameElement,
+): HTMLElement {
   const nodes = component.mash?.nodes ?? [];
   const children = new Map<string | undefined, MashNode[]>();
   for (const node of nodes) {
@@ -449,13 +605,23 @@ function mashContractTree(component: ComponentSchema, frame: HTMLIFrameElement):
       ...(children.get(parent) ?? []).map((node) => {
         const catalogueNode = catalogueNodeFor(component.packageName, node.address);
         const coverage = `${catalogueNode?.coverage ?? "contract-only"} · ${catalogueNode?.layout ?? "unconstrained"}`;
+        const select = () => callbacks.update({ node: node.address, binding: null });
         const row = el(
           "div",
           {
-            class: "surface-node",
+            class: node.address === state.node ? "surface-node is-selected" : "surface-node",
+            role: "button",
+            tabindex: "0",
+            "aria-pressed": String(node.address === state.node),
             "data-mash-node-address": node.address,
             onmouseenter: () => setSurfaceHighlight(frame, node.address),
-            onmouseleave: () => setSurfaceHighlight(frame, null),
+            onmouseleave: () => setSurfaceHighlight(frame, state.node, state.binding),
+            onclick: select,
+            onkeydown: (event: KeyboardEvent) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              select();
+            },
           },
           el(
             "div",
@@ -482,7 +648,7 @@ function mashContractTree(component: ComponentSchema, frame: HTMLIFrameElement):
                     },
                     el("code", {
                       class: "surface-binding-name",
-                      text: `${binding.kind}:${binding.name || "default"}`,
+                      text: bindingName(component, binding),
                     }),
                     el("span", { text: binding.mapping }),
                     el("span", { text: binding.availability }),
@@ -514,7 +680,7 @@ function mashContractTree(component: ComponentSchema, frame: HTMLIFrameElement):
       showSurfaceTree = !showSurfaceTree;
       toggle.classList.toggle("is-active", showSurfaceTree);
       toggle.textContent = showSurfaceTree ? "hide semantic map" : "show semantic map";
-      setSurfaceHighlight(frame, null, showSurfaceTree);
+      setSurfaceHighlight(frame, state.node, state.binding, showSurfaceTree);
     },
   });
 
@@ -528,6 +694,7 @@ function mashContractTree(component: ComponentSchema, frame: HTMLIFrameElement):
         ? `${component.mash.address} · contract v${component.mash.version} · Web bindings, fallbacks, portable conditions, presentation, layout, and tokens are generated from the package contract`
         : "No renderer-neutral contract metadata.",
     }),
+    selectedNodeInspector(state),
     nodes.length > 0 ? renderNodes() : null,
   );
 }
@@ -653,6 +820,7 @@ interface Mounted {
   frame: HTMLIFrameElement;
   document: Promise<Document>;
   tokenList: HTMLElement;
+  callbacks: AppCallbacks;
 }
 
 let mounted: Mounted | null = null;
@@ -668,11 +836,13 @@ function elementsAcrossSurface(root: Document | ShadowRoot): Element[] {
   ]);
 }
 
-function installSurfaceOverlay(doc: Document): void {
+function installSurfaceOverlay(
+  doc: Document,
+  onSelect: (nodeAddress: string, bindingAddress: string | null) => void,
+): void {
   doc.querySelector(".mash-semantic-overlay")?.remove();
   const overlay = doc.createElement("div");
   overlay.className = "mash-semantic-overlay";
-  overlay.setAttribute("aria-hidden", "true");
 
   const schemas = new Map(components.map((component) => [component.tagName, component]));
   const instances = elementsAcrossSurface(doc).filter(
@@ -685,45 +855,60 @@ function installSurfaceOverlay(doc: Document): void {
     const component = schemas.get(instance.localName);
     if (!component?.mash) continue;
     for (const node of component.mash.nodes) {
-      const targets = new Set<Element>();
+      const targets = new Map<Element, MashBinding[]>();
+      const realize = (target: Element, binding: MashBinding) => {
+        const bindings = targets.get(target) ?? [];
+        if (!bindings.some((candidate) => candidate.address === binding.address)) {
+          bindings.push(binding);
+        }
+        targets.set(target, bindings);
+      };
       for (const binding of node.bindings) {
-        if (!instance.shadowRoot) continue;
         if (binding.kind === "part") {
-          for (const target of instance.shadowRoot.querySelectorAll(`[part~="${binding.name}"]`)) {
-            targets.add(target);
+          for (const target of instance.shadowRoot?.querySelectorAll(`[part~="${binding.name}"]`) ??
+            []) {
+            realize(target, binding);
           }
         }
         if (binding.kind === "slot") {
           const selector = binding.name ? `slot[name="${binding.name}"]` : "slot:not([name])";
-          for (const slot of instance.shadowRoot.querySelectorAll<HTMLSlotElement>(selector)) {
+          for (const slot of instance.shadowRoot?.querySelectorAll<HTMLSlotElement>(selector) ??
+            []) {
             const assigned = slot.assignedElements({ flatten: true });
-            if (assigned.length > 0) assigned.forEach((target) => targets.add(target));
-            else targets.add(slot);
+            if (assigned.length > 0) assigned.forEach((target) => realize(target, binding));
+            else realize(slot, binding);
           }
         }
+        if (["attribute", "state", "event"].includes(binding.kind)) realize(instance, binding);
       }
-      if (
-        targets.size === 0 &&
-        (node.bindings.length > 0 || !node.parent) &&
-        node.bindings.some((binding) => ["attribute", "state", "event"].includes(binding.kind))
-      ) {
-        targets.add(instance);
-      }
-      if (targets.size === 0 && !node.parent) targets.add(instance);
+      if (targets.size === 0 && !node.parent) targets.set(instance, []);
 
-      for (const target of targets) {
+      for (const [target, bindings] of targets) {
         const rect = target.getBoundingClientRect();
         if (rect.width <= 0 || rect.height <= 0) continue;
-        const box = doc.createElement("div");
+        const box = doc.createElement("button");
+        box.type = "button";
         box.className = "mash-semantic-box";
         box.dataset.mashNodeAddress = node.address;
+        box.dataset.mashBindingAddresses = JSON.stringify(
+          bindings.map((binding) => binding.address),
+        );
         box.hidden = !showSurfaceTree;
         box.style.left = `${rect.left}px`;
         box.style.top = `${rect.top}px`;
         box.style.width = `${rect.width}px`;
         box.style.height = `${rect.height}px`;
+        box.setAttribute(
+          "aria-label",
+          `Inspect ${instance.localName} ${node.id}${bindings.length ? ` through ${bindings.map((binding) => bindingName(component, binding)).join(", ")}` : ""}`,
+        );
+        box.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onSelect(node.address, bindings.length === 1 ? bindings[0]!.address : null);
+        });
         const label = doc.createElement("span");
-        label.textContent = `${instance.localName} · ${node.id}`;
+        label.textContent = `${instance.localName} · ${node.id}${bindings.length ? ` · ${bindings.map((binding) => `${binding.kind}:${binding.name || "default"}`).join(" + ")}` : ""}`;
         box.append(label);
         overlay.append(box);
       }
@@ -856,7 +1041,7 @@ function syncLayoutProof(current: Mounted, component: ComponentSchema, instances
         ),
       ),
     ];
-    const tokens = [
+    const nodeTokens = [
       ...new Set(
         active.flatMap((rule) => Object.values(rule.presentation).flatMap((trait) => trait.tokens)),
       ),
@@ -870,9 +1055,53 @@ function syncLayoutProof(current: Mounted, component: ComponentSchema, instances
       ...labels.map((label) => el("code", { class: "layout-chip", text: label })),
       ...conditions.map((label) => el("code", { class: "layout-chip", text: label })),
       ...aspects.map((aspect) => el("code", { class: "layout-chip", text: `trait ${aspect}` })),
-      ...tokens.map((token) => el("code", { class: "surface-node-token", text: token })),
+      ...nodeTokens.map((token) => el("code", { class: "surface-node-token", text: token })),
     );
   }
+}
+
+function syncSelectedProof(current: Mounted, state: State, instances: Element[]): void {
+  if (!state.node) return;
+  const owner = componentForNode(state.node);
+  const node = owner?.mash?.nodes.find((candidate) => candidate.address === state.node);
+  if (!owner || !node) return;
+  const ownedInstances = instances.filter((instance) => instance.localName === owner.tagName);
+  const panel = current.root.querySelector<HTMLElement>(
+    `[data-selected-node-address="${state.node}"]`,
+  );
+  if (!panel) return;
+
+  const rules = recipeRulesFor(owner.packageName, node.address);
+  const active = rules.map((rule) => recipeRuleActive(rule, ownedInstances));
+  const boxes = [
+    ...(current.frame.contentDocument?.querySelectorAll<HTMLElement>(".mash-semantic-box") ?? []),
+  ].filter((box) => box.dataset.mashNodeAddress === node.address);
+  const summary = panel.querySelector<HTMLElement>(".surface-realization-summary");
+  if (summary) {
+    summary.textContent = `${boxes.length} region${boxes.length === 1 ? "" : "s"} · ${ownedInstances.length} instance${ownedInstances.length === 1 ? "" : "s"} · active ${active.filter(Boolean).length}/${rules.length} rules`;
+    summary.classList.toggle("is-missing", boxes.length === 0 || ownedInstances.length === 0);
+  }
+
+  for (const binding of node.bindings) {
+    const detail = panel.querySelector<HTMLElement>(
+      `[data-selected-binding-address="${binding.address}"]`,
+    );
+    const effective = detail?.querySelector<HTMLElement>(".surface-binding-effective");
+    if (!detail || !effective) continue;
+    const result = bindingEffectiveState(binding, ownedInstances);
+    effective.textContent = result;
+    detail.classList.toggle(
+      "is-missing",
+      result === "unfilled" || result === "omitted" || result.endsWith("no"),
+    );
+  }
+
+  active.forEach((isActive, index) => {
+    const rule = panel.querySelector<HTMLElement>(`[data-selected-rule-index="${index}"]`);
+    const status = rule?.querySelector<HTMLElement>(".surface-rule-state");
+    rule?.classList.toggle("is-active", isActive);
+    if (status) status.textContent = isActive ? "active" : "inactive";
+  });
 }
 
 async function syncStage(current: Mounted, component: ComponentSchema, state: State) {
@@ -910,10 +1139,17 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
   const anchored = component.attributes.some((attribute) => attribute.name === "placement");
   doc.documentElement.dataset.layout = anchored ? "anchor" : fills ? "fill" : "center";
   const refreshProof = () => {
-    installSurfaceOverlay(doc);
+    installSurfaceOverlay(doc, (nodeAddress, bindingAddress) =>
+      current.callbacks.update({ node: nodeAddress, binding: bindingAddress }),
+    );
+    setSurfaceHighlight(current.frame, state.node, state.binding, showSurfaceTree);
+    const allInstances = elementsAcrossSurface(doc).filter((element) =>
+      components.some((candidate) => candidate.tagName === element.localName),
+    );
     syncBindingProof(current, component, nodes);
     syncLayoutProof(current, component, nodes);
-    const used = tokensUsedBy(nodes);
+    syncSelectedProof(current, state, allInstances);
+    const used = tokensUsedBy(allInstances);
     current.tokenList.replaceChildren(
       ...(used.length > 0
         ? used.map((cssVar) => provenanceRow(cssVar, state.theme))
@@ -1105,6 +1341,7 @@ function aboveStage(
 function belowStage(
   component: ComponentSchema,
   state: State,
+  callbacks: AppCallbacks,
   tokenList: HTMLElement,
   frame: HTMLIFrameElement,
 ): (HTMLElement | null)[] {
@@ -1138,7 +1375,7 @@ function belowStage(
       { class: "panel" },
       el("h3", { text: "API" }),
       el("p", { class: "note", text: "Read from custom-elements.json." }),
-      mashContractTree(component, frame),
+      mashContractTree(component, state, callbacks, frame),
       attributeTable(component),
       describedList("Slots", component.slots, "No slots."),
       describedList("Parts", component.cssParts, "No exposed parts."),
@@ -1244,6 +1481,7 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
     below,
     frame,
     tokenList,
+    callbacks,
     document: frameDocument(frame),
   };
 }
@@ -1266,7 +1504,7 @@ export function render(root: HTMLElement, state: State, callbacks: AppCallbacks)
 
   mounted.above.replaceChildren(...aboveStage(component, state, callbacks).filter(present));
   mounted.below.replaceChildren(
-    ...belowStage(component, state, mounted.tokenList, mounted.frame).filter(present),
+    ...belowStage(component, state, callbacks, mounted.tokenList, mounted.frame).filter(present),
   );
 
   void syncStage(mounted, component, state);

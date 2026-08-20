@@ -312,6 +312,20 @@ export function layoutRulesFor(packageName: string, nodeAddress: string): MashRe
   );
 }
 
+/** Every visual recipe rule that realizes one semantic SurfaceTree node. */
+export function recipeRulesFor(packageName: string, nodeAddress: string): MashRecipeRule[] {
+  return (recipes.get(packageName)?.rules ?? []).filter((rule) =>
+    rule.targets.includes(nodeAddress),
+  );
+}
+
+/** The component contract that owns a globally stable semantic node address. */
+export function componentForNode(nodeAddress: string): ComponentSchema | undefined {
+  return components.find((component) =>
+    component.mash?.nodes.some((node) => node.address === nodeAddress),
+  );
+}
+
 /** How the active catalogue accounts for one semantic SurfaceTree node. */
 export function catalogueNodeFor(
   packageName: string,

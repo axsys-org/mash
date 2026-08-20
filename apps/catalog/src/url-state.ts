@@ -22,7 +22,7 @@
 import { initialState, type State } from "./app.js";
 import { controlsFor } from "./controls.js";
 import { controlsPreviewAllowed, examplesFor } from "./examples.js";
-import { components, themes, type ComponentSchema } from "./schema.js";
+import { componentForNode, components, themes, type ComponentSchema } from "./schema.js";
 
 /** Route prefix. `/components/ui-button`. */
 const ROUTE = "/components/";
@@ -34,7 +34,7 @@ const ROUTE = "/components/";
 const CONTROLS = "controls";
 
 /** Reserved keys, so a component attribute called `theme` cannot collide. */
-const RESERVED = new Set(["theme", "example", "slots"]);
+const RESERVED = new Set(["theme", "example", "slots", "node", "binding"]);
 
 function slotParam(name: string): string {
   return `slot-${name || "default"}`;
@@ -76,6 +76,17 @@ export function stateFromUrl(url: URL, fallback: ComponentSchema): State {
     state.example = null;
   } else if (example && examplesFor(component).some((entry) => entry.name === example)) {
     state.example = example;
+  }
+
+  const nodeAddress = params.get("node");
+  const selectedComponent = nodeAddress ? componentForNode(nodeAddress) : undefined;
+  const selectedNode = selectedComponent?.mash?.nodes.find((node) => node.address === nodeAddress);
+  if (selectedNode) {
+    state.node = selectedNode.address;
+    const bindingAddress = params.get("binding");
+    if (selectedNode.bindings.some((binding) => binding.address === bindingAddress)) {
+      state.binding = bindingAddress;
+    }
   }
 
   // `label` and the comma-separated `slots` list are the catalog's pre-slot
@@ -141,6 +152,19 @@ export function urlForState(state: State): string {
 
   if (state.example !== defaults.example) {
     params.set("example", state.example ?? CONTROLS);
+  }
+
+  if (state.node && componentForNode(state.node)) {
+    params.set("node", state.node);
+    const selectedNode = componentForNode(state.node)?.mash?.nodes.find(
+      (node) => node.address === state.node,
+    );
+    if (
+      state.binding &&
+      selectedNode?.bindings.some((binding) => binding.address === state.binding)
+    ) {
+      params.set("binding", state.binding);
+    }
   }
 
   for (const slot of component.slots) {

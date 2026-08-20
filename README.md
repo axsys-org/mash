@@ -279,6 +279,9 @@ It derives its content from the two generated schemas:
 - the component list, API tables, slots, parts, states and events come from `custom-elements.json`
 - the controls are derived from attribute types: a literal union becomes a segmented picker, a
   boolean becomes a toggle, a string becomes a text field
+- the SurfaceTree inspector selects stable semantic nodes, distinguishes aliases through their
+  topology, lists each Web binding separately, and reverse-maps visible preview regions to the node
+  and binding that realized them
 - **tokens used** is read from the rendered element's own adopted stylesheets, then traced through
   `tokens.json` to the primitive holding the value
 
@@ -298,10 +301,12 @@ Every catalog route is a real address, and the controls are reflected in the que
 ```text
 /components/ui-button?variant=quiet&size=small&theme=dark
 /components/ui-tree-item?theme=dark&label=src
+/components/ui-button?theme=dark&node=mash%3A%2F%2Fui-button%2Fnode%2Fcontrol
 ```
 
 Configure a component, copy the address, paste it into a PR comment: whoever opens it sees exactly
-what you saw. `apps/catalog/src/url-state.ts` is the whole mechanism — two pure functions over
+what you saw, including the selected semantic node and concrete Web binding.
+`apps/catalog/src/url-state.ts` is the whole mechanism — two pure functions over
 `URL` and the app state, plus the calls in `main.ts`. Only values that differ from the component's
 documented defaults are written, so links stay short; anything unrecognised (an unknown component,
 an enum value that is not one of the documented options) falls back to the default rather than
