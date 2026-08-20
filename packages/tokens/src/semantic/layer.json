@@ -1,0 +1,18 @@
+{
+  "layer": {
+    "$type": "number",
+    "$description": "Stacking order for surfaces in the Web catalogue.",
+    "base": {
+      "$value": "{depth.reference.base}",
+      "$description": "Ordinary in-flow content."
+    },
+    "raised": {
+      "$value": "{depth.reference.raised}",
+      "$description": "Controls or local surfaces raised above adjacent content."
+    },
+    "overlay": {
+      "$value": "{depth.reference.overlay}",
+      "$description": "Floating surfaces and their dismissal layers."
+    }
+  }
+}

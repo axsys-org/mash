@@ -1,4 +1,6 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, html, type TemplateResult } from "lit";
+
+import { baseStyles } from "../internal/base-styles.js";
 
 /**
  * TODO: what this component is for, and when to reach for it.
@@ -22,20 +24,7 @@ export class ShrineLocator extends LitElement {
   // /** TODO: describe this attribute. */
   // declare tone: ShrineLocatorTone;
 
-  static override styles = css`
-    :host {
-      display: block;
-      box-sizing: border-box;
-    }
-
-    :host([hidden]) {
-      display: none !important;
-    }
-
-    /* Style from the semantic tokens (--color-*, --space-*, --radius-*).
-       Never reference --ref-* primitives, and keep anything you compute in a
-       private --_* variable rather than exposing it. */
-  `;
+  static override styles = baseStyles;
 
   protected override render(): TemplateResult {
     return html`<div part="root"><slot></slot></div>`;

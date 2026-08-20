@@ -1,136 +1,141 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+
+import { baseStyles } from "../internal/base-styles.js";
 
 /**
- * High level composition window for Shrine
+ * High-level composition window for Shrine.
  *
  * @tag sh-triptych
- * @summary Shows the navigation chrome for a location in the Shrine namespace
- * @slot - The main window
- * @slot inspector - The right sidebar
- * @slot inspector-locator - Header strip above the inspector content
- * @slot locator - The browser location
- * @slot sidebar - The left sidebar
- * @slot navigate - Bottom drawer of left sidebar
+ * @summary Shows navigation, workspace, and inspector regions for a Shrine location.
+ * @slot - Compatibility fallback for the `content` slot.
+ * @slot content - The primary workspace content.
+ * @slot inspector - The contextual inspector content.
+ * @slot inspector-locator - Location context for the inspector.
+ * @slot locator - The primary workspace location.
+ * @slot sidebar - The navigation/sidebar content.
+ * @slot navigate - Actions or navigation fixed beneath the sidebar.
+ *
+ * @csspart shell - The complete three-region workspace shell.
+ * @csspart sidebar - The sidebar region.
+ * @csspart sidebar-body - The sidebar's scroll owner.
+ * @csspart sidebar-scroll-root - The sidebar's bounded scroll-area root.
+ * @csspart sidebar-viewport - The sidebar's native scroll viewport.
+ * @csspart sidebar-content - The sidebar's content region.
+ * @csspart navigate - Content fixed beneath the sidebar viewport.
+ * @csspart main - The primary workspace region.
+ * @csspart locator - Location content fixed above the main viewport.
+ * @csspart main-body - The primary scroll owner.
+ * @csspart main-scroll-root - The primary bounded scroll-area root.
+ * @csspart main-viewport - The primary native scroll viewport.
+ * @csspart main-content - The primary content region.
+ * @csspart inspector - The contextual inspector region.
+ * @csspart inspector-locator - Location content fixed above the inspector viewport.
+ * @csspart inspector-body - The inspector's scroll owner.
+ * @csspart inspector-scroll-root - The inspector's bounded scroll-area root.
+ * @csspart inspector-viewport - The inspector's native scroll viewport.
+ * @csspart inspector-content - The inspector's content region.
+ * @cssstate inspector-open - Matches `:state(inspector-open)` while the inspector exists.
+ *
+ * Note: there is deliberately no "inspector closed" example. `inspectorOpen`
+ * is a boolean attribute that defaults to true, and a boolean attribute is
+ * true whenever it is present. The catalogue control closes it by removing
+ * the attribute.
  *
  * @example Default
  * <sh-triptych>
  *   <div slot="sidebar" class="demo">sidebar</div>
  *   <div slot="navigate" class="demo demo-quiet">navigate</div>
  *   <ui-path path="/some/dummy/path" slot="locator" class="demo demo-quiet">locator</ui-path>
- *   <div class="demo demo-main">main</div>
+ *   <div slot="content" class="demo demo-main">main</div>
  *   <div slot="inspector-locator" class="demo demo-quiet">inspector-locator</div>
  *   <div slot="inspector" class="demo">inspector</div>
  * </sh-triptych>
- *
- * Note: there is deliberately no "inspector closed" example. `inspectorOpen`
- * is a boolean attribute that defaults to true, and a boolean attribute is
- * true whenever it is present — `inspectoropen="false"` still reads as true.
- * Static markup therefore cannot close the inspector; only the property can.
- * See the catalog's toggle, which works because it removes the attribute.
  */
 export class ShrineTriptych extends LitElement {
   static override properties = {
-    inspectorOpen: { type: Boolean },
+    inspectorOpen: { type: Boolean, reflect: true, attribute: "inspector-open" },
+    _filledSlots: { state: true },
   };
 
-  /** is inspector pane open? */
+  /** Whether the contextual inspector region is present. */
   declare inspectorOpen: boolean;
+  declare private _filledSlots: ReadonlySet<string>;
+
+  readonly #internals: ElementInternals;
 
   constructor() {
     super();
     this.inspectorOpen = true;
+    this._filledSlots = new Set();
+    this.#internals = this.attachInternals();
   }
 
-  static override styles = css`
-    :host {
-      display: block;
-      height: 100dvh;
-    }
+  static override styles = baseStyles;
 
-    .shell {
-      height: 100%;
-      display: grid;
-      grid-template-columns:
-        240px
-        minmax(0, 1fr)
-        320px;
+  protected override updated(changed: PropertyValues<this>): void {
+    if (!changed.has("inspectorOpen")) return;
+    if (this.inspectorOpen) this.#internals.states.add("inspector-open");
+    else this.#internals.states.delete("inspector-open");
+  }
 
-      overflow: hidden;
-    }
-
-    .shell.inspector-closed {
-      grid-template-columns:
-        240px
-        minmax(0, 1fr);
-    }
-
-    .sidebar {
-      display: grid;
-      grid-template-rows:
-        minmax(0, 1fr)
-        auto;
-    }
-
-    .main,
-    .inspector {
-      display: grid;
-      grid-template-rows:
-        auto
-        minmax(0, 1fr);
-
-      min-width: 0;
-    }
-
-    .sidebar-main,
-    .main-content,
-    .inspector-content {
-      overflow: auto;
-      min-height: 0;
-    }
-
-    .locator {
-      min-height: 32px;
-    }
-
-    .navigate {
-      min-height: 40px;
-    }
-  `;
+  #onSlotChange = (event: Event): void => {
+    const slot = event.target as HTMLSlotElement;
+    const next = new Set(this._filledSlots);
+    if (slot.assignedNodes({ flatten: true }).length > 0) next.add(slot.name);
+    else next.delete(slot.name);
+    this._filledSlots = next;
+  };
 
   protected override render(): TemplateResult {
     return html`
-      <div class="shell ${this.inspectorOpen ? "" : "inspector-closed"}">
-        <aside class="sidebar">
-          <div class="sidebar-main">
-            <slot name="sidebar"></slot>
-          </div>
+      <div part="shell" class="shell ${this.inspectorOpen ? "" : "inspector-closed"}">
+        <aside part="sidebar" class="sidebar">
+          <ui-scroll-area
+            part="sidebar-body"
+            label="Sidebar"
+            exportparts="root:sidebar-scroll-root,viewport:sidebar-viewport,content:sidebar-content"
+          >
+            <slot name="sidebar" slot="content" @slotchange=${this.#onSlotChange}></slot>
+          </ui-scroll-area>
 
-          <div class="navigate">
-            <slot name="navigate"></slot>
+          <div part="navigate" class="navigate" ?hidden=${!this._filledSlots.has("navigate")}>
+            <slot name="navigate" @slotchange=${this.#onSlotChange}></slot>
           </div>
         </aside>
 
-        <main class="main">
-          <div class="locator">
-            <slot name="locator"></slot>
+        <main part="main" class="main">
+          <div part="locator" class="locator" ?hidden=${!this._filledSlots.has("locator")}>
+            <slot name="locator" @slotchange=${this.#onSlotChange}></slot>
           </div>
 
-          <div class="main-content">
-            <slot></slot>
-          </div>
+          <ui-scroll-area
+            part="main-body"
+            label="Main workspace"
+            exportparts="root:main-scroll-root,viewport:main-viewport,content:main-content"
+          >
+            <slot name="content" slot="content"><slot></slot></slot>
+          </ui-scroll-area>
         </main>
 
         ${
           this.inspectorOpen
             ? html`
-                <aside class="inspector">
-                  <div class="locator">
-                    <slot name="inspector-locator"></slot>
+                <aside part="inspector" class="inspector">
+                  <div
+                    part="inspector-locator"
+                    class="locator"
+                    ?hidden=${!this._filledSlots.has("inspector-locator")}
+                  >
+                    <slot name="inspector-locator" @slotchange=${this.#onSlotChange}></slot>
                   </div>
 
-                  <div class="inspector-content">
-                    <slot name="inspector"></slot>
-                  </div>
+                  <ui-scroll-area
+                    part="inspector-body"
+                    label="Inspector"
+                    exportparts="root:inspector-scroll-root,viewport:inspector-viewport,content:inspector-content"
+                  >
+                    <slot name="inspector" slot="content" @slotchange=${this.#onSlotChange}></slot>
+                  </ui-scroll-area>
                 </aside>
               `
             : null

@@ -191,6 +191,7 @@ export class UIEditor extends LitElement {
     caseSensitive: { type: Boolean, attribute: "case-sensitive", reflect: true },
     searchOpen: { type: Boolean, attribute: "search-open", reflect: true },
     completionOpen: { type: Boolean, attribute: "completion-open", reflect: true },
+    _filledSlots: { state: true },
   };
 
   /** Current source document. */
@@ -222,6 +223,8 @@ export class UIEditor extends LitElement {
   /** Provider-controlled visibility state for authored completion content. */
   declare completionOpen: boolean;
 
+  declare private _filledSlots: ReadonlySet<string>;
+
   readonly #internals: ElementInternals;
   #gutterScroll = 0;
   #fieldDescription = "";
@@ -243,6 +246,7 @@ export class UIEditor extends LitElement {
     this.caseSensitive = false;
     this.searchOpen = false;
     this.completionOpen = false;
+    this._filledSlots = new Set();
     this.#internals = this.attachInternals();
   }
 
@@ -258,8 +262,24 @@ export class UIEditor extends LitElement {
       [part="search"] {
         display: contents;
       }
+
+      [part][hidden] {
+        display: none !important;
+      }
     `,
   ];
+
+  #onSlotChange = (event: Event): void => {
+    const slot = event.target as HTMLSlotElement;
+    const next = new Set(this._filledSlots);
+    if (slot.assignedNodes({ flatten: true }).length > 0) next.add(slot.name);
+    else next.delete(slot.name);
+    this._filledSlots = next;
+  };
+
+  #hasSlot(name: string): boolean {
+    return this._filledSlots.has(name);
+  }
 
   get #lineCount(): number {
     return Math.max(1, this.value.split("\n").length);
@@ -572,7 +592,9 @@ export class UIEditor extends LitElement {
             : nothing
         }
         <div part="scroller">
-          <div part="indent-guides"><slot name="indent-guides"></slot></div>
+          <div part="indent-guides" ?hidden=${!this.#hasSlot("indent-guides")}>
+            <slot name="indent-guides" @slotchange=${this.#onSlotChange}></slot>
+          </div>
           <textarea
             part="control"
             .value=${this.value}
@@ -596,17 +618,37 @@ export class UIEditor extends LitElement {
             @focus=${this.#onFocus}
             @blur=${this.#onBlur}
           ></textarea>
-          <div part="overlay"><slot name="overlay"></slot></div>
-          <div part="decorations"><slot name="decorations"></slot></div>
-          <div part="document-colors"><slot name="document-colors"></slot></div>
-          <div part="hover"><slot name="hover"></slot></div>
-          <div part="code-actions"><slot name="code-actions"></slot></div>
-          <div part="completion"><slot name="completion"></slot></div>
-          <div part="diagnostics"><slot name="diagnostics"></slot></div>
+          <div part="overlay" ?hidden=${!this.#hasSlot("overlay")}>
+            <slot name="overlay" @slotchange=${this.#onSlotChange}></slot>
+          </div>
+          <div part="decorations" ?hidden=${!this.#hasSlot("decorations")}>
+            <slot name="decorations" @slotchange=${this.#onSlotChange}></slot>
+          </div>
+          <div part="document-colors" ?hidden=${!this.#hasSlot("document-colors")}>
+            <slot name="document-colors" @slotchange=${this.#onSlotChange}></slot>
+          </div>
+          <div part="hover" ?hidden=${!this.#hasSlot("hover")}>
+            <slot name="hover" @slotchange=${this.#onSlotChange}></slot>
+          </div>
+          <div part="code-actions" ?hidden=${!this.#hasSlot("code-actions")}>
+            <slot name="code-actions" @slotchange=${this.#onSlotChange}></slot>
+          </div>
+          <div part="completion" ?hidden=${!this.#hasSlot("completion") || !this.completionOpen}>
+            <slot name="completion" @slotchange=${this.#onSlotChange}></slot>
+          </div>
+          <div part="diagnostics" ?hidden=${!this.#hasSlot("diagnostics")}>
+            <slot name="diagnostics" @slotchange=${this.#onSlotChange}></slot>
+          </div>
         </div>
-        <div part="fold-controls"><slot name="fold-controls"></slot></div>
-        <div part="search"><slot name="search"></slot></div>
-        <div part="status" aria-live="polite"><slot name="status"></slot></div>
+        <div part="fold-controls" ?hidden=${!this.#hasSlot("fold-controls")}>
+          <slot name="fold-controls" @slotchange=${this.#onSlotChange}></slot>
+        </div>
+        <div part="search" ?hidden=${!this.#hasSlot("search") || !this.searchOpen}>
+          <slot name="search" @slotchange=${this.#onSlotChange}></slot>
+        </div>
+        <div part="status" aria-live="polite" ?hidden=${!this.#hasSlot("status")}>
+          <slot name="status" @slotchange=${this.#onSlotChange}></slot>
+        </div>
       </div>
     `;
   }

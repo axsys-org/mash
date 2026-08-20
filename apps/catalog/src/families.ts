@@ -21,6 +21,8 @@ const families: ComponentFamily[] = [
       "ui-avatar",
       "ui-badge",
       "ui-card",
+      "ui-image",
+      "ui-intl-formatter",
       "ui-kbd",
       "ui-path",
       "ui-progress",

@@ -226,12 +226,9 @@ export class UITree extends LitElement {
         else return;
         break;
       case "Enter":
-        this.#requestSelection(item, "keyboard");
-        if (item.branch) item.requestExpansion(!item.expanded);
-        event.preventDefault();
-        return;
       case " ":
         this.#requestSelection(item, "keyboard");
+        if (item.branch) item.requestExpansion(!item.expanded);
         event.preventDefault();
         return;
       default:

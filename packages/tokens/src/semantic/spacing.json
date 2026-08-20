@@ -42,6 +42,14 @@
     "inline": {
       "$value": "{space.reference.3}",
       "$description": "Default horizontal gap between inline siblings."
+    },
+    "groupBlock": {
+      "$value": "{space.reference.4}",
+      "$description": "Block-axis spacing between related controls or content groups."
+    },
+    "region": {
+      "$value": "{space.reference.5}",
+      "$description": "Separation between distinct regions in a larger Web surface."
     }
   }
 }

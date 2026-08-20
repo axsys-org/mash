@@ -3,8 +3,11 @@ import { type TemplateResult } from "lit";
 import {
   type OverlayChangeReason,
   type OverlayOpenChangeDetail,
+  type OverlayTriggerAction,
   UIAnchoredOverlay,
 } from "../internal/overlay.js";
+
+export type TooltipTrigger = "click" | "hover" | "manual";
 
 /**
  * A non-interruptive label shown on hover or focus.
@@ -45,6 +48,7 @@ import {
  * @mashnode collision-padding collision-padding positioner
  * @mashnode popup popup positioner
  * @mashnode description description popup
+ * @mashnode trigger-mode trigger-mode trigger
  * @mashrole slot default description description
  */
 export class UITooltip extends UIAnchoredOverlay {
@@ -52,12 +56,15 @@ export class UITooltip extends UIAnchoredOverlay {
     ...UIAnchoredOverlay.properties,
     openDelay: { type: Number, attribute: "open-delay", reflect: true },
     closeDelay: { type: Number, attribute: "close-delay", reflect: true },
+    trigger: { type: String, reflect: true },
   };
 
   /** Delay in milliseconds before a first tooltip appears. */
   declare openDelay: number;
   /** Grace period in milliseconds before the tooltip disappears. */
   declare closeDelay: number;
+  /** Interaction that controls visibility; hover also includes keyboard focus. */
+  declare trigger: TooltipTrigger;
 
   protected readonly overlayRole = "tooltip";
   protected override readonly triggerAction = "hover";
@@ -69,6 +76,11 @@ export class UITooltip extends UIAnchoredOverlay {
     super();
     this.openDelay = 500;
     this.closeDelay = 300;
+    this.trigger = "hover";
+  }
+
+  protected override interactionTriggerAction(): OverlayTriggerAction {
+    return this.trigger;
   }
 
   protected override interactionDelay(open: boolean): number {

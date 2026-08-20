@@ -10,3 +10,4 @@
 import "./confirm/register.js";
 import "./triptych/register.js";
 import "./locator/register.js";
+import "./myth/register.js";

@@ -28,10 +28,23 @@ export type AvatarSize = "small" | "medium" | "large";
  * @csspart image - The image, when `src` is available.
  * @csspart fallback - The text fallback behind the image.
  *
+ * @cssstate loading - Matches `:state(loading)` while an authored image is pending.
+ * @cssstate loaded - Matches `:state(loaded)` after the authored image loads.
+ * @cssstate error - Matches `:state(error)` after the authored image fails.
+ *
+ * @fires {CustomEvent<{ src: string }>} ui-avatar-load - Reports a successfully loaded avatar source.
+ * @fires {CustomEvent<{ src: string }>} ui-avatar-error - Reports a failed avatar source before fallback is exposed.
+ *
  * @mashnode root root
  * @mashnode image image root
  * @mashnode fallback fallback root
+ * @mashnode loading loading root
+ * @mashnode loaded loaded root
+ * @mashnode error error root
+ * @mashnode load load root
+ * @mashnode load-error error root
  * @mashrole slot default fallback fallback
+ * @mashrole event ui-avatar-error error load-error
  */
 export class UIAvatar extends LitElement {
   static override properties = {
@@ -39,6 +52,7 @@ export class UIAvatar extends LitElement {
     alt: { type: String, reflect: true },
     size: { type: String, reflect: true },
     _imageFailed: { type: Boolean, state: true },
+    _imageLoaded: { type: Boolean, state: true },
   };
 
   /** Image location. Omit it to show the slotted fallback. */
@@ -49,6 +63,9 @@ export class UIAvatar extends LitElement {
   declare size: AvatarSize;
 
   declare private _imageFailed: boolean;
+  declare private _imageLoaded: boolean;
+
+  readonly #internals: ElementInternals;
 
   constructor() {
     super();
@@ -56,16 +73,50 @@ export class UIAvatar extends LitElement {
     this.alt = "";
     this.size = "medium";
     this._imageFailed = false;
+    this._imageLoaded = false;
+    this.#internals = this.attachInternals();
   }
 
   protected override updated(changed: PropertyValues): void {
-    if (changed.has("src")) this._imageFailed = false;
+    if (changed.has("src")) {
+      this._imageFailed = false;
+      this._imageLoaded = false;
+    }
+    const loading = Boolean(this.src) && !this._imageLoaded && !this._imageFailed;
+    for (const [state, active] of [
+      ["loading", loading],
+      ["loaded", this._imageLoaded],
+      ["error", this._imageFailed],
+    ] as const) {
+      if (active) this.#internals.states.add(state);
+      else this.#internals.states.delete(state);
+    }
   }
 
   static override styles = baseStyles;
 
   #onImageError = (): void => {
     this._imageFailed = true;
+    this._imageLoaded = false;
+    this.dispatchEvent(
+      new CustomEvent<{ src: string }>("ui-avatar-error", {
+        bubbles: true,
+        composed: true,
+        detail: { src: this.src },
+      }),
+    );
+  };
+
+  #onImageLoad = (): void => {
+    this._imageLoaded = true;
+    this._imageFailed = false;
+    this.dispatchEvent(
+      new CustomEvent<{ src: string }>("ui-avatar-load", {
+        bubbles: true,
+        composed: true,
+        detail: { src: this.src },
+      }),
+    );
   };
 
   protected override render(): TemplateResult {
@@ -79,6 +130,7 @@ export class UIAvatar extends LitElement {
           src=${this.src}
           alt=${this.alt}
           ?hidden=${!showImage}
+          @load=${this.#onImageLoad}
           @error=${this.#onImageError}
         />
       </span>

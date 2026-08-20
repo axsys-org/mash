@@ -5,7 +5,11 @@ import { expect, test } from "@playwright/test";
 const bundle = resolve(import.meta.dirname, "../../../apps/catalog/dist/mash.js");
 
 const expectedTags = [
+  "sh-limb",
   "sh-locator",
+  "sh-myth",
+  "sh-pail",
+  "sh-slot",
   "sh-triptych",
   "shrine-confirm",
   "ui-accordion",
@@ -32,8 +36,10 @@ const expectedTags = [
   "ui-field",
   "ui-fieldset",
   "ui-form",
+  "ui-image",
   "ui-input",
   "ui-input-group",
+  "ui-intl-formatter",
   "ui-kbd",
   "ui-link",
   "ui-menu",
@@ -87,7 +93,11 @@ const expectedTags = [
 
 const expectedGlobalExports = [
   "ShrineConfirm",
+  "ShrineLimb",
   "ShrineLocator",
+  "ShrineMyth",
+  "ShrinePail",
+  "ShrineSlot",
   "ShrineTriptych",
   "UIAccordion",
   "UIAccordionItem",
@@ -113,8 +123,10 @@ const expectedGlobalExports = [
   "UIField",
   "UIFieldset",
   "UIForm",
+  "UIImage",
   "UIInput",
   "UIInputGroup",
+  "UIIntlFormatter",
   "UIKbd",
   "UILink",
   "UIMenu",

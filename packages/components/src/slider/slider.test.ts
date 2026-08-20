@@ -56,4 +56,39 @@ describe("ui-slider", () => {
     await settled(slider.parentElement!);
     expect(slider.value).toBe(1.05);
   });
+
+  it("keeps readonly sliders focusable and restores attempted native changes", async () => {
+    const slider = await fixture<UISlider>(`
+      <ui-slider value="40" readonly label="Locked volume"></ui-slider>
+    `);
+    const input = inShadow<HTMLInputElement>(slider, '[part="control"]');
+
+    expect(input.disabled).toBe(false);
+    expect(input.getAttribute("aria-readonly")).toBe("true");
+    expect(slider.matches(":state(readonly)")).toBe(true);
+
+    input.value = "80";
+    input.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    await settled(slider.parentElement!);
+
+    expect(slider.value).toBe(40);
+    expect(input.value).toBe("40");
+  });
+
+  it("exposes authored ticks and current value anatomy", async () => {
+    const slider = await fixture<UISlider>(`
+      <ui-slider value="25" label="Progress">
+        <span slot="ticks">0 25 50 75 100</span>
+        <strong slot="value">25 percent</strong>
+      </ui-slider>
+    `);
+
+    expect(
+      inShadow<HTMLSlotElement>(slider, 'slot[name="ticks"]').assignedElements()[0]?.textContent,
+    ).toContain("25");
+    expect(
+      inShadow<HTMLSlotElement>(slider, 'slot[name="value"]').assignedElements()[0]?.textContent,
+    ).toBe("25 percent");
+    expect(inShadow(slider, '[part~="thumb-value"]')).toBeInstanceOf(HTMLElement);
+  });
 });

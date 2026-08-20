@@ -26,9 +26,13 @@ export type SliderScale = "linear" | "logarithmic";
  * @slot label - Authored control label; the `label` attribute is the compatibility fallback.
  * @slot track - Optional authored content within the range track.
  * @slot indicator - Optional authored content within the selected range indicator.
+ * @slot ticks - Optional authored tick labels or marks across the track.
  * @slot thumb - Optional authored content within the single or range-end thumb.
  * @slot start-thumb - Optional authored content within the range-start thumb.
  * @slot end-thumb - Optional authored content within the range-end thumb; falls back to `thumb`.
+ * @slot value - Optional presentation for the single current value; falls back to the numeric value.
+ * @slot start-value - Optional presentation for the range-start value; falls back to the numeric value.
+ * @slot end-value - Optional presentation for the range-end value; falls back to the numeric value.
  *
  * @csspart root - The slider label wrapper.
  * @csspart control - The native range input.
@@ -37,11 +41,16 @@ export type SliderScale = "linear" | "logarithmic";
  * @csspart label - The accessible visible label when supplied.
  * @csspart track - The full value range.
  * @csspart indicator - The range from the minimum to the current value.
+ * @csspart ticks - The authored tick collection.
  * @csspart thumb - The movable current-value affordance.
  * @csspart start-thumb - The movable range-start affordance.
  * @csspart end-thumb - Alias for the range-end/current-value affordance.
+ * @csspart thumb-value - The current value attached to a thumb.
+ * @csspart start-value - The range-start value attached to its thumb.
+ * @csspart end-value - The current or range-end value attached to its thumb.
  *
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
+ * @cssstate readonly - Matches `:state(readonly)` while focusable but immutable.
  * @cssstate invalid - Matches `:state(invalid)` while the owning field reports an error.
  * @cssstate range - Matches `:state(range)` while two values are active.
  *
@@ -54,8 +63,11 @@ export type SliderScale = "linear" | "logarithmic";
  * @mashnode start-control control root
  * @mashnode track track control
  * @mashnode indicator indicator track
+ * @mashnode ticks ticks track
  * @mashnode thumb thumb track
  * @mashnode start-thumb thumb track
+ * @mashnode thumb-value value thumb
+ * @mashnode start-value value start-thumb
  * @mashnode value value root
  * @mashnode values value root
  * @mashnode min min root
@@ -63,6 +75,7 @@ export type SliderScale = "linear" | "logarithmic";
  * @mashnode step step root
  * @mashnode name name root
  * @mashnode disabled disabled root
+ * @mashnode readonly readonly root
  * @mashnode invalid invalid control
  * @mashnode range range root
  * @mashnode orientation orientation root
@@ -95,6 +108,7 @@ export class UISlider extends LitElement {
     name: { type: String, reflect: true },
     label: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
+    readonly: { type: Boolean, reflect: true },
     orientation: { type: String, reflect: true },
     scale: { type: String, reflect: true },
     reversed: { type: Boolean, reflect: true },
@@ -117,6 +131,8 @@ export class UISlider extends LitElement {
   declare label: string;
   /** Prevents manipulation and form participation. */
   declare disabled: boolean;
+  /** Preserves focus and form participation while preventing value changes. */
+  declare readonly: boolean;
   /** Logical control axis. */
   declare orientation: SliderOrientation;
   /** Position-to-value mapping. Logarithmic scale requires a positive minimum. */
@@ -143,6 +159,7 @@ export class UISlider extends LitElement {
     this.name = "";
     this.label = "Value";
     this.disabled = false;
+    this.readonly = false;
     this.orientation = "horizontal";
     this.scale = "linear";
     this.reversed = false;
@@ -253,6 +270,8 @@ export class UISlider extends LitElement {
     else this.#internals.states.delete("disabled");
     if (this.#isRange) this.#internals.states.add("range");
     else this.#internals.states.delete("range");
+    if (this.readonly) this.#internals.states.add("readonly");
+    else this.#internals.states.delete("readonly");
   }
 
   override connectedCallback(): void {
@@ -267,6 +286,7 @@ export class UISlider extends LitElement {
       changed.has("values") ||
       changed.has("name") ||
       changed.has("disabled") ||
+      changed.has("readonly") ||
       changed.has("min") ||
       changed.has("max")
     ) {
@@ -331,7 +351,12 @@ export class UISlider extends LitElement {
   }
 
   #onInput = (event: Event): void => {
-    const value = this.#setFromInput(event.currentTarget as HTMLInputElement);
+    const input = event.currentTarget as HTMLInputElement;
+    if (this.readonly) {
+      this.#restoreInput(input);
+      return;
+    }
+    const value = this.#setFromInput(input);
     this.dispatchEvent(
       new CustomEvent<{ value: number; values: number[] }>("ui-slider-input", {
         bubbles: true,
@@ -342,7 +367,12 @@ export class UISlider extends LitElement {
   };
 
   #onChange = (event: Event): void => {
-    const value = this.#setFromInput(event.currentTarget as HTMLInputElement);
+    const input = event.currentTarget as HTMLInputElement;
+    if (this.readonly) {
+      this.#restoreInput(input);
+      return;
+    }
+    const value = this.#setFromInput(input);
     this.dispatchEvent(
       new CustomEvent<{ value: number; values: number[] }>("ui-slider-change", {
         bubbles: true,
@@ -353,6 +383,22 @@ export class UISlider extends LitElement {
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
+    if (
+      this.readonly &&
+      [
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "End",
+        "Home",
+        "PageDown",
+        "PageUp",
+      ].includes(event.key)
+    ) {
+      event.preventDefault();
+      return;
+    }
     const input = event.currentTarget as HTMLInputElement;
     const which = input.dataset.thumb as "end" | "start";
     const current =
@@ -397,6 +443,15 @@ export class UISlider extends LitElement {
     );
   };
 
+  #restoreInput(input: HTMLInputElement): void {
+    const which = input.dataset.thumb as "end" | "start";
+    const value =
+      which === "start" && this.#isRange
+        ? this.#normalizedValues()[0]
+        : this.#normalizedValue(this.#isRange ? this.#normalizedValues()[1] : this.value);
+    input.value = String(this.#usesLogarithmicScale ? this.#ratioForValue(value) * 10_000 : value);
+  }
+
   #renderControl(
     which: "end" | "start",
     value: number,
@@ -422,6 +477,7 @@ export class UISlider extends LitElement {
         aria-valuemin=${minimum}
         aria-valuemax=${maximum}
         aria-valuenow=${value}
+        aria-readonly=${this.readonly ? "true" : nothing}
         ?disabled=${this.#isDisabled}
         @keydown=${this.#onKeydown}
         @input=${this.#onInput}
@@ -459,10 +515,14 @@ export class UISlider extends LitElement {
           <span part="indicator" style=${indicatorStyle}>
             <slot name="indicator"></slot>
           </span>
+          <span part="ticks"><slot name="ticks"></slot></span>
           ${
             rangeMode
               ? html`<span part="start-thumb" style=${thumbStyle(start)}>
                   <slot name="start-thumb"></slot>
+                  <span part="thumb-value start-value"
+                    ><slot name="start-value">${start}</slot></span
+                  >
                 </span>`
               : nothing
           }
@@ -470,8 +530,12 @@ export class UISlider extends LitElement {
             rangeMode
               ? html`<span part="thumb end-thumb" style=${thumbStyle(end)}>
                   <slot name="end-thumb"><slot name="thumb"></slot></slot>
+                  <span part="thumb-value end-value"><slot name="end-value">${end}</slot></span>
                 </span>`
-              : html`<span part="thumb" style=${thumbStyle(end)}><slot name="thumb"></slot></span>`
+              : html`<span part="thumb" style=${thumbStyle(end)}
+                  ><slot name="thumb"></slot
+                  ><span part="thumb-value end-value"><slot name="value">${end}</slot></span></span
+                >`
           }
         </span>
       </label>

@@ -297,6 +297,74 @@ html[data-layout="fill"] body {
   inline-size: min(100%, 440px);
 }
 
+.example-editor-workspace {
+  inline-size: min(100%, 680px);
+}
+
+.example-editor-search {
+  inline-size: min(22rem, calc(100vw - var(--space-container-inline) * 4));
+}
+
+.example-editor-completion {
+  inline-size: min(22rem, calc(100vw - var(--space-container-inline) * 4));
+  margin-block-start: calc(var(--space-region) + var(--space-container-block));
+}
+
+.example-editor-status,
+.example-pagination-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-control-gap);
+}
+
+.example-editor-status span:last-child {
+  margin-inline-start: auto;
+}
+
+.example-pagination {
+  display: grid;
+  gap: var(--space-container-block);
+  padding: var(--space-container-block) var(--space-container-inline);
+  border: var(--border-hairline) solid var(--color-border);
+  border-radius: var(--radius-container);
+  background: var(--color-surface);
+}
+
+.example-pagination-heading {
+  justify-content: space-between;
+}
+
+.example-pagination-heading > div {
+  display: grid;
+  gap: var(--border-hairline);
+}
+
+.example-pagination-heading span,
+.example-pagination-heading output {
+  color: var(--color-text-muted);
+  font-size: var(--type-label-small-font-size);
+}
+
+.example-tree-glyph {
+  display: inline-block;
+  inline-size: calc(var(--space-control-gap) + var(--space-control-block-small));
+  block-size: calc(var(--space-control-gap) + var(--space-control-block-small));
+  border: var(--border-hairline) solid currentColor;
+  border-radius: var(--radius-control);
+  background: color-mix(in oklab, currentColor 14%, transparent);
+}
+
+.example-tree-glyph[data-kind="workspace"] {
+  border-radius: var(--border-hairline);
+  color: var(--color-action);
+  box-shadow: inset 0 0 0 var(--border-hairline) var(--color-surface);
+}
+
+.example-tree-glyph[data-kind="file"] {
+  border-radius: var(--border-hairline);
+  color: var(--color-text-muted);
+}
+
 .example-toolbar-dock {
   position: relative;
   display: grid;
@@ -359,6 +427,168 @@ html[data-layout="fill"] body {
 .example-context-target p,
 .example-activity ol {
   margin: 0;
+}
+
+.example-message-thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-control-gap);
+  padding: var(--space-container-block) var(--space-container-inline);
+  border: var(--border-hairline) solid var(--color-border);
+  border-radius: var(--radius-container);
+  background: var(--color-surface-sunken);
+}
+
+.example-message-bubble {
+  align-self: flex-start;
+  inline-size: min(82%, var(--layout-dimension-content));
+}
+
+.example-message-bubble[data-from="me"] {
+  align-self: flex-end;
+}
+
+.example-message-bubble p,
+.example-media-card,
+.example-media-card figcaption,
+.example-metric-grid,
+.example-metric-grid dd,
+.example-metric-grid dt {
+  margin: 0;
+}
+
+.example-flex-row,
+.example-tooltip-grid,
+.example-slider-matrix,
+.example-toast-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-container-gap);
+  align-items: center;
+}
+
+.example-flex-row {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.example-flex-row > * {
+  flex: 1 1 var(--layout-dimension-compact);
+}
+
+.example-media-card {
+  display: grid;
+  gap: var(--space-control-gap);
+}
+
+.example-media-card ui-image::part(root),
+ui-image.example-media-card::part(root) {
+  aspect-ratio: 16 / 9;
+}
+
+.example-media-card figcaption {
+  color: var(--color-text-muted);
+  font-size: var(--type-label-small-font-size);
+}
+
+.example-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--layout-dimension-compact), 1fr));
+  gap: var(--space-control-gap);
+}
+
+.example-metric-grid > div {
+  display: grid;
+  gap: var(--space-control-block-small);
+  padding: var(--space-container-block) var(--space-container-inline);
+  border: var(--border-hairline) solid var(--color-border);
+  border-radius: var(--radius-container);
+  background: var(--color-surface);
+}
+
+.example-metric-grid dt {
+  color: var(--color-text-muted);
+  font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+    var(--type-label-small-line-height) var(--type-label-small-font-family);
+}
+
+.example-metric-grid dd {
+  color: var(--color-text);
+  font: var(--type-heading-font-weight) var(--type-heading-font-size) /
+    var(--type-heading-line-height) var(--type-heading-font-family);
+}
+
+.example-avatar-group {
+  display: flex;
+  align-items: center;
+  padding-inline-start: var(--space-control-inline-small);
+}
+
+.example-avatar-group ui-avatar {
+  margin-inline-start: calc(var(--space-control-inline-small) * -1);
+}
+
+.example-avatar-group ui-avatar::part(root) {
+  box-shadow: 0 0 0 var(--border-hairline) var(--color-surface);
+}
+
+.example-tooltip-grid {
+  align-items: flex-end;
+  justify-content: center;
+  min-block-size: var(--layout-dimension-compact);
+  padding: var(--space-container-block) var(--space-container-inline);
+}
+
+.example-slider-ticks {
+  display: block;
+  padding-block-end: var(--space-container-block);
+}
+
+.example-slider-tick-row {
+  display: flex;
+  justify-content: space-between;
+  inline-size: 100%;
+}
+
+.example-slider-matrix {
+  align-items: flex-start;
+  padding: var(--space-container-block) var(--space-container-inline);
+  border: var(--border-hairline) solid var(--color-border);
+  border-radius: var(--radius-container);
+  background: var(--color-surface);
+}
+
+.example-slider-matrix ui-field {
+  flex: 1 1 var(--layout-dimension-panel);
+}
+
+.example-scroll-jump {
+  position: relative;
+  padding-block-end: calc(var(--space-container-block) + var(--space-container-inline));
+}
+
+.example-scroll-actions {
+  position: absolute;
+  inset-inline-end: var(--space-control-inline);
+  inset-block-end: var(--space-control-block);
+  display: flex;
+  gap: var(--space-control-gap);
+}
+
+.example-toast-list {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.example-sidebar-navigation {
+  display: grid;
+  gap: var(--space-control-gap);
+  padding: var(--space-container-block) var(--space-container-inline);
+}
+
+.example-sidebar-navigation ui-collapsible {
+  display: grid;
+  gap: var(--space-control-gap);
 }
 
 .example-activity {

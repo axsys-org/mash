@@ -369,6 +369,10 @@
     line-height: var(--type-label-line-height);
   }
 
+  :where([data-mash-catalogue="mash"]) ui-field > ui-slider[slot="control"]::part(label) {
+    display: none;
+  }
+
   :where([data-mash-catalogue="mash"]) ui-slider::part(control),
   :where([data-mash-catalogue="mash"]) ui-slider::part(start-control),
   :where([data-mash-catalogue="mash"]) ui-slider::part(track) {
@@ -404,6 +408,15 @@
     background: var(--color-action);
   }
 
+  :where([data-mash-catalogue="mash"]) ui-slider::part(ticks) {
+    position: absolute;
+    inset-inline: var(--layout-dimension-zero);
+    inset-block-start: calc(100% + var(--space-control-block-small));
+    color: var(--color-text-muted);
+    font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-small-font-family);
+  }
+
   :where([data-mash-catalogue="mash"]) ui-slider::part(thumb),
   :where([data-mash-catalogue="mash"]) ui-slider::part(start-thumb) {
     position: absolute;
@@ -414,6 +427,27 @@
     border-radius: 50%;
     background: var(--color-surface);
     translate: -50% -50%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(thumb-value) {
+    position: absolute;
+    inset-inline-start: 50%;
+    inset-block-end: calc(100% + var(--space-control-block-small));
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block-small) var(--space-control-inline-small);
+    background: var(--color-text);
+    color: var(--color-surface);
+    font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-small-font-family);
+    opacity: 0;
+    pointer-events: none;
+    translate: -50% 0;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider:hover::part(thumb-value),
+  :where([data-mash-catalogue="mash"]) ui-slider:focus-within::part(thumb-value) {
+    opacity: 1;
   }
 
   :where([data-mash-catalogue="mash"]) ui-slider:dir(rtl)::part(thumb),
@@ -495,6 +529,21 @@
   :where([data-mash-catalogue="mash"]) ui-slider[disabled]::part(start-thumb) {
     border-color: var(--color-border);
     background: var(--color-surface-sunken);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[readonly]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-slider[readonly]::part(start-control) {
+    cursor: default;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[readonly]::part(indicator) {
+    background: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-meter {
+    display: inline-block;
+    inline-size: var(--layout-dimension-panel);
+    max-inline-size: 100%;
   }
 
   :where([data-mash-catalogue="mash"]) ui-meter::part(root) {
@@ -1182,6 +1231,7 @@
     caret-color: var(--color-action);
     font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
       var(--type-code-font-family);
+    resize: none;
   }
 
   :where([data-mash-catalogue="mash"]) ui-editor:focus-within::part(root) {
@@ -1196,6 +1246,10 @@
     z-index: var(--layer-raised);
     inset-inline: var(--space-container-inline);
     pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-editor::part(completion) {
+    pointer-events: auto;
   }
 
   :where([data-mash-catalogue="mash"]) ui-editor::part(indent-guides),
@@ -1421,7 +1475,8 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-autocomplete::part(empty),
-  :where([data-mash-catalogue="mash"]) ui-combobox::part(empty) {
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(empty),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(loading) {
     display: block;
     padding: var(--space-control-block) var(--space-control-inline);
     color: var(--color-text-muted);
@@ -1568,6 +1623,12 @@
     line-height: var(--type-body-line-height);
   }
 
+  :where([data-mash-catalogue="mash"]) ui-toast::part(icon) {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--color-action);
+  }
+
   :where([data-mash-catalogue="mash"]) ui-toast[tone="positive"]::part(root) {
     border-color: var(--color-positive);
   }
@@ -1631,11 +1692,23 @@
     cursor: not-allowed;
   }
 
-  :where([data-mash-catalogue="mash"]) ui-pagination::part(root),
+  :where([data-mash-catalogue="mash"]) ui-pagination::part(root) {
+    display: inline-grid;
+    grid-template-columns: auto minmax(var(--layout-dimension-zero), 1fr) auto;
+    align-items: center;
+    gap: var(--space-control-gap);
+    max-inline-size: 100%;
+  }
+
   :where([data-mash-catalogue="mash"]) ui-pagination::part(pages) {
     display: inline-flex;
-    gap: var(--space-control-gap);
     align-items: center;
+    justify-content: safe center;
+    gap: var(--space-control-gap);
+    min-inline-size: var(--layout-dimension-zero);
+    max-inline-size: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
   :where([data-mash-catalogue="mash"]) ui-pagination::part(previous),
@@ -1650,6 +1723,18 @@
     color: var(--color-text);
     font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
       var(--type-label-font-family);
+    cursor: pointer;
+    transition:
+      border-color var(--duration-control) var(--easing-control),
+      background var(--duration-control) var(--easing-control),
+      color var(--duration-control) var(--easing-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-pagination::part(previous):hover:not(:disabled),
+  :where([data-mash-catalogue="mash"]) ui-pagination::part(page):hover:not(:disabled),
+  :where([data-mash-catalogue="mash"]) ui-pagination::part(next):hover:not(:disabled) {
+    border-color: var(--color-action);
+    background: var(--color-neutral-hover);
   }
 
   :where([data-mash-catalogue="mash"]) ui-pagination::part(current-page) {
@@ -1676,6 +1761,7 @@
   :where([data-mash-catalogue="mash"]) ui-pagination::part(next):disabled {
     background: var(--color-surface-sunken);
     color: var(--color-text-disabled);
+    cursor: not-allowed;
   }
 
   :where([data-mash-catalogue="mash"]) ui-table {
@@ -2098,6 +2184,57 @@
     object-fit: cover;
   }
 
+  :where([data-mash-catalogue="mash"]) ui-image {
+    display: block;
+    max-inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-image::part(root) {
+    position: relative;
+    display: grid;
+    overflow: hidden;
+    border: var(--border-hairline) solid var(--color-border);
+    border-radius: var(--radius-container);
+    background: var(--color-surface-sunken);
+    color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-image::part(picture),
+  :where([data-mash-catalogue="mash"]) ui-image::part(image),
+  :where([data-mash-catalogue="mash"]) ui-image::part(placeholder),
+  :where([data-mash-catalogue="mash"]) ui-image::part(error) {
+    grid-area: 1 / 1;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-image::part(image) {
+    display: block;
+    object-fit: cover;
+  }
+  :where([data-mash-catalogue="mash"]) ui-image::part(placeholder),
+  :where([data-mash-catalogue="mash"]) ui-image::part(error) {
+    display: grid;
+    place-content: center;
+    padding: var(--space-container-block) var(--space-container-inline);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+    text-align: center;
+  }
+  :where([data-mash-catalogue="mash"]) ui-image::part(error) {
+    color: var(--color-critical);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-intl-formatter::part(root) {
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+  :where([data-mash-catalogue="mash"]) ui-intl-formatter::part(output) {
+    font-variant-numeric: tabular-nums;
+  }
+  :where([data-mash-catalogue="mash"]) ui-intl-formatter::part(fallback) {
+    color: var(--color-critical);
+  }
+
   :where([data-mash-catalogue="mash"]) ui-badge::part(root) {
     display: inline-flex;
     align-items: center;
@@ -2174,8 +2311,14 @@
     outline: var(--border-focus-ring) solid var(--color-focus-ring);
     outline-offset: var(--border-focus-ring-offset);
   }
+  :where([data-mash-catalogue="mash"]) ui-input-group::part(control) {
+    display: flex;
+    flex: 1 1 auto;
+    min-inline-size: var(--layout-dimension-zero);
+  }
   :where([data-mash-catalogue="mash"]) ui-input-group > ui-input {
     flex: 1 1 auto;
+    inline-size: 100%;
     min-inline-size: var(--layout-dimension-zero);
   }
   :where([data-mash-catalogue="mash"]) ui-input-group > ui-input::part(control) {
@@ -2384,15 +2527,19 @@
 
   :where([data-mash-catalogue="mash"]) ui-tree::part(root) {
     display: grid;
-    gap: var(--space-control-gap);
+    gap: var(--border-hairline);
     min-inline-size: var(--layout-dimension-zero);
+    padding: var(--space-control-block-small);
+    border: var(--border-hairline) solid var(--color-border);
+    border-radius: var(--radius-container);
+    background: var(--color-surface);
     color: var(--color-text);
     font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
       var(--type-body-font-family);
   }
   :where([data-mash-catalogue="mash"]) ui-tree-item::part(root) {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(var(--layout-dimension-zero), 1fr) auto;
     align-items: center;
     min-inline-size: var(--layout-dimension-zero);
   }
@@ -2406,18 +2553,17 @@
     border-radius: var(--radius-control);
     background: transparent;
     color: var(--color-text-muted);
-    transition: transform var(--duration-control) var(--easing-control);
-  }
-  :where([data-mash-catalogue="mash"]) ui-tree-item[expanded]::part(disclosure) {
-    transform: rotate(90deg);
   }
   :where([data-mash-catalogue="mash"]) ui-tree-item::part(control) {
-    grid-column: 2;
+    grid-column: 1;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns:
+      calc(var(--space-control-inline) + var(--space-control-gap)) auto
+      minmax(var(--layout-dimension-zero), 1fr) auto;
     align-items: center;
     min-inline-size: var(--layout-dimension-zero);
     inline-size: 100%;
+    min-block-size: calc(var(--space-container-inline) + var(--space-control-inline));
     border: 0;
     border-inline-start: var(--border-strong) solid transparent;
     border-radius: var(--radius-control);
@@ -2448,20 +2594,26 @@
     outline-offset: var(--border-focus-ring-offset);
   }
   :where([data-mash-catalogue="mash"]) ui-tree-item::part(icon) {
+    grid-column: 2;
     display: inline-flex;
     margin-inline-end: var(--space-control-gap);
     color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tree-item:not(:has(> [slot="icon"]))::part(icon) {
+    display: none;
   }
   :where([data-mash-catalogue="mash"]) ui-tree-item[kind="folder"]::part(label) {
     font-weight: var(--type-label-font-weight);
   }
   :where([data-mash-catalogue="mash"]) ui-tree-item::part(label) {
+    grid-column: 3;
     min-inline-size: var(--layout-dimension-zero);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   :where([data-mash-catalogue="mash"]) ui-tree-item::part(meta) {
+    grid-column: 4;
     overflow: hidden;
     margin-inline-start: var(--space-control-gap);
     color: var(--color-text-muted);
@@ -2471,16 +2623,24 @@
     white-space: nowrap;
   }
   :where([data-mash-catalogue="mash"]) ui-tree-item::part(actions) {
-    grid-column: 3;
+    grid-column: 2;
     display: inline-flex;
     gap: var(--space-control-gap);
   }
   :where([data-mash-catalogue="mash"]) ui-tree-item::part(children) {
     display: grid;
     gap: var(--border-hairline);
-    margin-inline-start: var(--space-container-inline);
+    margin-inline-start: calc(
+      var(--space-control-inline-small) + (var(--space-control-inline) + var(--space-control-gap)) /
+        2
+    );
     border-inline-start: var(--border-hairline) solid var(--color-border);
-    padding-inline-start: var(--space-control-inline-small);
+    padding-inline-start: var(--space-control-block);
+  }
+  /* The recipe's authored grid display outranks the browser's `[hidden]`
+     rule, so collapsed branches must also be hidden from the host state. */
+  :where([data-mash-catalogue="mash"]) ui-tree-item:not([expanded])::part(children) {
+    display: none;
   }
   :where([data-mash-catalogue="mash"]) ui-tree-item[disabled]::part(control) {
     color: var(--color-text-disabled);
@@ -2554,8 +2714,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     :where([data-mash-catalogue="mash"]) ui-button::part(control),
-    :where([data-mash-catalogue="mash"]) ui-progress::part(indicator),
-    :where([data-mash-catalogue="mash"]) ui-tree-item::part(disclosure) {
+    :where([data-mash-catalogue="mash"]) ui-progress::part(indicator) {
       transition: none;
     }
     :where([data-mash-catalogue="mash"]) ui-button::part(spinner),

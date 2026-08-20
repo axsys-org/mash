@@ -33,6 +33,7 @@ export type { CheckboxGroupOrientation } from "./checkbox-group/checkbox-group.j
 export { UICollapsible } from "./collapsible/collapsible.js";
 export { UIColorPicker, UIColorSwatch, normalizeHexColor } from "./color-picker/color-picker.js";
 export { UICombobox } from "./combobox/combobox.js";
+export type { ComboboxFilter } from "./combobox/combobox.js";
 export { UIContextMenu } from "./context-menu/context-menu.js";
 export { UICard } from "./card/card.js";
 export type { CardElevation } from "./card/card.js";
@@ -43,6 +44,21 @@ export { UIForm } from "./form/form.js";
 export { UIInput } from "./input/input.js";
 export type { InputSize, InputType } from "./input/input.js";
 export { UIInputGroup } from "./input-group/input-group.js";
+export { UIImage } from "./image/image.js";
+export type {
+  ImageDecoding,
+  ImageErrorDetail,
+  ImageFetchPriority,
+  ImageLoadDetail,
+  ImageLoading,
+} from "./image/image.js";
+export { UIIntlFormatter } from "./intl-formatter/intl-formatter.js";
+export type {
+  IntlCurrencyDisplay,
+  IntlFormatterErrorDetail,
+  IntlFormatterKind,
+  IntlFormatterStyle,
+} from "./intl-formatter/intl-formatter.js";
 export { UILink } from "./link/link.js";
 export { UIKbd } from "./kbd/kbd.js";
 export { UIDialog } from "./dialog/dialog.js";
@@ -104,6 +120,7 @@ export type { ToastStackPlacement } from "./toast-stack/toast-stack.js";
 export { UIToolbar } from "./toolbar/toolbar.js";
 export type { ToolbarOrientation } from "./toolbar/toolbar.js";
 export { UITooltip } from "./tooltip/tooltip.js";
+export type { TooltipTrigger } from "./tooltip/tooltip.js";
 export { UITree } from "./tree/tree.js";
 export { UITreeItem } from "./tree-item/tree-item.js";
 export type { TreeItemKind, TreeItemSize } from "./tree-item/tree-item.js";

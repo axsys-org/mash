@@ -83,6 +83,14 @@ describe("ui-tree", () => {
 
     expect(requests).toEqual([true]);
     expect(item.hasAttribute("expanded")).toBe(false);
+
+    item.setAttribute("expanded", "");
+    await settled(tree.parentElement!);
+    control.dispatchEvent(
+      new KeyboardEvent("keydown", { key: " ", bubbles: true, composed: true }),
+    );
+
+    expect(requests).toEqual([true, false]);
   });
 
   it("wraps keyboard movement and reports stable tree-level selection", async () => {
