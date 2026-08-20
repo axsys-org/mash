@@ -30,7 +30,10 @@
 
   :where([data-mash-catalogue="mash"]) sh-triptych::part(shell) {
     display: grid;
-    grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr) minmax(16rem, 20rem);
+    grid-template-columns:
+      minmax(var(--layout-dimension-supporting), var(--layout-dimension-panel))
+      minmax(var(--layout-dimension-zero), 1fr)
+      minmax(var(--layout-dimension-panel), var(--layout-dimension-inspector));
     block-size: 100%;
     overflow: hidden;
     background: var(--color-canvas);
@@ -38,7 +41,9 @@
   }
 
   :where([data-mash-catalogue="mash"]) sh-triptych:not([inspector-open])::part(shell) {
-    grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr);
+    grid-template-columns:
+      minmax(var(--layout-dimension-supporting), var(--layout-dimension-panel))
+      minmax(var(--layout-dimension-zero), 1fr);
   }
 
   :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar) {
@@ -104,12 +109,17 @@
   @media (max-width: 52rem) {
     :where([data-mash-catalogue="mash"]) sh-triptych::part(shell),
     :where([data-mash-catalogue="mash"]) sh-triptych:not([inspector-open])::part(shell) {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: minmax(8rem, 0.8fr) minmax(12rem, 2fr) minmax(8rem, 0.8fr);
+      grid-template-columns: minmax(var(--layout-dimension-zero), 1fr);
+      grid-template-rows:
+        minmax(var(--layout-dimension-compact), 0.8fr)
+        minmax(var(--layout-dimension-supporting), 2fr)
+        minmax(var(--layout-dimension-compact), 0.8fr);
     }
 
     :where([data-mash-catalogue="mash"]) sh-triptych:not([inspector-open])::part(shell) {
-      grid-template-rows: minmax(8rem, 0.8fr) minmax(12rem, 2fr);
+      grid-template-rows:
+        minmax(var(--layout-dimension-compact), 0.8fr)
+        minmax(var(--layout-dimension-supporting), 2fr);
     }
 
     :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar) {
@@ -144,7 +154,7 @@
 
   :where([data-mash-catalogue="mash"]) sh-myth::part(card-header) {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(var(--layout-dimension-zero), 1fr) auto auto;
     align-items: start;
     gap: var(--space-container-gap);
     padding: var(--space-container-block) var(--space-container-inline);
@@ -166,7 +176,7 @@
   :where([data-mash-catalogue="mash"]) sh-myth::part(title),
   :where([data-mash-catalogue="mash"]) sh-myth::part(path) {
     min-inline-size: var(--layout-dimension-zero);
-    margin: 0;
+    margin: var(--layout-dimension-zero);
     overflow-wrap: anywhere;
   }
 
@@ -212,7 +222,9 @@
 
   :where([data-mash-catalogue="mash"]) sh-limb::part(root) {
     display: grid;
-    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+    grid-template-columns:
+      minmax(var(--layout-dimension-zero), max-content)
+      minmax(var(--layout-dimension-zero), 1fr);
     align-items: baseline;
     gap: var(--space-control-inline);
   }
@@ -271,7 +283,7 @@
   }
 
   :where([data-mash-catalogue="mash"]) shrine-confirm::part(title) {
-    margin: 0 0 var(--space-container-block);
+    margin: var(--layout-dimension-zero) var(--layout-dimension-zero) var(--space-container-block);
     color: var(--color-text);
     font: var(--type-heading-font-weight) var(--type-heading-font-size) /
       var(--type-heading-line-height) var(--type-heading-font-family);
@@ -328,7 +340,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin: 0;
+    margin: var(--layout-dimension-zero);
     border: var(--border-hairline) solid var(--_mash-button-border);
     border-radius: var(--radius-control);
     padding: var(--_mash-button-block) var(--_mash-button-inline);
@@ -359,7 +371,7 @@
 
   @media (max-width: 520px) {
     :where([data-mash-catalogue="mash"]) sh-limb::part(root) {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: minmax(var(--layout-dimension-zero), 1fr);
       gap: var(--space-control-gap);
     }
   }

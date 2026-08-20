@@ -9,6 +9,7 @@
 import "@mash/tokens/tokens.css";
 import "@mash/ui/catalogue/mash.css";
 import "@mash/ui/register";
+import "@mash/shrine/register";
 
 // Integration exercises the public opt-in Mash presentation as well as the
 // behaviour contracts. Definition modules remain fully usable without this.

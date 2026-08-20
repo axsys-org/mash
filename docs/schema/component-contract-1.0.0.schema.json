@@ -296,11 +296,14 @@
         }
       ]
     },
-    "report": {
+    "eventRelation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["path", "nodeAddress"],
+      "required": ["kind", "path", "nodeAddress"],
       "properties": {
+        "kind": {
+          "enum": ["requests", "reports"]
+        },
         "path": {
           "type": "array",
           "minItems": 1,
@@ -377,10 +380,13 @@
         "fallback": {
           "$ref": "#/$defs/fallbackSpec"
         },
-        "reports": {
+        "intent": {
+          "enum": ["request", "report"]
+        },
+        "relations": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/report"
+            "$ref": "#/$defs/eventRelation"
           }
         }
       },
@@ -565,7 +571,7 @@
             "required": ["kind"]
           },
           "then": {
-            "required": ["reports"],
+            "required": ["intent", "relations"],
             "properties": {
               "direction": {
                 "const": "output"
@@ -600,7 +606,7 @@
                 },
                 "required": ["kind"]
               },
-              "reports": {
+              "relations": {
                 "type": "array"
               }
             }
@@ -616,9 +622,18 @@
             "required": ["kind"]
           },
           "then": {
-            "not": {
-              "required": ["reports"]
-            }
+            "allOf": [
+              {
+                "not": {
+                  "required": ["intent"]
+                }
+              },
+              {
+                "not": {
+                  "required": ["relations"]
+                }
+              }
+            ]
           }
         }
       ]

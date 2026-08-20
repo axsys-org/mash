@@ -50,6 +50,8 @@ export type PaginationItem = { kind: "page"; page: number } | { kind: "ellipsis"
  * @mashrole attribute total-pages max total
  * @mashrole attribute visible-pages length visible
  * @mashrole event ui-page-change change change
+ * @mashevent ui-page-change request
+ * @mashrelation ui-page-change requests page current
  * @mashrole slot default list pages
  * @mashrole part pages list pages
  * @mashrole part ellipsis separator ellipsis

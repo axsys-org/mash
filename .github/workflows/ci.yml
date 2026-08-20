@@ -12,13 +12,15 @@ concurrency:
 # ---------------------------------------------------------------------------
 # Job layout
 #
-# Three checks run on every pull request, split along the lines a reviewer
+# Five checks run on every pull request, split along the lines a reviewer
 # actually reasons about rather than one per build step:
 #
 #   build           does the source compile, and do the generated schemas and
 #                   the static checks agree with it?
 #   browser-tests   do the components behave in a real browser?
 #   catalog         does the artifact designers review still build?
+#   gpui            does the pinned native adapter compile against GPUI Base?
+#   visual          does every catalogue surface satisfy geometry checks?
 #
 # The underlying build is about three seconds, so splitting it further would
 # buy nothing but runner startup: tokens, components and the manifest are named
@@ -87,6 +89,15 @@ jobs:
       - name: Check package exports
         run: pnpm run check:exports
 
+      - name: Check Mash contracts and catalogue recipes
+        run: pnpm run check:mash
+
+      - name: Check shared renderer conformance fixtures
+        run: pnpm run check:conformance
+
+      - name: Check GPUI Base parity registry
+        run: pnpm run check:gpui-base
+
       - name: Check Paper foundation contract
         run: pnpm run check:paper
 
@@ -113,6 +124,49 @@ jobs:
             exit 1
           fi
           echo "generated output is byte-identical across two builds"
+
+  gpui:
+    name: GPUI adapter
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.95.0
+
+      - name: Install JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Keep this list aligned with the pinned gpui-component bootstrap. The
+      # adapter itself is headless, but GPUI's Linux backend still compiles its
+      # font, Wayland, X11, and Vulkan integration.
+      - name: Install GPUI system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            gcc g++ clang libfontconfig-dev libwayland-dev \
+            libwebkit2gtk-4.1-dev libxkbcommon-x11-dev libx11-xcb-dev \
+            libssl-dev libzstd-dev vulkan-validationlayers libvulkan1
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            adapters/gpui/target/
+          key: mash-gpui-${{ runner.os }}-${{ hashFiles('adapters/gpui/Cargo.lock') }}
+
+      - name: Check generated contract and native adapter
+        run: pnpm run check:gpui
 
   browser-tests:
     name: Browser tests (Chromium)

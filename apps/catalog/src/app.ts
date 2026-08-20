@@ -336,7 +336,8 @@ function layoutLabels(rules: MashRecipeRule[]): string[] {
     }
     if (layout.align) labels.add(`align ${layout.align}`);
     if (layout.justify) labels.add(`justify ${layout.justify}`);
-    if (layout.gap) labels.add(`gap ${measureLabel(layout.gap)}`);
+    if (layout.gap?.inline) labels.add(`gap inline ${measureLabel(layout.gap.inline)}`);
+    if (layout.gap?.block) labels.add(`gap block ${measureLabel(layout.gap.block)}`);
     for (const axis of ["inline", "block"] as const) {
       const dimensions = layout.dimensions?.[axis];
       if (!dimensions) continue;
@@ -346,10 +347,47 @@ function layoutLabels(rules: MashRecipeRule[]): string[] {
       }
     }
     if (layout.position) labels.add(`position ${layout.position}`);
+    for (const region of ["inset", "margin", "placement"] as const) {
+      const edges = layout[region];
+      if (!edges) continue;
+      for (const edge of ["blockStart", "blockEnd", "inlineStart", "inlineEnd"] as const) {
+        const measure = edges[edge];
+        if (measure) labels.add(`${region} ${edge} ${measureLabel(measure)}`);
+      }
+    }
+    if (layout.placement?.layer) labels.add(`layer ${measureLabel(layout.placement.layer)}`);
+    if (layout.self?.align) labels.add(`self align ${layout.self.align}`);
+    if (layout.self?.justify) labels.add(`self justify ${layout.self.justify}`);
+    if (layout.self?.basis) labels.add(`self basis ${measureLabel(layout.self.basis)}`);
+    if (layout.self?.grow) labels.add(`self grow ${layout.self.grow}`);
+    if (layout.self?.shrink) labels.add(`self shrink ${layout.self.shrink}`);
+    if (layout.self?.gridRow) labels.add(`grid row ${layout.self.gridRow}`);
+    if (layout.self?.gridColumn) labels.add(`grid column ${layout.self.gridColumn}`);
+    if (layout.grid?.columns) labels.add(`grid columns ${measureLabel(layout.grid.columns)}`);
+    if (layout.grid?.rows) labels.add(`grid rows ${measureLabel(layout.grid.rows)}`);
+    if (layout.grid?.autoFlow) labels.add(`grid flow ${layout.grid.autoFlow}`);
+    if (layout.aspectRatio) labels.add(`aspect ${layout.aspectRatio}`);
     if (layout.overflow?.inline) labels.add(`overflow inline ${layout.overflow.inline}`);
     if (layout.overflow?.block) labels.add(`overflow block ${layout.overflow.block}`);
   }
   return [...labels];
+}
+
+function conditionLabel(condition: MashRecipeRule["when"]["conditions"][number]): string {
+  if (condition.kind === "node") {
+    const node = condition.nodeAddress.split("/node/").at(-1);
+    return `when ${node} ${condition.operator}${condition.value ? ` ${condition.value}` : ""}`;
+  }
+  if (condition.kind === "interaction") {
+    return `when ${condition.active ? "" : "not "}${condition.state}`;
+  }
+  if (condition.kind === "environment") {
+    return `when ${condition.feature} ${condition.value}`;
+  }
+  if (condition.kind === "context") {
+    return `when context ${condition.name} ${condition.operator}${condition.value ? ` ${condition.value}` : ""}`;
+  }
+  return `web-only ${condition.selector}`;
 }
 
 function bindingValue(value: unknown): string {
@@ -373,9 +411,10 @@ function fallbackLabel(binding: MashBinding): string | null {
   return null;
 }
 
-function reportLabels(binding: MashBinding): string[] {
-  return (binding.reports ?? []).map(
-    (report) => `reports ${report.path.join(".")} → ${report.nodeAddress.split("/node/").at(-1)}`,
+function eventRelationLabels(binding: MashBinding): string[] {
+  return (binding.relations ?? []).map(
+    (relation) =>
+      `${relation.kind} ${relation.path.join(".")} → ${relation.nodeAddress.split("/node/").at(-1)}`,
   );
 }
 
@@ -452,7 +491,7 @@ function mashContractTree(component: ComponentSchema, frame: HTMLIFrameElement):
                           text: fallbackLabel(binding)!,
                         })
                       : null,
-                    ...reportLabels(binding).map((label) =>
+                    ...eventRelationLabels(binding).map((label) =>
                       el("span", { class: "surface-binding-report", text: label }),
                     ),
                     el("span", { class: "surface-binding-effective", text: "awaiting preview" }),
@@ -484,7 +523,7 @@ function mashContractTree(component: ComponentSchema, frame: HTMLIFrameElement):
     el("p", {
       class: "note surface-contract-note",
       text: component.mash
-        ? `${component.mash.address} · contract v${component.mash.version} · inferred and explicit Web bindings, fallback behavior, layout, and tokens are generated from the package contract`
+        ? `${component.mash.address} · contract v${component.mash.version} · Web bindings, fallbacks, portable conditions, presentation, layout, and tokens are generated from the package contract`
         : "No renderer-neutral contract metadata.",
     }),
     nodes.length > 0 ? renderNodes() : null,
@@ -756,9 +795,10 @@ function bindingEffectiveState(binding: MashBinding, instances: Element[]): stri
     const active = count((instance) => instance.matches(`:state(${binding.name})`));
     return `active ${fraction(active)}`;
   }
-  return binding.reports && binding.reports.length > 0
-    ? `reports ${binding.reports.length} node${binding.reports.length === 1 ? "" : "s"}`
-    : "output available";
+  const related = binding.relations?.length ?? 0;
+  return related > 0
+    ? `${binding.intent} · ${related} related node${related === 1 ? "" : "s"}`
+    : `${binding.intent ?? "output"} available`;
 }
 
 function syncBindingProof(
@@ -785,11 +825,11 @@ function syncBindingProof(
 function recipeRuleActive(rule: MashRecipeRule, instances: Element[]): boolean {
   const view = instances[0]?.ownerDocument.defaultView;
   if (!view) return false;
-  for (const context of rule.when.context) {
+  for (const context of rule.when.web.context) {
     if (context.startsWith("@media ") && !view.matchMedia(context.slice(7)).matches) return false;
     if (context.startsWith("@supports ") && !view.CSS.supports(context.slice(10))) return false;
   }
-  return rule.when.selector
+  return rule.when.web.selector
     .split(",")
     .some((selector) => instances.some((instance) => selectorMatchesInstance(instance, selector)));
 }
@@ -804,11 +844,19 @@ function syncLayoutProof(current: Mounted, component: ComponentSchema, instances
     const rules = layoutRulesFor(component.packageName, node.address);
     const active = rules.filter((rule) => recipeRuleActive(rule, instances));
     const labels = layoutLabels(active);
-    const tokens = [
+    const conditions = [
+      ...new Set(active.flatMap((rule) => rule.when.conditions.map(conditionLabel))),
+    ];
+    const aspects = [
       ...new Set(
         active.flatMap((rule) =>
-          Object.values(rule.declarations).flatMap((declaration) => declaration.tokens),
+          Object.keys(rule.presentation).map((trait) => trait.split(".")[0]),
         ),
+      ),
+    ];
+    const tokens = [
+      ...new Set(
+        active.flatMap((rule) => Object.values(rule.presentation).flatMap((trait) => trait.tokens)),
       ),
     ].sort();
     const coverage = `${catalogueNode?.coverage ?? "contract-only"} · ${catalogueNode?.layout ?? "unconstrained"}`;
@@ -818,6 +866,8 @@ function syncLayoutProof(current: Mounted, component: ComponentSchema, instances
         text: `${coverage} · active ${active.length}/${rules.length}`,
       }),
       ...labels.map((label) => el("code", { class: "layout-chip", text: label })),
+      ...conditions.map((label) => el("code", { class: "layout-chip", text: label })),
+      ...aspects.map((aspect) => el("code", { class: "layout-chip", text: `trait ${aspect}` })),
       ...tokens.map((token) => el("code", { class: "surface-node-token", text: token })),
     );
   }

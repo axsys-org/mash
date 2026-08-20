@@ -2,14 +2,16 @@
 
 A standards-oriented, renderer-neutral component system with a Web Components reference renderer.
 
-The goal is a design language that machines can read without scraping documentation prose. Two
+The goal is a design language that machines can read without scraping documentation prose. These
 generated schemas carry it:
 
-| Artifact                            | Describes                                                                        | Generated from                      |
-| ----------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------- |
-| `packages/tokens/dist/tokens.json`  | the token graph — names, values, provenance per theme                            | DTCG sources                        |
-| `<package>/custom-elements.json`    | semantic node graphs plus their Web attributes, slots, parts, states, and events | TypeScript sources                  |
-| `<package>/src/catalogue/mash.json` | semantic-node recipe index and exact DTCG token dependencies                     | catalogue CSS + component manifests |
+| Artifact                                    | Describes                                                                        | Generated from                        |
+| ------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------- |
+| `packages/tokens/dist/tokens.json`          | the token graph — names, values, provenance per theme                            | DTCG sources                          |
+| `<package>/custom-elements.json`            | semantic node graphs plus their Web attributes, slots, parts, states, and events | TypeScript sources                    |
+| `<package>/src/catalogue/mash.json`         | semantic-node recipes, layout, presentation, conditions, and token dependencies  | catalogue CSS + component manifests   |
+| `packages/conformance/fixtures/*.json`      | shared SurfaceTrees and renderer-independent behavior scenarios                  | manifests + authored semantic actions |
+| `adapters/gpui/contracts/mash-runtime.json` | standalone native contract, tokens, recipes, fixtures, and GPUI Base coverage    | all four contracts above              |
 
 Every component package emits a manifest through the same analyzer config, so they are
 interchangeable in shape. Each component declaration contains a renderer-neutral `mash` graph and
@@ -210,6 +212,17 @@ renderer uses authored elements, a shadow part, or provider slot. Both preserve 
 identity, state, inputs, outputs, and relationships; the renderer chooses its native mechanism and
 the active catalogue chooses its visual treatment. The pinned registry currently passes strictly at
 38 aligned, 0 partial, and 0 missing.
+
+`adapters/gpui` is the first native consumer of that registry. It embeds all 82 Mash SurfaceTrees,
+both visual catalogues, the full token graph, and the shared behavior fixtures. It re-exports
+`gpui-base` as the unstyled behavior layer, exposes typed semantic node and event handles, validates
+language-neutral event payloads, resolves catalogue conditions and private recipe parameters, and
+applies a resolved Mash node recipe directly to any `gpui-base` primitive implementing
+`gpui::Styled`. The adapter contains no DOM selectors and does not create a parallel component
+namespace. Its generated support registry assigns all 100 catalogue presentation traits to exactly
+one native realization owner: 65 common traits are applied generically through `gpui::Styled`; SVG,
+motion, focus, input, generated-content, and other renderer-specific traits remain explicit
+specialized-node obligations instead of being silently discarded.
 
 ### Definition and registration are separate
 

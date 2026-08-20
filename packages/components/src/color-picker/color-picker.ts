@@ -173,7 +173,6 @@ function hexFromChannels(channels: ColorChannels): string {
  * @mashnode open open root
  * @mashnode disabled disabled root
  * @mashnode change change root
- * @mashnode preview-change change root
  * @mashrole part root control root
  * @mashrole slot default list palette
  * @mashrole part palette list palette
@@ -193,7 +192,8 @@ function hexFromChannels(channels: ColorChannels): string {
  * @mashrole slot clear clear clear
  * @mashrole part clear clear clear
  * @mashrole event ui-color-change change change
- * @mashrole event ui-color-preview change preview-change
+ * @mashrole event ui-color-preview preview preview
+ * @mashrelation ui-color-preview reports value preview
  */
 export class UIColorPicker extends UIAnchoredOverlay {
   static override properties = {
@@ -467,14 +467,15 @@ export class UIColorPicker extends UIAnchoredOverlay {
  * @mashnode selected selected control
  * @mashnode disabled disabled control
  * @mashnode select select control
- * @mashnode preview change control
+ * @mashnode preview preview control
  * @mashrole part control option control
  * @mashrole part swatch color swatch
  * @mashrole slot default value value
  * @mashrole part label value value
  * @mashfallback slot default bindings attribute:value
  * @mashrole event ui-color-select select select
- * @mashrole event ui-color-swatch-preview change preview
+ * @mashrole event ui-color-swatch-preview preview preview
+ * @mashevent ui-color-swatch-preview request
  */
 export class UIColorSwatch extends LitElement {
   static override properties = {

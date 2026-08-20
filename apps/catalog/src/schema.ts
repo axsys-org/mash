@@ -59,7 +59,8 @@ export type MashFallbackSpec =
   | { kind: "binding"; bindingAddress: string }
   | { kind: "chain"; bindingAddresses: string[] };
 
-export interface MashReport {
+export interface MashEventRelation {
+  kind: "requests" | "reports";
   path: string[];
   nodeAddress: string;
 }
@@ -80,7 +81,8 @@ export interface MashBinding {
   value: MashValueSchema;
   default: MashDefaultSpec;
   fallback: MashFallbackSpec;
-  reports?: MashReport[];
+  intent?: "request" | "report";
+  relations?: MashEventRelation[];
 }
 
 /** One renderer-neutral semantic node, possibly realized by several Web bindings. */
@@ -116,7 +118,7 @@ export interface MashLayoutRecipe {
   };
   align?: "leading" | "center" | "trailing" | "stretch" | "baseline";
   justify?: "leading" | "center" | "trailing" | "between" | "around" | "evenly" | "stretch";
-  gap?: MashLayoutMeasure;
+  gap?: { inline?: MashLayoutMeasure; block?: MashLayoutMeasure };
   dimensions?: {
     inline?: { min?: MashLayoutMeasure; preferred?: MashLayoutMeasure; max?: MashLayoutMeasure };
     block?: { min?: MashLayoutMeasure; preferred?: MashLayoutMeasure; max?: MashLayoutMeasure };
@@ -127,6 +129,34 @@ export interface MashLayoutRecipe {
     inlineStart?: MashLayoutMeasure;
     inlineEnd?: MashLayoutMeasure;
   };
+  margin?: {
+    blockStart?: MashLayoutMeasure;
+    blockEnd?: MashLayoutMeasure;
+    inlineStart?: MashLayoutMeasure;
+    inlineEnd?: MashLayoutMeasure;
+  };
+  placement?: {
+    blockStart?: MashLayoutMeasure;
+    blockEnd?: MashLayoutMeasure;
+    inlineStart?: MashLayoutMeasure;
+    inlineEnd?: MashLayoutMeasure;
+    layer?: MashLayoutMeasure;
+  };
+  self?: {
+    align?: "leading" | "center" | "trailing" | "stretch" | "baseline";
+    justify?: "leading" | "center" | "trailing" | "between" | "around" | "evenly" | "stretch";
+    grow?: string;
+    shrink?: string;
+    basis?: MashLayoutMeasure;
+    gridRow?: string;
+    gridColumn?: string;
+  };
+  grid?: {
+    columns?: MashLayoutMeasure;
+    rows?: MashLayoutMeasure;
+    autoFlow?: string;
+  };
+  aspectRatio?: string;
   overflow?: {
     inline?: "visible" | "clip" | "hidden" | "auto" | "scroll";
     block?: "visible" | "clip" | "hidden" | "auto" | "scroll";
@@ -136,7 +166,32 @@ export interface MashLayoutRecipe {
 
 export interface MashRecipeRule {
   targets: string[];
-  when: { renderer: "web"; selector: string; context: string[] };
+  when: {
+    conditions: Array<
+      | {
+          kind: "node";
+          nodeAddress: string;
+          operator: "truthy" | "falsy" | "equals" | "starts-with" | "ends-with" | "contains";
+          value?: string;
+        }
+      | { kind: "interaction"; state: string; active: boolean }
+      | { kind: "environment"; feature: string; value: string }
+      | { kind: "context"; name: string; operator: string; value?: string }
+      | { kind: "renderer"; renderer: "web"; selector: string }
+    >;
+    web: { selector: string; context: string[] };
+  };
+  parameters?: Record<string, { value: string; tokens: string[] }>;
+  presentation: Record<
+    string,
+    {
+      sourceProperty: string;
+      kind: "token" | "literal" | "expression";
+      value: string;
+      tokens: string[];
+      token?: string;
+    }
+  >;
   declarations: Record<string, { value: string; tokens: string[] }>;
   layout?: MashLayoutRecipe;
 }

@@ -12,6 +12,7 @@ test-results/
 playwright-report/
 blob-report/
 .vite/
+adapters/gpui/target/
 
 # Visual baselines are platform-specific and not yet committed; see
 # tests/visual/README.md.

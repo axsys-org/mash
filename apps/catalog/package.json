@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Development catalog. Consumes the real workspace packages and derives its content from custom-elements.json and the token graph.",
   "scripts": {
+    "prebuild": "node ../../scripts/build-catalogue-contract.mjs",
     "dev": "vite",
     "build": "pnpm run build:site && pnpm run build:iife",
     "build:site": "vite build",

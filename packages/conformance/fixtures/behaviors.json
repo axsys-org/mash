@@ -1,0 +1,82 @@
+{
+  "$schema": "https://mash.axsys.dev/schema/conformance-behaviors-1.0.0.json",
+  "version": "1.0.0",
+  "fixtures": [
+    {
+      "id": "button-activation",
+      "component": "ui-button",
+      "authored": { "label": "Continue" },
+      "steps": [{ "action": "activate", "node": "control" }],
+      "expects": [{ "event": "activate", "intent": "request" }]
+    },
+    {
+      "id": "checkbox-toggle",
+      "component": "ui-checkbox",
+      "authored": { "label": "Archive" },
+      "initial": { "checked": false },
+      "steps": [{ "action": "activate", "node": "control" }],
+      "expects": [
+        {
+          "event": "change",
+          "intent": "report",
+          "detail": { "checked": true, "indeterminate": false }
+        }
+      ]
+    },
+    {
+      "id": "switch-toggle",
+      "component": "ui-switch",
+      "authored": { "label": "Notifications" },
+      "initial": { "checked": false },
+      "steps": [{ "action": "activate", "node": "control" }],
+      "expects": [
+        { "event": "change", "intent": "report", "detail": { "checked": true } }
+      ]
+    },
+    {
+      "id": "collapsible-disclosure",
+      "component": "ui-collapsible",
+      "authored": { "trigger": "Advanced", "content": "Options" },
+      "initial": { "open": false },
+      "steps": [{ "action": "activate", "node": "trigger" }],
+      "expects": [
+        { "event": "change", "intent": "report", "detail": { "open": true } }
+      ]
+    },
+    {
+      "id": "toggle-pressed",
+      "component": "ui-toggle",
+      "authored": { "label": "Bold" },
+      "initial": { "pressed": false },
+      "steps": [{ "action": "activate", "node": "control" }],
+      "expects": [
+        { "event": "change", "intent": "report", "detail": { "pressed": true } }
+      ]
+    },
+    {
+      "id": "tree-keyboard-selection",
+      "component": "ui-tree",
+      "authored": {
+        "children": {
+          "component": "ui-tree-item",
+          "initial": { "value": "billing", "label": "Billing migration" }
+        }
+      },
+      "steps": [
+        { "action": "focus", "node": "mash://ui-tree-item/node/control" },
+        {
+          "action": "key",
+          "node": "mash://ui-tree-item/node/control",
+          "key": "Enter"
+        }
+      ],
+      "expects": [
+        {
+          "event": "select",
+          "intent": "request",
+          "detail": { "value": "billing", "index": 0, "reason": "keyboard" }
+        }
+      ]
+    }
+  ]
+}

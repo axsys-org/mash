@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mash.axsys.dev/schema/gpui-adapter-runtime-1.0.0.json",
+  "title": "Mash GPUI adapter runtime",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "componentContract",
+    "gpuiBase",
+    "components",
+    "behaviors",
+    "tokens",
+    "presentationSupport",
+    "catalogues"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://mash.axsys.dev/schema/gpui-adapter-runtime-1.0.0.json"
+    },
+    "version": { "const": "1.0.0" },
+    "componentContract": { "const": "1.0.0" },
+    "gpuiBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "revision", "primitives"],
+      "properties": {
+        "repository": { "type": "string", "format": "uri" },
+        "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "primitives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["slug", "components", "behaviors"],
+            "properties": {
+              "slug": { "type": "string" },
+              "components": { "type": "array", "items": { "type": "string" } },
+              "behaviors": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "object" }
+    },
+    "behaviors": { "type": "array", "items": { "type": "object" } },
+    "tokens": {
+      "type": "object",
+      "required": ["themes", "tokens"],
+      "properties": {
+        "themes": { "type": "array", "items": { "type": "string" } },
+        "tokens": { "type": "object" }
+      }
+    },
+    "presentationSupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["styled", "specialized"],
+      "properties": {
+        "styled": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "specialized": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "catalogues": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "version",
+          "layoutContract",
+          "presentationContract",
+          "nodes",
+          "rules"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "version": { "type": "string" },
+          "layoutContract": { "type": "string" },
+          "presentationContract": { "type": "string" },
+          "nodes": { "type": "object" },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["targets", "conditions", "presentation"],
+              "properties": {
+                "targets": {
+                  "type": "array",
+                  "items": { "type": "string", "pattern": "^mash://" }
+                },
+                "conditions": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                },
+                "parameters": {
+                  "type": "object",
+                  "propertyNames": { "pattern": "^--_" },
+                  "additionalProperties": { "type": "object" }
+                },
+                "presentation": { "type": "object" },
+                "layout": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

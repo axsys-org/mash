@@ -343,7 +343,7 @@ const MASH_TYPE_REFERENCES = Object.freeze({
     kind: "record",
     fields: {
       value: { kind: "string" },
-      ancestors: { kind: "array", value: { kind: "string" } },
+      ancestors: { kind: "array", items: { kind: "string" } },
       alignment: { kind: "enum", choices: ["center", "end", "nearest", "start"] },
     },
   },
@@ -377,6 +377,33 @@ export function eventRole(name) {
     "scroll",
   ];
   return suffixes.find((suffix) => name === suffix || name.endsWith(`-${suffix}`)) ?? name;
+}
+
+const REQUEST_EVENT_ROLES = new Set([
+  "activate",
+  "command",
+  "dismiss",
+  "reveal",
+  "select",
+  "step-request",
+  "submit",
+  "toggle",
+]);
+
+/**
+ * Classify what a portable event asks a consumer to do.
+ *
+ * Action-family events and explicit interaction requests cross the boundary
+ * before an owning controller commits a result. Value, state, progress, and
+ * measurement events report a result the component has already observed.
+ * This is intentionally derived from semantic roles instead of DOM event
+ * names so another renderer never has to reverse-engineer Web conventions.
+ */
+export function eventIntent(roleName) {
+  const definition = MASH_ROLES[roleName];
+  return definition?.family === "action" || REQUEST_EVENT_ROLES.has(roleName)
+    ? "request"
+    : "report";
 }
 
 export function contractRole(name, kind) {
@@ -484,7 +511,7 @@ export function mashBinding(
     value: mashTypeSchema(exposed.type?.text, kind),
     default: mashDefault(exposed.default, kind),
     fallback: { kind: kind === "slot" ? "empty" : "none" },
-    ...(kind === "event" ? { reports: [] } : {}),
+    ...(kind === "event" ? { intent: eventIntent(semanticRole), relations: [] } : {}),
   };
 }
 

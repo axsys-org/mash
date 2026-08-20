@@ -7,7 +7,7 @@
  * them into its own layout system.
  */
 
-export const MASH_LAYOUT_VERSION = "1.0.0";
+export const MASH_LAYOUT_VERSION = "1.1.0";
 
 export const MASH_LAYOUT_VOCABULARY = Object.freeze({
   axes: ["block", "inline", "depth"],
@@ -17,6 +17,7 @@ export const MASH_LAYOUT_VOCABULARY = Object.freeze({
   overflow: ["visible", "clip", "hidden", "auto", "scroll"],
   positions: ["flow", "relative", "absolute", "fixed", "sticky"],
   dimensions: ["min", "preferred", "max"],
+  edges: ["blockStart", "blockEnd", "inlineStart", "inlineEnd"],
 });
 
 const alignment = Object.freeze({
@@ -179,17 +180,101 @@ export function mashLayoutFromDeclarations(declarations, tokensFor) {
     ),
   });
 
+  const allMargin = declarations.margin;
+  const inlineMargin = declarations["margin-inline"];
+  const blockMargin = declarations["margin-block"];
+  const boxMargin = expandBox(allMargin);
+  const logicalInlineMargin = expandAxis(inlineMargin);
+  const logicalBlockMargin = expandAxis(blockMargin);
+  const margin = compact({
+    blockStart: measure(
+      first(declarations, "margin-block-start") ?? logicalBlockMargin.start ?? boxMargin.blockStart,
+      tokensFor,
+    ),
+    blockEnd: measure(
+      first(declarations, "margin-block-end") ?? logicalBlockMargin.end ?? boxMargin.blockEnd,
+      tokensFor,
+    ),
+    inlineStart: measure(
+      first(declarations, "margin-inline-start") ??
+        logicalInlineMargin.start ??
+        boxMargin.inlineStart,
+      tokensFor,
+    ),
+    inlineEnd: measure(
+      first(declarations, "margin-inline-end") ?? logicalInlineMargin.end ?? boxMargin.inlineEnd,
+      tokensFor,
+    ),
+  });
+
+  const allPlacement = expandBox(declarations.inset);
+  const inlinePlacement = expandAxis(declarations["inset-inline"]);
+  const blockPlacement = expandAxis(declarations["inset-block"]);
+  const placement = compact({
+    blockStart: measure(
+      first(declarations, "inset-block-start") ?? blockPlacement.start ?? allPlacement.blockStart,
+      tokensFor,
+    ),
+    blockEnd: measure(
+      first(declarations, "inset-block-end") ?? blockPlacement.end ?? allPlacement.blockEnd,
+      tokensFor,
+    ),
+    inlineStart: measure(
+      first(declarations, "inset-inline-start") ??
+        inlinePlacement.start ??
+        allPlacement.inlineStart,
+      tokensFor,
+    ),
+    inlineEnd: measure(
+      first(declarations, "inset-inline-end") ?? inlinePlacement.end ?? allPlacement.inlineEnd,
+      tokensFor,
+    ),
+    layer: measure(declarations["z-index"], tokensFor),
+  });
+
+  const gapValues = splitCssValues(declarations.gap);
+  const blockGap = first(declarations, "row-gap") ?? gapValues[0];
+  const inlineGap = first(declarations, "column-gap") ?? gapValues[1] ?? gapValues[0];
+  const gap = compact({
+    inline: measure(inlineGap, tokensFor),
+    block: measure(blockGap, tokensFor),
+  });
+
+  const self = compact({
+    align: alignment[declarations["align-self"]],
+    justify: distribution[declarations["justify-self"]],
+    grow: declarations["flex-grow"],
+    shrink: declarations["flex-shrink"],
+    basis: measure(declarations["flex-basis"], tokensFor),
+    gridRow: declarations["grid-row"],
+    gridColumn: declarations["grid-column"],
+  });
+
+  const grid = compact({
+    columns: measure(declarations["grid-template-columns"], tokensFor),
+    rows: measure(declarations["grid-template-rows"], tokensFor),
+    autoFlow: declarations["grid-auto-flow"],
+  });
+
   const commonOverflow = declarations.overflow;
   const semantic = compact({
     group,
-    align: alignment[declarations["align-items"] ?? declarations["align-self"]],
-    justify: distribution[declarations["justify-content"] ?? declarations["justify-self"]],
-    gap: measure(declarations.gap, tokensFor),
+    align: alignment[declarations["align-items"] ?? splitCssValues(declarations["place-items"])[0]],
+    justify:
+      distribution[
+        declarations["justify-content"] ?? splitCssValues(declarations["place-content"])[0]
+      ],
+    gap: Object.keys(gap).length > 0 ? gap : undefined,
     dimensions:
       Object.keys(inline).length > 0 || Object.keys(block).length > 0
         ? compact({ inline, block })
         : undefined,
     inset: Object.keys(inset).length > 0 ? inset : undefined,
+    margin: Object.keys(margin).length > 0 ? margin : undefined,
+    placement: Object.keys(placement).length > 0 ? placement : undefined,
+    self: Object.keys(self).length > 0 ? self : undefined,
+    grid: Object.keys(grid).length > 0 ? grid : undefined,
+    aspectRatio: declarations["aspect-ratio"],
     overflow:
       commonOverflow || declarations["overflow-inline"] || declarations["overflow-block"]
         ? {
