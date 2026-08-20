@@ -31,6 +31,8 @@ let collapsibleId = 0;
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  *
  * @fires {CustomEvent<{ open: boolean }>} ui-collapsible-change - Emitted after user activation changes disclosure state.
+ *
+ * @mashfallback slot trigger literal "Details"
  */
 export class UICollapsible extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {

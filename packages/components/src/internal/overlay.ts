@@ -1,9 +1,43 @@
-import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, css, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
+import {
+  AnchoredPositionController,
+  type AnchoredAlign,
+  type AnchoredPlacement,
+  type AnchoredPositionConfig,
+} from "./anchored-position.js";
 import { baseStyles } from "./base-styles.js";
 
 /** The user interaction that opens a portable overlay. */
 export type OverlayTriggerAction = "click" | "hover" | "contextmenu";
+/** Preferred physical side of an anchored overlay. */
+export type OverlaySide = AnchoredPlacement;
+/** Alignment of an anchored overlay along its selected side. */
+export type OverlayAlign = AnchoredAlign;
+/** Portable reason for a requested overlay state transition. */
+export type OverlayChangeReason =
+  | "trigger"
+  | "outside"
+  | "escape"
+  | "close"
+  | "cancel"
+  | "confirm"
+  | "select"
+  | "clear"
+  | "keyboard"
+  | "input"
+  | "hover"
+  | "focus"
+  | "contextmenu"
+  | "imperative";
+
+/** Renderer-neutral payload shared by every Mash overlay open-change event. */
+export interface OverlayOpenChangeDetail {
+  open: boolean;
+  reason: OverlayChangeReason;
+}
+
+let overlayId = 0;
 
 /**
  * Shared non-visual interaction engine for Mash overlay families.
@@ -24,6 +58,8 @@ export abstract class UIOverlay extends LitElement {
     open: { type: Boolean, reflect: true },
     label: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
+    closeOnEscape: { type: Boolean, attribute: "close-on-escape", reflect: true },
+    closeOnOutside: { type: Boolean, attribute: "close-on-outside", reflect: true },
   };
 
   /** Whether the overlay is visible. */
@@ -32,22 +68,46 @@ export abstract class UIOverlay extends LitElement {
   declare label: string;
   /** Prevents trigger interaction. */
   declare disabled: boolean;
+  /** Whether Escape requests dismissal while the overlay is open. */
+  declare closeOnEscape: boolean;
+  /** Whether an interaction outside the popup requests dismissal. */
+  declare closeOnOutside: boolean;
 
   protected abstract readonly overlayRole:
     "dialog" | "alertdialog" | "menu" | "tooltip" | "listbox";
   protected readonly modal: boolean = false;
   protected readonly triggerAction: OverlayTriggerAction = "click";
   protected readonly movesFocus: boolean = true;
+  protected readonly authoredContentPart: "content" | "actions" | "description" = "content";
+  protected readonly rendersTitle: boolean = false;
+  protected readonly rendersDescription: boolean = false;
+  protected readonly rendersActions: boolean = false;
+  protected readonly rendersCancel: boolean = false;
+  protected readonly rendersConfirm: boolean = false;
+  protected readonly rendersClose: boolean = true;
 
-  readonly #internals: ElementInternals;
+  protected readonly overlayInternals: ElementInternals;
+  readonly #titleId = `mash-overlay-title-${++overlayId}`;
+  readonly #descriptionId = `mash-overlay-description-${overlayId}`;
   #returnFocus: HTMLElement | null = null;
+  #contextPoint: { x: number; y: number } | null = null;
+  #interactionTimer: number | undefined;
+  readonly #positioner = new AnchoredPositionController(this, {
+    anchor: () => this.#triggerElements()[0] ?? null,
+    popup: () => this.renderRoot.querySelector<HTMLElement>("[part='popup']"),
+    positioner: () => this.renderRoot.querySelector<HTMLElement>("[part='positioner']"),
+    config: () => this.positioningConfig(),
+    point: () => this.#contextPoint,
+  });
 
   constructor() {
     super();
     this.open = false;
     this.label = "";
     this.disabled = false;
-    this.#internals = this.attachInternals();
+    this.closeOnEscape = true;
+    this.closeOnOutside = true;
+    this.overlayInternals = this.attachInternals();
     this.addEventListener("click", this.#onHostClick);
     this.addEventListener("pointerover", this.#onPointerOver);
     this.addEventListener("pointerout", this.#onPointerOut);
@@ -56,15 +116,89 @@ export abstract class UIOverlay extends LitElement {
     this.addEventListener("contextmenu", this.#onContextMenu);
   }
 
-  static override styles = baseStyles;
+  static override styles = [
+    baseStyles,
+    css`
+      /* These elements make authored slots addressable without inserting a
+         layout policy. A catalogue can opt a semantic part into grid, flex, or
+         block layout; without one, projection behaves like the former bare
+         slots. */
+      [part="trigger"],
+      [part="content"],
+      [part="actions"],
+      [part="description"],
+      [part="title"],
+      [part="positioner"],
+      [part="cancel"],
+      [part="confirm"],
+      [part="close"] {
+        display: contents;
+      }
+    `,
+  ];
 
-  protected abstract emitOpenChange(open: boolean): void;
+  protected abstract emitOpenChange(open: boolean, reason: OverlayChangeReason): void;
+
+  /** Anchored subclasses opt into the shared collision-aware positioning engine. */
+  protected positioningConfig(): AnchoredPositionConfig | null {
+    return null;
+  }
+
+  /** Lets concrete overlays handle semantic action slots before generic dismissal. */
+  protected handleOverlayClick(_event: MouseEvent): boolean {
+    return false;
+  }
+
+  /** Lets hover/focus surfaces delay pointer-driven state transitions. */
+  protected interactionDelay(_open: boolean, _reason: "hover" | "focus"): number {
+    return 0;
+  }
 
   /** Requests the public open state, then announces it through the concrete contract. */
-  protected requestOpenChange(open: boolean): void {
-    if (this.disabled || this.open === open) return;
+  protected requestOpenChange(open: boolean, reason: OverlayChangeReason = "imperative"): void {
+    if ((this.disabled && open) || this.open === open) return;
     this.open = open;
-    this.emitOpenChange(open);
+    this.emitOpenChange(open, reason);
+  }
+
+  /** Opens the surface through the same portable state-change contract as a trigger. */
+  show(): void {
+    this.requestOpenChange(true, "imperative");
+  }
+
+  /** Dismisses the surface through the same portable state-change contract as Escape. */
+  dismiss(reason: OverlayChangeReason = "imperative"): void {
+    this.requestOpenChange(false, reason);
+  }
+
+  /** Toggles the surface imperatively while retaining a reason in the emitted event. */
+  toggle(reason: OverlayChangeReason = "imperative"): void {
+    this.requestOpenChange(!this.open, reason);
+  }
+
+  #scheduleInteractionChange(open: boolean, reason: "hover" | "focus"): void {
+    if (this.#interactionTimer !== undefined) window.clearTimeout(this.#interactionTimer);
+    const delay = Math.max(0, this.interactionDelay(open, reason));
+    if (delay === 0) {
+      this.requestOpenChange(open, reason);
+      return;
+    }
+    this.#interactionTimer = window.setTimeout(() => {
+      this.#interactionTimer = undefined;
+      this.requestOpenChange(open, reason);
+    }, delay);
+  }
+
+  #cancelInteractionChange(): void {
+    if (this.#interactionTimer === undefined) return;
+    window.clearTimeout(this.#interactionTimer);
+    this.#interactionTimer = undefined;
+  }
+
+  override disconnectedCallback(): void {
+    this.#cancelInteractionChange();
+    this.#positioner.stop();
+    super.disconnectedCallback();
   }
 
   protected overlayItems(): HTMLElement[] {
@@ -81,7 +215,9 @@ export abstract class UIOverlay extends LitElement {
       "ui-button:not([disabled]):not([loading]), ui-input:not([disabled]), ui-number-field:not([disabled]), ui-otp-field:not([disabled]), ui-select:not([disabled]), ui-combobox:not([disabled]), ui-autocomplete:not([disabled]), ui-slider:not([disabled]), ui-switch:not([disabled]), ui-checkbox:not([disabled]), ui-radio:not([disabled]), ui-toggle:not([disabled]), ui-menu-item:not([disabled])";
     const selector = `${nativeFocusable}, ${mashFocusable}`;
     const slots = [
-      ...popup.querySelectorAll<HTMLSlotElement>("slot:not([name]), slot[name='close']"),
+      ...popup.querySelectorAll<HTMLSlotElement>(
+        "slot:not([name]), slot[name='actions'], slot[name='cancel'], slot[name='confirm'], slot[name='close']",
+      ),
     ];
     const seen = new Set<HTMLElement>();
 
@@ -101,6 +237,11 @@ export abstract class UIOverlay extends LitElement {
     return false;
   }
 
+  /** Lets a specialized overlay expose richer authored anatomy inside its popup. */
+  protected renderAuthoredContent(): TemplateResult {
+    return html`<div part=${this.authoredContentPart}><slot></slot></div>`;
+  }
+
   #triggerElements(): HTMLElement[] {
     return [...this.querySelectorAll<HTMLElement>(":scope > [slot='trigger']")];
   }
@@ -108,6 +249,13 @@ export abstract class UIOverlay extends LitElement {
   #eventIsWithinTrigger(event: Event): boolean {
     const path = event.composedPath();
     return this.#triggerElements().some((trigger) => path.includes(trigger));
+  }
+
+  protected eventIsWithinSlot(event: Event, name: string): boolean {
+    const path = event.composedPath();
+    return [...this.querySelectorAll<HTMLElement>(`:scope > [slot='${name}']`)].some((element) =>
+      path.includes(element),
+    );
   }
 
   #closeElements(): HTMLElement[] {
@@ -134,75 +282,84 @@ export abstract class UIOverlay extends LitElement {
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("open")) {
       if (this.open) {
-        this.#internals.states.add("open");
+        this.overlayInternals.states.add("open");
+        this.#positioner.start();
         if (this.movesFocus) {
           this.#rememberFocus();
           queueMicrotask(() => this.#focusFirst());
         }
       } else {
-        this.#internals.states.delete("open");
+        this.#positioner.stop();
+        this.overlayInternals.states.delete("open");
         const previous = changed.get("open");
         if (this.movesFocus && previous === true) queueMicrotask(() => this.#returnFocus?.focus());
       }
     }
     if (changed.has("disabled")) {
-      if (this.disabled) this.#internals.states.add("disabled");
-      else this.#internals.states.delete("disabled");
+      if (this.disabled) this.overlayInternals.states.add("disabled");
+      else this.overlayInternals.states.delete("disabled");
+    }
+    if (this.open && this.positioningConfig() && changed.size > 0) {
+      this.#positioner.queue();
     }
   }
 
   #onHostClick = (event: MouseEvent): void => {
+    if (this.handleOverlayClick(event)) return;
     if (this.#eventIsWithinClose(event)) {
       event.preventDefault();
-      this.requestOpenChange(false);
+      this.requestOpenChange(false, "close");
       return;
     }
     if (this.triggerAction === "click" && this.#eventIsWithinTrigger(event)) {
       event.preventDefault();
-      this.requestOpenChange(!this.open);
+      this.requestOpenChange(!this.open, "trigger");
     }
   };
 
   #onPointerOver = (event: PointerEvent): void => {
-    if (this.triggerAction !== "hover" || !this.#eventIsWithinTrigger(event)) return;
-    this.requestOpenChange(true);
+    if (this.triggerAction !== "hover") return;
+    if (this.#eventIsWithinTrigger(event)) this.#scheduleInteractionChange(true, "hover");
+    else if (this.open) this.#cancelInteractionChange();
   };
 
   #onFocusIn = (event: FocusEvent): void => {
     if (this.triggerAction !== "hover" || !this.#eventIsWithinTrigger(event)) return;
-    this.requestOpenChange(true);
+    this.#scheduleInteractionChange(true, "focus");
   };
 
   #onPointerOut = (event: PointerEvent): void => {
-    if (this.triggerAction !== "hover" || !this.#eventIsWithinTrigger(event)) return;
+    if (this.triggerAction !== "hover") return;
     const related = event.relatedTarget;
     if (related instanceof Node && this.contains(related)) return;
-    this.requestOpenChange(false);
+    this.#scheduleInteractionChange(false, "hover");
   };
 
   #onFocusOut = (event: FocusEvent): void => {
     if (this.triggerAction !== "hover" || !this.#eventIsWithinTrigger(event)) return;
     const related = event.relatedTarget;
     if (related instanceof Node && this.contains(related)) return;
-    this.requestOpenChange(false);
+    this.#scheduleInteractionChange(false, "focus");
   };
 
   #onContextMenu = (event: MouseEvent): void => {
     if (this.triggerAction !== "contextmenu" || !this.#eventIsWithinTrigger(event)) return;
     event.preventDefault();
-    this.requestOpenChange(true);
+    this.#contextPoint = { x: event.clientX, y: event.clientY };
+    this.requestOpenChange(true, "contextmenu");
   };
 
   #onBackdropPointerDown = (event: PointerEvent): void => {
-    if (!this.open || event.target !== event.currentTarget) return;
-    this.requestOpenChange(false);
+    const popup = this.renderRoot.querySelector<HTMLElement>("[part='popup']");
+    if (!this.open || (popup && event.composedPath().includes(popup))) return;
+    if (this.closeOnOutside) this.requestOpenChange(false, "outside");
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
     if (this.handleOverlayKeydown(event)) return;
-    if (event.key === "Escape") {
+    if (event.key === "Escape" && this.closeOnEscape) {
       event.preventDefault();
-      this.requestOpenChange(false);
+      this.requestOpenChange(false, "escape");
       return;
     }
     if (!this.modal || event.key !== "Tab") return;
@@ -224,20 +381,96 @@ export abstract class UIOverlay extends LitElement {
   /** Renders trigger, optional modal backdrop, and a focusable semantic popup. */
   protected renderOverlay(): TemplateResult {
     return html`
-      <slot name="trigger"></slot>
+      <div part="trigger"><slot name="trigger"></slot></div>
       <div part="backdrop" ?hidden=${!this.open} @pointerdown=${this.#onBackdropPointerDown}>
-        <div
-          part="popup"
-          role=${this.overlayRole}
-          aria-label=${this.label || undefined}
-          aria-modal=${this.modal ? "true" : undefined}
-          tabindex="-1"
-          @keydown=${this.#onKeydown}
-        >
-          <slot></slot>
-          <slot name="close"></slot>
+        <div part="positioner">
+          <div
+            part="popup"
+            role=${this.overlayRole}
+            aria-label=${this.rendersTitle ? undefined : this.label || undefined}
+            aria-labelledby=${this.rendersTitle ? this.#titleId : undefined}
+            aria-describedby=${this.rendersDescription ? this.#descriptionId : undefined}
+            aria-modal=${this.modal ? "true" : undefined}
+            tabindex="-1"
+            @keydown=${this.#onKeydown}
+          >
+            ${
+              this.rendersTitle
+                ? html`<div id=${this.#titleId} part="title">
+                    <slot name="title">${this.label}</slot>
+                  </div>`
+                : nothing
+            }
+            ${
+              this.rendersDescription
+                ? html`<div id=${this.#descriptionId} part="description">
+                    <slot name="description"></slot>
+                  </div>`
+                : nothing
+            }
+            ${this.renderAuthoredContent()}
+            ${
+              this.rendersActions || this.rendersCancel || this.rendersConfirm
+                ? html`<div part="actions">
+                    ${this.rendersActions ? html`<slot name="actions"></slot>` : nothing}
+                    ${
+                      this.rendersCancel
+                        ? html`<div part="cancel"><slot name="cancel"></slot></div>`
+                        : nothing
+                    }
+                    ${
+                      this.rendersConfirm
+                        ? html`<div part="confirm"><slot name="confirm"></slot></div>`
+                        : nothing
+                    }
+                  </div>`
+                : nothing
+            }
+            ${
+              this.rendersClose ? html`<div part="close"><slot name="close"></slot></div>` : nothing
+            }
+          </div>
         </div>
       </div>
     `;
+  }
+}
+
+/**
+ * Shared unstyled side-positioning contract for trigger-relative overlays.
+ *
+ * Modal dialogs and drawers intentionally do not inherit these attributes:
+ * their renderer or catalogue owns viewport placement. Popovers, menus,
+ * tooltips, previews, and pickers share the exact same portable positioning
+ * vocabulary and collision behavior.
+ */
+export abstract class UIAnchoredOverlay extends UIOverlay {
+  static override properties = {
+    ...UIOverlay.properties,
+    placement: { type: String, reflect: true },
+    align: { type: String, reflect: true },
+    offset: { type: Number, reflect: true },
+    collisionPadding: { type: Number, attribute: "collision-padding", reflect: true },
+  };
+
+  /** Preferred side of the popup before collision handling. */
+  declare placement: OverlaySide;
+  /** Alignment of the popup along its selected side. */
+  declare align: OverlayAlign;
+  /** Gap in CSS pixels between the popup and its trigger. */
+  declare offset: number;
+  /** Minimum viewport-edge clearance in CSS pixels. */
+  declare collisionPadding: number;
+
+  constructor() {
+    super();
+    this.placement = "bottom";
+    this.align = "start";
+    this.offset = 4;
+    this.collisionPadding = 4;
+  }
+
+  protected override positioningConfig(): AnchoredPositionConfig {
+    return this;
   }
 }

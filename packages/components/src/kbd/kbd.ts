@@ -1,4 +1,4 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, html, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -14,36 +14,16 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - The key or shortcut text.
  *
  * @csspart root - The visible keyboard-key surface.
+ * @csspart value - The authored key or shortcut value.
+ *
+ * @mashnode root root
+ * @mashnode value value root
+ * @mashrole slot default value value
  */
 export class UIKbd extends LitElement {
-  static override styles = [
-    baseStyles,
-    css`
-      :host {
-        display: inline-flex;
-        vertical-align: middle;
-      }
-
-      kbd {
-        display: inline-flex;
-        align-items: center;
-        min-block-size: calc(var(--space-control-block) + var(--space-control-block));
-        padding-inline: var(--space-control-block-small);
-        border: var(--border-hairline) solid var(--color-border-strong);
-        border-radius: var(--radius-control);
-        background: var(--color-surface-raised);
-        box-shadow: 0 var(--border-hairline) 0 var(--color-border);
-        color: var(--color-text);
-        font-family: var(--type-code-font-family);
-        font-size: var(--type-code-font-size);
-        font-weight: var(--type-code-font-weight);
-        line-height: var(--type-code-line-height);
-        white-space: nowrap;
-      }
-    `,
-  ];
+  static override styles = baseStyles;
 
   protected override render(): TemplateResult {
-    return html`<kbd part="root"><slot></slot></kbd>`;
+    return html`<kbd part="root"><slot part="value"></slot></kbd>`;
   }
 }

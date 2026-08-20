@@ -21,6 +21,11 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - Top-level menus or command controls.
  *
  * @csspart root - The semantic menubar container.
+ * @csspart actions - The authored top-level command collection.
+ *
+ * @mashnode root root
+ * @mashnode actions actions root
+ * @mashrole slot default actions actions
  */
 export class UIMenubar extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {
@@ -75,7 +80,7 @@ export class UIMenubar extends LitElement {
       aria-label=${this.label}
       @keydown=${this.#onKeydown}
     >
-      <slot></slot>
+      <slot part="actions"></slot>
     </div>`;
   }
 }

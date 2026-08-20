@@ -1,4 +1,4 @@
-import { LitElement, html, type TemplateResult } from "lit";
+import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -21,6 +21,14 @@ import { baseStyles } from "../internal/base-styles.js";
  *
  * @csspart root - The native fieldset element.
  * @csspart legend - The native fieldset legend.
+ * @csspart children - The authored form-control collection.
+ * @cssstate disabled - Matches `:state(disabled)` while the control group is disabled.
+ *
+ * @mashnode root root
+ * @mashnode legend legend root
+ * @mashnode children children root
+ * @mashnode disabled disabled root
+ * @mashrole slot default children children
  */
 export class UIFieldset extends LitElement {
   static override properties = {
@@ -33,17 +41,28 @@ export class UIFieldset extends LitElement {
   /** Disables native and form-associated controls in the group. */
   declare disabled: boolean;
 
+  readonly #internals: ElementInternals;
+
   constructor() {
     super();
     this.legend = "";
     this.disabled = false;
+    this.#internals = this.attachInternals();
   }
 
   static override styles = baseStyles;
 
+  protected override updated(changed: PropertyValues<this>): void {
+    if (!changed.has("disabled")) return;
+    if (this.disabled) this.#internals.states.add("disabled");
+    else this.#internals.states.delete("disabled");
+  }
+
   protected override render(): TemplateResult {
     return html`<fieldset part="root" ?disabled=${this.disabled}>
-      ${this.legend ? html`<legend part="legend">${this.legend}</legend>` : null}<slot></slot>
+      ${this.legend ? html`<legend part="legend">${this.legend}</legend>` : null}<slot
+        part="children"
+      ></slot>
     </fieldset>`;
   }
 }

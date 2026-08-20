@@ -21,6 +21,11 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - Navigation links or nested navigation disclosures.
  *
  * @csspart root - The navigation landmark.
+ * @csspart children - The authored navigation collection.
+ *
+ * @mashnode root root
+ * @mashnode children children root
+ * @mashrole slot default children children
  */
 export class UINavigationMenu extends LitElement {
   static override properties = { label: { type: String, reflect: true } };
@@ -35,6 +40,6 @@ export class UINavigationMenu extends LitElement {
   static override styles = baseStyles;
 
   protected override render(): TemplateResult {
-    return html`<nav part="root" aria-label=${this.label}><slot></slot></nav>`;
+    return html`<nav part="root" aria-label=${this.label}><slot part="children"></slot></nav>`;
   }
 }

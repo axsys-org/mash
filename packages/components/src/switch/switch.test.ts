@@ -14,6 +14,8 @@ describe("ui-switch", () => {
     expect(control.getAttribute("role")).toBe("switch");
     expect(control.checked).toBe(true);
     expect(toggle.matches(":state(checked)")).toBe(true);
+    expect(inShadow(toggle, '[part="track"]')).toBeInstanceOf(HTMLElement);
+    expect(inShadow(toggle, '[part="thumb"]')).toBeInstanceOf(HTMLElement);
   });
 
   it("reflects changes and honours disabled state", async () => {

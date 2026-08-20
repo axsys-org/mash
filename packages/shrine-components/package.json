@@ -17,7 +17,8 @@
   ],
   "sideEffects": [
     "./dist/**/register.js",
-    "./dist/register.js"
+    "./dist/register.js",
+    "./src/catalogue/mash.css"
   ],
   "exports": {
     ".": {
@@ -28,6 +29,7 @@
       "types": "./dist/register.d.ts",
       "import": "./dist/register.js"
     },
+    "./catalogue/mash.css": "./src/catalogue/mash.css",
     "./confirm": {
       "types": "./dist/confirm/confirm.d.ts",
       "import": "./dist/confirm/confirm.js"
@@ -51,38 +53,6 @@
     "./locator/register": {
       "types": "./dist/locator/register.d.ts",
       "import": "./dist/locator/register.js"
-    },
-    "./myth": {
-      "types": "./dist/myth/myth.d.ts",
-      "import": "./dist/myth/myth.js"
-    },
-    "./myth/register": {
-      "types": "./dist/myth/register.d.ts",
-      "import": "./dist/myth/register.js"
-    },
-    "./limb": {
-      "types": "./dist/limb/limb.d.ts",
-      "import": "./dist/limb/limb.js"
-    },
-    "./limb/register": {
-      "types": "./dist/limb/register.d.ts",
-      "import": "./dist/limb/register.js"
-    },
-    "./slot": {
-      "types": "./dist/slot/slot.d.ts",
-      "import": "./dist/slot/slot.js"
-    },
-    "./slot/register": {
-      "types": "./dist/slot/register.d.ts",
-      "import": "./dist/slot/register.js"
-    },
-    "./pail": {
-      "types": "./dist/pail/pail.d.ts",
-      "import": "./dist/pail/pail.js"
-    },
-    "./pail/register": {
-      "types": "./dist/pail/register.d.ts",
-      "import": "./dist/pail/register.js"
     },
     "./custom-elements.json": "./custom-elements.json",
     "./package.json": "./package.json"

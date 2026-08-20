@@ -1,4 +1,4 @@
-import { LitElement, css, html, nothing, type TemplateResult } from "lit";
+import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -16,13 +16,18 @@ export type PathSize = "small" | "medium";
  * @tag ui-path
  * @summary Shows a Shrine path with title, state, and overflow handling.
  *
+ * @slot title - Authored pretty title; the `title` and legacy `lede` attributes are fallbacks.
  * @slot icon - Optional leading icon or glyph.
  * @csspart root - The outermost element.
  * @csspart icon - The optional icon wrapper.
+ * @csspart content - The title or raw-path content region.
  * @csspart title - The pretty title, when supplied.
  * @csspart segments - The raw path segment group.
  * @csspart separator - A slash between raw path segments.
  * @csspart segment - An individual raw path segment.
+ *
+ * @cssstate current - Matches `:state(current)` when this is the current location.
+ * @cssstate selected - Matches `:state(selected)` when this path is selected.
  *
  * @example Default
  * <ui-path path="/foo/bar/baz"></ui-path>
@@ -35,6 +40,19 @@ export type PathSize = "small" | "medium";
  *     <span slot="icon" aria-hidden="true">◆</span>
  *   </ui-path>
  * </div>
+ *
+ * @mashrole attribute lede title title
+ * @mashnode root root
+ * @mashnode icon icon root
+ * @mashnode content content root
+ * @mashnode title title content
+ * @mashnode path path content
+ * @mashnode segments segments path
+ * @mashnode segment segment segments
+ * @mashnode separator separator segments
+ * @mashnode size size root
+ * @mashnode current current root
+ * @mashnode selected selected root
  */
 export class UIPath extends LitElement {
   // Reactive properties go here, as a plain object — this system uses no
@@ -49,6 +67,7 @@ export class UIPath extends LitElement {
     size: { type: String, reflect: true },
     current: { type: Boolean, reflect: true },
     selected: { type: Boolean, reflect: true },
+    _authoredTitle: { type: String, state: true },
   };
   //
   /** Path to namespace */
@@ -69,6 +88,10 @@ export class UIPath extends LitElement {
   /** Marks the path as selected without requiring navigation semantics. */
   declare selected: boolean;
 
+  declare private _authoredTitle: string;
+
+  readonly #internals: ElementInternals;
+
   constructor() {
     super();
     // Reactive fields declared with `declare` are not initialised by the class
@@ -79,150 +102,41 @@ export class UIPath extends LitElement {
     this.size = "medium";
     this.current = false;
     this.selected = false;
+    this._authoredTitle = "";
+    this.#internals = this.attachInternals();
   }
 
-  static override styles = [
-    baseStyles,
-    css`
-      :host {
-        display: inline-flex;
-        box-sizing: border-box;
-        inline-size: 100%;
-        max-inline-size: 100%;
-
-        color: var(--color-text);
-        font-family: var(--type-label-font-family);
-        font-size: var(--type-label-font-size);
-        font-weight: var(--type-label-font-weight);
-        line-height: var(--type-label-line-height);
-      }
-
-      .root {
-        display: inline-flex;
-        align-items: center;
-        inline-size: 100%;
-        min-inline-size: 0;
-        max-inline-size: 100%;
-        gap: var(--space-control-gap);
-        padding: var(--space-control-block) var(--space-control-inline);
-
-        background: var(--color-surface);
-        border: var(--border-hairline) solid var(--color-border);
-        border-radius: var(--radius-control);
-
-        color: inherit;
-        transition:
-          background-color var(--duration-control) var(--easing-control),
-          border-color var(--duration-control) var(--easing-control),
-          color var(--duration-control) var(--easing-control);
-      }
-
-      :host([size="small"]) .root {
-        inline-size: max-content;
-        padding: var(--space-control-block-small) var(--space-control-inline-small);
-        background: transparent;
-        border-color: transparent;
-
-        font-family: var(--type-label-small-font-family);
-        font-size: var(--type-label-small-font-size);
-        font-weight: var(--type-label-small-font-weight);
-        line-height: var(--type-label-small-line-height);
-      }
-
-      :host([size="small"]) {
-        inline-size: max-content;
-      }
-
-      :host(:hover) .root {
-        background: color-mix(in oklab, var(--color-action) 8%, var(--color-surface));
-        border-color: var(--color-border-strong);
-      }
-
-      :host([size="small"]:hover) .root {
-        border-color: transparent;
-      }
-
-      :host([current]) .root,
-      :host([selected]) .root {
-        background: color-mix(in oklab, var(--color-action) 12%, var(--color-surface));
-        border-color: color-mix(in oklab, var(--color-action) 45%, var(--color-border-strong));
-        color: var(--color-text);
-      }
-
-      :host([size="small"][current]) .root,
-      :host([size="small"][selected]) .root {
-        border-color: transparent;
-      }
-
-      .icon {
-        display: inline-flex;
-        flex: 0 0 auto;
-        align-items: center;
-        justify-content: center;
-        color: var(--color-text-muted);
-      }
-
-      .content {
-        display: flex;
-        min-inline-size: 0;
-        flex: 1 1 auto;
-        align-items: center;
-        overflow: hidden;
-      }
-
-      .title {
-        min-inline-size: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .segments {
-        display: flex;
-        min-inline-size: 0;
-        flex: 1 1 auto;
-        align-items: center;
-        gap: var(--space-control-gap);
-
-        overflow: hidden;
-        font-family: var(--type-code-font-family);
-        font-size: var(--type-code-font-size);
-        font-weight: var(--type-code-font-weight);
-        line-height: var(--type-code-line-height);
-        white-space: nowrap;
-      }
-
-      .separator {
-        flex: 0 0 auto;
-        color: var(--color-text-muted);
-      }
-
-      .segment {
-        min-inline-size: 0;
-        overflow: hidden;
-        flex: 0 1 auto;
-        text-overflow: ellipsis;
-      }
-
-      @media (forced-colors: active) {
-        :host(:hover) .root,
-        :host([current]) .root,
-        :host([selected]) .root {
-          border-color: CanvasText;
-        }
-      }
-
-      /* Style from semantic tokens only; private layout stays local to this
-         component so consumers theme the system instead of this primitive. */
-    `,
-  ];
+  static override styles = baseStyles;
 
   private get displayTitle(): string {
     return this.title.trim() || this.lede.trim();
   }
 
+  private get effectiveTitle(): string {
+    return this._authoredTitle || this.displayTitle;
+  }
+
   private get accessibleLabel(): string {
-    return this.displayTitle || this.path;
+    return this.effectiveTitle || this.path;
+  }
+
+  private onTitleChange = (event: Event): void => {
+    this._authoredTitle = (event.target as HTMLSlotElement)
+      .assignedNodes({ flatten: true })
+      .map((node) => node.textContent ?? "")
+      .join("")
+      .trim();
+  };
+
+  protected override updated(changed: PropertyValues<this>): void {
+    if (changed.has("current")) {
+      if (this.current) this.#internals.states.add("current");
+      else this.#internals.states.delete("current");
+    }
+    if (changed.has("selected")) {
+      if (this.selected) this.#internals.states.add("selected");
+      else this.#internals.states.delete("selected");
+    }
   }
 
   protected override render(): TemplateResult {
@@ -234,15 +148,17 @@ export class UIPath extends LitElement {
         aria-selected=${this.selected ? "true" : nothing}
       >
         <span part="icon" class="icon"><slot name="icon"></slot></span>
-        <span class="content" aria-label=${this.accessibleLabel}>
-          ${this.displayTitle ? this.renderTitle() : this.renderRaw()}
+        <span part="content" class="content" aria-label=${this.accessibleLabel}>
+          ${this.renderTitle()} ${this.effectiveTitle ? nothing : this.renderRaw()}
         </span>
       </div>
     `;
   }
 
   private renderTitle(): TemplateResult {
-    return html`<span part="title" class="title">${this.displayTitle}</span>`;
+    return html`<span part="title" class="title" ?hidden=${!this.effectiveTitle}
+      ><slot name="title" @slotchange=${this.onTitleChange}>${this.displayTitle}</slot></span
+    >`;
   }
 
   private renderRaw(): TemplateResult {

@@ -19,13 +19,26 @@ export type ToastTone = "neutral" | "positive" | "warning" | "critical";
  * <ui-toast open tone="positive" duration="5000">Project saved</ui-toast>
  *
  * @slot - Toast message and optional passive content.
+ * @slot close - Optional authored dismiss action; the native button is the fallback.
  *
  * @csspart root - The semantic live-region toast surface.
+ * @csspart message - The authored notification message.
  * @csspart close - The optional native dismiss button.
  *
  * @cssstate open - Matches `:state(open)` while visible.
+ * @cssstate paused - Matches `:state(paused)` while automatic dismissal is suspended.
  *
  * @fires {CustomEvent<{ open: boolean, reason: string }>} ui-toast-open-change - Emitted after timeout or user dismissal requests a new open state.
+ *
+ * @mashnode root root
+ * @mashnode message message root
+ * @mashnode close close root
+ * @mashnode open open root
+ * @mashnode paused paused root
+ * @mashnode duration duration root
+ * @mashrole event ui-toast-open-change open open
+ * @mashrole slot default message message
+ * @mashrole slot close close close
  */
 export class UIToast extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {
@@ -38,6 +51,7 @@ export class UIToast extends LitElement {
     duration: { type: Number, reflect: true },
     label: { type: String, reflect: true },
     dismissible: { type: Boolean, reflect: true },
+    paused: { type: Boolean, reflect: true },
   };
 
   /** Whether the toast is visible. */
@@ -50,9 +64,13 @@ export class UIToast extends LitElement {
   declare label: string;
   /** Whether a visible close button is rendered. */
   declare dismissible: boolean;
+  /** Suspends the remaining automatic-dismiss duration. */
+  declare paused: boolean;
 
   readonly #internals: ElementInternals;
   #timeout: ReturnType<typeof setTimeout> | undefined;
+  #remaining = 0;
+  #startedAt = 0;
 
   constructor() {
     super();
@@ -61,6 +79,7 @@ export class UIToast extends LitElement {
     this.duration = 5000;
     this.label = "Notification";
     this.dismissible = true;
+    this.paused = false;
     this.#internals = this.attachInternals();
   }
 
@@ -76,19 +95,40 @@ export class UIToast extends LitElement {
       clearTimeout(this.#timeout);
       this.#timeout = undefined;
     }
+    this.#startedAt = 0;
+  }
+
+  #pauseTimeout(): void {
+    if (!this.#timeout) return;
+    this.#remaining = Math.max(0, this.#remaining - (Date.now() - this.#startedAt));
+    this.#clearTimeout();
+  }
+
+  #scheduleTimeout(): void {
+    if (!this.open || this.paused || this.duration <= 0 || this.#remaining <= 0) return;
+    this.#startedAt = Date.now();
+    this.#timeout = setTimeout(() => this.requestClose("timeout"), this.#remaining);
   }
 
   protected override updated(changed: PropertyValues<this>): void {
-    if (!changed.has("open") && !changed.has("duration")) return;
-    this.#clearTimeout();
     if (this.open) {
       this.#internals.states.add("open");
-      if (this.duration > 0)
-        this.#timeout = setTimeout(() => this.#requestClose("timeout"), this.duration);
     } else this.#internals.states.delete("open");
+    if (this.paused) this.#internals.states.add("paused");
+    else this.#internals.states.delete("paused");
+
+    if (changed.has("open") || changed.has("duration")) {
+      this.#clearTimeout();
+      this.#remaining = this.open ? Math.max(0, this.duration) : 0;
+      this.#scheduleTimeout();
+    } else if (changed.has("paused")) {
+      if (this.paused) this.#pauseTimeout();
+      else this.#scheduleTimeout();
+    }
   }
 
-  #requestClose(reason: string): void {
+  /** Requests dismissal with a renderer-neutral reason. */
+  requestClose(reason = "dismiss"): void {
     if (!this.open) return;
     this.open = false;
     this.dispatchEvent(
@@ -107,8 +147,8 @@ export class UIToast extends LitElement {
       aria-label=${this.label}
       ?hidden=${!this.open}
     >
-      <slot></slot
-      >${this.dismissible ? html`<button part="close" type="button" aria-label="Dismiss notification" @click=${() => this.#requestClose("dismiss")}>×</button>` : null}
+      <slot part="message"></slot
+      >${this.dismissible ? html`<button part="close" type="button" aria-label="Dismiss notification" @click=${() => this.requestClose("dismiss")}><slot name="close">×</slot></button>` : null}
     </div>`;
   }
 }

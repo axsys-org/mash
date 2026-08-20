@@ -28,8 +28,15 @@ export type ToggleGroupOrientation = "horizontal" | "vertical";
  * @slot - `ui-toggle` controls.
  *
  * @csspart root - The semantic group container.
+ * @csspart children - The authored toggle collection.
+ * @cssstate disabled - Matches `:state(disabled)` while activation is unavailable.
  *
  * @fires {CustomEvent<{ values: string[] }>} ui-toggle-group-change - Emitted after the active value set changes.
+ *
+ * @mashnode root root
+ * @mashnode children children root
+ * @mashnode disabled disabled root
+ * @mashrole slot default children children
  */
 export class UIToggleGroup extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {
@@ -57,6 +64,7 @@ export class UIToggleGroup extends LitElement {
   declare disabled: boolean;
 
   readonly #childDisabled = new WeakMap<UIToggle, boolean>();
+  readonly #internals: ElementInternals;
 
   constructor() {
     super();
@@ -65,6 +73,7 @@ export class UIToggleGroup extends LitElement {
     this.value = "";
     this.orientation = "horizontal";
     this.disabled = false;
+    this.#internals = this.attachInternals();
   }
 
   static override styles = baseStyles;
@@ -85,6 +94,10 @@ export class UIToggleGroup extends LitElement {
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("value") || changed.has("mode") || changed.has("disabled")) {
       this.#syncOptions();
+    }
+    if (changed.has("disabled")) {
+      if (this.disabled) this.#internals.states.add("disabled");
+      else this.#internals.states.delete("disabled");
     }
   }
 
@@ -117,8 +130,11 @@ export class UIToggleGroup extends LitElement {
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
-    const previous = this.orientation === "horizontal" ? "ArrowLeft" : "ArrowUp";
-    const next = this.orientation === "horizontal" ? "ArrowRight" : "ArrowDown";
+    const rtl = getComputedStyle(this).direction === "rtl";
+    const previous =
+      this.orientation === "horizontal" ? (rtl ? "ArrowRight" : "ArrowLeft") : "ArrowUp";
+    const next =
+      this.orientation === "horizontal" ? (rtl ? "ArrowLeft" : "ArrowRight") : "ArrowDown";
     if (event.key !== previous && event.key !== next) return;
     const options = this.#toggles().filter((toggle) => !toggle.disabled);
     if (options.length === 0) return;
@@ -143,7 +159,7 @@ export class UIToggleGroup extends LitElement {
         @keydown=${this.#onKeydown}
         @ui-toggle-change=${this.#onToggleChange}
       >
-        <slot @slotchange=${this.#onSlotChange}></slot>
+        <slot part="children" @slotchange=${this.#onSlotChange}></slot>
       </div>
     `;
   }

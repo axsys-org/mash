@@ -1,4 +1,4 @@
-import { LitElement, css, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -27,6 +27,11 @@ export type AvatarSize = "small" | "medium" | "large";
  * @csspart root - The circular avatar surface.
  * @csspart image - The image, when `src` is available.
  * @csspart fallback - The text fallback behind the image.
+ *
+ * @mashnode root root
+ * @mashnode image image root
+ * @mashnode fallback fallback root
+ * @mashrole slot default fallback fallback
  */
 export class UIAvatar extends LitElement {
   static override properties = {
@@ -57,57 +62,7 @@ export class UIAvatar extends LitElement {
     if (changed.has("src")) this._imageFailed = false;
   }
 
-  static override styles = [
-    baseStyles,
-    css`
-      :host {
-        display: inline-flex;
-        vertical-align: middle;
-
-        --_size: calc(var(--space-container-inline) + var(--space-control-inline));
-        --_font-size: var(--type-label-font-size);
-      }
-
-      :host([size="small"]) {
-        --_size: var(--space-container-inline);
-        --_font-size: var(--type-label-small-font-size);
-      }
-
-      :host([size="large"]) {
-        --_size: calc(var(--space-container-inline) + var(--space-container-inline));
-        --_font-size: var(--type-label-large-font-size);
-      }
-
-      .avatar {
-        position: relative;
-        display: grid;
-        inline-size: var(--_size);
-        block-size: var(--_size);
-        overflow: hidden;
-        place-items: center;
-        border: var(--border-hairline) solid var(--color-border);
-        border-radius: var(--radius-pill);
-        background: var(--color-surface-sunken);
-        color: var(--color-text);
-        font-family: var(--type-label-font-family);
-        font-size: var(--_font-size);
-        font-weight: var(--type-label-font-weight);
-        line-height: var(--type-label-line-height);
-      }
-
-      .image {
-        position: absolute;
-        inset: 0;
-        inline-size: 100%;
-        block-size: 100%;
-        object-fit: cover;
-      }
-
-      .image[hidden] {
-        display: none;
-      }
-    `,
-  ];
+  static override styles = baseStyles;
 
   #onImageError = (): void => {
     this._imageFailed = true;

@@ -29,9 +29,17 @@ let tabPanelId = 0;
  * @slot panel - `ui-tab-panel` content regions.
  *
  * @csspart list - The semantic tablist.
+ * @csspart tab - The authored tab-control collection.
  * @csspart panels - The panel container.
+ * @csspart panel - The authored tab-panel collection.
  *
  * @fires {CustomEvent<{ value: string }>} ui-tabs-change - Emitted after tab selection changes.
+ *
+ * @mashnode root root
+ * @mashnode list list root
+ * @mashnode tab tab list
+ * @mashnode panels panels root
+ * @mashnode panel panel panels
  */
 export class UITabs extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {
@@ -82,7 +90,11 @@ export class UITabs extends LitElement {
       panel.label = tab?.textContent?.trim() || this.label;
       if (tab) tab.controls = panel.id;
     }
-    for (const tab of tabs) tab.selected = tab.value === this.value;
+    for (const [index, tab] of tabs.entries()) {
+      tab.selected = tab.value === this.value;
+      tab.position = index + 1;
+      tab.setSize = tabs.length;
+    }
   }
 
   protected override updated(changed: PropertyValues<this>): void {
@@ -110,8 +122,11 @@ export class UITabs extends LitElement {
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
-    const previous = this.orientation === "horizontal" ? "ArrowLeft" : "ArrowUp";
-    const next = this.orientation === "horizontal" ? "ArrowRight" : "ArrowDown";
+    const rtl = getComputedStyle(this).direction === "rtl";
+    const previous =
+      this.orientation === "horizontal" ? (rtl ? "ArrowRight" : "ArrowLeft") : "ArrowUp";
+    const next =
+      this.orientation === "horizontal" ? (rtl ? "ArrowLeft" : "ArrowRight") : "ArrowDown";
     if (event.key !== previous && event.key !== next && event.key !== "Home" && event.key !== "End")
       return;
     const tabs = this.#tabs().filter((tab) => !tab.disabled);
@@ -141,9 +156,11 @@ export class UITabs extends LitElement {
         @keydown=${this.#onKeydown}
         @ui-tab-select=${this.#onTabSelect}
       >
-        <slot name="tab" @slotchange=${this.#onSlotChange}></slot>
+        <slot part="tab" name="tab" @slotchange=${this.#onSlotChange}></slot>
       </div>
-      <div part="panels"><slot name="panel" @slotchange=${this.#onSlotChange}></slot></div>
+      <div part="panels">
+        <slot part="panel" name="panel" @slotchange=${this.#onSlotChange}></slot>
+      </div>
     `;
   }
 }

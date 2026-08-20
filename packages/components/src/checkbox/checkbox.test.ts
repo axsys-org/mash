@@ -16,7 +16,31 @@ describe("ui-checkbox", () => {
     expect(checkbox.checked).toBe(false);
     expect(
       [...checkbox.shadowRoot!.querySelectorAll("[part]")].map((part) => part.getAttribute("part")),
-    ).toEqual(expect.arrayContaining(["root", "control", "label"]));
+    ).toEqual(expect.arrayContaining(["root", "control", "indicator", "label"]));
+  });
+
+  it("exposes and restores a portable indeterminate state", async () => {
+    const form = await fixture<HTMLFormElement>(`
+      <form><ui-checkbox name="selection" indeterminate>Partially selected</ui-checkbox></form>
+    `);
+    const checkbox = form.querySelector<UICheckbox>("ui-checkbox")!;
+    const details: Array<{ checked: boolean; indeterminate: boolean }> = [];
+    checkbox.addEventListener("ui-checkbox-change", (event) => {
+      details.push((event as CustomEvent<{ checked: boolean; indeterminate: boolean }>).detail);
+    });
+
+    expect(control(checkbox).indeterminate).toBe(true);
+    expect(checkbox.matches(":state(indeterminate)")).toBe(true);
+
+    control(checkbox).click();
+    await settled(form);
+    expect(details).toEqual([{ checked: true, indeterminate: false }]);
+    expect(checkbox.indeterminate).toBe(false);
+
+    form.reset();
+    await settled(form);
+    expect(checkbox.indeterminate).toBe(true);
+    expect(checkbox.checked).toBe(false);
   });
 
   it("reflects checked state and emits a portable change event", async () => {

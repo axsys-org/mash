@@ -42,20 +42,48 @@ describe("ui-input", () => {
     expect(input.value).toBe("Mash");
   });
 
-  it("keeps both content slots and their styling parts available", async () => {
-    const input = await fixture<UIInput>(`
-      <ui-input><span slot="prefix">⌕</span><span slot="suffix">⌘ K</span></ui-input>
-    `);
+  it("keeps the native control as its only visual anatomy", async () => {
+    const input = await fixture<UIInput>(`<ui-input></ui-input>`);
     const parts = [...shadow(input).querySelectorAll("[part]")].map((node) =>
       node.getAttribute("part"),
     );
 
-    expect(parts).toEqual(expect.arrayContaining(["control", "prefix", "suffix"]));
-    expect(
-      shadow(input).querySelector<HTMLSlotElement>('slot[name="prefix"]')?.assignedElements(),
-    ).toHaveLength(1);
-    expect(
-      shadow(input).querySelector<HTMLSlotElement>('slot[name="suffix"]')?.assignedElements(),
-    ).toHaveLength(1);
+    expect(parts).toEqual(["control"]);
+  });
+
+  it("preserves the authored reset value instead of reflecting live edits", async () => {
+    const form = await fixture<HTMLFormElement>(`
+      <form><ui-input name="project" value="Initial"></ui-input></form>
+    `);
+    const input = form.querySelector<UIInput>("ui-input")!;
+    const control = inShadow<HTMLInputElement>(input, '[part="control"]');
+
+    control.value = "Edited";
+    control.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    await settled(form.parentElement!);
+
+    expect(input.value).toBe("Edited");
+    expect(input.getAttribute("value")).toBe("Initial");
+
+    form.reset();
+    await settled(form.parentElement!);
+    expect(input.value).toBe("Initial");
+    expect(control.value).toBe("Initial");
+  });
+
+  it("mirrors native required validity into form participation", async () => {
+    const form = await fixture<HTMLFormElement>(`
+      <form><ui-input name="project" required></ui-input></form>
+    `);
+    const input = form.querySelector<UIInput>("ui-input")!;
+    const control = inShadow<HTMLInputElement>(input, '[part="control"]');
+
+    expect(form.checkValidity()).toBe(false);
+
+    control.value = "Mash";
+    control.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    await settled(form.parentElement!);
+
+    expect(form.checkValidity()).toBe(true);
   });
 });

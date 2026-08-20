@@ -3,9 +3,13 @@ import { describe, expect, it } from "vitest";
 
 import { fixture, inShadow, settled } from "./test-support/fixture.js";
 import type { UIAccordionItem } from "./accordion-item/accordion-item.js";
+import type { UICombobox } from "./combobox/combobox.js";
+import type { OverlayOpenChangeDetail } from "./internal/overlay.js";
 import type { UINumberField } from "./number-field/number-field.js";
+import type { UIOption } from "./option/option.js";
 import type { UIOtpField } from "./otp-field/otp-field.js";
 import type { UIRadio } from "./radio/radio.js";
+import type { UISelect } from "./select/select.js";
 import type { UISlider } from "./slider/slider.js";
 import type { UITabPanel } from "./tab-panel/tab-panel.js";
 import type { UIToggle } from "./toggle/toggle.js";
@@ -45,9 +49,37 @@ import "./toggle-group/register.js";
 import "./toggle/register.js";
 import "./toast/register.js";
 import "./toolbar/register.js";
+import "./tree/register.js";
 import "./tooltip/register.js";
 
 describe("Base UI control families", () => {
+  it("realizes authored collection and control slots as semantic parts", async () => {
+    const cases: Array<{ markup: string; part: string }> = [
+      { markup: "<ui-accordion></ui-accordion>", part: "children" },
+      { markup: "<ui-autocomplete></ui-autocomplete>", part: "children" },
+      { markup: "<ui-combobox></ui-combobox>", part: "children" },
+      { markup: "<ui-checkbox-group></ui-checkbox-group>", part: "children" },
+      {
+        markup: '<ui-field><input slot="control" /></ui-field>',
+        part: "control",
+      },
+      { markup: "<ui-fieldset></ui-fieldset>", part: "children" },
+      { markup: "<ui-form></ui-form>", part: "children" },
+      { markup: "<ui-radio-group></ui-radio-group>", part: "children" },
+      { markup: "<ui-select></ui-select>", part: "children" },
+      { markup: "<ui-tabs></ui-tabs>", part: "tab" },
+      { markup: "<ui-tabs></ui-tabs>", part: "panel" },
+      { markup: "<ui-tab-panel></ui-tab-panel>", part: "content" },
+      { markup: "<ui-tree></ui-tree>", part: "children" },
+      { markup: "<ui-toolbar></ui-toolbar>", part: "actions" },
+    ];
+
+    for (const contract of cases) {
+      const element = await fixture<HTMLElement>(contract.markup);
+      expect(inShadow(element, `[part~="${contract.part}"]`)).toBeInstanceOf(HTMLElement);
+    }
+  });
+
   it("coordinates a radio group as one form value and Arrow-key choice", async () => {
     const form = await fixture<HTMLFormElement>(`
       <form><ui-radio-group name="visibility" value="team">
@@ -63,6 +95,8 @@ describe("Base UI control families", () => {
     });
 
     expect(teamRadio!.checked).toBe(true);
+    expect(inShadow(teamRadio!, "input").getAttribute("aria-posinset")).toBe("2");
+    expect(inShadow(teamRadio!, "input").getAttribute("aria-setsize")).toBe("2");
     teamRadio!.focus();
     await userEvent.keyboard("{ArrowUp}");
     await settled(form);
@@ -87,6 +121,51 @@ describe("Base UI control families", () => {
 
     expect(left!.pressed).toBe(true);
     expect(center!.pressed).toBe(false);
+  });
+
+  it("uses logical horizontal Arrow keys for RTL groups and tabs", async () => {
+    const root = await fixture<HTMLElement>(`
+      <div dir="rtl">
+        <ui-radio-group orientation="horizontal" value="one">
+          <ui-radio value="one">One</ui-radio><ui-radio value="two">Two</ui-radio>
+        </ui-radio-group>
+        <ui-toggle-group orientation="horizontal">
+          <ui-toggle value="one">One</ui-toggle><ui-toggle value="two">Two</ui-toggle>
+        </ui-toggle-group>
+        <ui-tabs value="one">
+          <ui-tab slot="tab" value="one">One</ui-tab><ui-tab slot="tab" value="two">Two</ui-tab>
+          <ui-tab-panel slot="panel" value="one">One</ui-tab-panel><ui-tab-panel slot="panel" value="two">Two</ui-tab-panel>
+        </ui-tabs>
+      </div>
+    `);
+    await settled(root);
+
+    const radioGroup = root.querySelector<HTMLElement>("ui-radio-group")!;
+    const [radioOne, radioTwo] = [...radioGroup.querySelectorAll<UIRadio>("ui-radio")];
+    radioOne!.focus();
+    inShadow<HTMLButtonElement>(radioOne!, "input").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true, composed: true }),
+    );
+    await settled(root);
+    expect(radioTwo!.checked).toBe(true);
+
+    const toggleGroup = root.querySelector<HTMLElement>("ui-toggle-group")!;
+    const [toggleOne, toggleTwo] = [...toggleGroup.querySelectorAll<UIToggle>("ui-toggle")];
+    toggleOne!.focus();
+    inShadow<HTMLButtonElement>(toggleOne!, "button").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true, composed: true }),
+    );
+    expect(toggleTwo!.shadowRoot?.activeElement).toBe(inShadow(toggleTwo!, "button"));
+
+    const tabs = root.querySelector<HTMLElement>("ui-tabs")!;
+    const [tabOne, tabTwo] = [...tabs.querySelectorAll<HTMLElement>("ui-tab")];
+    tabOne!.focus();
+    inShadow<HTMLButtonElement>(tabOne!, "button").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true, composed: true }),
+    );
+    await settled(root);
+    expect(tabs.getAttribute("value")).toBe("two");
+    expect(tabTwo!.shadowRoot?.activeElement).toBe(inShadow(tabTwo!, "button"));
   });
 
   it("preserves native disclosure semantics for collapsibles and accordions", async () => {
@@ -128,6 +207,8 @@ describe("Base UI control families", () => {
     expect(tabs.getAttribute("value")).toBe("members");
     expect(panels[0]!.selected).toBe(false);
     expect(panels[1]!.selected).toBe(true);
+    expect(inShadow(members, "button").getAttribute("aria-posinset")).toBe("2");
+    expect(inShadow(members, "button").getAttribute("aria-setsize")).toBe("2");
     expect(inShadow<HTMLElement>(panels[1]!, "[role=tabpanel]").getAttribute("aria-label")).toBe(
       "Members",
     );
@@ -151,6 +232,23 @@ describe("Base UI control families", () => {
     expect((slider as UISlider).value).toBe(45);
     expect(new FormData(form).get("volume")).toBe("45");
     expect(values).toEqual([45]);
+    expect(inShadow(slider, '[part="track"]')).toBeInstanceOf(HTMLElement);
+    expect(inShadow<HTMLElement>(slider, '[part="indicator"]').style.inlineSize).toBe("45%");
+    expect(inShadow<HTMLElement>(slider, '[part="thumb"]').style.insetInlineStart).toBe("45%");
+  });
+
+  it("reports a radio item's value as well as its checked state", async () => {
+    const radio = await fixture<UIRadio>(`<ui-radio value="team">Team</ui-radio>`);
+    const changes: Array<{ checked: boolean; value: string }> = [];
+    radio.addEventListener("ui-radio-change", (event) => {
+      changes.push((event as CustomEvent<{ checked: boolean; value: string }>).detail);
+    });
+
+    inShadow<HTMLInputElement>(radio, "input").click();
+    await settled(radio.parentElement!);
+
+    expect(changes).toEqual([{ checked: true, value: "team" }]);
+    expect(inShadow(radio, '[part="indicator"]')).toBeInstanceOf(HTMLElement);
   });
 
   it("keeps meter, scroll area, and toolbar on native semantic elements", async () => {
@@ -160,9 +258,12 @@ describe("Base UI control families", () => {
     expect(inShadow<HTMLMeterElement>(meter, "meter").value).toBe(3);
 
     const scrollArea = await fixture<HTMLElement>(
-      `<ui-scroll-area label="Log"><p>Entry</p></ui-scroll-area>`,
+      `<ui-scroll-area label="Log"><p slot="content">Entry</p></ui-scroll-area>`,
     );
     expect(inShadow<HTMLElement>(scrollArea, "[role=region]").getAttribute("tabindex")).toBe("0");
+    expect(
+      inShadow<HTMLSlotElement>(scrollArea, 'slot[name="content"]').assignedElements(),
+    ).toHaveLength(1);
 
     const toolbar = await fixture<HTMLElement>(
       `<ui-toolbar label="Tools"><ui-toggle>A</ui-toggle><ui-toggle>B</ui-toggle></ui-toolbar>`,
@@ -170,6 +271,36 @@ describe("Base UI control families", () => {
     expect(inShadow<HTMLElement>(toolbar, "[role=toolbar]").getAttribute("aria-label")).toBe(
       "Tools",
     );
+  });
+
+  it("keeps toolbar focus movement behavioural, with optional edge wrapping", async () => {
+    const toolbar = await fixture<HTMLElement & { loopFocus: boolean }>(`
+      <ui-toolbar label="Tools">
+        <ui-toggle>A</ui-toggle><ui-toggle>B</ui-toggle>
+      </ui-toolbar>
+    `);
+    toolbar.loopFocus = false;
+    await settled(toolbar.parentElement!);
+    const [first, last] = [...toolbar.querySelectorAll<HTMLElement>("ui-toggle")];
+    const firstControl = inShadow<HTMLButtonElement>(first!, "button");
+    const lastControl = inShadow<HTMLButtonElement>(last!, "button");
+
+    expect(first!.tabIndex).toBe(0);
+    expect(last!.tabIndex).toBe(-1);
+
+    lastControl.focus();
+    lastControl.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, composed: true }),
+    );
+    expect(document.activeElement).toBe(last);
+
+    firstControl.focus();
+    firstControl.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, composed: true }),
+    );
+    expect(document.activeElement).toBe(last);
+    expect(first!.tabIndex).toBe(-1);
+    expect(last!.tabIndex).toBe(0);
   });
 
   it("wires a field label, native description, and error announcement", async () => {
@@ -271,7 +402,7 @@ describe("Base UI control families", () => {
       <ui-select name="visibility" label="Visibility"><ui-option value="team">Team</ui-option><ui-option value="private">Private</ui-option></ui-select>
     `);
     const privateOption = select.querySelector<HTMLElement>('ui-option[value="private"]')!;
-    inShadow<HTMLButtonElement>(privateOption, "button").click();
+    privateOption.click();
     await settled(select.parentElement!);
     expect((select as unknown as { value: string }).value).toBe("private");
 
@@ -283,11 +414,370 @@ describe("Base UI control families", () => {
     input.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
     await settled(combobox.parentElement!);
     expect(combobox.querySelector<HTMLElement>('ui-option[value="sam"]')!.hidden).toBe(true);
-    inShadow<HTMLButtonElement>(
-      combobox.querySelector<HTMLElement>('ui-option[value="maya"]')!,
-      "button",
-    ).click();
+    combobox.querySelector<HTMLElement>('ui-option[value="maya"]')!.click();
     await settled(combobox.parentElement!);
     expect((combobox as unknown as { value: string }).value).toBe("maya");
+  });
+
+  it("reports portable open reasons and resynchronizes async option collections", async () => {
+    const select = await fixture<UISelect>(`
+      <ui-select label="Visibility"><ui-option value="team">Team</ui-option></ui-select>
+    `);
+    const selectReasons: string[] = [];
+    select.addEventListener("ui-select-open-change", (event) => {
+      selectReasons.push((event as CustomEvent<OverlayOpenChangeDetail>).detail.reason);
+    });
+
+    select.show();
+    await settled(select.parentElement!);
+    select.dismiss();
+    await settled(select.parentElement!);
+    inShadow<HTMLButtonElement>(select, "button[part=trigger]").click();
+    await settled(select.parentElement!);
+    expect(selectReasons).toEqual(["imperative", "imperative", "trigger"]);
+
+    const group = document.createElement("div");
+    const lateOption = document.createElement("ui-option") as UIOption;
+    lateOption.value = "private";
+    lateOption.textContent = "Private";
+    group.append(lateOption);
+    select.append(group);
+    await settled(select.parentElement!);
+    lateOption.click();
+    await settled(select.parentElement!);
+    expect(select.value).toBe("private");
+    expect(selectReasons.at(-1)).toBe("select");
+
+    const combobox = await fixture<UICombobox>(`
+      <ui-combobox label="Owner"><ui-option value="maya">Maya</ui-option></ui-combobox>
+    `);
+    const comboboxReasons: string[] = [];
+    combobox.addEventListener("ui-combobox-open-change", (event) => {
+      comboboxReasons.push((event as CustomEvent<OverlayOpenChangeDetail>).detail.reason);
+    });
+    const input = inShadow<HTMLInputElement>(combobox, "input");
+    input.value = "sa";
+    input.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    await settled(combobox.parentElement!);
+
+    combobox.insertAdjacentHTML(
+      "beforeend",
+      '<ui-option-row><ui-option value="sam">Sam</ui-option></ui-option-row>',
+    );
+    const lateSuggestion = combobox.querySelector<UIOption>('ui-option[value="sam"]')!;
+    await settled(combobox.parentElement!);
+    expect(lateSuggestion.hidden).toBe(false);
+    lateSuggestion.click();
+    await settled(combobox.parentElement!);
+    expect(combobox.value).toBe("sam");
+    expect(comboboxReasons).toEqual(["input", "select"]);
+  });
+
+  it("realizes compound selection anatomy without making DOM-only portal mechanics portable", async () => {
+    const combobox = await fixture<HTMLElement & { value: string }>(`
+      <ui-combobox name="owner" label="Owner">
+        <span slot="icon">Search</span>
+        <button slot="trigger" type="button">Show</button>
+        <button slot="clear" type="button">Clear</button>
+        <span slot="empty">No matches</span>
+        <ui-option value="maya">Maya</ui-option>
+      </ui-combobox>
+    `);
+
+    for (const part of [
+      "root",
+      "input-group",
+      "control",
+      "icon",
+      "trigger",
+      "clear",
+      "positioner",
+      "popup",
+      "status",
+      "empty",
+      "listbox",
+      "children",
+    ]) {
+      expect(inShadow(combobox, `[part~="${part}"]`)).toBeInstanceOf(HTMLElement);
+    }
+    expect(combobox.shadowRoot!.querySelector("[part~=portal]")).toBeNull();
+
+    const input = inShadow<HTMLInputElement>(combobox, "input");
+    const trigger = combobox.querySelector<HTMLButtonElement>("[slot=trigger]")!;
+    trigger.click();
+    await settled(combobox.parentElement!);
+    expect(combobox.hasAttribute("open")).toBe(true);
+    expect(input.getAttribute("aria-controls")).toBeTruthy();
+
+    input.value = "missing";
+    input.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    await settled(combobox.parentElement!);
+    expect(inShadow<HTMLElement>(combobox, "[part~=empty]").hidden).toBe(false);
+    expect(inShadow<HTMLElement>(combobox, "[part~=status]").textContent).toContain("0 results");
+
+    combobox.querySelector<HTMLButtonElement>("[slot=clear]")!.click();
+    await settled(combobox.parentElement!);
+    expect(combobox.value).toBe("");
+    expect(combobox.querySelector<HTMLElement>("ui-option")!.hidden).toBe(false);
+  });
+
+  it("keeps select value, icon, popup, list, and option indicator independently addressable", async () => {
+    const select = await fixture<HTMLElement>(`
+      <ui-select name="visibility" value="team" label="Visibility">
+        <span slot="icon">Open</span>
+        <ui-option value="team">Team<span slot="indicator">Selected</span></ui-option>
+      </ui-select>
+    `);
+
+    for (const part of [
+      "root",
+      "trigger",
+      "value",
+      "icon",
+      "positioner",
+      "popup",
+      "listbox",
+      "children",
+    ]) {
+      expect(inShadow(select, `[part~="${part}"]`)).toBeInstanceOf(HTMLElement);
+    }
+
+    const option = select.querySelector<HTMLElement>("ui-option")!;
+    expect(inShadow(option, "[part~=text]")).toBeInstanceOf(HTMLSlotElement);
+    expect(inShadow(option, "[part~=indicator]")).toBeInstanceOf(HTMLSlotElement);
+    expect(inShadow<HTMLElement>(select, "[part~=value]").textContent).toContain("Team");
+  });
+
+  it("shares anchored placement and outside dismissal across select and combobox", async () => {
+    const select = await fixture<HTMLElement>(`
+      <ui-select label="Visibility">
+        <ui-option value="team">Team</ui-option>
+      </ui-select>
+    `);
+    inShadow<HTMLButtonElement>(select, "[part~=trigger]").click();
+    await settled(select.parentElement!);
+    const selectPositioner = inShadow<HTMLElement>(select, "[part~=positioner]");
+    expect(selectPositioner.style.position).toBe("fixed");
+    expect(selectPositioner.dataset.side).toBeTruthy();
+
+    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, composed: true }));
+    await settled(select.parentElement!);
+    expect(select.hasAttribute("open")).toBe(false);
+    expect(selectPositioner.getAttribute("style")).toBeNull();
+
+    const combobox = await fixture<HTMLElement>(`
+      <ui-combobox label="Owner">
+        <ui-option value="maya">Maya</ui-option>
+      </ui-combobox>
+    `);
+    const input = inShadow<HTMLInputElement>(combobox, "input");
+    input.value = "m";
+    input.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    await settled(combobox.parentElement!);
+    const comboboxPositioner = inShadow<HTMLElement>(combobox, "[part~=positioner]");
+    expect(comboboxPositioner.style.position).toBe("fixed");
+    expect(comboboxPositioner.dataset.side).toBeTruthy();
+
+    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, composed: true }));
+    await settled(combobox.parentElement!);
+    expect(combobox.hasAttribute("open")).toBe(false);
+    expect(comboboxPositioner.getAttribute("style")).toBeNull();
+  });
+
+  it("coordinates grouped multiple select values and repeated form entries", async () => {
+    const form = await fixture<HTMLFormElement>(`
+      <form>
+        <ui-select name="visibility" label="Visibility" multiple values='["team"]' open>
+          <ui-option-group label="Workspace">
+            <ui-option value="team">Team</ui-option>
+            <ui-option value="private">Private</ui-option>
+          </ui-option-group>
+        </ui-select>
+      </form>
+    `);
+    const select = form.querySelector<HTMLElement & { values: string[] }>("ui-select")!;
+    const group = select.querySelector<HTMLElement>("ui-option-group")!;
+    const privateOption = select.querySelector<HTMLElement>('ui-option[value="private"]')!;
+
+    expect(inShadow(group, "[role=group]").getAttribute("aria-labelledby")).toBeTruthy();
+    expect(inShadow(select, "[role=listbox]").getAttribute("aria-multiselectable")).toBe("true");
+
+    privateOption.click();
+    await settled(form);
+
+    expect(select.values).toEqual(["team", "private"]);
+    expect(select.hasAttribute("open")).toBe(true);
+    expect(new FormData(form).getAll("visibility")).toEqual(["team", "private"]);
+  });
+
+  it("lets a multiple combobox own values while chips only request removal", async () => {
+    const form = await fixture<HTMLFormElement>(`
+      <form>
+        <ui-combobox name="owner" label="Owner" multiple values='["maya"]'>
+          <span slot="chips">
+            <ui-chip value="maya">Maya<button slot="remove" type="button">Remove</button></ui-chip>
+          </span>
+          <ui-option-group label="People">
+            <ui-option value="maya">Maya</ui-option>
+            <ui-option value="sam">Sam</ui-option>
+          </ui-option-group>
+        </ui-combobox>
+      </form>
+    `);
+    const combobox = form.querySelector<HTMLElement & { values: string[]; readonly: boolean }>(
+      "ui-combobox",
+    )!;
+    const sam = combobox.querySelector<HTMLElement>('ui-option[value="sam"]')!;
+
+    sam.click();
+    await settled(form);
+    expect(combobox.values).toEqual(["maya", "sam"]);
+
+    combobox.querySelector<HTMLButtonElement>("ui-chip [slot=remove]")!.click();
+    await settled(form);
+    expect(combobox.values).toEqual(["sam"]);
+    expect(new FormData(form).getAll("owner")).toEqual(["sam"]);
+
+    combobox.readonly = true;
+    await settled(form);
+    sam.click();
+    expect(combobox.values).toEqual(["sam"]);
+  });
+
+  it("keeps editable-combobox focus on the input while exposing one active option", async () => {
+    const combobox = await fixture<
+      HTMLElement & { value: string; open: boolean; readonly: boolean }
+    >(`
+      <ui-combobox name="owner" label="Owner">
+        <ui-option value="alex" disabled>Alex</ui-option>
+        <ui-option value="maya">Maya</ui-option>
+        <ui-option value="sam">Sam</ui-option>
+      </ui-combobox>
+    `);
+    const input = inShadow<HTMLInputElement>(combobox, "input");
+    const maya = combobox.querySelector<UIOption>('ui-option[value="maya"]')!;
+    const sam = combobox.querySelector<UIOption>('ui-option[value="sam"]')!;
+
+    input.focus();
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
+    );
+    await settled(combobox.parentElement!);
+
+    expect(combobox.shadowRoot!.activeElement).toBe(input);
+    expect(input.getAttribute("aria-activedescendant")).toBe(maya.id);
+    expect(maya.active).toBe(true);
+    expect(sam.active).toBe(false);
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
+    );
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }),
+    );
+    await settled(combobox.parentElement!);
+
+    expect(combobox.value).toBe("sam");
+    expect(combobox.open).toBe(false);
+    expect(input.hasAttribute("aria-activedescendant")).toBe(false);
+
+    combobox.readonly = true;
+    combobox.open = true;
+    await settled(combobox.parentElement!);
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }),
+    );
+    await settled(combobox.parentElement!);
+    expect(combobox.open).toBe(false);
+  });
+
+  it("provides roving listbox focus, edge keys, and closed-select typeahead", async () => {
+    const select = await fixture<
+      HTMLElement & { value: string; open: boolean; readonly: boolean }
+    >(`
+      <ui-select name="visibility" value="team" label="Visibility">
+        <ui-option value="private">Private</ui-option>
+        <ui-option value="team">Team</ui-option>
+        <ui-option value="public">Public</ui-option>
+      </ui-select>
+    `);
+    const trigger = inShadow<HTMLButtonElement>(select, "button[part~=trigger]");
+    const [privateOption, teamOption, publicOption] = [
+      ...select.querySelectorAll<UIOption>("ui-option"),
+    ];
+
+    trigger.focus();
+    trigger.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
+    );
+    await settled(select.parentElement!);
+    expect(select.open).toBe(true);
+    expect(document.activeElement).toBe(teamOption);
+    expect(teamOption!.active).toBe(true);
+
+    teamOption!.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "End", bubbles: true, composed: true }),
+    );
+    await settled(select.parentElement!);
+    expect(document.activeElement).toBe(publicOption);
+
+    publicOption!.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Home", bubbles: true, composed: true }),
+    );
+    privateOption!.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }),
+    );
+    await settled(select.parentElement!);
+    expect(select.value).toBe("private");
+    expect(select.open).toBe(false);
+
+    trigger.focus();
+    trigger.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "t", bubbles: true, composed: true }),
+    );
+    await settled(select.parentElement!);
+    expect(select.value).toBe("team");
+
+    select.readonly = true;
+    select.open = true;
+    await settled(select.parentElement!);
+    trigger.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }),
+    );
+    await settled(select.parentElement!);
+    expect(select.open).toBe(false);
+  });
+
+  it("maps combobox rows to a navigable ARIA grid without owning their layout", async () => {
+    const combobox = await fixture<HTMLElement & { grid: boolean; open: boolean }>(`
+      <ui-combobox label="Assignee matrix" grid>
+        <ui-option-row>
+          <ui-option value="maya">Maya</ui-option>
+          <ui-option value="sam">Sam</ui-option>
+        </ui-option-row>
+        <ui-option-row>
+          <ui-option value="alex">Alex</ui-option>
+          <ui-option value="jo">Jo</ui-option>
+        </ui-option-row>
+      </ui-combobox>
+    `);
+    const input = inShadow<HTMLInputElement>(combobox, "input");
+    const [maya, sam, alex, jo] = [...combobox.querySelectorAll<UIOption>("ui-option")];
+
+    expect(input.getAttribute("aria-haspopup")).toBe("grid");
+    expect(inShadow(combobox, "[part~=listbox]").getAttribute("role")).toBe("grid");
+    expect(maya!.getAttribute("role")).toBe("gridcell");
+
+    input.focus();
+    for (const key of ["ArrowDown", "ArrowRight", "ArrowDown"] as const) {
+      input.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, composed: true }));
+      await settled(combobox.parentElement!);
+    }
+
+    expect(maya!.active).toBe(false);
+    expect(sam!.active).toBe(false);
+    expect(alex!.active).toBe(false);
+    expect(jo!.active).toBe(true);
+    expect(input.getAttribute("aria-activedescendant")).toBe(jo!.id);
   });
 });

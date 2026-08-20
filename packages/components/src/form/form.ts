@@ -21,8 +21,13 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - Form-associated controls and submit controls.
  *
  * @csspart root - The native form element.
+ * @csspart children - The authored form-control collection.
  *
  * @fires {CustomEvent<{ formData: FormData }>} ui-form-submit - Cancellable event emitted after native validation and before browser submission.
+ *
+ * @mashnode root root
+ * @mashnode children children root
+ * @mashrole slot default children children
  */
 export class UIForm extends LitElement {
   static override properties = {
@@ -68,7 +73,7 @@ export class UIForm extends LitElement {
       ?novalidate=${this.novalidate}
       @submit=${this.#onSubmit}
     >
-      <slot></slot>
+      <slot part="children"></slot>
     </form>`;
   }
 }

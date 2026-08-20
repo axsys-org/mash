@@ -1,4 +1,4 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, html, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -31,31 +31,7 @@ export class UISeparator extends LitElement {
     this.orientation = "horizontal";
   }
 
-  static override styles = [
-    baseStyles,
-    css`
-      :host {
-        display: block;
-      }
-
-      :host([orientation="vertical"]) {
-        display: inline-flex;
-        align-self: stretch;
-      }
-
-      .separator {
-        display: block;
-        inline-size: 100%;
-        block-size: var(--border-hairline);
-        background: var(--color-border);
-      }
-
-      :host([orientation="vertical"]) .separator {
-        inline-size: var(--border-hairline);
-        block-size: 100%;
-      }
-    `,
-  ];
+  static override styles = baseStyles;
 
   protected override render(): TemplateResult {
     return html`<span

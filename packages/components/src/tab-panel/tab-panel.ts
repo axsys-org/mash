@@ -15,8 +15,12 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - Panel content.
  *
  * @csspart root - The semantic tabpanel container.
+ * @csspart content - The authored panel content.
  *
  * @cssstate selected - Matches `:state(selected)` while this panel is visible.
+ *
+ * @mashnode root root
+ * @mashnode content content root
  */
 export class UITabPanel extends LitElement {
   static override properties = {
@@ -52,7 +56,7 @@ export class UITabPanel extends LitElement {
 
   protected override render(): TemplateResult {
     return html`<div part="root" role="tabpanel" aria-label=${this.label} ?hidden=${!this.selected}>
-      <slot></slot>
+      <slot part="content"></slot>
     </div>`;
   }
 }
