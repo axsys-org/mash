@@ -21,6 +21,7 @@
 
 import { initialState, type State } from "./app.js";
 import { controlsFor } from "./controls.js";
+import { controlsPreviewAllowed, examplesFor } from "./examples.js";
 import { components, themes, type ComponentSchema } from "./schema.js";
 
 /** Route prefix. `/components/ui-button`. */
@@ -33,7 +34,11 @@ const ROUTE = "/components/";
 const CONTROLS = "controls";
 
 /** Reserved keys, so a component attribute called `theme` cannot collide. */
-const RESERVED = new Set(["theme", "example", "label", "slots"]);
+const RESERVED = new Set(["theme", "example", "slots"]);
+
+function slotParam(name: string): string {
+  return `slot-${name || "default"}`;
+}
 
 // ---------------------------------------------------------------------------
 // Reading
@@ -66,18 +71,28 @@ export function stateFromUrl(url: URL, fallback: ComponentSchema): State {
   if (theme && themes.includes(theme)) state.theme = theme;
 
   const example = params.get("example");
-  if (example === CONTROLS) {
+  if (example === CONTROLS && controlsPreviewAllowed(component)) {
     state.example = null;
-  } else if (example && component.examples.some((entry) => entry.name === example)) {
+  } else if (example && examplesFor(component).some((entry) => entry.name === example)) {
     state.example = example;
   }
 
-  const label = params.get("label");
-  if (label !== null) state.label = label;
+  // `label` and the comma-separated `slots` list are the catalog's pre-slot
+  // URL format. Read them for old review links, then always write the explicit
+  // per-slot format below.
+  const legacyLabel = params.get("label");
+  if (legacyLabel !== null && component.slots.some((slot) => !slot.name)) {
+    state.slots[""] = legacyLabel;
+  }
 
   const slotNames = new Set(component.slots.map((slot) => slot.name).filter(Boolean));
   for (const name of (params.get("slots") ?? "").split(",")) {
-    if (slotNames.has(name)) state.slots[name] = true;
+    if (slotNames.has(name)) state.slots[name] = name;
+  }
+
+  for (const slot of component.slots) {
+    const content = params.get(slotParam(slot.name));
+    if (content !== null) state.slots[slot.name] = content;
   }
 
   for (const control of controlsFor(component)) {
@@ -115,13 +130,11 @@ export function urlForState(state: State): string {
     params.set("example", state.example ?? CONTROLS);
   }
 
-  if (state.label !== defaults.label) params.set("label", state.label);
-
-  const filled = Object.entries(state.slots)
-    .filter(([, on]) => on)
-    .map(([name]) => name)
-    .sort();
-  if (filled.length > 0) params.set("slots", filled.join(","));
+  for (const slot of component.slots) {
+    const value = state.slots[slot.name] ?? "";
+    const fallback = defaults.slots[slot.name] ?? "";
+    if (value !== fallback) params.set(slotParam(slot.name), value);
+  }
 
   for (const control of controlsFor(component)) {
     if (RESERVED.has(control.attribute)) continue;

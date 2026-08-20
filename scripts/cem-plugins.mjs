@@ -194,6 +194,20 @@ const hideInternalMembers = {
 };
 
 /**
+ * Keep the emitted manifest byte-stable across filesystems and analyzer runs.
+ *
+ * The analyzer discovers modules through a glob whose traversal order is not
+ * guaranteed. The contract is otherwise identical, but leaving that order in
+ * the output makes two builds produce different bytes on Linux and macOS.
+ */
+const sortManifestModules = {
+  name: "mash/sort-manifest-modules",
+  packageLinkPhase({ customElementsManifest }) {
+    customElementsManifest.modules?.sort((left, right) => left.path.localeCompare(right.path));
+  },
+};
+
+/**
  * Fail the build if a component is missing metadata that downstream tooling
  * depends on.
  *
@@ -263,7 +277,10 @@ function createRequireElementMetadata(tagPrefix) {
 export function mashManifestConfig({ tagPrefix }) {
   return {
     globs: ["src/**/*.ts"],
-    exclude: ["src/**/*.test.ts", "src/test-support/**"],
+    // Internal implementation modules can define reusable Lit base classes,
+    // but they are not custom-element contracts and must never become catalog
+    // entries or generated wrapper targets.
+    exclude: ["src/**/*.test.ts", "src/test-support/**", "src/internal/**"],
     outdir: ".",
     litelement: true,
     // Order matters: internals are removed before the metadata gate runs, so
@@ -274,6 +291,7 @@ export function mashManifestConfig({ tagPrefix }) {
       createCaptureExamples(),
       hideInternalMembers,
       createRequireElementMetadata(tagPrefix),
+      sortManifestModules,
     ],
   };
 }

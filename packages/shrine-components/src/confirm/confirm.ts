@@ -1,6 +1,8 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
 
 import type { ButtonTone } from "@mash/ui";
+
+import { baseStyles } from "../internal/base-styles.js";
 
 /** How consequential the confirmed action is. Selects the tone of the confirm button. */
 export type ConfirmTone = "accent" | "critical";
@@ -14,10 +16,9 @@ const BUTTON_TONE: Record<ConfirmTone, ButtonTone> = {
 /**
  * Asks the user to confirm an action.
  *
- * This is the shape a `@mash/shrine` component takes: it owns no colours,
- * spacing or interaction of its own, and instead composes `<ui-card>` and
- * `<ui-button>` from `@mash/ui` into a pattern that recurs across an
- * application. The only styling it adds is the layout *between* those parts.
+ * This component owns no visual language. It composes `<ui-card>` and
+ * `<ui-button>` from `@mash/ui` into a recurring pattern and exposes their
+ * parts to an opt-in catalogue recipe.
  *
  * Both buttons are `@mash/ui` elements, so everything already true of them
  * stays true here: focus delegation, keyboard activation, `:state(loading)`,
@@ -26,21 +27,88 @@ const BUTTON_TONE: Record<ConfirmTone, ButtonTone> = {
  * @tag shrine-confirm
  * @summary Asks the user to confirm an action, and reports the answer as an event.
  *
- * @slot - The explanatory message.
+ * @example Delete project
+ * <shrine-confirm tone="critical">
+ *   <span slot="title">Delete Billing Migration?</span>
+ *   <span slot="description">This removes the project and cannot be undone.</span>
+ *   <span slot="cancel">Keep project</span>
+ *   <span slot="confirm">Delete project</span>
+ * </shrine-confirm>
+ *
+ * @slot - Compatibility fallback for the `description` slot.
  * @slot title - Optional heading. The heading is hidden entirely when empty.
+ * @slot description - The explanatory message.
  * @slot confirm - Label for the confirm button. Defaults to "Confirm".
  * @slot cancel - Label for the cancel button. Defaults to "Cancel".
  *
  * @csspart card - The underlying `<ui-card>`.
  * @csspart title - The heading element.
- * @csspart message - The wrapper around the default slot.
+ * @csspart description - The explanatory-message region.
+ * @csspart message - Compatibility alias for the `description` part.
  * @csspart actions - The row holding both buttons.
  * @csspart confirm - The confirm `<ui-button>`.
  * @csspart cancel - The cancel `<ui-button>`.
+ * @csspart card-header - The underlying card header.
+ * @csspart card-content - The underlying card content region.
+ * @csspart card-footer - The underlying card footer.
+ * @csspart cancel-control - The cancel button's native control.
+ * @csspart cancel-prefix - The cancel button's prefix.
+ * @csspart cancel-label - The cancel button's label region.
+ * @csspart cancel-suffix - The cancel button's suffix.
+ * @csspart cancel-spinner - The cancel button's loading indicator.
+ * @csspart confirm-control - The confirm button's native control.
+ * @csspart confirm-prefix - The confirm button's prefix.
+ * @csspart confirm-label - The confirm button's label region.
+ * @csspart confirm-suffix - The confirm button's suffix.
+ * @csspart confirm-spinner - The confirm button's loading indicator.
+ *
+ * @cssstate pending - Matches `:state(pending)` while confirmation is awaiting completion.
  *
  * @fires {CustomEvent<void>} shrine-confirm - The user confirmed. Bubbles and composed,
  *   so it can be handled anywhere above the element. Not fired while `pending`.
  * @fires {CustomEvent<void>} shrine-cancel - The user declined. Bubbles and composed.
+ *
+ * @mashrole slot default description
+ * @mashrole slot confirm label confirm-label
+ * @mashrole slot cancel label cancel-label
+ * @mashrole part card root root
+ * @mashrole part message description description
+ * @mashrole part card-header header header
+ * @mashrole part card-content content content
+ * @mashrole part card-footer footer footer
+ * @mashrole part cancel-control control cancel-control
+ * @mashrole part cancel-prefix prefix cancel-prefix
+ * @mashrole part cancel-label label cancel-label
+ * @mashrole part cancel-suffix suffix cancel-suffix
+ * @mashrole part cancel-spinner spinner cancel-spinner
+ * @mashrole part confirm-control control confirm-control
+ * @mashrole part confirm-prefix prefix confirm-prefix
+ * @mashrole part confirm-label label confirm-label
+ * @mashrole part confirm-suffix suffix confirm-suffix
+ * @mashrole part confirm-spinner spinner confirm-spinner
+ * @mashfallback slot confirm literal "Confirm"
+ * @mashfallback slot cancel literal "Cancel"
+ * @mashnode root root
+ * @mashnode header header root
+ * @mashnode title title header
+ * @mashnode content content root
+ * @mashnode description description content
+ * @mashnode footer footer root
+ * @mashnode actions actions footer
+ * @mashnode cancel cancel actions
+ * @mashnode cancel-control control cancel
+ * @mashnode cancel-prefix prefix cancel-control
+ * @mashnode cancel-label label cancel-control
+ * @mashnode cancel-suffix suffix cancel-control
+ * @mashnode cancel-spinner spinner cancel-control
+ * @mashnode confirm confirm actions
+ * @mashnode confirm-control control confirm
+ * @mashnode confirm-prefix prefix confirm-control
+ * @mashnode confirm-label label confirm-control
+ * @mashnode confirm-suffix suffix confirm-control
+ * @mashnode confirm-spinner spinner confirm-control
+ * @mashnode pending pending root
+ * @mashnode tone tone root
  */
 export class ShrineConfirm extends LitElement {
   static override properties = {
@@ -56,52 +124,23 @@ export class ShrineConfirm extends LitElement {
 
   declare private _hasTitle: boolean;
 
+  readonly #internals: ElementInternals;
+
   constructor() {
     super();
     this.tone = "accent";
     this.pending = false;
     this._hasTitle = false;
+    this.#internals = this.attachInternals();
   }
 
-  static override styles = css`
-    :host {
-      display: block;
-      box-sizing: border-box;
-    }
+  static override styles = baseStyles;
 
-    :host([hidden]) {
-      display: none !important;
-    }
-
-    /* Everything below is layout between composed parts. Colour, radius,
-       elevation and control styling belong to <ui-card> and <ui-button>, and
-       are deliberately not restated here. */
-
-    .title {
-      margin: 0 0 var(--space-stack);
-      font-family: var(--type-heading-font-family);
-      font-size: var(--type-heading-font-size);
-      font-weight: var(--type-heading-font-weight);
-      line-height: var(--type-heading-line-height);
-      color: var(--color-text);
-    }
-
-    .title[hidden] {
-      display: none;
-    }
-
-    .message {
-      color: var(--color-text-muted);
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-inline);
-      /* Actions sit at the trailing edge, which flips under RTL. */
-      justify-content: flex-end;
-    }
-  `;
+  protected override updated(changed: PropertyValues<this>): void {
+    if (!changed.has("pending")) return;
+    if (this.pending) this.#internals.states.add("pending");
+    else this.#internals.states.delete("pending");
+  }
 
   #onTitleSlotChange = (event: Event): void => {
     const slot = event.target as HTMLSlotElement;
@@ -124,18 +163,25 @@ export class ShrineConfirm extends LitElement {
 
   protected override render(): TemplateResult {
     return html`
-      <ui-card part="card" elevation="raised">
-        <h2 part="title" class="title" ?hidden=${!this._hasTitle}>
+      <ui-card
+        part="card"
+        elevation="raised"
+        exportparts="header:card-header,content:card-content,footer:card-footer"
+      >
+        <h2 slot="title" part="title" class="title" ?hidden=${!this._hasTitle}>
           <slot name="title" @slotchange=${this.#onTitleSlotChange}></slot>
         </h2>
 
-        <div part="message" class="message"><slot></slot></div>
+        <div slot="content" part="description message" class="message">
+          <slot name="description"><slot></slot></slot>
+        </div>
 
         <div slot="footer" part="actions" class="actions">
           <ui-button
             part="cancel"
             variant="quiet"
             tone="neutral"
+            exportparts="control:cancel-control,prefix:cancel-prefix,label:cancel-label,suffix:cancel-suffix,spinner:cancel-spinner"
             ?disabled=${this.pending}
             @click=${this.#onCancel}
           >
@@ -146,6 +192,7 @@ export class ShrineConfirm extends LitElement {
             part="confirm"
             variant="primary"
             tone=${BUTTON_TONE[this.tone]}
+            exportparts="control:confirm-control,prefix:confirm-prefix,label:confirm-label,suffix:confirm-suffix,spinner:confirm-spinner"
             ?loading=${this.pending}
             @click=${this.#onConfirm}
           >

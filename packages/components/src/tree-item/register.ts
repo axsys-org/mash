@@ -1,3 +1,4 @@
+import "../path/register.js";
 import { UITreeItem } from "./tree-item.js";
 
 // If this component composes elements from another package, import their

@@ -1,0 +1,635 @@
+import { LitElement, css, html, nothing, type PropertyValues, type TemplateResult } from "lit";
+
+import {
+  AnchoredPositionController,
+  type AnchoredAlign,
+  type AnchoredPlacement,
+} from "../internal/anchored-position.js";
+import { baseStyles } from "../internal/base-styles.js";
+import type { OverlayChangeReason, OverlayOpenChangeDetail } from "../internal/overlay.js";
+import { stringArrayConverter } from "../internal/string-array.js";
+import type { UIOption } from "../option/option.js";
+
+let comboboxListId = 0;
+
+function optionLabel(option: UIOption): string {
+  return [...option.childNodes]
+    .filter((node) => !(node instanceof HTMLElement && node.slot))
+    .map((node) => node.textContent ?? "")
+    .join("")
+    .trim();
+}
+
+/**
+ * A form-associated editable listbox with filterable slotted options.
+ *
+ * The component leaves option sourcing to the caller—static slots, rendered
+ * search results, or an async wrapper all work—while it owns editable input,
+ * listbox relationships, keyboard opening, selection, and form state.
+ *
+ * @tag ui-combobox
+ * @summary Edits or selects one value from filterable slotted options.
+ *
+ * @example Assign owner
+ * <ui-combobox name="owner" label="Owner">
+ *   <ui-option value="maya">Maya</ui-option>
+ *   <ui-option value="sam">Sam</ui-option>
+ * </ui-combobox>
+ *
+ * @slot - `ui-option` suggestions or `ui-option-row` grid rows.
+ * @slot label - Optional visible label content.
+ * @slot chips - Selected-value chips used when `multiple` is active.
+ * @slot value - Optional authored value/chip presentation beside the input.
+ * @slot trigger - Optional control that toggles the suggestion popup.
+ * @slot icon - Optional symbolic content associated with the input.
+ * @slot clear - Optional control that clears the current value.
+ * @slot backdrop - Optional renderer-specific backdrop content.
+ * @slot arrow - Optional connector between the popup and its anchor.
+ * @slot empty - Content shown when filtering leaves no suggestions.
+ *
+ * @csspart root - The complete combobox realization.
+ * @csspart label - The optional visible label.
+ * @csspart input-group - The input, value, and adjacent actions.
+ * @csspart chips - The selected-value chip collection.
+ * @csspart control - The native editable combobox input.
+ * @csspart value - Optional authored value or chip presentation.
+ * @csspart trigger - The optional popup trigger.
+ * @csspart icon - Optional symbolic content.
+ * @csspart clear - The optional clear action.
+ * @csspart backdrop - The optional layer behind the popup.
+ * @csspart positioner - The owner of anchor-relative popup placement.
+ * @csspart popup - The floating suggestion surface.
+ * @csspart arrow - The popup-to-anchor connector.
+ * @csspart status - The live result-count announcement.
+ * @csspart empty - The authored empty-result content.
+ * @csspart listbox - The semantic listbox of suggestions.
+ * @csspart list - Alias for the semantic suggestion list.
+ * @csspart children - The authored suggestion collection.
+ *
+ * @cssstate open - Matches `:state(open)` while suggestions are visible.
+ * @cssstate disabled - Matches `:state(disabled)` while unavailable.
+ * @cssstate readonly - Matches `:state(readonly)` while selection cannot change.
+ * @cssstate multiple - Matches `:state(multiple)` while multiple values are selected.
+ * @cssstate grid - Matches `:state(grid)` while suggestions use two-dimensional navigation.
+ * @cssstate empty - Matches `:state(empty)` while no enabled suggestion is available.
+ * @cssstate invalid - Matches `:state(invalid)` while the owning field reports an error.
+ *
+ * @fires {CustomEvent<{ value: string }>} ui-combobox-input - Emitted as the editable text changes.
+ * @fires {CustomEvent<{ value: string; values: string[] }>} ui-combobox-change - Emitted after selection changes.
+ * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-combobox-open-change - Emitted after interaction changes suggestion visibility, including a portable reason.
+ *
+ * @mashrole part input-group group input-group
+ * @mashrole slot arrow pointer arrow
+ * @mashrole part arrow pointer arrow
+ * @mashrole part list listbox listbox
+ * @mashrole attribute values value values
+ * @mashrole attribute grid grid-mode grid-mode
+ * @mashrole state grid grid-mode grid-mode
+ * @mashnode root root
+ * @mashnode label label root
+ * @mashnode input-group group root
+ * @mashnode chips chips input-group
+ * @mashnode control control input-group
+ * @mashnode value value input-group
+ * @mashnode trigger trigger input-group
+ * @mashnode icon icon input-group
+ * @mashnode clear clear input-group
+ * @mashnode backdrop backdrop root
+ * @mashnode positioner positioner root
+ * @mashnode placement placement positioner
+ * @mashnode align align positioner
+ * @mashnode offset offset positioner
+ * @mashnode collision-padding collision-padding positioner
+ * @mashnode popup popup positioner
+ * @mashnode arrow pointer popup
+ * @mashnode status status popup
+ * @mashnode empty empty popup
+ * @mashnode listbox listbox popup
+ * @mashnode children children listbox
+ * @mashnode values value root
+ * @mashnode grid-mode grid-mode root
+ * @mashnode open open root
+ * @mashnode invalid invalid control
+ * @mashrole event ui-combobox-open-change open open
+ * @mashrole slot default children children
+ */
+export class UICombobox extends LitElement {
+  static formAssociated = true;
+  static override shadowRootOptions: ShadowRootInit = {
+    ...LitElement.shadowRootOptions,
+    delegatesFocus: true,
+  };
+  static override properties = {
+    value: { type: String, reflect: true },
+    values: { converter: stringArrayConverter, reflect: true },
+    multiple: { type: Boolean, reflect: true },
+    grid: { type: Boolean, reflect: true },
+    name: { type: String, reflect: true },
+    label: { type: String, reflect: true },
+    placeholder: { type: String, reflect: true },
+    open: { type: Boolean, reflect: true },
+    disabled: { type: Boolean, reflect: true },
+    readonly: { type: Boolean, reflect: true },
+    placement: { type: String, reflect: true },
+    align: { type: String, reflect: true },
+    offset: { type: Number, reflect: true },
+    collisionPadding: { type: Number, attribute: "collision-padding", reflect: true },
+    _resultCount: { type: Number, state: true },
+    _activeOptionId: { type: String, state: true },
+  };
+
+  /** Current editable or selected value. */
+  declare value: string;
+  /** Selected values while `multiple` is active. */
+  declare values: string[];
+  /** Allows more than one option to be selected. */
+  declare multiple: boolean;
+  /** Uses grid roles and two-dimensional option-row navigation. */
+  declare grid: boolean;
+  /** Form key used for submission. */
+  declare name: string;
+  /** Accessible name for the editable input. */
+  declare label: string;
+  /** Hint shown while the input is empty. */
+  declare placeholder: string;
+  /** Whether suggestions are visible. */
+  declare open: boolean;
+  /** Prevents editing and form participation. */
+  declare disabled: boolean;
+  /** Prevents edits while preserving focus and submitted values. */
+  declare readonly: boolean;
+  /** Preferred side of the suggestion popup before collision handling. */
+  declare placement: AnchoredPlacement;
+  /** Logical popup alignment along the selected side. */
+  declare align: AnchoredAlign;
+  /** Gap in CSS pixels between the popup and editable control. */
+  declare offset: number;
+  /** Minimum viewport-edge clearance in CSS pixels. */
+  declare collisionPadding: number;
+  declare private _resultCount: number;
+  declare private _activeOptionId: string;
+
+  readonly #internals: ElementInternals;
+  readonly #listboxId = `ui-combobox-listbox-${++comboboxListId}`;
+  #formDisabled = false;
+  #defaultValue: string | undefined;
+  #defaultValues: string[] | undefined;
+  #fieldDescription = "";
+  #fieldInvalid = false;
+  readonly #collectionObserver = new MutationObserver(() => {
+    this.#sync();
+    this.#positioner.queue();
+  });
+  readonly #positioner = new AnchoredPositionController(this, {
+    anchor: () => this.renderRoot.querySelector<HTMLElement>("[part~='input-group']"),
+    popup: () => this.renderRoot.querySelector<HTMLElement>("[part~='popup']"),
+    positioner: () => this.renderRoot.querySelector<HTMLElement>("[part~='positioner']"),
+    config: () => this,
+  });
+
+  constructor() {
+    super();
+    this.value = "";
+    this.values = [];
+    this.multiple = false;
+    this.grid = false;
+    this.name = "";
+    this.label = "Search options";
+    this.placeholder = "";
+    this.open = false;
+    this.disabled = false;
+    this.readonly = false;
+    this.placement = "bottom";
+    this.align = "start";
+    this.offset = 4;
+    this.collisionPadding = 4;
+    this._resultCount = 0;
+    this._activeOptionId = "";
+    this.#internals = this.attachInternals();
+    this.addEventListener("ui-option-select", this.#onOptionSelect);
+    this.addEventListener("ui-chip-remove", this.#onChipRemove);
+    this.addEventListener("click", this.#onComposedClick);
+  }
+
+  static override styles = [
+    baseStyles,
+    css`
+      [part~="root"],
+      [part~="label"],
+      [part~="input-group"],
+      [part~="chips"],
+      [part~="value"],
+      [part~="trigger"],
+      [part~="icon"],
+      [part~="clear"],
+      [part~="arrow"],
+      [part~="empty"] {
+        display: contents;
+      }
+
+      [part~="status"] {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+    `,
+  ];
+  get #isDisabled(): boolean {
+    return this.disabled || this.#formDisabled;
+  }
+  #options(): UIOption[] {
+    return [...this.querySelectorAll<UIOption>("ui-option")];
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this.#defaultValue ??= this.value;
+    this.#defaultValues ??= [...this.values];
+    this.#collectionObserver.observe(this, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+  }
+
+  override disconnectedCallback(): void {
+    this.#collectionObserver.disconnect();
+    this.#positioner.stop();
+    this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
+    super.disconnectedCallback();
+  }
+
+  #sync(): void {
+    const needle = this.value.trim().toLocaleLowerCase();
+    const options = this.#options();
+    for (const option of options) {
+      option.hidden = Boolean(needle) && !optionLabel(option).toLocaleLowerCase().includes(needle);
+      option.selected = this.multiple
+        ? this.values.includes(option.value)
+        : option.value === this.value;
+    }
+    for (const row of this.querySelectorAll<HTMLElement>("ui-option-row")) {
+      row.hidden = [...row.querySelectorAll<UIOption>("ui-option")].every(
+        (option) => option.hidden,
+      );
+    }
+    this._resultCount = options.filter((option) => !option.hidden && !option.disabled).length;
+    if (this._resultCount === 0) this.#internals.states.add("empty");
+    else this.#internals.states.delete("empty");
+    const active = options.find((option) => option.id === this._activeOptionId);
+    if (active && (active.hidden || active.disabled)) this.#setActive(null);
+    if (this.#isDisabled || !this.name) {
+      this.#internals.setFormValue(null);
+    } else if (this.multiple) {
+      const formValue = new FormData();
+      for (const value of this.values) formValue.append(this.name, value);
+      this.#internals.setFormValue(formValue);
+    } else {
+      this.#internals.setFormValue(this.value);
+    }
+    if (this.open) this.#internals.states.add("open");
+    else this.#internals.states.delete("open");
+    if (this.#isDisabled) this.#internals.states.add("disabled");
+    else this.#internals.states.delete("disabled");
+    for (const state of ["readonly", "multiple", "grid"] as const) {
+      if (this[state]) this.#internals.states.add(state);
+      else this.#internals.states.delete(state);
+    }
+  }
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    if (
+      changed.has("value") ||
+      changed.has("values") ||
+      changed.has("multiple") ||
+      changed.has("grid") ||
+      changed.has("name") ||
+      changed.has("open") ||
+      changed.has("disabled") ||
+      changed.has("readonly")
+    )
+      this.#sync();
+  }
+
+  protected override updated(): void {
+    if (this.open) {
+      this.#positioner.start();
+      this.#positioner.queue();
+      this.ownerDocument.addEventListener("pointerdown", this.#onDocumentPointerDown, true);
+    } else {
+      this.#positioner.stop();
+      this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
+    }
+  }
+
+  formDisabledCallback(disabled: boolean): void {
+    this.#formDisabled = disabled;
+    this.requestUpdate();
+  }
+  formResetCallback(): void {
+    this.value = this.#defaultValue ?? "";
+    this.values = [...(this.#defaultValues ?? [])];
+    this.open = false;
+  }
+  formStateRestoreCallback(state: string | File | FormData | null): void {
+    if (typeof state === "string") this.value = state;
+    else if (state instanceof FormData) {
+      this.values = state
+        .getAll(this.name)
+        .filter((value): value is string => typeof value === "string");
+    }
+  }
+
+  #setOpen(open: boolean, reason: OverlayChangeReason): void {
+    if (this.#isDisabled || (this.readonly && open) || this.open === open) return;
+    this.open = open;
+    if (!open) this.#setActive(null);
+    this.dispatchEvent(
+      new CustomEvent<OverlayOpenChangeDetail>("ui-combobox-open-change", {
+        bubbles: true,
+        composed: true,
+        detail: { open, reason },
+      }),
+    );
+  }
+
+  #onDocumentPointerDown = (event: PointerEvent): void => {
+    if (this.open && !event.composedPath().includes(this)) this.#setOpen(false, "outside");
+  };
+
+  /** @internal Cooperative field context without introducing visual anatomy. */
+  _setFieldContext(context: { description: string; invalid: boolean }): void {
+    this.#fieldDescription = context.description;
+    this.#fieldInvalid = context.invalid;
+    if (context.invalid) this.#internals.states.add("invalid");
+    else this.#internals.states.delete("invalid");
+    this.requestUpdate();
+  }
+
+  #onInput = (event: Event): void => {
+    if (this.readonly) return;
+    this.value = (event.currentTarget as HTMLInputElement).value;
+    this.#setActive(null);
+    this.#setOpen(true, "input");
+    this.dispatchEvent(
+      new CustomEvent<{ value: string }>("ui-combobox-input", {
+        bubbles: true,
+        composed: true,
+        detail: { value: this.value },
+      }),
+    );
+  };
+
+  #onOptionSelect = (event: Event): void => {
+    if (this.readonly) return;
+    const target = event.target;
+    if (!(target instanceof HTMLElement) || target.localName !== "ui-option") return;
+    this.#commitOption(target as UIOption);
+  };
+
+  #commitOption(option: UIOption): void {
+    const selectedValue = option.value || optionLabel(option);
+    if (this.multiple) {
+      this.values = this.values.includes(selectedValue)
+        ? this.values.filter((value) => value !== selectedValue)
+        : [...this.values, selectedValue];
+      this.value = "";
+      this.#setOpen(true, "select");
+    } else {
+      this.value = selectedValue;
+      this.#setOpen(false, "select");
+    }
+    this.dispatchEvent(
+      new CustomEvent<{ value: string; values: string[] }>("ui-combobox-change", {
+        bubbles: true,
+        composed: true,
+        detail: { value: this.value, values: this.multiple ? [...this.values] : [this.value] },
+      }),
+    );
+  }
+
+  #visibleOptions(): UIOption[] {
+    return this.#options().filter((option) => !option.disabled && !option.hidden);
+  }
+
+  #visibleGridRows(): UIOption[][] {
+    return [...this.querySelectorAll<HTMLElement>("ui-option-row")]
+      .filter((row) => !row.hidden)
+      .map((row) =>
+        [...row.querySelectorAll<UIOption>("ui-option")].filter(
+          (option) => !option.disabled && !option.hidden,
+        ),
+      )
+      .filter((row) => row.length > 0);
+  }
+
+  #setActive(option: UIOption | null): void {
+    for (const candidate of this.#options()) candidate.active = candidate === option;
+    this._activeOptionId = option?.id ?? "";
+  }
+
+  #moveActive(direction: 1 | -1): void {
+    const options = this.#visibleOptions();
+    if (options.length === 0) return;
+    const current = options.findIndex((option) => option.id === this._activeOptionId);
+    const next =
+      current === -1
+        ? direction === 1
+          ? 0
+          : options.length - 1
+        : (current + direction + options.length) % options.length;
+    this.#setActive(options[next] ?? null);
+  }
+
+  #moveGridActive(key: "ArrowDown" | "ArrowLeft" | "ArrowRight" | "ArrowUp"): void {
+    const rows = this.#visibleGridRows();
+    if (rows.length === 0) return;
+    const currentOption = this.#options().find((option) => option.id === this._activeOptionId);
+    const rowIndex = rows.findIndex((row) => currentOption != null && row.includes(currentOption));
+    if (rowIndex === -1) {
+      const initial = key === "ArrowUp" ? rows.at(-1)?.at(-1) : rows[0]?.[0];
+      this.#setActive(initial ?? null);
+      return;
+    }
+
+    const row = rows[rowIndex]!;
+    const columnIndex = row.indexOf(currentOption!);
+    if (key === "ArrowLeft" || key === "ArrowRight") {
+      const rtl = getComputedStyle(this).direction === "rtl";
+      const logicalDirection = key === "ArrowRight" ? 1 : -1;
+      const direction = rtl ? -logicalDirection : logicalDirection;
+      const nextColumn = Math.max(0, Math.min(row.length - 1, columnIndex + direction));
+      this.#setActive(row[nextColumn] ?? null);
+      return;
+    }
+
+    const nextRowIndex = Math.max(
+      0,
+      Math.min(rows.length - 1, rowIndex + (key === "ArrowDown" ? 1 : -1)),
+    );
+    const nextRow = rows[nextRowIndex]!;
+    this.#setActive(nextRow[Math.min(columnIndex, nextRow.length - 1)] ?? null);
+  }
+
+  #onChipRemove = (event: Event): void => {
+    if (!this.multiple || this.#isDisabled || this.readonly) return;
+    const value = (event as CustomEvent<{ value: string }>).detail.value;
+    if (!this.values.includes(value)) return;
+    this.values = this.values.filter((selected) => selected !== value);
+    this.dispatchEvent(
+      new CustomEvent<{ value: string; values: string[] }>("ui-combobox-change", {
+        bubbles: true,
+        composed: true,
+        detail: { value: this.value, values: [...this.values] },
+      }),
+    );
+    queueMicrotask(() => this.renderRoot.querySelector<HTMLInputElement>("input")?.focus());
+  };
+
+  #eventIsWithinSlot(event: Event, name: string): boolean {
+    const path = event.composedPath();
+    return [...this.querySelectorAll<HTMLElement>(`:scope > [slot="${name}"]`)].some((element) =>
+      path.includes(element),
+    );
+  }
+
+  #onComposedClick = (event: MouseEvent): void => {
+    if (this.#eventIsWithinSlot(event, "label")) {
+      this.renderRoot.querySelector<HTMLInputElement>("input")?.focus();
+      return;
+    }
+    if (this.#eventIsWithinSlot(event, "trigger")) {
+      event.preventDefault();
+      this.#setOpen(!this.open, "trigger");
+      return;
+    }
+    if (!this.#eventIsWithinSlot(event, "clear") || this.#isDisabled || this.readonly) return;
+    event.preventDefault();
+    if (!this.value && this.values.length === 0) return;
+    this.value = "";
+    this.values = [];
+    this.#setOpen(true, "clear");
+    this.dispatchEvent(
+      new CustomEvent<{ value: string }>("ui-combobox-input", {
+        bubbles: true,
+        composed: true,
+        detail: { value: "" },
+      }),
+    );
+    this.dispatchEvent(
+      new CustomEvent<{ value: string; values: string[] }>("ui-combobox-change", {
+        bubbles: true,
+        composed: true,
+        detail: { value: "", values: [] },
+      }),
+    );
+    queueMicrotask(() => this.renderRoot.querySelector<HTMLInputElement>("input")?.focus());
+  };
+
+  #onKeydown = (event: KeyboardEvent): void => {
+    if (this.readonly && event.key !== "Escape") return;
+    if (event.key === "Escape") {
+      if (this.open) event.preventDefault();
+      this.#setOpen(false, "escape");
+      return;
+    }
+    if (
+      this.grid &&
+      this._activeOptionId &&
+      (event.key === "ArrowDown" ||
+        event.key === "ArrowUp" ||
+        event.key === "ArrowLeft" ||
+        event.key === "ArrowRight")
+    ) {
+      event.preventDefault();
+      this.#moveGridActive(event.key);
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      this.#setOpen(true, "keyboard");
+      if (this.grid) this.#moveGridActive(event.key);
+      else this.#moveActive(event.key === "ArrowDown" ? 1 : -1);
+      return;
+    }
+    if (event.key === "Enter" && this.open && this._activeOptionId) {
+      const active = this.#options().find((option) => option.id === this._activeOptionId);
+      if (!active) return;
+      event.preventDefault();
+      this.#commitOption(active);
+    }
+  };
+
+  /** Opens the suggestion surface through the portable open-change contract. */
+  show(): void {
+    this.#setOpen(true, "imperative");
+  }
+
+  /** Dismisses the suggestion surface through the portable open-change contract. */
+  dismiss(reason: OverlayChangeReason = "imperative"): void {
+    this.#setOpen(false, reason);
+  }
+
+  /** Toggles the suggestion surface while retaining a transition reason. */
+  toggle(reason: OverlayChangeReason = "imperative"): void {
+    this.#setOpen(!this.open, reason);
+  }
+
+  protected override render(): TemplateResult {
+    return html`
+      <span part="root">
+        <span part="label"><slot name="label"></slot></span>
+        <span part="input-group">
+          <span part="chips" role="list"><slot name="chips"></slot></span>
+          <span part="value"><slot name="value"></slot></span>
+          <input
+            part="control"
+            type="text"
+            role="combobox"
+            .value=${this.value}
+            placeholder=${this.placeholder}
+            aria-label=${this.label}
+            aria-description=${this.#fieldDescription || nothing}
+            aria-invalid=${this.#fieldInvalid ? "true" : nothing}
+            aria-controls=${this.open ? this.#listboxId : nothing}
+            aria-expanded=${this.open ? "true" : "false"}
+            aria-activedescendant=${this._activeOptionId || nothing}
+            aria-autocomplete="list"
+            aria-haspopup=${this.grid ? "grid" : "listbox"}
+            ?disabled=${this.#isDisabled}
+            ?readonly=${this.readonly}
+            @input=${this.#onInput}
+            @keydown=${this.#onKeydown}
+          />
+          <span part="icon"><slot name="icon"></slot></span>
+          <span part="trigger"><slot name="trigger"></slot></span>
+          <span part="clear"><slot name="clear"></slot></span>
+        </span>
+        <span part="backdrop" ?hidden=${!this.open}><slot name="backdrop"></slot></span>
+        <div part="positioner" ?hidden=${!this.open}>
+          <div part="popup">
+            <span part="arrow"><slot name="arrow"></slot></span>
+            <span part="status" role="status" aria-live="polite">
+              ${this._resultCount} ${this._resultCount === 1 ? "result" : "results"} available
+            </span>
+            <span part="empty" ?hidden=${this._resultCount !== 0}>
+              <slot name="empty"></slot>
+            </span>
+            <div
+              part="listbox list"
+              id=${this.#listboxId}
+              role=${this.grid ? "grid" : "listbox"}
+              aria-label=${this.label}
+              aria-multiselectable=${this.multiple ? "true" : nothing}
+            >
+              <slot part="children" @slotchange=${() => this.#sync()}></slot>
+            </div>
+          </div>
+        </div>
+      </span>
+    `;
+  }
+}

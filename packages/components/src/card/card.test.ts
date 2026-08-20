@@ -1,8 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { fixture, inShadow, settled, shadow } from "../test-support/fixture.js";
+import "../catalogue/mash.css";
 import { UICard } from "./card.js";
 import "./register.js";
+
+beforeEach(() => {
+  document.documentElement.dataset.mashCatalogue = "mash";
+});
+
+afterEach(() => {
+  delete document.documentElement.dataset.mashCatalogue;
+});
 
 describe("ui-card: lifecycle", () => {
   it("registers and upgrades", async () => {
@@ -31,10 +40,11 @@ describe("ui-card: slots and regions", () => {
     expect(inShadow(card, ".content").hasAttribute("hidden")).toBe(false);
   });
 
-  it("shows the header and footer once their slots are filled", async () => {
+  it("shows semantic title, value, and footer regions once their slots are filled", async () => {
     const card = await fixture<UICard>(`
       <ui-card>
-        <h2 slot="header">Title</h2>
+        <h2 slot="title">Title</h2>
+        <strong slot="value">64%</strong>
         Body
         <div slot="footer">Actions</div>
       </ui-card>
@@ -42,6 +52,12 @@ describe("ui-card: slots and regions", () => {
 
     expect(inShadow(card, ".header").hasAttribute("hidden")).toBe(false);
     expect(inShadow(card, ".footer").hasAttribute("hidden")).toBe(false);
+    expect(inShadow<HTMLSlotElement>(card, 'slot[name="title"]').assignedElements()).toHaveLength(
+      1,
+    );
+    expect(inShadow<HTMLSlotElement>(card, 'slot[name="value"]').assignedElements()).toHaveLength(
+      1,
+    );
   });
 
   it("reveals the header when content is added after first render", async () => {
@@ -49,7 +65,7 @@ describe("ui-card: slots and regions", () => {
     expect(inShadow(card, ".header").hasAttribute("hidden")).toBe(true);
 
     const heading = document.createElement("h2");
-    heading.slot = "header";
+    heading.slot = "title";
     heading.textContent = "Added later";
     card.append(heading);
     await settled(card.parentElement!);
@@ -61,11 +77,24 @@ describe("ui-card: slots and regions", () => {
     const card = await fixture<UICard>(`<ui-card>Body</ui-card>`);
     const parts = [...shadow(card).querySelectorAll("[part]")].map((el) => el.getAttribute("part"));
 
-    expect(parts).toEqual(expect.arrayContaining(["header", "content", "footer"]));
+    expect(parts).toEqual(
+      expect.arrayContaining([
+        "header",
+        "prefix",
+        "identity",
+        "title",
+        "description",
+        "value",
+        "meta",
+        "actions",
+        "content",
+        "footer",
+      ]),
+    );
   });
 });
 
-describe("ui-card: design tokens and theming", () => {
+describe("ui-card: Mash recipe", () => {
   it("takes its surface colour from the theme", async () => {
     const card = await fixture<UICard>(`<ui-card>Body</ui-card>`);
     const probe = await fixture<HTMLElement>(
@@ -99,12 +128,7 @@ describe("ui-card: design tokens and theming", () => {
     expect(getComputedStyle(raised).boxShadow).not.toBe("none");
   });
 
-  it("honours the public --card-padding property", async () => {
-    const card = await fixture<UICard>(`<ui-card style="--card-padding: 0">Body</ui-card>`);
-    expect(getComputedStyle(inShadow(card, ".content")).paddingTop).toBe("0px");
-  });
-
-  it("falls back to the semantic container spacing when --card-padding is unset", async () => {
+  it("takes region spacing from the active Mash recipe", async () => {
     const card = await fixture<UICard>(`<ui-card>Body</ui-card>`);
     expect(parseFloat(getComputedStyle(inShadow(card, ".content")).paddingTop)).toBeGreaterThan(0);
   });

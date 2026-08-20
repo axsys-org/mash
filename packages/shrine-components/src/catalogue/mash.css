@@ -1,0 +1,366 @@
+/**
+ * The Mash interpretation of Shrine patterns.
+ *
+ * Shrine definition modules expose structure, composite behaviour, and stable
+ * parts only. This opt-in recipe owns every visual choice, including layout
+ * between composed UI controls. It deliberately forwards through nested
+ * `ui-card`, `ui-badge`, and `ui-button` parts so a Shrine pattern never needs
+ * to smuggle a second visual system into its shadow root.
+ */
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) sh-locator {
+    display: block;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-locator::part(root) {
+    display: block;
+    min-block-size: calc(var(--space-control-block) + var(--space-control-block));
+    padding: var(--space-control-block) var(--space-control-inline);
+    border-block-end: var(--border-hairline) solid var(--color-border);
+    background: var(--color-surface-sunken);
+    color: var(--color-text-muted);
+    font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
+      var(--type-code-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych {
+    display: block;
+    block-size: 100dvh;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(shell) {
+    display: grid;
+    grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr) minmax(16rem, 20rem);
+    block-size: 100%;
+    overflow: hidden;
+    background: var(--color-canvas);
+    color: var(--color-text);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych:not([inspector-open])::part(shell) {
+    grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar) {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-inline-size: var(--layout-dimension-zero);
+    min-block-size: var(--layout-dimension-zero);
+    overflow: hidden;
+    border-inline-end: var(--border-hairline) solid var(--color-border);
+    background: var(--color-surface-sunken);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(main),
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector) {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-inline-size: var(--layout-dimension-zero);
+    min-block-size: var(--layout-dimension-zero);
+    overflow: hidden;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector) {
+    border-inline-start: var(--border-hairline) solid var(--color-border);
+    background: var(--color-surface-sunken);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar-body),
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(main-body),
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector-body) {
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+    min-block-size: var(--layout-dimension-zero);
+    block-size: 100%;
+    overflow: hidden;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar-scroll-root),
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(main-scroll-root),
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector-scroll-root) {
+    block-size: 100%;
+    min-block-size: var(--layout-dimension-zero);
+    overflow: hidden;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar-viewport),
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(main-viewport),
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector-viewport) {
+    block-size: 100%;
+    overflow: auto;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(locator),
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector-locator) {
+    min-block-size: calc(var(--space-control-block) + var(--space-control-block));
+    border-block-end: var(--border-hairline) solid var(--color-border);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(navigate) {
+    min-block-size: calc(var(--space-container-block) + var(--space-control-block));
+    border-block-start: var(--border-hairline) solid var(--color-border);
+  }
+
+  @media (max-width: 52rem) {
+    :where([data-mash-catalogue="mash"]) sh-triptych::part(shell),
+    :where([data-mash-catalogue="mash"]) sh-triptych:not([inspector-open])::part(shell) {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(8rem, 0.8fr) minmax(12rem, 2fr) minmax(8rem, 0.8fr);
+    }
+
+    :where([data-mash-catalogue="mash"]) sh-triptych:not([inspector-open])::part(shell) {
+      grid-template-rows: minmax(8rem, 0.8fr) minmax(12rem, 2fr);
+    }
+
+    :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar) {
+      border-inline-end: 0;
+      border-block-end: var(--border-hairline) solid var(--color-border);
+    }
+
+    :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector) {
+      border-inline-start: 0;
+      border-block-start: var(--border-hairline) solid var(--color-border);
+    }
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth {
+    display: block;
+    inline-size: min(100%, var(--layout-dimension-record));
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(root) {
+    display: block;
+    border: var(--border-hairline) solid var(--color-border);
+    border-radius: var(--radius-container);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(card-content) {
+    padding: var(--space-container-block) var(--space-container-inline);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(card-header) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: start;
+    gap: var(--space-container-gap);
+    padding: var(--space-container-block) var(--space-container-inline);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(identity) {
+    display: grid;
+    min-inline-size: var(--layout-dimension-zero);
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(card-title),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(card-description),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(card-value),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(card-actions) {
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(title),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(path) {
+    min-inline-size: var(--layout-dimension-zero);
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(title) {
+    color: var(--color-text);
+    font: var(--type-heading-font-weight) var(--type-heading-font-size) /
+      var(--type-heading-line-height) var(--type-heading-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(path) {
+    color: var(--color-text-muted);
+    font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
+      var(--type-code-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(kind) {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(kind-content) {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-control-block-small) var(--space-control-inline-small);
+    border-radius: var(--radius-pill);
+    background: var(--color-action);
+    color: var(--color-on-action);
+    font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-small-font-family);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(limbs) {
+    display: grid;
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-limb {
+    display: block;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-limb::part(root) {
+    display: grid;
+    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-control-inline);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-limb::part(label),
+  :where([data-mash-catalogue="mash"]) sh-limb::part(slot),
+  :where([data-mash-catalogue="mash"]) sh-limb::part(value) {
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-slot,
+  :where([data-mash-catalogue="mash"]) sh-pail {
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-slot::part(root) {
+    color: var(--color-text-muted);
+    font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
+      var(--type-code-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-pail::part(root) {
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm {
+    display: block;
+    inline-size: min(100%, var(--layout-dimension-dialog));
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(card) {
+    display: block;
+    border: var(--border-hairline) solid var(--color-border);
+    border-radius: var(--radius-container);
+    background: var(--color-surface-raised);
+    color: var(--color-text);
+    box-shadow:
+      0 1px 2px var(--color-shadow),
+      0 4px 12px var(--color-shadow);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(card-header),
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(card-content),
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(card-footer) {
+    padding: var(--space-container-block) var(--space-container-inline);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(card-footer) {
+    border-block-start: var(--border-hairline) solid var(--color-border);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(title) {
+    margin: 0 0 var(--space-container-block);
+    color: var(--color-text);
+    font: var(--type-heading-font-weight) var(--type-heading-font-size) /
+      var(--type-heading-line-height) var(--type-heading-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(message) {
+    color: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(actions) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(confirm),
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(cancel) {
+    display: inline-flex;
+    --_mash-button-inline: var(--space-control-inline);
+    --_mash-button-block: var(--space-control-block);
+    --_mash-button-font-size: var(--type-label-font-size);
+    --_mash-button-font-weight: var(--type-label-font-weight);
+    --_mash-button-line-height: var(--type-label-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(confirm) {
+    --_mash-button-tone: var(--color-action);
+    --_mash-button-hover: var(--color-action-hover);
+    --_mash-button-pressed: var(--color-action-pressed);
+    --_mash-button-bg: var(--_mash-button-tone);
+    --_mash-button-fg: var(--color-on-action);
+    --_mash-button-border: transparent;
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm[tone="critical"]::part(confirm) {
+    --_mash-button-tone: var(--color-critical);
+    --_mash-button-hover: var(--color-critical-hover);
+    --_mash-button-pressed: var(--color-critical-pressed);
+    --_mash-button-fg: var(--color-on-critical);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(cancel) {
+    --_mash-button-tone: var(--color-neutral);
+    --_mash-button-hover: var(--color-neutral-hover);
+    --_mash-button-pressed: var(--color-neutral-pressed);
+    --_mash-button-bg: transparent;
+    --_mash-button-fg: var(--color-text);
+    --_mash-button-border: transparent;
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(confirm-control),
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(cancel-control) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    border: var(--border-hairline) solid var(--_mash-button-border);
+    border-radius: var(--radius-control);
+    padding: var(--_mash-button-block) var(--_mash-button-inline);
+    background: var(--_mash-button-bg);
+    color: var(--_mash-button-fg);
+    font: var(--_mash-button-font-weight) var(--_mash-button-font-size) /
+      var(--_mash-button-line-height) var(--type-label-font-family);
+    cursor: pointer;
+    transition: background-color var(--duration-control) var(--easing-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(confirm-control):hover:not(:disabled),
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(cancel-control):hover:not(:disabled) {
+    background: var(--_mash-button-hover);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(confirm-control):focus-visible,
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(cancel-control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(confirm-control):disabled,
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(cancel-control):disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+
+  @media (max-width: 520px) {
+    :where([data-mash-catalogue="mash"]) sh-limb::part(root) {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-control-gap);
+    }
+  }
+}
