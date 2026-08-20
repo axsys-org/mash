@@ -388,9 +388,9 @@ describe("ui-button: Mash recipe", () => {
   const background = (button: Element) => getComputedStyle(control(button)).backgroundColor;
 
   it("paints its background from --color-action, not from a hardcoded value", async () => {
-    const button = await fixture<UIButton>(`<ui-button>Go</ui-button>`);
-    button.style.setProperty("--color-action", "rgb(1 2 3)");
-    button.style.setProperty("--duration-control", "0ms");
+    const button = await fixture<UIButton>(
+      `<ui-button style="--color-action: rgb(1 2 3); --duration-control: 0ms">Go</ui-button>`,
+    );
     const probe = await fixture<HTMLElement>(`<div style="background-color: rgb(1 2 3)"></div>`);
 
     // A custom token override must flow through the catalogue recipe to the

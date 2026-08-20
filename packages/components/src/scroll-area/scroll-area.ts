@@ -198,6 +198,7 @@ export class UIScrollArea extends LitElement {
     if (this.#visibilityTimer !== undefined) window.clearTimeout(this.#visibilityTimer);
     this.#visibilityTimer = window.setTimeout(() => {
       this.#visibilityTimer = undefined;
+      this.#activeUntil = 0;
       this.#refreshVisibility();
     }, delay + 1);
   }
