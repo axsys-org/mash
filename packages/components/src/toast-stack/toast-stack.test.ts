@@ -49,7 +49,7 @@ describe("ui-toast-stack", () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
     try {
       const stack = await fixture<UIToastStack>(`
-        <ui-toast-stack><ui-toast open duration="20">Saved</ui-toast></ui-toast-stack>
+        <ui-toast-stack><ui-toast duration="20">Saved</ui-toast></ui-toast-stack>
       `);
       const toast = stack.querySelector<UIToast>("ui-toast")!;
       const root = stack.shadowRoot!.querySelector<HTMLElement>('[part="root"]')!;
@@ -57,13 +57,17 @@ describe("ui-toast-stack", () => {
       root.dispatchEvent(new PointerEvent("pointerenter"));
       await settled(stack.parentElement!);
       expect(toast.paused).toBe(true);
+      toast.open = true;
+      await settled(stack.parentElement!);
       await vi.advanceTimersByTimeAsync(35);
       expect(toast.open).toBe(true);
 
       root.dispatchEvent(new PointerEvent("pointerleave"));
       await settled(stack.parentElement!);
       expect(toast.paused).toBe(false);
-      await vi.advanceTimersByTimeAsync(25);
+      await vi.advanceTimersByTimeAsync(19);
+      expect(toast.open).toBe(true);
+      await vi.advanceTimersByTimeAsync(1);
       await settled(stack.parentElement!);
       expect(toast.open).toBe(false);
     } finally {
