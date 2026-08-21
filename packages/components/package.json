@@ -150,6 +150,22 @@
       "types": "./dist/input-group/register.d.ts",
       "import": "./dist/input-group/register.js"
     },
+    "./image": {
+      "types": "./dist/image/image.d.ts",
+      "import": "./dist/image/image.js"
+    },
+    "./image/register": {
+      "types": "./dist/image/register.d.ts",
+      "import": "./dist/image/register.js"
+    },
+    "./intl-formatter": {
+      "types": "./dist/intl-formatter/intl-formatter.d.ts",
+      "import": "./dist/intl-formatter/intl-formatter.js"
+    },
+    "./intl-formatter/register": {
+      "types": "./dist/intl-formatter/register.d.ts",
+      "import": "./dist/intl-formatter/register.js"
+    },
     "./kbd": {
       "types": "./dist/kbd/kbd.d.ts",
       "import": "./dist/kbd/kbd.js"

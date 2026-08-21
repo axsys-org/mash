@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { fixture, inShadow, settled, shadow } from "../test-support/fixture.js";
 import { UIAvatar } from "./avatar.js";
@@ -47,5 +47,26 @@ describe("ui-avatar", () => {
     await settled(avatar.parentElement!);
 
     expect(avatar.getAttribute("size")).toBe("large");
+  });
+
+  it("reports image lifecycle states and events before using fallback", async () => {
+    const avatar = await fixture<UIAvatar>(`
+      <ui-avatar src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E">AX</ui-avatar>
+    `);
+    const load = vi.fn();
+    const error = vi.fn();
+    avatar.addEventListener("ui-avatar-load", load);
+    avatar.addEventListener("ui-avatar-error", error);
+    const image = inShadow<HTMLImageElement>(avatar, "img");
+
+    image.dispatchEvent(new Event("load"));
+    await settled(avatar.parentElement!);
+    expect(avatar.matches(":state(loaded)")).toBe(true);
+    expect(load.mock.calls[0]?.[0].detail.src).toContain("data:image/svg+xml");
+
+    image.dispatchEvent(new Event("error"));
+    await settled(avatar.parentElement!);
+    expect(avatar.matches(":state(error)")).toBe(true);
+    expect(error).toHaveBeenCalledOnce();
   });
 });

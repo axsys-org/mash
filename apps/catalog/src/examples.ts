@@ -1,4 +1,4 @@
-import type { ComponentSchema, Example } from "./schema.js";
+import { components, type ComponentSchema, type Example } from "./schema.js";
 
 /**
  * A catalog example is deliberately more specific than an `@example` JSDoc
@@ -35,22 +35,16 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <div class="catalog-example catalog-example-card">
           <ui-card elevation="raised">
-            <div slot="header" class="example-card-heading">
-              <ui-avatar>BM</ui-avatar>
-              <div>
-                <strong>Billing migration</strong>
-                <span>Interzone project</span>
-              </div>
-              <ui-badge tone="positive">Active</ui-badge>
-            </div>
-            <p>Replace the legacy invoice flow before the next billing cycle.</p>
+            <ui-avatar slot="prefix">BM</ui-avatar>
+            <strong slot="title">Billing migration</strong>
+            <span slot="description">Interzone project</span>
+            <ui-badge slot="value" tone="positive">Active</ui-badge>
+            <p slot="content">Replace the legacy invoice flow before the next billing cycle.</p>
             <div slot="footer" class="example-actions">
               <ui-dialog label="Rename Billing migration">
                 <ui-button slot="trigger" variant="secondary">Rename</ui-button>
-                <div class="example-dialog-copy">
-                  <h2>Rename project</h2>
-                  <p>Choose a clear name for everyone in the workspace.</p>
-                </div>
+                <h2 slot="title">Rename project</h2>
+                <p slot="description">Choose a clear name for everyone in the workspace.</p>
                 <ui-field label="Project name" description="Visible to collaborators.">
                   <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
                 </ui-field>
@@ -67,6 +61,103 @@ const curated: Record<string, CatalogExample[]> = {
         compositionOnly: true,
         description: "A surface, a status, actions, and a dialog in one authored flow.",
       },
+    ),
+    example(
+      "Message bubble pattern",
+      `
+        <div class="catalog-example example-message-thread" aria-label="Project conversation">
+          <ui-card class="example-message-bubble" data-from="them">
+            <ui-avatar slot="prefix" size="small">MC</ui-avatar>
+            <strong slot="title">Maya Chen</strong>
+            <ui-intl-formatter slot="description" kind="time" value="2026-08-20T15:42:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter>
+            <p slot="content">The billing migration is ready for review.</p>
+          </ui-card>
+          <ui-card class="example-message-bubble" data-from="me">
+            <ui-avatar slot="prefix" size="small">You</ui-avatar>
+            <strong slot="title">You</strong>
+            <ui-intl-formatter slot="description" kind="time" value="2026-08-20T15:44:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter>
+            <p slot="content">Perfect. I’ll check the final invoice sample now.</p>
+            <ui-badge slot="footer" tone="positive">Delivered</ui-badge>
+          </ui-card>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "A chat-domain pattern assembled from Card, Avatar, IntlFormatter, and Badge rather than a new base primitive.",
+      },
+    ),
+    example(
+      "Flexible action surface",
+      `
+        <ui-card class="catalog-example example-flex-recipe">
+          <strong slot="title">Release checklist</strong>
+          <span slot="description">Flex remains a catalogue layout recipe.</span>
+          <ui-badge slot="value">3 remaining</ui-badge>
+          <div slot="content" class="example-flex-row">
+            <ui-checkbox checked>Contracts generated</ui-checkbox>
+            <ui-checkbox>Visual review complete</ui-checkbox>
+            <ui-checkbox>Preview shared</ui-checkbox>
+          </div>
+        </ui-card>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "ui-image": [
+    example(
+      "Responsive project cover",
+      `
+        <figure class="catalog-example example-media-card">
+          <ui-image
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%230a84ff'/%3E%3Cpath d='M0 7L5 3l3 2 3-3 5 5v2H0z' fill='%23ffffff' fill-opacity='.72'/%3E%3C/svg%3E"
+            alt="Abstract blue project landscape"
+            width="1280"
+            height="720"
+          >
+            <span slot="placeholder">Loading project cover…</span>
+            <span slot="error">Project cover unavailable</span>
+          </ui-image>
+          <figcaption>Aspect ratio and object fitting come from the catalogue recipe, while loading remains native.</figcaption>
+        </figure>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Authored error fallback",
+      `
+        <ui-image class="catalog-example example-media-card" src="/missing-project-cover.webp" alt="Missing project cover">
+          <div slot="error" class="example-stack">
+            <strong>Project cover unavailable</strong>
+            <span class="example-support">The authored fallback occupies the same semantic media surface.</span>
+          </div>
+        </ui-image>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "ui-intl-formatter": [
+    example(
+      "Localized project metrics",
+      `
+        <dl class="catalog-example example-metric-grid">
+          <div><dt>Revenue</dt><dd><ui-intl-formatter kind="currency" value="12840.5" currency="USD" locale="en-US"></ui-intl-formatter></dd></div>
+          <div><dt>Conversion</dt><dd><ui-intl-formatter kind="percent" value="0.184" locale="en-US" maximum-fraction-digits="1"></ui-intl-formatter></dd></div>
+          <div><dt>Migration date</dt><dd><ui-intl-formatter kind="date" value="2026-08-20T12:00:00Z" locale="en-US" date-style="long" time-zone="UTC"></ui-intl-formatter></dd></div>
+        </dl>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "ui-avatar": [
+    example(
+      "Fallbacks and group",
+      `
+        <div class="catalog-example example-stack">
+          <div class="example-avatar-group" aria-label="Project collaborators">
+            <ui-avatar size="large">MC</ui-avatar>
+            <ui-avatar size="large">SO</ui-avatar>
+            <ui-avatar size="large">AR</ui-avatar>
+            <ui-avatar size="large">+3</ui-avatar>
+          </div>
+          <p class="example-support">The group is ordinary composition; every avatar keeps its own image lifecycle and fallback.</p>
+        </div>`,
+      { compositionOnly: true },
     ),
   ],
   "ui-checkbox": [
@@ -143,6 +234,90 @@ const curated: Record<string, CatalogExample[]> = {
       { compositionOnly: true },
     ),
   ],
+  "ui-input": [
+    example(
+      "A labelled text entry",
+      `
+        <ui-field class="catalog-example example-field" label="Project name" description="Visible to everyone in this workspace." required>
+          <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "ui-input-group": [
+    example(
+      "Search with affordances",
+      `
+        <ui-field class="catalog-example example-field" label="Search projects" description="Search by name, owner, or namespace.">
+          <ui-input-group slot="control">
+            <span slot="prefix" aria-hidden="true">⌕</span>
+            <ui-input slot="control" type="search" label="Search projects" placeholder="Billing migration"></ui-input>
+            <ui-kbd slot="suffix">⌘ K</ui-kbd>
+          </ui-input-group>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "ui-editor": [
+    example(
+      "Editing workspace",
+      `
+        <div class="catalog-example example-editor-workspace">
+          <ui-editor
+            language="typescript"
+            label="Project declaration"
+            value="interface Project {&#10;  title: string;&#10;  status: &quot;active&quot; | &quot;paused&quot;;&#10;}&#10;&#10;const billing: Project = {&#10;  title: &quot;Billing migration&quot;,&#10;  status: &quot;active&quot;,&#10;}"
+          >
+            <div slot="status" class="example-editor-status">
+              <ui-badge tone="positive">TypeScript</ui-badge>
+              <span>Ln 7, Col 31</span>
+              <span>UTF-8</span>
+            </div>
+          </ui-editor>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The native editing surface remains headless while the Mash recipe realizes its gutter, viewport, and authored status slot.",
+      },
+    ),
+    example(
+      "Search and provider surfaces",
+      `
+        <div class="catalog-example example-editor-workspace">
+          <ui-editor
+            language="typescript"
+            label="Searchable project declaration"
+            search-open
+            completion-open
+            search-query="Project"
+            value="type ProjectStatus = &quot;active&quot; | &quot;paused&quot;;&#10;const projectStatus: ProjectStatus = &quot;active&quot;;"
+          >
+            <ui-input-group slot="search" class="example-editor-search">
+              <span slot="prefix" aria-hidden="true">Find</span>
+              <ui-input slot="control" data-catalog-editor-search label="Find in source" value="Project"></ui-input>
+              <ui-button slot="suffix" size="small" variant="secondary" data-catalog-editor-find="next">Next</ui-button>
+            </ui-input-group>
+            <ui-card slot="completion" elevation="raised" class="example-editor-completion">
+              <strong slot="title">ProjectStatus</strong>
+              <span slot="description">type alias</span>
+              <ui-kbd slot="value">Tab</ui-kbd>
+              <code slot="content">&quot;active&quot; | &quot;paused&quot;</code>
+            </ui-card>
+            <span slot="diagnostics">Status must match ProjectStatus</span>
+            <div slot="status" class="example-editor-status">
+              <ui-badge>TypeScript</ui-badge>
+              <span>2 matches</span>
+            </div>
+          </ui-editor>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "InputGroup, Button, Card, Badge, and Kbd realize provider-owned editor slots without entering the editor primitive.",
+      },
+    ),
+  ],
   "ui-field": [
     example(
       "Text field",
@@ -211,9 +386,28 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Project visibility" description="Controls who can find this project.">
           <ui-select slot="control" name="visibility" value="team" label="Project visibility">
-            <ui-option value="private">Private</ui-option>
-            <ui-option value="team">Everyone in Interzone</ui-option>
-            <ui-option value="public">Anyone with the link</ui-option>
+            <span slot="icon" aria-hidden="true">⌄</span>
+            <ui-option value="private">Private<span slot="indicator">✓</span></ui-option>
+            <ui-option value="team">Everyone in Interzone<span slot="indicator">✓</span></ui-option>
+            <ui-option value="public">Anyone with the link<span slot="indicator">✓</span></ui-option>
+          </ui-select>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Grouped multiple selection",
+      `
+        <ui-field class="catalog-example example-field" label="Project access" description="Choose one or more audiences.">
+          <ui-select slot="control" name="access" label="Project access" multiple values='["team", "guests"]'>
+            <span slot="icon" aria-hidden="true">⌄</span>
+            <ui-option-group label="Workspace">
+              <ui-option value="team">Everyone in Interzone<span slot="indicator">✓</span></ui-option>
+              <ui-option value="admins">Administrators<span slot="indicator">✓</span></ui-option>
+            </ui-option-group>
+            <ui-option-group label="External">
+              <ui-option value="guests">Invited guests<span slot="indicator">✓</span></ui-option>
+              <ui-option value="public">Anyone with the link<span slot="indicator">✓</span></ui-option>
+            </ui-option-group>
           </ui-select>
         </ui-field>`,
       { compositionOnly: true },
@@ -225,9 +419,78 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Project owner" description="Search the workspace to assign responsibility.">
           <ui-combobox slot="control" name="owner" value="maya" label="Project owner">
+            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Show project owners">⌄</ui-button>
+            <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
+            <span slot="empty">No matching people</span>
             <ui-option value="maya">Maya Chen</ui-option>
             <ui-option value="sam">Sam Okafor</ui-option>
             <ui-option value="alex">Alex Rivera</ui-option>
+          </ui-combobox>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Multiple owners",
+      `
+        <ui-field class="catalog-example example-field" label="Project owners" description="Search and assign more than one owner.">
+          <ui-combobox slot="control" name="owners" label="Project owners" multiple values='["maya", "sam"]'>
+            <span slot="chips">
+              <ui-chip value="maya">Maya Chen<ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Maya">×</ui-button></ui-chip>
+              <ui-chip value="sam">Sam Okafor<ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Sam">×</ui-button></ui-chip>
+            </span>
+            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
+            <span slot="empty">No matching people</span>
+            <ui-option-group label="People">
+              <ui-option value="maya">Maya Chen<span slot="indicator">✓</span></ui-option>
+              <ui-option value="sam">Sam Okafor<span slot="indicator">✓</span></ui-option>
+              <ui-option value="alex">Alex Rivera<span slot="indicator">✓</span></ui-option>
+            </ui-option-group>
+          </ui-combobox>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Grid suggestions",
+      `
+        <ui-field class="catalog-example example-field" label="Assignee matrix" description="Arrow keys preserve row and column position.">
+          <ui-combobox slot="control" name="assignee" label="Assignee matrix" grid>
+            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-option-row>
+              <ui-option value="maya">Maya Chen</ui-option>
+              <ui-option value="sam">Sam Okafor</ui-option>
+            </ui-option-row>
+            <ui-option-row>
+              <ui-option value="alex">Alex Rivera</ui-option>
+              <ui-option value="jo">Jo Bell</ui-option>
+            </ui-option-row>
+          </ui-combobox>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Externally filtered loading state",
+      `
+        <ui-field class="catalog-example example-field" label="Remote project" description="The caller owns async sourcing; Combobox owns the pending and listbox semantics.">
+          <ui-combobox slot="control" name="remote-project" label="Remote project" filter="none" loading open>
+            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-spinner slot="loading" size="small" label="Searching projects"></ui-spinner>
+            <span slot="empty">No remote projects found</span>
+          </ui-combobox>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Prefix filtering",
+      `
+        <ui-field class="catalog-example example-field" label="Project command" description="Only option labels beginning with the query remain visible.">
+          <ui-combobox slot="control" name="command" value="re" filter="starts-with" label="Project command" open>
+            <span slot="icon" aria-hidden="true">⌕</span>
+            <span slot="empty">No matching commands</span>
+            <ui-option value="rename">Rename project</ui-option>
+            <ui-option value="review">Review changes</ui-option>
+            <ui-option value="archive">Archive project</ui-option>
           </ui-combobox>
         </ui-field>`,
       { compositionOnly: true },
@@ -239,9 +502,16 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Related project" description="Start typing to narrow the project list.">
           <ui-autocomplete slot="control" name="related-project" label="Related project">
-            <ui-option value="billing">Billing migration</ui-option>
-            <ui-option value="invoices">Invoice reconciliation</ui-option>
-            <ui-option value="ledger">Ledger export</ui-option>
+            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
+            <span slot="empty">No matching projects</span>
+            <ui-option-group label="Active projects">
+              <ui-option value="billing">Billing migration</ui-option>
+              <ui-option value="invoices">Invoice reconciliation</ui-option>
+            </ui-option-group>
+            <ui-option-group label="Archived projects">
+              <ui-option value="ledger">Ledger export</ui-option>
+            </ui-option-group>
           </ui-autocomplete>
         </ui-field>`,
       { compositionOnly: true },
@@ -343,6 +613,34 @@ const curated: Record<string, CatalogExample[]> = {
         </ui-toolbar>`,
       { compositionOnly: true },
     ),
+    example(
+      "Docked editor tools",
+      `
+        <div class="catalog-example example-toolbar-dock">
+          <span>Canvas</span>
+          <ui-toolbar data-mash-toolbar-dock="top" orientation="horizontal" label="Top tools">
+            <ui-toggle pressed aria-label="Select">↖</ui-toggle>
+            <ui-toggle aria-label="Text">T</ui-toggle>
+          </ui-toolbar>
+          <ui-toolbar data-mash-toolbar-dock="right" orientation="vertical" label="Right tools">
+            <ui-toggle aria-label="Comments">◌</ui-toggle>
+            <ui-toggle aria-label="Inspect">⊙</ui-toggle>
+          </ui-toolbar>
+          <ui-toolbar data-mash-toolbar-dock="bottom" orientation="horizontal" label="Bottom tools">
+            <ui-toggle aria-label="Zoom out">−</ui-toggle>
+            <ui-toggle aria-label="Zoom in">+</ui-toggle>
+          </ui-toolbar>
+          <ui-toolbar data-mash-toolbar-dock="left" orientation="vertical" label="Left tools">
+            <ui-toggle aria-label="Layers">≡</ui-toggle>
+            <ui-toggle aria-label="Assets">◇</ui-toggle>
+          </ui-toolbar>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Docking is an opt-in Mash recipe layout contract; toolbar keyboard semantics remain independent of screen edge.",
+      },
+    ),
   ],
   "ui-dialog": [
     example(
@@ -352,10 +650,8 @@ const curated: Record<string, CatalogExample[]> = {
           <p class="example-support">A modal asks for a focused edit, then returns focus to its trigger.</p>
           <ui-dialog label="Rename Billing migration">
             <ui-button slot="trigger">Rename project</ui-button>
-            <div class="example-dialog-copy">
-              <h2>Rename project</h2>
-              <p>Use a clear name that your whole workspace will recognize.</p>
-            </div>
+            <h2 slot="title">Rename project</h2>
+            <p slot="description">Use a clear name that your whole workspace will recognize.</p>
             <ui-field label="Project name" description="Visible to everyone in Interzone.">
               <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
             </ui-field>
@@ -376,14 +672,10 @@ const curated: Record<string, CatalogExample[]> = {
           <p class="example-support">Use an alert dialog when the user must acknowledge an important consequence.</p>
           <ui-alert-dialog label="Archive Billing migration?">
             <ui-button slot="trigger" tone="critical">Archive project</ui-button>
-            <div class="example-dialog-copy">
-              <h2>Archive Billing migration?</h2>
-              <p>The project will be read-only until someone restores it.</p>
-            </div>
-            <div slot="close" class="example-actions">
-              <ui-button variant="secondary">Keep active</ui-button>
-              <ui-button tone="critical">Archive</ui-button>
-            </div>
+            <h2 slot="title">Archive Billing migration?</h2>
+            <p slot="description">The project will be read-only until someone restores it.</p>
+            <ui-button slot="cancel" variant="secondary">Keep active</ui-button>
+            <ui-button slot="confirm" tone="critical">Archive</ui-button>
           </ui-alert-dialog>
         </div>`,
       { compositionOnly: true },
@@ -396,10 +688,8 @@ const curated: Record<string, CatalogExample[]> = {
         <div class="catalog-example example-stack">
           <ui-drawer side="end" label="Project activity">
             <ui-button slot="trigger" variant="secondary">Open activity</ui-button>
-            <div class="example-dialog-copy">
-              <h2>Project activity</h2>
-              <p>Latest changes to Billing migration.</p>
-            </div>
+            <h2 slot="title">Project activity</h2>
+            <p slot="description">Latest changes to Billing migration.</p>
             <ui-scroll-area label="Project activity feed" class="example-activity">
               <ol>
                 <li>Maya moved the project to active.</li>
@@ -420,11 +710,9 @@ const curated: Record<string, CatalogExample[]> = {
         <div class="catalog-example example-stack">
           <ui-popover label="Project actions">
             <ui-button slot="trigger" variant="secondary">Actions</ui-button>
-            <div class="example-popover-content">
-              <strong>Billing migration</strong>
-              <p>Last edited 14 minutes ago.</p>
-              <div slot="close" class="example-actions"><ui-button variant="quiet">Done</ui-button></div>
-            </div>
+            <strong slot="title">Billing migration</strong>
+            <p slot="description">Last edited 14 minutes ago.</p>
+            <ui-button slot="close" variant="quiet">Done</ui-button>
           </ui-popover>
         </div>`,
       { compositionOnly: true },
@@ -469,11 +757,9 @@ const curated: Record<string, CatalogExample[]> = {
           <p>Hover or focus the linked project for a lightweight preview.</p>
           <ui-preview-card label="Billing migration preview">
             <a slot="trigger" href="#billing-migration">Billing migration</a>
-            <div class="example-popover-content">
-              <ui-badge tone="positive">Active</ui-badge>
-              <strong>Billing migration</strong>
-              <p>Replace legacy invoicing before the next billing cycle.</p>
-            </div>
+            <strong slot="title">Billing migration</strong>
+            <p slot="description">Replace legacy invoicing before the next billing cycle.</p>
+            <ui-badge tone="positive">Active</ui-badge>
           </ui-preview-card>
         </div>`,
       { compositionOnly: true },
@@ -488,6 +774,29 @@ const curated: Record<string, CatalogExample[]> = {
           <ui-tooltip label="Create project">
             <ui-button slot="trigger" aria-label="Create project">+</ui-button>
             Create a new project
+          </ui-tooltip>
+        </div>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Placement and trigger modes",
+      `
+        <div class="catalog-example example-tooltip-grid">
+          <ui-tooltip label="Top detail" placement="top" open-delay="0">
+            <ui-button slot="trigger" type="button" variant="secondary">Top</ui-button>
+            Above the trigger
+          </ui-tooltip>
+          <ui-tooltip label="Right detail" placement="right" open-delay="0">
+            <ui-button slot="trigger" type="button" variant="secondary">Right</ui-button>
+            Beside the trigger
+          </ui-tooltip>
+          <ui-tooltip label="Click detail" trigger="click">
+            <ui-button slot="trigger" type="button" variant="secondary">Click</ui-button>
+            Click toggles this brief, non-interactive description
+          </ui-tooltip>
+          <ui-tooltip label="Manual detail" trigger="manual" open>
+            <ui-button slot="trigger" type="button" variant="secondary">Manual</ui-button>
+            Parent-owned visibility
           </ui-tooltip>
         </div>`,
       { compositionOnly: true },
@@ -529,6 +838,92 @@ const curated: Record<string, CatalogExample[]> = {
       { compositionOnly: true },
     ),
   ],
+  "ui-calendar": [
+    example(
+      "Calendar views",
+      `
+        <div class="catalog-example example-stack">
+          <ui-calendar month="2026-08" value="2026-08-18" label="Billing date"></ui-calendar>
+          <p class="example-support">The month and year headings switch the same state machine into month and year selection views.</p>
+        </div>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Two month range",
+      `
+        <ui-calendar class="catalog-example" month="2026-08" months="2" mode="range" value="2026-08-18/2026-09-03" label="Migration window"></ui-calendar>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "ui-color-picker": [
+    example(
+      "Palette and HSLA controls",
+      `
+        <div class="catalog-example example-stack">
+          <ui-color-picker label="Accent color" value="#0A84FF" open>
+            <ui-button slot="trigger" variant="secondary">Choose accent</ui-button>
+            <ui-color-swatch slot="preview" value="#0A84FF" disabled>Current</ui-color-swatch>
+            <ui-color-swatch value="#0A84FF">Blue</ui-color-swatch>
+            <ui-color-swatch value="#30D158">Green</ui-color-swatch>
+            <ui-color-swatch value="#FF453A">Red</ui-color-swatch>
+            <ui-slider slot="hue" min="0" max="360" step="1" label="Hue"></ui-slider>
+            <ui-slider slot="saturation" min="0" max="100" step="1" label="Saturation"></ui-slider>
+            <ui-slider slot="lightness" min="0" max="100" step="1" label="Lightness"></ui-slider>
+            <ui-slider slot="alpha" min="0" max="100" step="1" label="Alpha"></ui-slider>
+            <ui-input slot="hex" label="Hex color"></ui-input>
+            <ui-button slot="clear" variant="quiet">Clear</ui-button>
+            <ui-button slot="close" variant="secondary">Done</ui-button>
+          </ui-color-picker>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The picker coordinates authored Mash sliders and input across hue, saturation, lightness, alpha, and hex controls.",
+      },
+    ),
+  ],
+  "ui-date-picker": [
+    example(
+      "Due date",
+      `
+        <div class="catalog-example example-stack">
+          <ui-date-picker label="Due date" value="2026-08-18" open>
+            <ui-button slot="trigger" variant="secondary">Choose due date</ui-button>
+            <ui-calendar month="2026-08" value="2026-08-18" label="Due date"></ui-calendar>
+            <ui-button slot="close" variant="secondary">Cancel</ui-button>
+          </ui-date-picker>
+        </div>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "ui-slider": [
+    example(
+      "Ticks and live value anatomy",
+      `
+        <ui-field class="catalog-example example-field" label="Migration confidence" description="Hover or focus the slider to reveal its current value.">
+          <ui-slider slot="control" class="example-slider-ticks" name="confidence" value="75" min="0" max="100" step="25" label="Migration confidence">
+            <span slot="ticks" class="example-slider-tick-row"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></span>
+            <span slot="value">75%</span>
+          </ui-slider>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Range, vertical, and readonly",
+      `
+        <div class="catalog-example example-slider-matrix">
+          <ui-field label="Budget range" description="Two native thumbs preserve repeated form values.">
+            <ui-slider slot="control" values="[20,80]" min="0" max="100" step="5" label="Budget range">
+              <span slot="start-value">$20k</span>
+              <span slot="end-value">$80k</span>
+            </ui-slider>
+          </ui-field>
+          <ui-slider orientation="vertical" value="60" label="Vertical volume"></ui-slider>
+          <ui-slider readonly value="65" label="Readonly score"></ui-slider>
+        </div>`,
+      { compositionOnly: true },
+    ),
+  ],
   "ui-scroll-area": [
     example(
       "Activity log",
@@ -542,23 +937,92 @@ const curated: Record<string, CatalogExample[]> = {
               <li>Alex requested a deployment review.</li>
               <li>Maya assigned Billing migration to the Finance crew.</li>
               <li>Sam updated the external project reference.</li>
+              <li>Priya approved the migration window.</li>
+              <li>Alex attached the rollback checklist.</li>
+              <li>Maya moved two dependencies into review.</li>
+              <li>Sam recorded the latest invoice sample.</li>
+              <li>Priya scheduled the production rehearsal.</li>
+              <li>Alex resolved the final deployment warning.</li>
+              <li>Maya published the release notes.</li>
+              <li>Sam archived the superseded migration plan.</li>
             </ol>
           </ui-scroll-area>
         </ui-card>`,
       { compositionOnly: true },
+    ),
+    example(
+      "Scroll target action",
+      `
+        <div class="catalog-example example-scroll-jump">
+          <ui-scroll-area label="Migration checkpoints" class="example-activity">
+            <ol>
+              <li data-scroll-edge="start">Inventory legacy invoice paths</li>
+              <li>Freeze the migration contract</li>
+              <li>Reconcile customer balances</li>
+              <li>Replay invoice fixtures</li>
+              <li>Review failed payments</li>
+              <li>Verify settlement totals</li>
+              <li>Publish the rollback checklist</li>
+              <li>Approve the production window</li>
+              <li>Notify project owners</li>
+              <li data-scroll-edge="end">Archive the legacy invoicer</li>
+            </ol>
+          </ui-scroll-area>
+          <div class="example-scroll-actions">
+            <ui-button type="button" size="small" variant="secondary" data-catalog-scroll-to="start">Back to top</ui-button>
+            <ui-button type="button" size="small" data-catalog-scroll-to="end">Latest checkpoint</ui-button>
+          </div>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The catalogue composes Button with ScrollArea; no styled scroll-to primitive is introduced.",
+      },
+    ),
+  ],
+  "ui-pagination": [
+    example(
+      "Result pages",
+      `
+        <div class="catalog-example example-pagination">
+          <div class="example-pagination-heading">
+            <div>
+              <strong>Invoice records</strong>
+              <span>420 results</span>
+            </div>
+            <output data-catalog-page-output>Page 6 of 42</output>
+          </div>
+          <ui-pagination current-page="6" total-pages="42" visible-pages="5" label="Invoice result pages"></ui-pagination>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The catalogue consumes the controlled page request so the example visibly advances while ownership stays outside the primitive.",
+      },
     ),
   ],
   "ui-tree": [
     example(
       "Project hierarchy",
       `
-        <ui-tree class="catalog-example" label="Interzone project hierarchy">
-          <ui-tree-item path="/interzone" title="Interzone" expanded>
-            <ui-tree-item slot="children" path="/interzone/projects" title="Projects" expanded>
-              <ui-tree-item slot="children" path="/interzone/projects/billing-migration" title="Billing migration"></ui-tree-item>
-              <ui-tree-item slot="children" path="/interzone/projects/invoice-reconciliation" title="Invoice reconciliation"></ui-tree-item>
+          <ui-tree class="catalog-example" label="Interzone project hierarchy">
+            <ui-tree-item kind="folder" path="/interzone" title="Interzone" expanded>
+            <span slot="icon" class="example-tree-glyph" data-kind="workspace" aria-hidden="true"></span>
+            <ui-badge slot="meta">workspace</ui-badge>
+            <ui-tree-item slot="children" kind="folder" path="/interzone/projects" title="Projects" expanded>
+              <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+              <span slot="meta">2 records</span>
+              <ui-tree-item slot="children" kind="file" path="/interzone/projects/billing-migration" title="Billing migration" selected>
+                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+                <ui-badge slot="meta" tone="positive">active</ui-badge>
+              </ui-tree-item>
+              <ui-tree-item slot="children" kind="file" path="/interzone/projects/invoice-reconciliation" title="Invoice reconciliation" current>
+                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+              </ui-tree-item>
             </ui-tree-item>
-            <ui-tree-item slot="children" path="/interzone/archive" title="Archive"></ui-tree-item>
+            <ui-tree-item slot="children" kind="folder" path="/interzone/archive" title="Archive">
+              <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+            </ui-tree-item>
           </ui-tree-item>
         </ui-tree>`,
       { compositionOnly: true },
@@ -574,12 +1038,153 @@ const curated: Record<string, CatalogExample[]> = {
         </div>`,
       { compositionOnly: true },
     ),
+    example(
+      "Semantic tones and icons",
+      `
+        <div class="catalog-example example-toast-list">
+          <ui-toast open tone="positive" duration="0"><span slot="icon" aria-hidden="true">✓</span>Project saved</ui-toast>
+          <ui-toast open tone="warning" duration="0"><span slot="icon" aria-hidden="true">!</span>Migration needs attention</ui-toast>
+          <ui-toast open tone="critical" duration="0"><span slot="icon" aria-hidden="true">×</span>Invoice replay failed</ui-toast>
+        </div>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Pause on interaction",
+      `
+        <div class="catalog-example example-stack">
+          <ui-toast open tone="neutral" duration="5000" pause-on-hover>Hover or focus to pause this notification</ui-toast>
+          <p class="example-support">The remaining duration resumes after interaction leaves.</p>
+        </div>`,
+      { compositionOnly: true },
+    ),
   ],
+  "ui-toast-stack": [
+    example(
+      "Workspace notifications",
+      `
+        <ui-toast-stack placement="top-end" limit="3" label="Workspace notifications">
+          <ui-toast open duration="0" tone="positive">Project saved</ui-toast>
+          <ui-toast open duration="0">Review requested</ui-toast>
+          <ui-toast open duration="0" tone="warning">Migration needs attention</ui-toast>
+        </ui-toast-stack>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Logical placements",
+      `
+        <div class="catalog-example example-toast-placement-grid">
+          <ui-toast-stack placement="top-start" limit="1" label="Top start notifications">
+            <ui-toast open duration="0">Top start</ui-toast>
+          </ui-toast-stack>
+          <ui-toast-stack placement="bottom-end" limit="1" label="Bottom end notifications">
+            <ui-toast open duration="0" tone="positive">Bottom end</ui-toast>
+          </ui-toast-stack>
+        </div>`,
+      { compositionOnly: true },
+    ),
+  ],
+  "sh-triptych": [
+    example(
+      "Application sidebar composition",
+      `
+        <sh-triptych>
+          <ui-navigation-menu slot="sidebar" class="example-sidebar-navigation" label="Interzone">
+            <strong>Interzone</strong>
+            <ui-link href="#projects">Projects</ui-link>
+            <ui-collapsible>
+              <span slot="trigger">Recent projects</span>
+              <ui-link href="#billing">Billing migration</ui-link>
+              <ui-link href="#invoice">Invoice reconciliation</ui-link>
+            </ui-collapsible>
+            <ui-link href="#activity">Activity</ui-link>
+            <ui-link href="#members">Members</ui-link>
+          </ui-navigation-menu>
+          <ui-button slot="navigate" variant="secondary">New project</ui-button>
+          <ui-path slot="locator" path="/interzone/projects/billing-migration" title="Billing migration"></ui-path>
+          <ui-card slot="content" elevation="raised">
+            <strong slot="title">Billing migration</strong>
+            <span slot="description">Application content remains independent of sidebar layout.</span>
+            <p slot="content">Replace the legacy invoice flow before the next billing cycle.</p>
+          </ui-card>
+          <strong slot="inspector-locator">Properties</strong>
+          <ui-field slot="inspector" label="Project title">
+            <ui-input slot="control" value="Billing migration"></ui-input>
+          </ui-field>
+        </sh-triptych>`,
+      {
+        compositionOnly: true,
+        description:
+          "Sidebar behavior is composed from Triptych, NavigationMenu, Collapsible, Link, and Button instead of a new ui-sidebar primitive.",
+      },
+    ),
+  ],
+};
+
+/**
+ * Elements whose useful preview is the family they participate in.
+ *
+ * These are still public elements with their own manifest pages, but rendering
+ * a table cell, tab panel, option, or Shrine limb by itself teaches the wrong
+ * composition. Reuse the parent's authored example so the selected element is
+ * visible inside the DOM relationship that gives it meaning.
+ */
+const familyCompositions: Record<
+  string,
+  { parent: string; example?: string; openParent?: boolean }
+> = {
+  "sh-limb": { parent: "sh-myth" },
+  "sh-pail": { parent: "sh-myth" },
+  "sh-slot": { parent: "sh-myth" },
+  "ui-accordion-item": { parent: "ui-accordion" },
+  "ui-chip": { parent: "ui-combobox", example: "Multiple owners" },
+  "ui-color-swatch": { parent: "ui-color-picker" },
+  "ui-menu-item": { parent: "ui-menu", openParent: true },
+  "ui-option": { parent: "ui-select", openParent: true },
+  "ui-option-group": {
+    parent: "ui-select",
+    example: "Grouped multiple selection",
+    openParent: true,
+  },
+  "ui-option-row": {
+    parent: "ui-combobox",
+    example: "Grid suggestions",
+    openParent: true,
+  },
+  "ui-resizable-handle": { parent: "ui-resizable" },
+  "ui-resizable-panel": { parent: "ui-resizable" },
+  "ui-tab": { parent: "ui-tabs" },
+  "ui-tab-panel": { parent: "ui-tabs" },
+  "ui-table-body": { parent: "ui-table" },
+  "ui-table-caption": { parent: "ui-table" },
+  "ui-table-cell": { parent: "ui-table" },
+  "ui-table-head": { parent: "ui-table" },
+  "ui-table-header": { parent: "ui-table" },
+  "ui-table-row": { parent: "ui-table" },
+  "ui-tree-item": { parent: "ui-tree" },
+  "ui-virtual-item": { parent: "ui-virtual-list" },
 };
 
 /** Curated system compositions take precedence; all other public examples stay manifest-driven. */
 export function examplesFor(component: ComponentSchema): CatalogExample[] {
-  return curated[component.tagName] ?? component.examples;
+  const direct = curated[component.tagName];
+  if (direct) return direct;
+
+  const composition = familyCompositions[component.tagName];
+  if (!composition) return component.examples;
+
+  const parent = components.find((candidate) => candidate.tagName === composition.parent);
+  if (!parent) return component.examples;
+
+  const parentExamples = curated[parent.tagName] ?? parent.examples;
+  const selected = composition.example
+    ? parentExamples.find((candidate) => candidate.name === composition.example)
+    : parentExamples[0];
+  if (!selected) return component.examples;
+
+  const code = composition.openParent
+    ? selected.code.replace(`<${composition.parent}`, `<${composition.parent} open`)
+    : selected.code;
+  return [{ ...selected, code, compositionOnly: true }];
 }
 
 export function exampleNamed(
@@ -593,5 +1198,5 @@ export function exampleNamed(
 
 /** Whether synthesising standalone slots would create an invalid component tree. */
 export function controlsPreviewAllowed(component: ComponentSchema): boolean {
-  return !examplesFor(component).some((entry) => entry.compositionOnly);
+  return familyCompositions[component.tagName] === undefined;
 }

@@ -12,6 +12,8 @@ import type { UIOption } from "../option/option.js";
 
 let comboboxListId = 0;
 
+export type ComboboxFilter = "contains" | "none" | "starts-with";
+
 function optionLabel(option: UIOption): string {
   return [...option.childNodes]
     .filter((node) => !(node instanceof HTMLElement && node.slot))
@@ -45,6 +47,7 @@ function optionLabel(option: UIOption): string {
  * @slot clear - Optional control that clears the current value.
  * @slot backdrop - Optional renderer-specific backdrop content.
  * @slot arrow - Optional connector between the popup and its anchor.
+ * @slot loading - Content shown while externally sourced suggestions are pending.
  * @slot empty - Content shown when filtering leaves no suggestions.
  *
  * @csspart root - The complete combobox realization.
@@ -61,6 +64,7 @@ function optionLabel(option: UIOption): string {
  * @csspart popup - The floating suggestion surface.
  * @csspart arrow - The popup-to-anchor connector.
  * @csspart status - The live result-count announcement.
+ * @csspart loading - The authored pending-results content.
  * @csspart empty - The authored empty-result content.
  * @csspart listbox - The semantic listbox of suggestions.
  * @csspart list - Alias for the semantic suggestion list.
@@ -71,6 +75,7 @@ function optionLabel(option: UIOption): string {
  * @cssstate readonly - Matches `:state(readonly)` while selection cannot change.
  * @cssstate multiple - Matches `:state(multiple)` while multiple values are selected.
  * @cssstate grid - Matches `:state(grid)` while suggestions use two-dimensional navigation.
+ * @cssstate loading - Matches `:state(loading)` while externally sourced suggestions are pending.
  * @cssstate empty - Matches `:state(empty)` while no enabled suggestion is available.
  * @cssstate invalid - Matches `:state(invalid)` while the owning field reports an error.
  *
@@ -130,6 +135,9 @@ export class UICombobox extends LitElement {
     open: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
     readonly: { type: Boolean, reflect: true },
+    filter: { type: String, reflect: true },
+    loading: { type: Boolean, reflect: true },
+    loadingLabel: { type: String, attribute: "loading-label", reflect: true },
     placement: { type: String, reflect: true },
     align: { type: String, reflect: true },
     offset: { type: Number, reflect: true },
@@ -158,6 +166,12 @@ export class UICombobox extends LitElement {
   declare disabled: boolean;
   /** Prevents edits while preserving focus and submitted values. */
   declare readonly: boolean;
+  /** Client-side label matching policy; `none` leaves filtering to the caller. */
+  declare filter: ComboboxFilter;
+  /** Marks externally sourced suggestions as pending. */
+  declare loading: boolean;
+  /** Text fallback for the authored loading slot. */
+  declare loadingLabel: string;
   /** Preferred side of the suggestion popup before collision handling. */
   declare placement: AnchoredPlacement;
   /** Logical popup alignment along the selected side. */
@@ -199,6 +213,9 @@ export class UICombobox extends LitElement {
     this.open = false;
     this.disabled = false;
     this.readonly = false;
+    this.filter = "contains";
+    this.loading = false;
+    this.loadingLabel = "Loading options…";
     this.placement = "bottom";
     this.align = "start";
     this.offset = 4;
@@ -223,6 +240,7 @@ export class UICombobox extends LitElement {
       [part~="icon"],
       [part~="clear"],
       [part~="arrow"],
+      [part~="loading"],
       [part~="empty"] {
         display: contents;
       }
@@ -266,7 +284,11 @@ export class UICombobox extends LitElement {
     const needle = this.value.trim().toLocaleLowerCase();
     const options = this.#options();
     for (const option of options) {
-      option.hidden = Boolean(needle) && !optionLabel(option).toLocaleLowerCase().includes(needle);
+      const label = optionLabel(option).toLocaleLowerCase();
+      option.hidden =
+        Boolean(needle) &&
+        this.filter !== "none" &&
+        (this.filter === "starts-with" ? !label.startsWith(needle) : !label.includes(needle));
       option.selected = this.multiple
         ? this.values.includes(option.value)
         : option.value === this.value;
@@ -279,6 +301,8 @@ export class UICombobox extends LitElement {
     this._resultCount = options.filter((option) => !option.hidden && !option.disabled).length;
     if (this._resultCount === 0) this.#internals.states.add("empty");
     else this.#internals.states.delete("empty");
+    if (this.loading) this.#internals.states.add("loading");
+    else this.#internals.states.delete("loading");
     const active = options.find((option) => option.id === this._activeOptionId);
     if (active && (active.hidden || active.disabled)) this.#setActive(null);
     if (this.#isDisabled || !this.name) {
@@ -309,7 +333,9 @@ export class UICombobox extends LitElement {
       changed.has("name") ||
       changed.has("open") ||
       changed.has("disabled") ||
-      changed.has("readonly")
+      changed.has("readonly") ||
+      changed.has("filter") ||
+      changed.has("loading")
     )
       this.#sync();
   }
@@ -599,6 +625,7 @@ export class UICombobox extends LitElement {
             aria-activedescendant=${this._activeOptionId || nothing}
             aria-autocomplete="list"
             aria-haspopup=${this.grid ? "grid" : "listbox"}
+            aria-busy=${this.loading ? "true" : nothing}
             ?disabled=${this.#isDisabled}
             ?readonly=${this.readonly}
             @input=${this.#onInput}
@@ -613,9 +640,16 @@ export class UICombobox extends LitElement {
           <div part="popup">
             <span part="arrow"><slot name="arrow"></slot></span>
             <span part="status" role="status" aria-live="polite">
-              ${this._resultCount} ${this._resultCount === 1 ? "result" : "results"} available
+              ${
+                this.loading
+                  ? this.loadingLabel
+                  : `${this._resultCount} ${this._resultCount === 1 ? "result" : "results"} available`
+              }
             </span>
-            <span part="empty" ?hidden=${this._resultCount !== 0}>
+            <span part="loading" ?hidden=${!this.loading}>
+              <slot name="loading">${this.loadingLabel}</slot>
+            </span>
+            <span part="empty" ?hidden=${this.loading || this._resultCount !== 0}>
               <slot name="empty"></slot>
             </span>
             <div
@@ -624,6 +658,7 @@ export class UICombobox extends LitElement {
               role=${this.grid ? "grid" : "listbox"}
               aria-label=${this.label}
               aria-multiselectable=${this.multiple ? "true" : nothing}
+              ?hidden=${this.loading}
             >
               <slot part="children" @slotchange=${() => this.#sync()}></slot>
             </div>

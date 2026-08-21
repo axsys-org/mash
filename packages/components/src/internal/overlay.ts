@@ -9,7 +9,7 @@ import {
 import { baseStyles } from "./base-styles.js";
 
 /** The user interaction that opens a portable overlay. */
-export type OverlayTriggerAction = "click" | "hover" | "contextmenu";
+export type OverlayTriggerAction = "click" | "contextmenu" | "hover" | "manual";
 /** Preferred physical side of an anchored overlay. */
 export type OverlaySide = AnchoredPlacement;
 /** Alignment of an anchored overlay along its selected side. */
@@ -152,6 +152,11 @@ export abstract class UIOverlay extends LitElement {
   /** Lets hover/focus surfaces delay pointer-driven state transitions. */
   protected interactionDelay(_open: boolean, _reason: "hover" | "focus"): number {
     return 0;
+  }
+
+  /** Lets a concrete overlay select a public trigger mode at runtime. */
+  protected interactionTriggerAction(): OverlayTriggerAction {
+    return this.triggerAction;
   }
 
   /** Requests the public open state, then announces it through the concrete contract. */
@@ -311,39 +316,40 @@ export abstract class UIOverlay extends LitElement {
       this.requestOpenChange(false, "close");
       return;
     }
-    if (this.triggerAction === "click" && this.#eventIsWithinTrigger(event)) {
+    if (this.interactionTriggerAction() === "click" && this.#eventIsWithinTrigger(event)) {
       event.preventDefault();
       this.requestOpenChange(!this.open, "trigger");
     }
   };
 
   #onPointerOver = (event: PointerEvent): void => {
-    if (this.triggerAction !== "hover") return;
+    if (this.interactionTriggerAction() !== "hover") return;
     if (this.#eventIsWithinTrigger(event)) this.#scheduleInteractionChange(true, "hover");
     else if (this.open) this.#cancelInteractionChange();
   };
 
   #onFocusIn = (event: FocusEvent): void => {
-    if (this.triggerAction !== "hover" || !this.#eventIsWithinTrigger(event)) return;
+    if (this.interactionTriggerAction() !== "hover" || !this.#eventIsWithinTrigger(event)) return;
     this.#scheduleInteractionChange(true, "focus");
   };
 
   #onPointerOut = (event: PointerEvent): void => {
-    if (this.triggerAction !== "hover") return;
+    if (this.interactionTriggerAction() !== "hover") return;
     const related = event.relatedTarget;
     if (related instanceof Node && this.contains(related)) return;
     this.#scheduleInteractionChange(false, "hover");
   };
 
   #onFocusOut = (event: FocusEvent): void => {
-    if (this.triggerAction !== "hover" || !this.#eventIsWithinTrigger(event)) return;
+    if (this.interactionTriggerAction() !== "hover" || !this.#eventIsWithinTrigger(event)) return;
     const related = event.relatedTarget;
     if (related instanceof Node && this.contains(related)) return;
     this.#scheduleInteractionChange(false, "focus");
   };
 
   #onContextMenu = (event: MouseEvent): void => {
-    if (this.triggerAction !== "contextmenu" || !this.#eventIsWithinTrigger(event)) return;
+    if (this.interactionTriggerAction() !== "contextmenu" || !this.#eventIsWithinTrigger(event))
+      return;
     event.preventDefault();
     this.#contextPoint = { x: event.clientX, y: event.clientY };
     this.requestOpenChange(true, "contextmenu");

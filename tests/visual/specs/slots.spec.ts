@@ -35,7 +35,6 @@ test.describe("catalog slot composition", () => {
     await page.goto("/components/ui-checkbox-group");
     const checkboxPreview = page.frameLocator("iframe.stage-frame");
     await expect(checkboxPreview.locator("ui-checkbox-group > ui-checkbox")).toHaveCount(3);
-    await expect(page.getByRole("button", { name: "controls", exact: true })).toHaveCount(0);
 
     await page.goto("/components/ui-tabs");
     const tabsPreview = page.frameLocator("iframe.stage-frame");
@@ -70,33 +69,153 @@ test.describe("catalog slot composition", () => {
     expect(assigned).toEqual(["⌘ J"]);
   });
 
-  test("keeps real label attributes distinct from named slot content", async ({ page }) => {
-    await page.goto("/components/ui-input?example=controls&label=Search");
+  test("keeps input adornments in the input-group anatomy", async ({ page }) => {
+    await page.goto("/components/ui-input-group");
 
-    const prefixControl = page.locator(".control", { hasText: "prefix slot" }).locator("input");
-    const suffixControl = page.locator(".control", { hasText: "suffix slot" }).locator("input");
-    await prefixControl.fill("⌕");
-    await suffixControl.fill("⌘ K");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const group = preview.locator("ui-input-group");
+    const input = group.locator('ui-input[slot="control"]');
 
-    const preview = page.frameLocator("iframe.stage-frame").locator("ui-input");
-    const composition = await preview.evaluate((node) => {
-      const shadow = node.shadowRoot!;
-      const content = (name: string) =>
-        shadow
-          .querySelector<HTMLSlotElement>(`slot[name="${name}"]`)!
-          .assignedNodes()
-          .map((child) => child.textContent);
+    await expect(group.locator('[slot="prefix"]')).toHaveText("⌕");
+    await expect(group.locator('[slot="suffix"]')).toHaveText("⌘ K");
+    await expect(input).toHaveAttribute("label", "Search projects");
+
+    const composition = await group.evaluate((node) => {
+      const assigned = (name: string) =>
+        node
+          .shadowRoot!.querySelector<HTMLSlotElement>(`slot[name="${name}"]`)!
+          .assignedElements()
+          .map((child) => child.localName);
 
       return {
-        label: shadow.querySelector<HTMLInputElement>("input")!.getAttribute("aria-label"),
-        prefix: content("prefix"),
-        suffix: content("suffix"),
+        prefix: assigned("prefix"),
+        control: assigned("control"),
+        suffix: assigned("suffix"),
       };
     });
 
-    expect(composition).toEqual({ label: "Search", prefix: ["⌕"], suffix: ["⌘ K"] });
-    await expect(page).toHaveURL(/label=Search/);
-    await expect(page).toHaveURL(/slot-prefix=%E2%8C%95/);
-    await expect(page).toHaveURL(/slot-suffix=%E2%8C%98\+K/);
+    expect(composition).toEqual({
+      prefix: ["span"],
+      control: ["ui-input"],
+      suffix: ["ui-kbd"],
+    });
+
+    const geometry = await group.evaluate((node) => {
+      const root = node.shadowRoot!.querySelector<HTMLElement>('[part="root"]')!;
+      const control = node.shadowRoot!.querySelector<HTMLElement>('[part="control"]')!;
+      const inputControl = node
+        .querySelector("ui-input")!
+        .shadowRoot!.querySelector<HTMLElement>('[part="control"]')!;
+      const suffix = node.shadowRoot!.querySelector<HTMLElement>('[part="suffix"]')!;
+      return {
+        rootWidth: root.getBoundingClientRect().width,
+        controlWidth: control.getBoundingClientRect().width,
+        trailingInset: root.getBoundingClientRect().right - suffix.getBoundingClientRect().right,
+        nestedBorder: getComputedStyle(inputControl).borderInlineStartWidth,
+      };
+    });
+
+    expect(geometry.controlWidth).toBeGreaterThan(geometry.rootWidth / 2);
+    expect(geometry.trailingInset).toBeLessThan(24);
+    expect(geometry.nestedBorder).toBe("0px");
+  });
+
+  test("keeps tree rows aligned and controlled pagination live", async ({ page }) => {
+    await page.goto("/components/ui-tree?theme=dark");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const offsets = await preview.locator("ui-tree-item").evaluateAll((items) =>
+      items.map((item) => {
+        const host = item.getBoundingClientRect();
+        const control = item.shadowRoot!.querySelector<HTMLElement>('[part="control"]')!;
+        const disclosure = item.shadowRoot!.querySelector<HTMLElement>('[part="disclosure"]')!;
+        return {
+          control: Math.round(control.getBoundingClientRect().left - host.left),
+          disclosure: disclosure.dataset.branch,
+        };
+      }),
+    );
+
+    expect(new Set(offsets.map(({ control }) => control)).size).toBe(1);
+    expect(offsets.some(({ disclosure }) => disclosure === "false")).toBe(true);
+
+    const projects = preview.locator('ui-tree-item[title="Projects"]');
+    const billing = preview.locator('ui-tree-item[title="Billing migration"]');
+    await expect(projects).toHaveAttribute("expanded", "");
+    const projectsControl = projects.locator('button[part="control"]').first();
+    await projectsControl.click();
+    await expect(projects).not.toHaveAttribute("expanded", "");
+    await expect(billing).toBeHidden();
+    await projectsControl.click();
+    await expect(projects).toHaveAttribute("expanded", "");
+    await expect(billing).toBeVisible();
+
+    await page.goto("/components/ui-pagination?theme=dark");
+    const pagination = preview.locator("ui-pagination");
+    await pagination.evaluate((node) =>
+      node.shadowRoot!.querySelector<HTMLButtonElement>('button[data-page="7"]')!.click(),
+    );
+    await expect(pagination).toHaveAttribute("current-page", "7");
+    await expect(preview.locator("[data-catalog-page-output]")).toHaveText("Page 7 of 42");
+  });
+
+  test("realizes editor provider slots without empty overlay chrome", async ({ page }) => {
+    await page.goto("/components/ui-editor?theme=dark");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const editor = preview.locator("ui-editor");
+
+    const emptyDisplays = await editor.evaluate((node) =>
+      ["hover", "code-actions"].map(
+        (part) =>
+          getComputedStyle(node.shadowRoot!.querySelector<HTMLElement>(`[part="${part}"]`)!)
+            .display,
+      ),
+    );
+    expect(emptyDisplays).toEqual(["none", "none"]);
+
+    await page.goto("/components/ui-editor?theme=dark&example=Search+and+provider+surfaces");
+    await expect(preview.locator('ui-card[slot="completion"]')).toBeVisible();
+    await preview.locator("ui-input[data-catalog-editor-search] input").fill("status");
+    await expect
+      .poll(() =>
+        preview
+          .locator("ui-editor")
+          .evaluate((node) => (node as HTMLElement & { searchQuery: string }).searchQuery),
+      )
+      .toBe("status");
+  });
+
+  test("shows anatomy-only elements inside their authored parent families", async ({ page }) => {
+    const preview = page.frameLocator("iframe.stage-frame");
+
+    await page.goto("/components/ui-tree-item");
+    await expect(preview.locator("ui-tree > ui-tree-item").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "controls", exact: true })).toHaveCount(0);
+
+    await page.goto("/components/ui-menu-item");
+    await expect(preview.locator("ui-menu[open] ui-menu-item").first()).toBeVisible();
+
+    await page.goto("/components/ui-table-cell");
+    await expect(preview.locator("ui-table ui-table-cell").first()).toBeVisible();
+
+    await page.goto("/components/sh-limb");
+    await expect(preview.locator("sh-myth sh-limb").first()).toBeVisible();
+  });
+
+  test("composes scroll-target actions from buttons and a scroll area", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/components/ui-scroll-area?example=Scroll%20target%20action&theme=dark");
+
+    const preview = page.frameLocator("iframe.stage-frame");
+    const area = preview.locator("ui-scroll-area");
+    const scrollTop = () =>
+      area.evaluate(
+        (node) => node.shadowRoot?.querySelector<HTMLElement>('[part="viewport"]')?.scrollTop ?? -1,
+      );
+
+    await preview.getByRole("button", { name: "Latest checkpoint" }).click();
+    await expect.poll(scrollTop).toBeGreaterThan(0);
+
+    await preview.getByRole("button", { name: "Back to top" }).click();
+    await expect.poll(scrollTop).toBe(0);
   });
 });

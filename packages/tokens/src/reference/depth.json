@@ -1,0 +1,11 @@
+{
+  "depth": {
+    "$type": "number",
+    "reference": {
+      "$description": "Raw stacking coordinates for Web catalogue surfaces.",
+      "base": { "$value": 0 },
+      "raised": { "$value": 1 },
+      "overlay": { "$value": 1000 }
+    }
+  }
+}

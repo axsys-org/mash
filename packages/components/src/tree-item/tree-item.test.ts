@@ -18,6 +18,9 @@ describe("ui-tree-item", () => {
     expect(control.localName).toBe("button");
     expect(control.getAttribute("role")).toBe("treeitem");
     expect(control.hasAttribute("aria-expanded")).toBe(false);
+    const disclosure = inShadow<HTMLElement>(item, '[part="disclosure"]');
+    expect(disclosure.dataset.branch).toBe("false");
+    expect(control.contains(disclosure)).toBe(true);
   });
 
   it("keeps its documented parts available for a path title", async () => {
@@ -90,22 +93,37 @@ describe("ui-tree-item", () => {
     }
   });
 
-  it("requests expansion from the disclosure without mutating parent-owned state", async () => {
+  it("uses one branch row to request selection and expansion without owning state", async () => {
     const item = await fixture<UITreeItem>(`
       <ui-tree-item kind="folder"><ui-tree-item slot="children">app.ts</ui-tree-item>src</ui-tree-item>
     `);
     await settled(item.parentElement!);
     const disclosure = inShadow<HTMLElement>(item, '[part="disclosure"]');
+    const control = inShadow<HTMLButtonElement>(item, '[part="control"]');
     const requests: boolean[] = [];
+    let selections = 0;
     item.addEventListener("ui-tree-item-toggle", (event) => {
       requests.push((event as CustomEvent<{ expanded: boolean }>).detail.expanded);
     });
+    item.addEventListener("ui-tree-item-select", () => (selections += 1));
 
-    disclosure.click();
+    control.click();
 
+    expect(control.contains(disclosure)).toBe(true);
+    expect(selections).toBe(1);
     expect(requests).toEqual([true]);
     expect(item.expanded).toBe(false);
     expect(inShadow<HTMLElement>(item, '[part="children"]').hidden).toBe(true);
+
+    item.expanded = true;
+    await settled(item.parentElement!);
+    expect(disclosure.textContent?.trim()).toBe("▾");
+
+    disclosure.click();
+
+    expect(selections).toBe(2);
+    expect(requests).toEqual([true, false]);
+    expect(item.expanded).toBe(true);
   });
 
   it("reports activation without claiming selection ownership", async () => {
@@ -126,6 +144,7 @@ describe("ui-tree-item", () => {
     const disclosure = inShadow<HTMLElement>(item, '[part="disclosure"]');
 
     expect(item.branch).toBe(true);
+    expect(disclosure.dataset.branch).toBe("true");
     expect(disclosure.hidden).toBe(false);
     expect(
       inShadow<HTMLButtonElement>(item, '[part="control"]').getAttribute("aria-expanded"),

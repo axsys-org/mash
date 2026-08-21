@@ -148,5 +148,17 @@ describe("ui-editor", () => {
         inShadow<HTMLSlotElement>(editor, `slot[name="${slot}"]`).assignedElements(),
       ).toHaveLength(1);
     }
+
+    expect(inShadow<HTMLElement>(editor, '[part="hover"]').hidden).toBe(false);
+    expect(inShadow<HTMLElement>(editor, '[part="code-actions"]').hidden).toBe(false);
+    expect(inShadow<HTMLElement>(editor, '[part="search"]').hidden).toBe(true);
+    expect(inShadow<HTMLElement>(editor, '[part="completion"]').hidden).toBe(true);
+
+    editor.searchOpen = true;
+    editor.completionOpen = true;
+    await settled(editor);
+
+    expect(inShadow<HTMLElement>(editor, '[part="search"]').hidden).toBe(false);
+    expect(inShadow<HTMLElement>(editor, '[part="completion"]').hidden).toBe(false);
   });
 });

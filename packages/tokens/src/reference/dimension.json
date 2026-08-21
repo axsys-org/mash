@@ -1,0 +1,16 @@
+{
+  "dimension": {
+    "$type": "dimension",
+    "reference": {
+      "$description": "Raw dimensions used by reusable Web component recipes.",
+      "0": { "$value": { "value": 0, "unit": "rem" } },
+      "glyph": { "$value": { "value": 1, "unit": "rem" } },
+      "control": { "$value": { "value": 2.5, "unit": "rem" } },
+      "compact": { "$value": { "value": 8, "unit": "rem" } },
+      "panel": { "$value": { "value": 16, "unit": "rem" } },
+      "dialog": { "$value": { "value": 34, "unit": "rem" } },
+      "content": { "$value": { "value": 48, "unit": "rem" } },
+      "record": { "$value": { "value": 60, "unit": "rem" } }
+    }
+  }
+}

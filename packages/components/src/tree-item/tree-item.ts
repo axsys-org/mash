@@ -28,7 +28,7 @@ export type TreeItemKind = "file" | "folder";
  *
  * @slot - Fallback item label when no path or title is supplied.
  * @slot label - Authored item label; `title`, `path`, and the default slot are fallbacks.
- * @slot disclosure - Optional branch disclosure glyph.
+ * @slot disclosure - Optional branch-state glyph inside the row control.
  * @slot icon - Optional leading glyph or icon.
  * @slot meta - Optional secondary information after the label.
  * @slot actions - Optional trailing actions.
@@ -36,7 +36,7 @@ export type TreeItemKind = "file" | "folder";
  *
  * @csspart root - The item's row container.
  * @csspart control - The selectable tree-item control.
- * @csspart disclosure - The branch disclosure button.
+ * @csspart disclosure - The stable leading branch-state cell inside the row control.
  * @csspart icon - The wrapper around the `icon` slot.
  * @csspart label - The title, path fallback, or default-slot label.
  * @csspart meta - The optional secondary `meta` slot.
@@ -73,7 +73,6 @@ export type TreeItemKind = "file" | "folder";
  * @mashnode current current control
  * @mashnode selected selected control
  * @mashnode disabled disabled root
- * @mashnode toggle toggle disclosure
  * @mashnode select select control
  * @mashrole attribute parent-value parent parent
  */
@@ -183,7 +182,7 @@ export class UITreeItem extends LitElement {
     return this.value || this.path || this.title || this.accessibleLabel;
   }
 
-  /** Focuses the selectable row rather than its disclosure affordance. */
+  /** Focuses the unified selectable and expandable row. */
   focusControl(): void {
     this.renderRoot.querySelector<HTMLButtonElement>("[part='control']")?.focus();
   }
@@ -220,14 +219,10 @@ export class UITreeItem extends LitElement {
       .some((element) => element.localName === "ui-tree-item");
   };
 
-  #onDisclosure = (event: Event): void => {
-    event.stopPropagation();
-    this.requestExpansion(!this.expanded);
-  };
-
-  #onSelect = (): void => {
+  #onActivate = (): void => {
     if (this.disabled) return;
     this.dispatchEvent(new CustomEvent("ui-tree-item-select", { bubbles: true, composed: true }));
+    if (this.branch) this.requestExpansion(!this.expanded);
   };
 
   #siblings(): UITreeItem[] {
@@ -277,15 +272,6 @@ export class UITreeItem extends LitElement {
 
     return html`
       <div part="root">
-        ${
-          this.branch
-            ? html`
-                <span part="disclosure" aria-hidden="true" @click=${this.#onDisclosure}>
-                  <slot name="disclosure">▸</slot>
-                </span>
-              `
-            : nothing
-        }
         <button
           part="control"
           type="button"
@@ -298,8 +284,15 @@ export class UITreeItem extends LitElement {
           aria-setsize=${siblings.length}
           aria-selected=${this.selected ? "true" : "false"}
           ?disabled=${this.disabled}
-          @click=${this.#onSelect}
+          @click=${this.#onActivate}
         >
+          <span part="disclosure" aria-hidden="true" data-branch=${String(this.branch)}>
+            ${
+              this.branch
+                ? html`<slot name="disclosure">${this.expanded ? "▾" : "▸"}</slot>`
+                : nothing
+            }
+          </span>
           <span part="icon"><slot name="icon"></slot></span>
           ${this.#renderLabel()}
           <span part="meta"><slot name="meta"></slot></span>

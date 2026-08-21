@@ -19,9 +19,11 @@ export type ToastTone = "neutral" | "positive" | "warning" | "critical";
  * <ui-toast open tone="positive" duration="5000">Project saved</ui-toast>
  *
  * @slot - Toast message and optional passive content.
+ * @slot icon - Optional symbolic status content before the message.
  * @slot close - Optional authored dismiss action; the native button is the fallback.
  *
  * @csspart root - The semantic live-region toast surface.
+ * @csspart icon - The optional symbolic status content.
  * @csspart message - The authored notification message.
  * @csspart close - The optional native dismiss button.
  *
@@ -52,6 +54,8 @@ export class UIToast extends LitElement {
     label: { type: String, reflect: true },
     dismissible: { type: Boolean, reflect: true },
     paused: { type: Boolean, reflect: true },
+    pauseOnHover: { type: Boolean, attribute: "pause-on-hover", reflect: true },
+    _interactionPaused: { type: Boolean, state: true },
   };
 
   /** Whether the toast is visible. */
@@ -66,6 +70,9 @@ export class UIToast extends LitElement {
   declare dismissible: boolean;
   /** Suspends the remaining automatic-dismiss duration. */
   declare paused: boolean;
+  /** Suspends automatic dismissal while pointer or keyboard focus is within the toast. */
+  declare pauseOnHover: boolean;
+  declare _interactionPaused: boolean;
 
   readonly #internals: ElementInternals;
   #timeout: ReturnType<typeof setTimeout> | undefined;
@@ -80,6 +87,8 @@ export class UIToast extends LitElement {
     this.label = "Notification";
     this.dismissible = true;
     this.paused = false;
+    this.pauseOnHover = true;
+    this._interactionPaused = false;
     this.#internals = this.attachInternals();
   }
 
@@ -98,6 +107,10 @@ export class UIToast extends LitElement {
     this.#startedAt = 0;
   }
 
+  get #isPaused(): boolean {
+    return this.paused || this._interactionPaused;
+  }
+
   #pauseTimeout(): void {
     if (!this.#timeout) return;
     this.#remaining = Math.max(0, this.#remaining - (Date.now() - this.#startedAt));
@@ -105,7 +118,7 @@ export class UIToast extends LitElement {
   }
 
   #scheduleTimeout(): void {
-    if (!this.open || this.paused || this.duration <= 0 || this.#remaining <= 0) return;
+    if (!this.open || this.#isPaused || this.duration <= 0 || this.#remaining <= 0) return;
     this.#startedAt = Date.now();
     this.#timeout = setTimeout(() => this.requestClose("timeout"), this.#remaining);
   }
@@ -114,18 +127,32 @@ export class UIToast extends LitElement {
     if (this.open) {
       this.#internals.states.add("open");
     } else this.#internals.states.delete("open");
-    if (this.paused) this.#internals.states.add("paused");
+    if (this.#isPaused) this.#internals.states.add("paused");
     else this.#internals.states.delete("paused");
 
     if (changed.has("open") || changed.has("duration")) {
       this.#clearTimeout();
       this.#remaining = this.open ? Math.max(0, this.duration) : 0;
       this.#scheduleTimeout();
-    } else if (changed.has("paused")) {
-      if (this.paused) this.#pauseTimeout();
+    } else if (
+      changed.has("paused") ||
+      changed.has("_interactionPaused") ||
+      changed.has("pauseOnHover")
+    ) {
+      if (this.#isPaused) this.#pauseTimeout();
       else this.#scheduleTimeout();
     }
   }
+
+  #setInteractionPaused(paused: boolean): void {
+    this._interactionPaused = this.pauseOnHover && paused;
+  }
+
+  #onFocusOut = (event: FocusEvent): void => {
+    const root = event.currentTarget as HTMLElement;
+    if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
+    this.#setInteractionPaused(false);
+  };
 
   /** Requests dismissal with a renderer-neutral reason. */
   requestClose(reason = "dismiss"): void {
@@ -146,8 +173,13 @@ export class UIToast extends LitElement {
       role=${this.tone === "critical" ? "alert" : "status"}
       aria-label=${this.label}
       ?hidden=${!this.open}
+      @pointerenter=${() => this.#setInteractionPaused(true)}
+      @pointerleave=${() => this.#setInteractionPaused(false)}
+      @focusin=${() => this.#setInteractionPaused(true)}
+      @focusout=${this.#onFocusOut}
     >
-      <slot part="message"></slot
+      <span part="icon"><slot name="icon"></slot></span
+      ><slot part="message"></slot
       >${this.dismissible ? html`<button part="close" type="button" aria-label="Dismiss notification" @click=${() => this.requestClose("dismiss")}><slot name="close">×</slot></button>` : null}
     </div>`;
   }

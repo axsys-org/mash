@@ -31,6 +31,8 @@ import "./fieldset/register.js";
 import "./form/register.js";
 import "./input/register.js";
 import "./input-group/register.js";
+import "./image/register.js";
+import "./intl-formatter/register.js";
 import "./link/register.js";
 import "./kbd/register.js";
 import "./meter/register.js";
