@@ -12,7 +12,7 @@ import type { Plugin } from "vite";
  */
 export function requireBuiltPackages(
   required: readonly string[] = [
-    "@mash/tokens/tokens.css",
+    "@mash/tokens/tailwind.css",
     "@mash/ui/custom-elements.json",
     "@mash/shrine/custom-elements.json",
   ],

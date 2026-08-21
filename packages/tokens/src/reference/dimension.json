@@ -2,7 +2,7 @@
   "dimension": {
     "$type": "dimension",
     "reference": {
-      "$description": "Raw dimensions used by reusable Web component recipes.",
+      "$description": "Raw dimensions used by reusable Web component recipes. Consumers use semantic layout roles rather than these primitives.",
       "0": { "$value": { "value": 0, "unit": "rem" } },
       "glyph": { "$value": { "value": 1, "unit": "rem" } },
       "control": { "$value": { "value": 2.5, "unit": "rem" } },

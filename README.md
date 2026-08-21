@@ -25,6 +25,7 @@ DTCG design tokens                         TypeScript Web Components
         ├── reference.css                           ├── ES modules (preserved graph)
         ├── semantic.css                            └── .d.ts + source maps
         ├── theme-light.css / theme-dark.css              │
+        ├── tailwind.css (optional v4 adapter)             │
         ├── tokens.json  (graph + provenance)             ▼
         └── tokens.js / tokens.d.ts            Custom Elements Manifest
                                                           │
@@ -138,6 +139,27 @@ provenance is visible in the browser inspector as well as in `tokens.json`.
 
 After the build, the generated CSS is re-checked against itself: every `var()` it emits must be
 defined by one of the generated stylesheets.
+
+### Tailwind v4 application styling
+
+`@mash/tokens/tailwind.css` is an optional generated adapter for layout and lightweight styling
+that does not rise to the level of a component. It exposes semantic colours, spacing, sizing,
+radii, blur and motion as unprefixed Tailwind vocabulary, plus a small set of stack, surface,
+typography, focus and animation fragments. Reference variables remain in the imported CSS cascade
+so semantic aliases resolve and provenance stays inspectable, but they never become Tailwind
+theme values or utilities. Importing the adapter is the explicit opt-in to the semantic names.
+
+```css
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@mash/tokens/tailwind.css";
+```
+
+This intentionally omits Tailwind's default theme and Preflight. Mash remains the only design-value
+source; Tailwind contributes its utility compiler and static layout vocabulary.
+
+See [docs/tailwind.md](docs/tailwind.md) for the utility contract and the component boundary.
 
 ### Paper synchronization
 

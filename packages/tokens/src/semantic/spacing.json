@@ -43,6 +43,14 @@
       "$value": "{space.reference.3}",
       "$description": "Default horizontal gap between inline siblings."
     },
+    "groupRelated": {
+      "$value": "{space.reference.2}",
+      "$description": "Tight spacing between parts that form one semantic value or control."
+    },
+    "groupInline": {
+      "$value": "{space.reference.3}",
+      "$description": "Default spacing between sibling nodes grouped on the inline axis."
+    },
     "groupBlock": {
       "$value": "{space.reference.4}",
       "$description": "Block-axis spacing between related controls or content groups."

@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import process from "node:process";
 
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 
 import { requireBuiltPackages } from "./vite.shared.js";
@@ -48,7 +49,7 @@ function buildInfo() {
 }
 
 export default defineConfig({
-  plugins: [requireBuiltPackages()],
+  plugins: [tailwindcss(), requireBuiltPackages()],
 
   // Frozen into the bundle at build time. Vite's own `import.meta.env` would
   // require every variable to be renamed with a VITE_ prefix in the deployment

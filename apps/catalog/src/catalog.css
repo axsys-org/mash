@@ -25,11 +25,6 @@
 
 body {
   margin: 0;
-  background: var(--chrome-bg);
-  color: var(--chrome-fg);
-  font-family: var(--chrome-font);
-  font-size: var(--type-body-font-size);
-  line-height: var(--type-body-line-height);
 }
 
 code,
@@ -334,7 +329,7 @@ pre {
 
 /* --- stage --------------------------------------------------------------- */
 
-.stack {
+.catalog-sections {
   display: contents;
 }
 

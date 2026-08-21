@@ -49,6 +49,10 @@
       "$value": "{color.reference.shadow.soft}",
       "$description": "Elevation shadow colour. Components own the shadow's geometry; the theme owns its colour, because how much a shadow reads depends entirely on what it sits on."
     },
+    "overlay": {
+      "$value": "{color.reference.shadow.overlay}",
+      "$description": "Translucent backdrop behind dialogs, drawers, menus, and other elevated surfaces."
+    },
 
     "action": {
       "$value": "{color.reference.blue.500}",

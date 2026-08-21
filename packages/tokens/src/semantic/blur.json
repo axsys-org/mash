@@ -1,0 +1,15 @@
+{
+  "blur": {
+    "$type": "dimension",
+    "$description": "Theme-independent blur roles for lightweight visual fragments.",
+    "progressive": {
+      "$description": "Increasing blur stages used together to create a smooth directional backdrop blur.",
+      "1": { "$value": "{blur.reference.progressive.1}" },
+      "2": { "$value": "{blur.reference.progressive.2}" },
+      "3": { "$value": "{blur.reference.progressive.3}" },
+      "4": { "$value": "{blur.reference.progressive.4}" },
+      "5": { "$value": "{blur.reference.progressive.5}" },
+      "6": { "$value": "{blur.reference.progressive.6}" }
+    }
+  }
+}
