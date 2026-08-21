@@ -13,8 +13,6 @@ import "@mash/shrine/catalogue/mash.css";
 import "@mash/ui/register";
 import "@mash/shrine/register";
 
-import "./catalog.css";
-
 import { initialState, render, type AppCallbacks, type State } from "./app.js";
 import { components } from "./schema.js";
 import { stateFromUrl, urlForState } from "./url-state.js";

@@ -11,6 +11,7 @@ Import Tailwind's utility compiler first, then the Mash adapter:
 ```css
 @layer theme, base, components, utilities;
 
+@import "tailwindcss/preflight.css" layer(base); /* optional */
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "@mash/tokens/tailwind.css";
 ```
@@ -18,11 +19,10 @@ Import Tailwind's utility compiler first, then the Mash adapter:
 The adapter imports the complete Mash token cascade. Light is the default; `data-theme="dark"`
 and `data-theme="light"` keep working on the root or any nested subtree.
 
-This setup deliberately omits Tailwind's default theme and Preflight. Mash remains the only source
-of colors, spacing, radii, typography, blur, and motion values; Tailwind contributes its utility
-compiler and static layout vocabulary. The Mash catalogue uses this exact setup in both its shell
-and preview document, preserving the catalogue's existing base styles while exercising the same
-semantic utilities that applications consume.
+The adapter deliberately omits Tailwind's default theme. Preflight is optional normalization rather
+than a design-value source; the Mash catalogue opts into it in both its shell and preview document.
+Mash remains the only source of colors, spacing, radii, typography, blur, and motion values;
+Tailwind contributes normalization, its utility compiler, and static layout vocabulary.
 
 ## Token-backed utilities
 
@@ -101,3 +101,13 @@ tokens are also available through Tailwind's individual `backdrop-blur-progressi
 Use this layer for layout and lightweight visual treatment. If something needs behavior,
 accessibility semantics, state ownership, or reusable anatomy, it belongs in `@mash/ui` instead.
 Component-specific styling remains in the opt-in Mash catalogue recipe.
+
+The catalogue itself demonstrates the split without parallel application stylesheets:
+
+- `apps/catalog/src/utility-recipes.ts` composes semantic utilities for application chrome and
+  example layout.
+- `packages/*/src/catalogue/mash.css` owns shared component appearance through documented parts.
+- component shadow CSS retains only browser behavior and interaction mechanics.
+
+`pnpm run check:tokens` keeps that boundary honest: the catalogue CSS entrypoint may only import
+Tailwind and the Mash adapter; authored application rules must use the semantic utility recipes.
