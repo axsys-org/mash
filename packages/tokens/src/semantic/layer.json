@@ -1,7 +1,7 @@
 {
   "layer": {
     "$type": "number",
-    "$description": "Stacking order for surfaces in the Web catalogue.",
+    "$description": "Stacking order for reusable Web component and catalogue surfaces.",
     "base": {
       "$value": "{depth.reference.base}",
       "$description": "Ordinary in-flow content."

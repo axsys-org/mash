@@ -53,6 +53,7 @@ interface AuthoredSource {
  *
  * @csspart root - The complete image realization.
  * @csspart picture - The native responsive picture boundary.
+ * @csspart source - The authored responsive source slot.
  * @csspart sources - The authored responsive source collection.
  * @csspart image - The native image element.
  * @csspart placeholder - The authored pending-state content.
@@ -236,7 +237,7 @@ export class UIImage extends LitElement {
     const hasSource = Boolean(this._activeSrc);
     return html`
       <span part="root">
-        <slot name="source" part="sources" @slotchange=${this.#syncSources}></slot>
+        <slot name="source" part="source sources" @slotchange=${this.#syncSources}></slot>
         <picture part="picture" ?hidden=${!hasSource || failed}>
           ${
             this._usingFallback

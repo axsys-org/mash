@@ -2,7 +2,7 @@
   "depth": {
     "$type": "number",
     "reference": {
-      "$description": "Raw stacking coordinates for Web catalogue surfaces.",
+      "$description": "Raw stacking coordinates used by Web catalogue surfaces. Consumers use semantic layer roles rather than these primitives.",
       "base": { "$value": 0 },
       "raised": { "$value": 1 },
       "overlay": { "$value": 1000 }

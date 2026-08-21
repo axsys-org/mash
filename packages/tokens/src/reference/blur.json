@@ -1,0 +1,16 @@
+{
+  "blur": {
+    "$type": "dimension",
+    "reference": {
+      "$description": "Raw blur radii for layered backdrop and depth effects. Consumers use semantic blur roles rather than these primitives.",
+      "progressive": {
+        "1": { "$value": { "value": 1, "unit": "px" } },
+        "2": { "$value": { "value": 4, "unit": "px" } },
+        "3": { "$value": { "value": 8, "unit": "px" } },
+        "4": { "$value": { "value": 16, "unit": "px" } },
+        "5": { "$value": { "value": 24, "unit": "px" } },
+        "6": { "$value": { "value": 32, "unit": "px" } }
+      }
+    }
+  }
+}

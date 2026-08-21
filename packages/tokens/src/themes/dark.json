@@ -49,6 +49,10 @@
       "$value": "{color.reference.shadow.strong}",
       "$description": "Elevation shadow colour. Much stronger than the light theme's: a soft shadow is invisible against a dark canvas, which is why the dark theme also steps surfaces lighter."
     },
+    "overlay": {
+      "$value": "{color.reference.shadow.overlay}",
+      "$description": "Translucent backdrop behind dialogs, drawers, menus, and other elevated surfaces."
+    },
 
     "action": {
       "$value": "{color.reference.blue.400}",

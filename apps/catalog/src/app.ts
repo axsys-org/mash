@@ -670,6 +670,10 @@ function belowStage(
           ].join("\n"),
         }),
       ),
+      el("p", {
+        class: "note",
+        text: "tokens.css is the minimal component token cascade. Tailwind applications import tailwind.css once from their CSS entrypoint instead; it includes the same cascade and the semantic utility vocabulary.",
+      }),
       component.registerPath
         ? el("p", {
             class: "note",
@@ -716,8 +720,8 @@ function belowStage(
  * document rather than one carrying the previous component's leftovers.
  */
 function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): Mounted {
-  const above = el("div", { class: "stack" });
-  const below = el("div", { class: "stack" });
+  const above = el("div", { class: "catalog-sections" });
+  const below = el("div", { class: "catalog-sections" });
   const tokenList = el("ul", { class: "token-list" });
 
   const frame = el("iframe", {

@@ -30,6 +30,8 @@ describe("ui-image", () => {
     expect(native.width).toBe(1280);
     expect(native.height).toBe(720);
     expect(sourceSlot.assignedElements()[0]?.localName).toBe("source");
+    expect(sourceSlot.part.contains("source")).toBe(true);
+    expect(sourceSlot.part.contains("sources")).toBe(true);
     expect(native.currentSrc).toContain("wide");
     expect(image.matches(":state(loaded)")).toBe(true);
     expect(getComputedStyle(inShadow<HTMLElement>(image, '[part="error"]')).display).toBe("none");

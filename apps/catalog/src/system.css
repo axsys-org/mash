@@ -1,0 +1,13 @@
+/**
+ * Shared application-styling entrypoint for both catalogue documents.
+ *
+ * The catalogue is Mash's first real Tailwind consumer: importing the adapter
+ * brings in the complete token cascade and registers its semantic vocabulary.
+ * Tailwind's default theme and Preflight both stay disabled: Mash owns the
+ * design values, while the catalogue and its examples already own base styles.
+ */
+
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@mash/tokens/tailwind.css";

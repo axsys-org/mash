@@ -14,6 +14,7 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - Compatibility fallback for the `value` slot.
  * @slot value - Optional rich value content. Overrides the `text` fallback.
  * @csspart root - The visible field value.
+ * @csspart value - The authored rich value slot.
  */
 export class ShrinePail extends LitElement {
   static override properties = {
@@ -32,7 +33,7 @@ export class ShrinePail extends LitElement {
 
   protected override render(): TemplateResult {
     return html`<span part="root"
-      ><slot name="value"><slot>${this.text}</slot></slot></span
+      ><slot name="value" part="value"><slot>${this.text}</slot></slot></span
     >`;
   }
 }

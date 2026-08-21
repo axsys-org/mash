@@ -46,6 +46,7 @@ export type SliderScale = "linear" | "logarithmic";
  * @csspart start-thumb - The movable range-start affordance.
  * @csspart end-thumb - Alias for the range-end/current-value affordance.
  * @csspart thumb-value - The current value attached to a thumb.
+ * @csspart value - The authored single current-value presentation.
  * @csspart start-value - The range-start value attached to its thumb.
  * @csspart end-value - The current or range-end value attached to its thumb.
  *
@@ -530,7 +531,9 @@ export class UISlider extends LitElement {
                 </span>`
               : html`<span part="thumb" style=${thumbStyle(end)}
                   ><slot name="thumb"></slot
-                  ><span part="thumb-value end-value"><slot name="value">${end}</slot></span></span
+                  ><span part="thumb-value end-value"
+                    ><slot name="value" part="value">${end}</slot></span
+                  ></span
                 >`
           }
         </span>

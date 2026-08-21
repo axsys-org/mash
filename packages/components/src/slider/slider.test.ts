@@ -89,6 +89,9 @@ describe("ui-slider", () => {
     expect(
       inShadow<HTMLSlotElement>(slider, 'slot[name="value"]').assignedElements()[0]?.textContent,
     ).toBe("25 percent");
+    expect(inShadow<HTMLSlotElement>(slider, 'slot[name="value"]').part.contains("value")).toBe(
+      true,
+    );
     expect(inShadow(slider, '[part~="thumb-value"]')).toBeInstanceOf(HTMLElement);
   });
 });

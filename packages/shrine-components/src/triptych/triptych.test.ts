@@ -34,27 +34,57 @@ describe("sh-triptych", () => {
     expect(inShadow(element, 'ui-scroll-area[part="main-body"]').shadowRoot).not.toBeNull();
   });
 
-  it("gives every independently scrolling region a bounded viewport", async () => {
+  it("exports stable styling parts for every workspace region", async () => {
     const element = await fixture<ShrineTriptych>(`
-      <sh-triptych>
+      <sh-triptych inspector-open>
         <p slot="sidebar">sidebar</p>
+        <p slot="navigate">navigate</p>
+        <p slot="locator">locator</p>
         <p slot="content">main</p>
+        <p slot="inspector-locator">inspector locator</p>
         <p slot="inspector">inspector</p>
       </sh-triptych>
     `);
 
-    const areas = [...element.shadowRoot!.querySelectorAll("ui-scroll-area")];
-    expect(areas.map((area) => area.getAttribute("part"))).toEqual([
+    for (const part of [
+      "shell",
+      "sidebar",
       "sidebar-body",
+      "navigate",
+      "main",
+      "locator",
       "main-body",
+      "content",
+      "inspector",
+      "inspector-locator",
       "inspector-body",
-    ]);
-    for (const area of areas) {
+    ]) {
+      expect(inShadow(element, `[part~="${part}"]`)).toBeInstanceOf(HTMLElement);
+    }
+
+    for (const area of element.shadowRoot!.querySelectorAll("ui-scroll-area")) {
+      expect(area.getAttribute("exportparts")).toMatch(/root:.*-scroll-root/);
+      expect(area.getAttribute("exportparts")).toMatch(/viewport:.*-viewport/);
+      expect(area.getAttribute("exportparts")).toMatch(/content:.*-content/);
       expect(inShadow(area, '[part="viewport"]').getAttribute("role")).toBe("region");
     }
   });
 
-  it("bounds long main content inside the allocated workspace viewport", async () => {
+  it("reflects inspector ownership through an attribute and custom state", async () => {
+    const element = await fixture<ShrineTriptych>(`<sh-triptych></sh-triptych>`);
+
+    expect(element.hasAttribute("inspector-open")).toBe(true);
+    expect(element.matches(":state(inspector-open)")).toBe(true);
+
+    element.inspectorOpen = false;
+    await element.updateComplete;
+
+    expect(element.hasAttribute("inspector-open")).toBe(false);
+    expect(element.matches(":state(inspector-open)")).toBe(false);
+    expect(element.shadowRoot?.querySelector('[part="inspector"]')).toBeNull();
+  });
+
+  it("keeps long content inside the exported main viewport", async () => {
     const rows = Array.from({ length: 80 }, (_, index) => `<p>Row ${index}</p>`).join("");
     const element = await fixture<ShrineTriptych>(`
       <sh-triptych style="block-size: 420px" inspector-open>

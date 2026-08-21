@@ -8,7 +8,7 @@
  * The parent drives everything else directly through `contentDocument`.
  */
 
-import "@mash/tokens/tokens.css";
+import "./system.css";
 import "@mash/ui/catalogue/mash.css";
 import "@mash/shrine/catalogue/mash.css";
 import "@mash/ui/register";

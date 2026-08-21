@@ -7,10 +7,11 @@
  *   1. validate      bad input fails now, with a precise message
  *   2. CSS           reference.css, semantic.css, theme-*.css
  *   3. tokens.css    a barrel that imports the four in the right order
- *   4. tokens.json   the resolved token graph, with provenance
- *   5. tokens.js/.d.ts  typed CSS variable names for tooling and the catalog
+ *   4. tailwind.css  optional Tailwind v4 semantic utility adapter
+ *   5. tokens.json   the resolved token graph, with provenance
+ *   6. tokens.js/.d.ts  typed CSS variable names for tooling and the catalog
  *
- * Steps 4 and 5 are what make the design language machine-readable. tokens.json
+ * Steps 5 and 6 are what make the design language machine-readable. tokens.json
  * records, for every token, what it is called in CSS, what it aliases, the full
  * chain down to the primitive, and what that primitive resolves to in each
  * theme. That is enough to answer "where does this button's background come
@@ -30,6 +31,7 @@ import { DIST_DIR, SRC_DIR, baseConfig, themeConfig } from "../config/index.mjs"
 import { LAYER, cssVarName, layerOf } from "../config/layers.mjs";
 import { registerTransforms } from "../config/transforms.mjs";
 import { registerFormats } from "../config/formats.mjs";
+import { renderTailwindCss } from "./render-tailwind.mjs";
 import { validateTokens } from "./validate.mjs";
 
 registerTransforms(StyleDictionary);
@@ -231,7 +233,10 @@ export declare const cssVarByTokenId: Readonly<Record<TokenId, TokenVar>>;
 
 function renderBarrelCss(themes) {
   const imports = ["reference.css", "semantic.css", ...themes.map((t) => `theme-${t}.css`)]
-    .map((file) => `@import url("./${file}");`)
+    // Tailwind's build-time importer follows string imports. `url()` is valid
+    // browser CSS but remains external during compilation, which would make
+    // these package-relative paths point at the consuming app's output folder.
+    .map((file) => `@import "./${file}";`)
     .join("\n");
 
   return `/**
@@ -345,6 +350,7 @@ async function main() {
     ),
     writeFile(path.join(DIST_DIR, "tokens.js"), renderTokensJs(graph, THEMES)),
     writeFile(path.join(DIST_DIR, "tokens.d.ts"), renderTokensDts(graph, THEMES)),
+    writeFile(path.join(DIST_DIR, "tailwind.css"), renderTailwindCss(graph)),
   ]);
 
   const css = await checkGeneratedCss([
