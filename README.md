@@ -191,6 +191,13 @@ of the source.
 | `:state()`            | internal runtime state             |
 | events                | behavioural outputs                |
 
+Every component publishes at least one stable CSS part. Every named slot also
+publishes a same-named part, so authored content and the region that presents it
+share one vocabulary. Composed components forward the parts of nested
+primitives when consumers need to style through the outer shadow boundary.
+`pnpm run check:parts` rejects missing slot parts, stale catalogue selectors,
+and recipe selectors that target undeclared parts.
+
 Variant axes are semantic and orthogonal. `ui-button` has `variant` (emphasis), `size` (scale) and
 `tone` (meaning); they compose freely, so a quiet critical button needs no special case. That works
 because the CSS resolves in two steps — tone rules set only `--_tone-*`, variant rules express

@@ -59,6 +59,18 @@ describe("sh-myth", () => {
     ).toHaveLength(1);
     expect(inShadow(firstLimb.querySelector("sh-slot")!, "[part=root]").textContent).toBe("status");
     expect(inShadow(firstLimb.querySelector("sh-pail")!, "[part=root]").textContent).toBe("active");
+    expect(
+      inShadow<HTMLSlotElement>(
+        firstLimb.querySelector("sh-slot")!,
+        'slot[name="label"]',
+      ).part.contains("label"),
+    ).toBe(true);
+    expect(
+      inShadow<HTMLSlotElement>(
+        firstLimb.querySelector("sh-pail")!,
+        'slot[name="value"]',
+      ).part.contains("value"),
+    ).toBe(true);
     expect(inShadow(secondLimb.querySelector("sh-slot")!, "[part=root]").textContent).toBe("goal");
     expect(inShadow(secondLimb.querySelector("sh-pail")!, "[part=root]").textContent).toBe(
       "replace legacy invoicer",

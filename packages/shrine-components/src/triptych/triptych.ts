@@ -28,6 +28,7 @@ import { baseStyles } from "../internal/base-styles.js";
  * @csspart main-scroll-root - The primary bounded scroll-area root.
  * @csspart main-viewport - The primary native scroll viewport.
  * @csspart main-content - The primary content region.
+ * @csspart content - The authored primary-content slot.
  * @csspart inspector - The contextual inspector region.
  * @csspart inspector-locator - Location content fixed above the inspector viewport.
  * @csspart inspector-body - The inspector's scroll owner.
@@ -113,7 +114,7 @@ export class ShrineTriptych extends LitElement {
             label="Main workspace"
             exportparts="root:main-scroll-root,viewport:main-viewport,content:main-content"
           >
-            <slot name="content" slot="content"><slot></slot></slot>
+            <slot name="content" slot="content" part="content"><slot></slot></slot>
           </ui-scroll-area>
         </main>
 

@@ -14,6 +14,7 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - Compatibility fallback for the `label` slot.
  * @slot label - Optional rich label content. Overrides the `title` fallback.
  * @csspart root - The visible field label.
+ * @csspart label - The authored rich label slot.
  */
 export class ShrineSlot extends LitElement {
   static override properties = {
@@ -32,7 +33,7 @@ export class ShrineSlot extends LitElement {
 
   protected override render(): TemplateResult {
     return html`<span part="root"
-      ><slot name="label"><slot>${this.title}</slot></slot></span
+      ><slot name="label" part="label"><slot>${this.title}</slot></slot></span
     >`;
   }
 }
