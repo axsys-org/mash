@@ -55,10 +55,9 @@ function commitHref(info: BuildInfo): string | null {
 /**
  * The build badge.
  *
- * Unobtrusive by design: it sits in the masthead as small muted text. It is
- * not styled from the design tokens, for the same reason nothing else in the
- * catalog chrome is — a broken token must not be able to hide the label that
- * tells you which commit broke it.
+ * Unobtrusive by design: it sits in the masthead as small muted text and uses
+ * the same semantic utility recipes as the rest of the catalogue chrome. Its
+ * plain-text content remains present even if a visual token is being debugged.
  */
 export function buildBadge(info: BuildInfo = buildInfo): HTMLElement {
   const href = commitHref(info);

@@ -152,12 +152,15 @@ theme values or utilities. Importing the adapter is the explicit opt-in to the s
 ```css
 @layer theme, base, components, utilities;
 
+@import "tailwindcss/preflight.css" layer(base); /* optional normalization */
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "@mash/tokens/tailwind.css";
 ```
 
-This intentionally omits Tailwind's default theme and Preflight. Mash remains the only design-value
-source; Tailwind contributes its utility compiler and static layout vocabulary.
+The adapter intentionally omits Tailwind's default theme. Preflight is an application choice: the
+catalogue opts into it instead of carrying a parallel reset stylesheet. Mash remains the only
+design-value source; Tailwind contributes normalization, its utility compiler, and static layout
+vocabulary.
 
 See [docs/tailwind.md](docs/tailwind.md) for the utility contract and the component boundary.
 

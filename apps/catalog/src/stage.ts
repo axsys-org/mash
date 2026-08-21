@@ -14,8 +14,6 @@ import "@mash/shrine/catalogue/mash.css";
 import "@mash/ui/register";
 import "@mash/shrine/register";
 
-import "./stage.css";
-
 // Tells the parent the frame is ready without it having to poll for the
 // registry being populated.
 document.documentElement.dataset.mashCatalogue = "mash";
