@@ -120,6 +120,25 @@ const stageRecipes: UtilityRecipes = {
   "example-toolbar": "flex flex-wrap items-center gap-control-gap",
   "example-navigation":
     "flex flex-wrap items-center gap-control-gap rounded-container border border-border bg-surface px-control-inline py-control-block",
+  "example-link-showcase":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface px-control-inline py-control-block",
+  "example-link-heading": "grid gap-[var(--border-hairline)]",
+  "example-link-matrix": "grid border-y border-border",
+  "example-link-row":
+    "grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-group-inline py-control-block-small max-[24rem]:grid-cols-1 max-[24rem]:gap-[var(--border-hairline)]",
+  "example-link-prose": "min-w-0",
+  "example-link-content-grid":
+    "grid grid-cols-[repeat(2,minmax(0,1fr))] items-center gap-container-gap max-[35rem]:grid-cols-1",
+  "example-link-navigation":
+    "grid w-[min(100%,var(--layout-dimension-panel))] gap-[var(--border-hairline)] rounded-container border border-border bg-surface px-control-inline py-control-block",
+  "example-link-navigation-heading":
+    "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap px-control-inline-small py-control-block-small type-label",
+  "example-link-team-mark":
+    "inline-grid size-glyph place-items-center rounded-control bg-neutral text-on-neutral type-code",
+  "example-link-nav-item":
+    "w-full [&::part(control)]:w-full [&::part(control)]:rounded-control [&::part(control)]:px-control-inline-small [&::part(control)]:py-control-block-small hover:[&::part(control)]:bg-neutral-hover",
+  "example-link-card": "w-[min(100%,var(--layout-dimension-dialog))]",
+  "example-link-card-copy": "grid gap-control-gap",
   "example-field": "w-[min(100%,var(--layout-dimension-dialog))]",
   "example-editor-workspace": "w-[min(100%,var(--layout-dimension-content))]",
   "example-editor-search": "w-[min(22rem,calc(100vw-var(--space-container-inline)*4))]",
@@ -129,6 +148,15 @@ const stageRecipes: UtilityRecipes = {
   "example-pagination":
     "grid gap-container-block rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-pagination-heading": "flex items-center justify-between gap-control-gap",
+  "example-table-entity": "flex min-w-0 items-center gap-control-gap",
+  "example-table-copy": "grid min-w-0 gap-[var(--border-hairline)]",
+  "example-table-meta": "type-label-small text-text-muted",
+  "example-table-progress":
+    "grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-control-gap",
+  "example-table-number": "block text-end type-code [font-variant-numeric:tabular-nums]",
+  "example-table-states":
+    "grid w-[min(100%,var(--layout-dimension-content))] grid-cols-2 gap-container-gap max-[45rem]:grid-cols-1",
+  "example-table-message": "flex items-center gap-control-gap text-text-muted",
   "example-tree-glyph":
     "inline-block size-[calc(var(--space-control-gap)+var(--space-control-block-small))] rounded-control border border-current [background:color-mix(in_oklab,currentColor_14%,transparent)]",
   "example-toolbar-dock":
@@ -178,8 +206,17 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   ],
   [".example-card-heading span", "truncate type-label-small text-text-muted"],
   [".example-card-heading ui-badge", "max-[35rem]:col-start-2 max-[35rem]:justify-self-start"],
+  [".example-link-heading h2, .example-link-heading p", "m-0"],
+  [".example-link-heading h2", "type-label-large"],
+  [".example-link-heading p", "type-label-small text-text-muted"],
+  [".example-link-row > span:first-child", "type-code text-text-muted"],
+  [".example-link-prose, .example-link-card-copy p", "m-0"],
+  [".example-link-content-grid ui-link", "justify-self-start"],
+  [".example-link-nav-item ui-badge", "ms-auto"],
+  [".example-link-nav-item[current]", "rounded-control bg-neutral-hover"],
   [".example-editor-status span:last-child", "ms-auto"],
   [".example-pagination-heading > div", "grid gap-[var(--border-hairline)]"],
+  [".example-table-progress ui-progress", "w-full! min-w-0"],
   [
     ".example-pagination-heading span, .example-pagination-heading output",
     "type-label-small text-text-muted",
@@ -290,6 +327,7 @@ export function applyStageUtilityRecipes(root: Element): void {
 const bodyLayoutRecipes = {
   center:
     "flex items-center justify-center px-container-inline py-[calc(var(--space-container-block)+var(--space-region))]",
+  start: "flex items-start justify-start px-container-inline py-container-block",
   anchor:
     "flex items-start justify-center px-container-inline pt-[calc(var(--space-region)*3)] pb-[calc(var(--space-region)*2)]",
   fill: "p-0",

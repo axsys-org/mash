@@ -44,7 +44,10 @@ for (const tag of tags) {
       await expect(component).toBeVisible();
 
       const geometry = await component.evaluate((node) => {
-        const bounds = node.getBoundingClientRect();
+        const hostBounds = node.getBoundingClientRect();
+        const root = node.shadowRoot?.querySelector<HTMLElement>("[part~='root']");
+        const target = hostBounds.width > 0 && hostBounds.height > 0 ? node : root;
+        const bounds = target?.getBoundingClientRect() ?? hostBounds;
         const documentElement = node.ownerDocument.documentElement;
         return {
           width: bounds.width,

@@ -13,12 +13,14 @@ export interface CatalogExample extends Example {
    */
   compositionOnly?: boolean;
   description?: string;
+  /** Optional preview-canvas placement for examples whose shape reads from an edge. */
+  stageLayout?: "start" | "fill";
 }
 
 const example = (
   name: string,
   code: string,
-  options: Pick<CatalogExample, "compositionOnly" | "description"> = {},
+  options: Pick<CatalogExample, "compositionOnly" | "description" | "stageLayout"> = {},
 ): CatalogExample => ({ name, code: code.trim(), ...options });
 
 /**
@@ -29,6 +31,362 @@ const example = (
  * is documentation for the system, not a new public API on either primitive.
  */
 const curated: Record<string, CatalogExample[]> = {
+  "ui-link": [
+    example(
+      "Variants and states",
+      `
+        <div class="catalog-example example-link-showcase">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Foundation</span>
+            <h2>Links keep their role in context</h2>
+            <p>Emphasis changes independently from destination, content, and state.</p>
+          </header>
+          <div class="example-link-matrix">
+            <div class="example-link-row">
+              <span>standalone</span>
+              <ui-link href="#project-overview">Project overview</ui-link>
+            </div>
+            <div class="example-link-row">
+              <span>inline</span>
+              <p class="example-link-prose">Read the <ui-link variant="inline" href="#migration-guide">migration guide</ui-link> before changing the billing workflow.</p>
+            </div>
+            <div class="example-link-row">
+              <span>quiet</span>
+              <ui-link variant="quiet" href="#activity">Recent activity</ui-link>
+            </div>
+            <div class="example-link-row">
+              <span>current</span>
+              <ui-link variant="quiet" href="#issues" current>Issues</ui-link>
+            </div>
+            <div class="example-link-row">
+              <span>disabled</span>
+              <ui-link href="#archived" disabled>Archived projects</ui-link>
+            </div>
+          </div>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Standalone, inline, and quiet are stable presentation roles; current and disabled remain semantic states.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Prefix and suffix content",
+      `
+        <div class="catalog-example example-link-showcase">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Anatomy</span>
+            <h2>Authored content owns its space</h2>
+            <p>Prefix and suffix slots disappear entirely when they are empty.</p>
+          </header>
+          <div class="example-link-content-grid">
+            <ui-link href="#release-notes">
+              <span slot="prefix" aria-hidden="true">↗</span>
+              Release notes
+            </ui-link>
+            <ui-link href="#keyboard-shortcuts">
+              Keyboard shortcuts
+              <ui-kbd slot="suffix">⌘ K</ui-kbd>
+            </ui-link>
+            <ui-link variant="quiet" href="#notifications">
+              <span slot="prefix" aria-hidden="true">◌</span>
+              Notifications
+              <ui-badge slot="suffix" size="small">3</ui-badge>
+            </ui-link>
+            <ui-link href="#billing-migration" label="Billing migration"></ui-link>
+          </div>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Icons, keyboard hints, badges, and the label fallback all use the public link anatomy.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Workspace navigation",
+      `
+        <nav class="catalog-example example-link-navigation" aria-label="Interzone workspace">
+          <header class="example-link-navigation-heading">
+            <span class="example-link-team-mark">I</span>
+            <span>Interzone</span>
+            <ui-button variant="quiet" size="small" aria-label="Add workspace page">+</ui-button>
+          </header>
+          <ui-link class="example-link-nav-item" variant="quiet" href="#issues" current>
+            <span slot="prefix" aria-hidden="true">◇</span>
+            Issues
+            <ui-badge slot="suffix" size="small">24</ui-badge>
+          </ui-link>
+          <ui-link class="example-link-nav-item" variant="quiet" href="#projects">
+            <span slot="prefix" aria-hidden="true">□</span>
+            Projects
+          </ui-link>
+          <ui-link class="example-link-nav-item" variant="quiet" href="#cycles">
+            <span slot="prefix" aria-hidden="true">◔</span>
+            Cycles
+            <ui-badge slot="suffix" size="small" tone="positive">Active</ui-badge>
+          </ui-link>
+          <ui-separator></ui-separator>
+          <ui-link class="example-link-nav-item" variant="quiet" href="#settings">
+            <span slot="prefix" aria-hidden="true">⚙</span>
+            Settings
+          </ui-link>
+        </nav>`,
+      {
+        compositionOnly: true,
+        description:
+          "Quiet links become a full navigation family through slots and composition, without a second link primitive.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Wrapping and composition",
+      `
+        <ui-card class="catalog-example example-link-card" elevation="raised">
+          <ui-avatar slot="prefix">BM</ui-avatar>
+          <strong slot="title"><ui-link variant="inline" href="#billing-migration">Billing migration</ui-link></strong>
+          <span slot="description">Payments · updated 12 minutes ago</span>
+          <ui-badge slot="value" tone="positive">On track</ui-badge>
+          <div slot="content" class="example-link-card-copy">
+            <p>Review the <ui-link variant="inline" href="#invoice-reconciliation">invoice reconciliation requirements for international billing accounts</ui-link> before the next release window.</p>
+            <p class="example-support">Inline links inherit this paragraph and wrap with it; standalone actions retain their own label treatment.</p>
+          </div>
+          <div slot="footer" class="example-actions">
+            <ui-link href="#open-project">Open project<span slot="suffix" aria-hidden="true">→</span></ui-link>
+            <ui-link variant="quiet" href="#project-settings">Settings</ui-link>
+          </div>
+        </ui-card>`,
+      {
+        compositionOnly: true,
+        description:
+          "Long inline destinations wrap with prose while standalone and quiet actions remain distinct inside a real card.",
+        stageLayout: "start",
+      },
+    ),
+  ],
+  "ui-table": [
+    example(
+      "Project status table",
+      `
+        <ui-table label="Project status" row-count="4" column-count="3">
+          <ui-table-caption slot="caption">Project status</ui-table-caption>
+          <ui-table-header>
+            <ui-table-row row-index="1">
+              <ui-table-head column-index="1">Project</ui-table-head>
+              <ui-table-head column-index="2">Status</ui-table-head>
+              <ui-table-head column-index="3">Owner</ui-table-head>
+            </ui-table-row>
+          </ui-table-header>
+          <ui-table-body>
+            <ui-table-row row-index="2">
+              <ui-table-cell column-index="1">Billing migration</ui-table-cell>
+              <ui-table-cell column-index="2">Active</ui-table-cell>
+              <ui-table-cell column-index="3">Finance</ui-table-cell>
+            </ui-table-row>
+            <ui-table-row row-index="3">
+              <ui-table-cell column-index="1">Invoice reconciliation</ui-table-cell>
+              <ui-table-cell column-index="2">Review</ui-table-cell>
+              <ui-table-cell column-index="3">Operations</ui-table-cell>
+            </ui-table-row>
+            <ui-table-row row-index="4">
+              <ui-table-cell column-index="1">Archive import</ui-table-cell>
+              <ui-table-cell column-index="2">Paused</ui-table-cell>
+              <ui-table-cell column-index="3">Records</ui-table-cell>
+            </ui-table-row>
+          </ui-table-body>
+        </ui-table>`,
+      {
+        compositionOnly: true,
+        description: "The complete table anatomy with text-only cells.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Single row",
+      `
+        <ui-table label="Current project" row-count="2" column-count="3">
+          <ui-table-caption slot="caption">Current project</ui-table-caption>
+          <ui-table-header>
+            <ui-table-row row-index="1">
+              <ui-table-head column-index="1">Project</ui-table-head>
+              <ui-table-head column-index="2">Status</ui-table-head>
+              <ui-table-head column-index="3">Owner</ui-table-head>
+            </ui-table-row>
+          </ui-table-header>
+          <ui-table-body>
+            <ui-table-row row-index="2">
+              <ui-table-cell column-index="1">Billing migration</ui-table-cell>
+              <ui-table-cell column-index="2"><ui-badge tone="positive">Active</ui-badge></ui-table-cell>
+              <ui-table-cell column-index="3">Finance</ui-table-cell>
+            </ui-table-row>
+          </ui-table-body>
+        </ui-table>`,
+      {
+        compositionOnly: true,
+        description:
+          "The smallest complete table: one header row and one data row, kept as a visual regression case.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Project health",
+      `
+        <ui-table label="Project health" row-count="4" column-count="4">
+          <ui-table-caption slot="caption">Project health</ui-table-caption>
+          <ui-table-header>
+            <ui-table-row row-index="1">
+              <ui-table-head column-index="1">Project</ui-table-head>
+              <ui-table-head column-index="2">Status</ui-table-head>
+              <ui-table-head column-index="3">Progress</ui-table-head>
+              <ui-table-head column-index="4">Owner</ui-table-head>
+            </ui-table-row>
+          </ui-table-header>
+          <ui-table-body>
+            <ui-table-row row-index="2">
+              <ui-table-cell column-index="1">
+                <span class="example-table-entity">
+                  <ui-avatar size="small">BM</ui-avatar>
+                  <span class="example-table-copy">
+                    <ui-link href="#billing-migration">Billing migration</ui-link>
+                    <span class="example-table-meta">Payments</span>
+                  </span>
+                </span>
+              </ui-table-cell>
+              <ui-table-cell column-index="2"><ui-badge tone="positive">On track</ui-badge></ui-table-cell>
+              <ui-table-cell column-index="3">
+                <span class="example-table-progress">
+                  <ui-progress value="82" label="Billing migration 82 percent complete"></ui-progress>
+                  <output>82%</output>
+                </span>
+              </ui-table-cell>
+              <ui-table-cell column-index="4">Maya Chen</ui-table-cell>
+            </ui-table-row>
+            <ui-table-row row-index="3">
+              <ui-table-cell column-index="1">
+                <span class="example-table-entity">
+                  <ui-avatar size="small">IR</ui-avatar>
+                  <span class="example-table-copy">
+                    <ui-link href="#invoice-reconciliation">Invoice reconciliation</ui-link>
+                    <span class="example-table-meta">Operations</span>
+                  </span>
+                </span>
+              </ui-table-cell>
+              <ui-table-cell column-index="2"><ui-badge tone="warning">At risk</ui-badge></ui-table-cell>
+              <ui-table-cell column-index="3">
+                <span class="example-table-progress">
+                  <ui-progress value="54" tone="warning" label="Invoice reconciliation 54 percent complete"></ui-progress>
+                  <output>54%</output>
+                </span>
+              </ui-table-cell>
+              <ui-table-cell column-index="4">Sam Ortiz</ui-table-cell>
+            </ui-table-row>
+            <ui-table-row row-index="4">
+              <ui-table-cell column-index="1">
+                <span class="example-table-entity">
+                  <ui-avatar size="small">AI</ui-avatar>
+                  <span class="example-table-copy">
+                    <ui-link href="#archive-import">Archive import</ui-link>
+                    <span class="example-table-meta">Records</span>
+                  </span>
+                </span>
+              </ui-table-cell>
+              <ui-table-cell column-index="2"><ui-badge tone="critical">Blocked</ui-badge></ui-table-cell>
+              <ui-table-cell column-index="3">
+                <span class="example-table-progress">
+                  <ui-progress value="31" tone="critical" label="Archive import 31 percent complete"></ui-progress>
+                  <output>31%</output>
+                </span>
+              </ui-table-cell>
+              <ui-table-cell column-index="4">Alex Rivera</ui-table-cell>
+            </ui-table-row>
+          </ui-table-body>
+        </ui-table>`,
+      {
+        compositionOnly: true,
+        description:
+          "Rich cells compose Avatar, Link, Badge, and Progress without widening the table API.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Usage report",
+      `
+        <ui-table label="Workspace usage for the last 30 days" row-count="4" column-count="4">
+          <ui-table-caption slot="caption">Workspace usage · Last 30 days</ui-table-caption>
+          <ui-table-header>
+            <ui-table-row row-index="1">
+              <ui-table-head column-index="1">Service</ui-table-head>
+              <ui-table-head column-index="2"><span class="example-table-number">Requests</span></ui-table-head>
+              <ui-table-head column-index="3"><span class="example-table-number">Success</span></ui-table-head>
+              <ui-table-head column-index="4"><span class="example-table-number">Spend</span></ui-table-head>
+            </ui-table-row>
+          </ui-table-header>
+          <ui-table-body>
+            <ui-table-row row-index="2">
+              <ui-table-cell column-index="1">Document indexing</ui-table-cell>
+              <ui-table-cell column-index="2"><ui-intl-formatter class="example-table-number" kind="number" value="128402" locale="en-US"></ui-intl-formatter></ui-table-cell>
+              <ui-table-cell column-index="3"><ui-intl-formatter class="example-table-number" kind="percent" value="0.998" locale="en-US" maximum-fraction-digits="1"></ui-intl-formatter></ui-table-cell>
+              <ui-table-cell column-index="4"><ui-intl-formatter class="example-table-number" kind="currency" value="1840.25" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
+            </ui-table-row>
+            <ui-table-row row-index="3">
+              <ui-table-cell column-index="1">Preview rendering</ui-table-cell>
+              <ui-table-cell column-index="2"><ui-intl-formatter class="example-table-number" kind="number" value="48761" locale="en-US"></ui-intl-formatter></ui-table-cell>
+              <ui-table-cell column-index="3"><ui-intl-formatter class="example-table-number" kind="percent" value="0.972" locale="en-US" maximum-fraction-digits="1"></ui-intl-formatter></ui-table-cell>
+              <ui-table-cell column-index="4"><ui-intl-formatter class="example-table-number" kind="currency" value="936.80" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
+            </ui-table-row>
+            <ui-table-row row-index="4">
+              <ui-table-cell column-index="1">Audit exports</ui-table-cell>
+              <ui-table-cell column-index="2"><ui-intl-formatter class="example-table-number" kind="number" value="7214" locale="en-US"></ui-intl-formatter></ui-table-cell>
+              <ui-table-cell column-index="3"><ui-intl-formatter class="example-table-number" kind="percent" value="1" locale="en-US" maximum-fraction-digits="1"></ui-intl-formatter></ui-table-cell>
+              <ui-table-cell column-index="4"><ui-intl-formatter class="example-table-number" kind="currency" value="214.12" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
+            </ui-table-row>
+          </ui-table-body>
+        </ui-table>`,
+      {
+        compositionOnly: true,
+        description:
+          "Locale-aware numeric cells keep formatting behavior outside the table primitive.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Empty and loading",
+      `
+        <div class="catalog-example example-table-states">
+          <ui-table label="Archived projects" row-count="2" column-count="1">
+            <ui-table-caption slot="caption">Archived projects</ui-table-caption>
+            <ui-table-header>
+              <ui-table-row row-index="1"><ui-table-head column-index="1">Project</ui-table-head></ui-table-row>
+            </ui-table-header>
+            <ui-table-body>
+              <ui-table-row row-index="2">
+                <ui-table-cell column-index="1"><span class="example-table-message">No archived projects.</span></ui-table-cell>
+              </ui-table-row>
+            </ui-table-body>
+          </ui-table>
+          <ui-table label="Projects loading" row-count="2" column-count="1" aria-busy="true">
+            <ui-table-caption slot="caption">Loading state</ui-table-caption>
+            <ui-table-header>
+              <ui-table-row row-index="1"><ui-table-head column-index="1">Project</ui-table-head></ui-table-row>
+            </ui-table-header>
+            <ui-table-body>
+              <ui-table-row row-index="2">
+                <ui-table-cell column-index="1">
+                  <span class="example-table-message"><ui-spinner size="small" label="Loading projects"></ui-spinner>Loading projects…</span>
+                </ui-table-cell>
+              </ui-table-row>
+            </ui-table-body>
+          </ui-table>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Workflow states stay authored as table content, including their accessible loading signal.",
+        stageLayout: "start",
+      },
+    ),
+  ],
   "ui-card": [
     example(
       "Project card",

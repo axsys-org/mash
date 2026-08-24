@@ -467,7 +467,7 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
   // declared, so it needs no per-component configuration.
   const fills = node.getBoundingClientRect().height >= doc.documentElement.clientHeight - 96;
   const anchored = component.attributes.some((attribute) => attribute.name === "placement");
-  const layout = anchored ? "anchor" : fills ? "fill" : "center";
+  const layout = example?.stageLayout ?? (anchored ? "anchor" : fills ? "fill" : "center");
   doc.documentElement.dataset.layout = layout;
   applyStageLayout(doc, layout);
 
