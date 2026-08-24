@@ -382,6 +382,358 @@ const curated: Record<string, CatalogExample[]> = {
       },
     ),
     example(
+      "Issue tracker workspace",
+      `
+        <div class="catalog-example example-linear-workspace" data-linear-workspace data-linear-view="list" data-inspector-open="false">
+          <aside class="example-linear-sidebar">
+            <ui-navigation-menu class="example-linear-navigation" label="Axiomatic workspace">
+              <div class="example-linear-identity">
+                <ui-avatar size="small">AX</ui-avatar>
+                <span class="example-linear-identity-copy">
+                  <strong>Axiomatic</strong>
+                  <span>Product workspace</span>
+                </span>
+                <ui-button type="button" size="small" variant="quiet" aria-label="Switch workspace">⌄</ui-button>
+              </div>
+
+              <ui-input class="example-linear-search" data-linear-search type="search" size="small" label="Search issues" placeholder="Search issues…"></ui-input>
+
+              <div class="example-linear-nav-list">
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#inbox"><span slot="prefix" aria-hidden="true">◫</span>Inbox<ui-badge slot="suffix" size="small">4</ui-badge></ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#my-issues"><span slot="prefix" aria-hidden="true">◉</span>My issues</ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#issues" current><span slot="prefix" aria-hidden="true">◇</span>Issues<ui-badge slot="suffix" size="small">24</ui-badge></ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#cycles"><span slot="prefix" aria-hidden="true">↻</span>Cycles</ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#projects"><span slot="prefix" aria-hidden="true">▣</span>Projects</ui-link>
+              </div>
+
+              <ui-separator></ui-separator>
+
+              <div class="example-linear-nav-section">
+                <div class="example-linear-nav-heading"><strong>Teams</strong><ui-button type="button" size="small" variant="quiet" aria-label="Add team">＋</ui-button></div>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#product"><span slot="prefix" class="example-linear-team-mark" aria-hidden="true">P</span>Product</ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#engineering"><span slot="prefix" class="example-linear-team-mark" aria-hidden="true">E</span>Engineering</ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#design"><span slot="prefix" class="example-linear-team-mark" aria-hidden="true">D</span>Design</ui-link>
+              </div>
+
+              <div class="example-linear-cycle">
+                <div class="example-linear-cycle-copy"><span>Cycle 42</span><span>64%</span></div>
+                <ui-progress value="64" label="Cycle 42 is 64 percent complete"></ui-progress>
+                <span>9 days remaining</span>
+              </div>
+            </ui-navigation-menu>
+
+            <ui-dialog class="example-linear-new-issue" data-linear-create-dialog label="Create issue">
+              <ui-button slot="trigger" type="button">＋ New issue <ui-kbd>C</ui-kbd></ui-button>
+              <h2 slot="title">Create issue</h2>
+              <p slot="description">Add an issue to the Product team backlog.</p>
+              <div class="example-stack">
+                <ui-field label="Title"><ui-input slot="control" data-linear-create-title name="title" placeholder="Issue title"></ui-input></ui-field>
+                <ui-field label="Status">
+                  <ui-select slot="control" data-linear-create-status name="status" value="backlog" label="Issue status">
+                    <ui-option value="backlog">Backlog</ui-option>
+                    <ui-option value="todo">Todo</ui-option>
+                    <ui-option value="progress">In progress</ui-option>
+                  </ui-select>
+                </ui-field>
+              </div>
+              <div slot="close" class="example-actions">
+                <ui-button variant="secondary">Cancel</ui-button>
+                <ui-button data-linear-create-action>Create issue</ui-button>
+              </div>
+            </ui-dialog>
+          </aside>
+
+          <main class="example-linear-shell">
+            <header class="example-linear-topbar">
+              <div class="example-linear-breadcrumb">
+                <ui-drawer class="example-linear-mobile-navigation" side="start" label="Workspace navigation">
+                  <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Open workspace navigation">☰</ui-button>
+                  <h2 slot="title">Axiomatic</h2>
+                  <p slot="description">Product workspace</p>
+                  <nav class="example-linear-mobile-nav" aria-label="Workspace">
+                    <ui-link class="example-linear-nav-link" variant="quiet" href="#inbox"><span slot="prefix" aria-hidden="true">◫</span>Inbox<ui-badge slot="suffix" size="small">4</ui-badge></ui-link>
+                    <ui-link class="example-linear-nav-link" variant="quiet" href="#my-issues"><span slot="prefix" aria-hidden="true">◉</span>My issues</ui-link>
+                    <ui-link class="example-linear-nav-link" variant="quiet" href="#issues" current><span slot="prefix" aria-hidden="true">◇</span>Issues<ui-badge slot="suffix" size="small">24</ui-badge></ui-link>
+                    <ui-link class="example-linear-nav-link" variant="quiet" href="#cycles"><span slot="prefix" aria-hidden="true">↻</span>Cycles</ui-link>
+                    <ui-link class="example-linear-nav-link" variant="quiet" href="#projects"><span slot="prefix" aria-hidden="true">▣</span>Projects</ui-link>
+                  </nav>
+                </ui-drawer>
+                <ui-button type="button" size="small" variant="quiet">Product</ui-button>
+                <span aria-hidden="true">/</span>
+                <strong>All issues</strong>
+              </div>
+              <div class="example-linear-top-actions">
+                <ui-dialog class="example-linear-command" data-linear-command-dialog label="Command menu">
+                  <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Open command menu">⌘ K</ui-button>
+                  <h2 slot="title">Command menu</h2>
+                  <p slot="description">Search or run an action on the active issue selection.</p>
+                  <ui-input data-linear-command-search type="search" label="Search commands" placeholder="Type a command…"></ui-input>
+                  <div class="example-linear-command-list" role="list" aria-label="Commands">
+                    <ui-button type="button" variant="quiet" data-linear-command="status-progress"><span>◒</span><span>Set status: In progress</span><ui-kbd>1</ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="status-done"><span>✓</span><span>Mark as done</span><ui-kbd>2</ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="priority-high"><span>↑</span><span>Set priority: High</span><ui-kbd>3</ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="assign-maya"><span>●</span><span>Assign to Maya</span><ui-kbd>4</ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="copy-link"><span>↗</span><span>Copy issue link</span></ui-button>
+                  </div>
+                </ui-dialog>
+                <ui-avatar size="small">MC</ui-avatar>
+              </div>
+            </header>
+
+            <div class="example-linear-content-grid">
+            <ui-scroll-area class="example-linear-scroll" label="Product issues workspace" mode="hover">
+              <section slot="content" class="example-linear-main" tabindex="-1">
+                <div class="example-linear-page-heading">
+                  <div class="example-linear-heading-copy">
+                    <span class="example-linear-eyebrow">Product · Issues</span>
+                    <h2>All issues</h2>
+                    <p>Track product work across the current cycle and backlog.</p>
+                  </div>
+                  <div class="example-linear-heading-actions">
+                    <ui-toggle-group data-linear-view-toggle mode="single" value="list" label="Issue view">
+                      <ui-toggle value="list" pressed>List</ui-toggle>
+                      <ui-toggle value="board">Board</ui-toggle>
+                    </ui-toggle-group>
+                    <ui-dialog data-linear-create-dialog label="Create issue">
+                      <ui-button slot="trigger" type="button">New issue</ui-button>
+                      <h2 slot="title">Create issue</h2>
+                      <p slot="description">Capture the work now; refine the details later.</p>
+                      <div class="example-stack">
+                        <ui-field label="Title"><ui-input slot="control" data-linear-create-title name="quick-title" placeholder="Issue title"></ui-input></ui-field>
+                        <ui-field label="Status">
+                          <ui-select slot="control" data-linear-create-status value="backlog" label="Issue status">
+                            <ui-option value="backlog">Backlog</ui-option>
+                            <ui-option value="todo">Todo</ui-option>
+                            <ui-option value="progress">In progress</ui-option>
+                          </ui-select>
+                        </ui-field>
+                      </div>
+                      <div slot="close" class="example-actions"><ui-button variant="secondary">Cancel</ui-button><ui-button data-linear-create-action>Create</ui-button></div>
+                    </ui-dialog>
+                  </div>
+                </div>
+
+                <ui-toolbar class="example-linear-filters" label="Issue filters">
+                  <ui-input class="example-linear-filter-search" data-linear-search type="search" size="small" label="Filter issues" placeholder="Filter issues…"></ui-input>
+                  <ui-menu data-linear-filter="status" label="Status filter">
+                    <ui-button slot="trigger" data-linear-filter-label type="button" size="small" variant="secondary">Status · All</ui-button>
+                    <ui-menu-item value="all">All statuses</ui-menu-item>
+                    <ui-menu-item value="backlog">Backlog</ui-menu-item>
+                    <ui-menu-item value="todo">Todo</ui-menu-item>
+                    <ui-menu-item value="progress">In progress</ui-menu-item>
+                    <ui-menu-item value="review">In review</ui-menu-item>
+                    <ui-menu-item value="done">Done</ui-menu-item>
+                  </ui-menu>
+                  <ui-menu data-linear-filter="assignee" label="Assignee filter">
+                    <ui-button slot="trigger" data-linear-filter-label type="button" size="small" variant="secondary">Assignee · All</ui-button>
+                    <ui-menu-item value="all">All assignees</ui-menu-item>
+                    <ui-menu-item value="maya">Maya Chen</ui-menu-item>
+                    <ui-menu-item value="sam">Sam Ortiz</ui-menu-item>
+                    <ui-menu-item value="alex">Alex Rivera</ui-menu-item>
+                    <ui-menu-item value="priya">Priya Jain</ui-menu-item>
+                  </ui-menu>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-clear-filters>Clear</ui-button>
+                  <output class="example-linear-result-count" data-linear-visible-count aria-live="polite">5 issues</output>
+                </ui-toolbar>
+
+                <div class="example-linear-list-heading">
+                  <div><strong>Active cycle</strong><ui-badge size="small" data-linear-group-count>5</ui-badge></div>
+                  <span>Cycle 42 · Aug 17–30 · <ui-kbd>J</ui-kbd> <ui-kbd>K</ui-kbd> to navigate</span>
+                </div>
+
+                <ui-toolbar class="example-linear-selection-toolbar" data-linear-selection-toolbar hidden label="Selected issue actions">
+                  <strong><span data-linear-selection-count>0</span> selected</strong>
+                  <ui-separator orientation="vertical"></ui-separator>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-command="status-done">✓ Mark done</ui-button>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-command="status-progress">◒ In progress</ui-button>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-command="assign-maya">● Assign Maya</ui-button>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-clear-selection aria-label="Clear selection">×</ui-button>
+                </ui-toolbar>
+
+                <div data-linear-list-view>
+
+                <ui-table class="example-linear-table" label="Product issues" row-count="6" column-count="6">
+                  <ui-table-header>
+                    <ui-table-row row-index="1">
+                      <ui-table-head column-index="1"><ui-checkbox data-linear-select-all><span class="sr-only">Select all visible issues</span></ui-checkbox></ui-table-head>
+                      <ui-table-head column-index="2">Key</ui-table-head>
+                      <ui-table-head column-index="3">Issue</ui-table-head>
+                      <ui-table-head column-index="4">Status</ui-table-head>
+                      <ui-table-head column-index="5">Priority</ui-table-head>
+                      <ui-table-head column-index="6">Assignee</ui-table-head>
+                    </ui-table-row>
+                  </ui-table-header>
+                  <ui-table-body>
+                    <ui-table-row row-index="2" data-linear-list-row data-linear-issue="MAS-142" data-title="Preserve filter state in shared views" data-area="Views" data-status="progress" data-priority="high" data-assignee="maya" data-initials="MC">
+                      <ui-table-cell column-index="1"><ui-checkbox data-linear-select data-linear-issue="MAS-142"><span class="sr-only">Select MAS-142</span></ui-checkbox></ui-table-cell>
+                      <ui-table-cell column-index="2"><span class="example-linear-key">MAS-142</span></ui-table-cell>
+                      <ui-table-cell column-index="3"><span class="example-linear-issue"><ui-link href="#mas-142" data-linear-open-issue="MAS-142">Preserve filter state in shared views</ui-link><span>Views</span></span></ui-table-cell>
+                      <ui-table-cell column-index="4"><ui-badge size="small" tone="positive">In progress</ui-badge></ui-table-cell>
+                      <ui-table-cell column-index="5"><span class="example-linear-priority" data-priority="high"><span aria-hidden="true">↑</span> High</span></ui-table-cell>
+                      <ui-table-cell column-index="6"><span class="example-linear-assignee"><ui-avatar size="small">MC</ui-avatar><span>Maya</span></span></ui-table-cell>
+                    </ui-table-row>
+                    <ui-table-row row-index="3" data-linear-list-row data-linear-issue="MAS-138" data-title="Ship keyboard navigation for issue lists" data-area="Accessibility" data-status="review" data-priority="urgent" data-assignee="sam" data-initials="SO">
+                      <ui-table-cell column-index="1"><ui-checkbox data-linear-select data-linear-issue="MAS-138"><span class="sr-only">Select MAS-138</span></ui-checkbox></ui-table-cell>
+                      <ui-table-cell column-index="2"><span class="example-linear-key">MAS-138</span></ui-table-cell>
+                      <ui-table-cell column-index="3"><span class="example-linear-issue"><ui-link href="#mas-138" data-linear-open-issue="MAS-138">Ship keyboard navigation for issue lists</ui-link><span>Accessibility</span></span></ui-table-cell>
+                      <ui-table-cell column-index="4"><ui-badge size="small" tone="warning">In review</ui-badge></ui-table-cell>
+                      <ui-table-cell column-index="5"><span class="example-linear-priority" data-priority="urgent"><span aria-hidden="true">!</span> Urgent</span></ui-table-cell>
+                      <ui-table-cell column-index="6"><span class="example-linear-assignee"><ui-avatar size="small">SO</ui-avatar><span>Sam</span></span></ui-table-cell>
+                    </ui-table-row>
+                    <ui-table-row row-index="4" data-linear-list-row data-linear-issue="MAS-133" data-title="Add cycle progress to team overview" data-area="Cycles" data-status="todo" data-priority="medium" data-assignee="alex" data-initials="AR">
+                      <ui-table-cell column-index="1"><ui-checkbox data-linear-select data-linear-issue="MAS-133"><span class="sr-only">Select MAS-133</span></ui-checkbox></ui-table-cell>
+                      <ui-table-cell column-index="2"><span class="example-linear-key">MAS-133</span></ui-table-cell>
+                      <ui-table-cell column-index="3"><span class="example-linear-issue"><ui-link href="#mas-133" data-linear-open-issue="MAS-133">Add cycle progress to team overview</ui-link><span>Cycles</span></span></ui-table-cell>
+                      <ui-table-cell column-index="4"><ui-badge size="small">Todo</ui-badge></ui-table-cell>
+                      <ui-table-cell column-index="5"><span class="example-linear-priority"><span aria-hidden="true">→</span> Medium</span></ui-table-cell>
+                      <ui-table-cell column-index="6"><span class="example-linear-assignee"><ui-avatar size="small">AR</ui-avatar><span>Alex</span></span></ui-table-cell>
+                    </ui-table-row>
+                    <ui-table-row row-index="5" data-linear-list-row data-linear-issue="MAS-129" data-title="Clarify archived project permissions" data-area="Projects" data-status="backlog" data-priority="low" data-assignee="priya" data-initials="PJ">
+                      <ui-table-cell column-index="1"><ui-checkbox data-linear-select data-linear-issue="MAS-129"><span class="sr-only">Select MAS-129</span></ui-checkbox></ui-table-cell>
+                      <ui-table-cell column-index="2"><span class="example-linear-key">MAS-129</span></ui-table-cell>
+                      <ui-table-cell column-index="3"><span class="example-linear-issue"><ui-link href="#mas-129" data-linear-open-issue="MAS-129">Clarify archived project permissions</ui-link><span>Projects</span></span></ui-table-cell>
+                      <ui-table-cell column-index="4"><ui-badge size="small">Backlog</ui-badge></ui-table-cell>
+                      <ui-table-cell column-index="5"><span class="example-linear-priority"><span aria-hidden="true">↓</span> Low</span></ui-table-cell>
+                      <ui-table-cell column-index="6"><span class="example-linear-assignee"><ui-avatar size="small">PJ</ui-avatar><span>Priya</span></span></ui-table-cell>
+                    </ui-table-row>
+                    <ui-table-row row-index="6" data-linear-list-row data-linear-issue="MAS-121" data-title="Normalize compact density tokens" data-area="Foundations" data-status="done" data-priority="medium" data-assignee="maya" data-initials="MC">
+                      <ui-table-cell column-index="1"><ui-checkbox data-linear-select data-linear-issue="MAS-121"><span class="sr-only">Select MAS-121</span></ui-checkbox></ui-table-cell>
+                      <ui-table-cell column-index="2"><span class="example-linear-key">MAS-121</span></ui-table-cell>
+                      <ui-table-cell column-index="3"><span class="example-linear-issue"><ui-link href="#mas-121" data-linear-open-issue="MAS-121">Normalize compact density tokens</ui-link><span>Foundations</span></span></ui-table-cell>
+                      <ui-table-cell column-index="4"><ui-badge size="small" tone="positive">Done</ui-badge></ui-table-cell>
+                      <ui-table-cell column-index="5"><span class="example-linear-priority"><span aria-hidden="true">→</span> Medium</span></ui-table-cell>
+                      <ui-table-cell column-index="6"><span class="example-linear-assignee"><ui-avatar size="small">MC</ui-avatar><span>Maya</span></span></ui-table-cell>
+                    </ui-table-row>
+                  </ui-table-body>
+                </ui-table>
+                </div>
+
+                <div class="example-linear-empty" data-linear-empty hidden>
+                  <ui-badge size="small">0 results</ui-badge>
+                  <strong>No issues match this view</strong>
+                  <span>Clear the filters or try a broader search.</span>
+                  <ui-button type="button" size="small" variant="secondary" data-linear-clear-filters>Clear filters</ui-button>
+                </div>
+
+                <div class="example-linear-board" data-linear-board-view hidden>
+                  <section class="example-linear-board-column" data-linear-board-column="progress">
+                    <header><span><span class="example-linear-status-dot" data-status="progress"></span><strong>In progress</strong></span><ui-badge size="small" data-linear-board-count>2</ui-badge></header>
+                    <div class="example-linear-card-list">
+                      <ui-card data-linear-board-card data-linear-issue="MAS-142" data-title="Preserve filter state in shared views" data-area="Views" data-status="progress" data-priority="high" data-assignee="maya" data-initials="MC">
+                        <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-142"><span class="sr-only">Select MAS-142</span></ui-checkbox><span class="example-linear-key">MAS-142</span><span class="example-linear-priority" data-priority="high">↑ High</span></div>
+                        <ui-link slot="content" href="#mas-142" data-linear-open-issue="MAS-142">Preserve filter state in shared views</ui-link>
+                        <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Views</ui-badge><ui-avatar size="small">MC</ui-avatar></div>
+                      </ui-card>
+                      <ui-card data-linear-board-card data-linear-issue="MAS-138" data-title="Ship keyboard navigation for issue lists" data-area="Accessibility" data-status="review" data-priority="urgent" data-assignee="sam" data-initials="SO">
+                        <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-138"><span class="sr-only">Select MAS-138</span></ui-checkbox><span class="example-linear-key">MAS-138</span><span class="example-linear-priority" data-priority="urgent">! Urgent</span></div>
+                        <ui-link slot="content" href="#mas-138" data-linear-open-issue="MAS-138">Ship keyboard navigation for issue lists</ui-link>
+                        <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Accessibility</ui-badge><ui-avatar size="small">SO</ui-avatar></div>
+                      </ui-card>
+                    </div>
+                  </section>
+                  <section class="example-linear-board-column" data-linear-board-column="planned">
+                    <header><span><span class="example-linear-status-dot" data-status="planned"></span><strong>Planned</strong></span><ui-badge size="small" data-linear-board-count>2</ui-badge></header>
+                    <div class="example-linear-card-list">
+                      <ui-card data-linear-board-card data-linear-issue="MAS-133" data-title="Add cycle progress to team overview" data-area="Cycles" data-status="todo" data-priority="medium" data-assignee="alex" data-initials="AR">
+                        <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-133"><span class="sr-only">Select MAS-133</span></ui-checkbox><span class="example-linear-key">MAS-133</span><span class="example-linear-priority">→ Medium</span></div>
+                        <ui-link slot="content" href="#mas-133" data-linear-open-issue="MAS-133">Add cycle progress to team overview</ui-link>
+                        <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Cycles</ui-badge><ui-avatar size="small">AR</ui-avatar></div>
+                      </ui-card>
+                      <ui-card data-linear-board-card data-linear-issue="MAS-129" data-title="Clarify archived project permissions" data-area="Projects" data-status="backlog" data-priority="low" data-assignee="priya" data-initials="PJ">
+                        <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-129"><span class="sr-only">Select MAS-129</span></ui-checkbox><span class="example-linear-key">MAS-129</span><span class="example-linear-priority">↓ Low</span></div>
+                        <ui-link slot="content" href="#mas-129" data-linear-open-issue="MAS-129">Clarify archived project permissions</ui-link>
+                        <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Projects</ui-badge><ui-avatar size="small">PJ</ui-avatar></div>
+                      </ui-card>
+                    </div>
+                  </section>
+                  <section class="example-linear-board-column" data-linear-board-column="done">
+                    <header><span><span class="example-linear-status-dot" data-status="done"></span><strong>Done</strong></span><ui-badge size="small" data-linear-board-count>1</ui-badge></header>
+                    <div class="example-linear-card-list">
+                      <ui-card data-linear-board-card data-linear-issue="MAS-121" data-title="Normalize compact density tokens" data-area="Foundations" data-status="done" data-priority="medium" data-assignee="maya" data-initials="MC">
+                        <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-121"><span class="sr-only">Select MAS-121</span></ui-checkbox><span class="example-linear-key">MAS-121</span><span class="example-linear-priority">→ Medium</span></div>
+                        <ui-link slot="content" href="#mas-121" data-linear-open-issue="MAS-121">Normalize compact density tokens</ui-link>
+                        <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Foundations</ui-badge><ui-avatar size="small">MC</ui-avatar></div>
+                      </ui-card>
+                    </div>
+                  </section>
+                </div>
+              </section>
+            </ui-scroll-area>
+
+            <aside class="example-linear-inspector" data-linear-inspector hidden aria-label="Issue details">
+              <header class="example-linear-inspector-header">
+                <span class="example-linear-key" data-linear-inspector-key>MAS-142</span>
+                <div>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-command="copy-link" aria-label="Copy issue link">↗</ui-button>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-close-inspector aria-label="Close issue details">×</ui-button>
+                </div>
+              </header>
+              <div class="example-linear-inspector-body">
+                <div class="example-linear-inspector-title">
+                  <ui-badge size="small" data-linear-inspector-status tone="positive">In progress</ui-badge>
+                  <h2 data-linear-inspector-title>Preserve filter state in shared views</h2>
+                  <p>Keep filtered issue views durable across refreshes, shared links, and workspace navigation.</p>
+                </div>
+
+                <ui-card class="example-linear-diff-card">
+                  <div slot="header" class="example-linear-diff-heading"><span>◫</span><strong>Diffs</strong><ui-badge size="small" tone="positive">＋248 −31</ui-badge></div>
+                  <ui-link slot="content" href="#pull-218">mash#218 · shared-view persistence</ui-link>
+                  <span slot="footer">Checks passing · updated 12m ago</span>
+                </ui-card>
+
+                <div class="example-linear-properties">
+                  <ui-field label="Status">
+                    <ui-select slot="control" data-linear-detail-status value="progress" label="Issue status">
+                      <ui-option value="backlog">Backlog</ui-option><ui-option value="todo">Todo</ui-option><ui-option value="progress">In progress</ui-option><ui-option value="review">In review</ui-option><ui-option value="done">Done</ui-option>
+                    </ui-select>
+                  </ui-field>
+                  <ui-field label="Priority">
+                    <ui-select slot="control" data-linear-detail-priority value="high" label="Issue priority">
+                      <ui-option value="low">Low</ui-option><ui-option value="medium">Medium</ui-option><ui-option value="high">High</ui-option><ui-option value="urgent">Urgent</ui-option>
+                    </ui-select>
+                  </ui-field>
+                  <ui-field label="Assignee">
+                    <ui-select slot="control" data-linear-detail-assignee value="maya" label="Issue assignee">
+                      <ui-option value="maya">Maya Chen</ui-option><ui-option value="sam">Sam Ortiz</ui-option><ui-option value="alex">Alex Rivera</ui-option><ui-option value="priya">Priya Jain</ui-option>
+                    </ui-select>
+                  </ui-field>
+                </div>
+
+                <ui-collapsible class="example-linear-subissues" open>
+                  <span slot="trigger">Sub-issues <ui-badge size="small">2 / 3</ui-badge></span>
+                  <div class="example-linear-subissue-list">
+                    <ui-checkbox checked>Persist text and property filters</ui-checkbox>
+                    <ui-checkbox checked>Serialize grouped display options</ui-checkbox>
+                    <ui-checkbox>Restore focused issue after navigation</ui-checkbox>
+                  </div>
+                </ui-collapsible>
+
+                <ui-tabs class="example-linear-activity" value="activity" label="Issue context">
+                  <ui-tab slot="tab" value="activity">Activity</ui-tab>
+                  <ui-tab slot="tab" value="relations">Relations</ui-tab>
+                  <ui-tab-panel slot="panel" value="activity">
+                    <ol class="example-linear-activity-list">
+                      <li><ui-avatar size="small">SO</ui-avatar><span><strong>Sam</strong> moved this to In progress<small>28 minutes ago</small></span></li>
+                      <li><ui-avatar size="small">MC</ui-avatar><span><strong>Maya</strong> linked mash#218<small>12 minutes ago</small></span></li>
+                    </ol>
+                    <ui-field label="Add a comment"><ui-textarea slot="control" rows="3" placeholder="Leave an update…"></ui-textarea></ui-field>
+                  </ui-tab-panel>
+                  <ui-tab-panel slot="panel" value="relations"><div class="example-linear-relation"><ui-badge size="small">Blocks</ui-badge><ui-link href="#mas-151">MAS-151 Release saved views</ui-link></div></ui-tab-panel>
+                </ui-tabs>
+              </div>
+            </aside>
+            </div>
+          </main>
+          <ui-toast-stack class="example-linear-toasts" data-linear-toasts placement="bottom-end" limit="3" label="Workspace updates"></ui-toast-stack>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "A controlled issue-tracking system with shared list and board data, live filtering, keyboard navigation, bulk actions, creation, command routing, and integrated detail inspection—composed entirely from Mash primitives.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
       "Usage report",
       `
         <ui-table label="Workspace usage for the last 30 days" row-count="4" column-count="4">

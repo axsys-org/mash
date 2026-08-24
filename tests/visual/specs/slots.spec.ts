@@ -602,4 +602,92 @@ test.describe("catalog slot composition", () => {
     await preview.getByRole("button", { name: "Back to top" }).click();
     await expect.poll(scrollTop).toBe(0);
   });
+
+  test("composes a responsive issue-tracking workspace from Mash primitives", async ({ page }) => {
+    await page.goto("/components/ui-table?theme=dark&example=Issue%20tracker%20workspace");
+
+    const preview = page.frameLocator("iframe.stage-frame");
+    const table = preview.getByRole("table", { name: "Product issues" });
+    await expect(preview.locator("html")).toHaveAttribute("data-layout", "fill");
+    await expect(preview.locator(".example-linear-sidebar")).toBeVisible();
+    await expect(preview.locator("ui-link.example-linear-nav-link")).toHaveCount(13);
+    await expect(preview.locator("a.example-linear-nav-link")).toHaveCount(0);
+    await expect(
+      preview
+        .locator("ui-link.example-linear-nav-link[current]")
+        .first()
+        .locator('[part="control"]'),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(table).toBeVisible();
+    await expect(preview.locator(".example-linear-table ui-table-row")).toHaveCount(6);
+    await expect(preview.locator(".example-linear-table ui-table-head")).toHaveCount(6);
+
+    const search = preview.locator(".example-linear-filter-search").locator('[part="control"]');
+    await search.fill("keyboard");
+    await expect
+      .poll(() =>
+        preview
+          .locator(".example-linear-filter-search")
+          .evaluate((node) => (node as HTMLElement & { value: string }).value),
+      )
+      .toBe("keyboard");
+    await expect(preview.locator("[data-linear-list-row]:not([hidden])")).toHaveCount(1);
+    await expect(preview.locator("[data-linear-visible-count]")).toHaveText("1 issue");
+
+    const visibleIssue = preview.locator("[data-linear-list-row]:not([hidden])");
+    const firstIssue = visibleIssue.locator("ui-checkbox");
+    await firstIssue.click();
+    await expect
+      .poll(() =>
+        firstIssue.evaluate((node) => (node as HTMLElement & { checked: boolean }).checked),
+      )
+      .toBe(true);
+    await expect(preview.locator("[data-linear-selection-toolbar]")).toBeVisible();
+    await expect(preview.locator("[data-linear-selection-count]")).toHaveText("1");
+
+    await visibleIssue.locator("[data-linear-open-issue]").click();
+    await expect(preview.locator("[data-linear-inspector]")).toBeVisible();
+    await expect(preview.locator("[data-linear-inspector-title]")).toHaveText(
+      "Ship keyboard navigation for issue lists",
+    );
+    await preview.locator("[data-linear-close-inspector]").click();
+
+    await preview.getByRole("button", { name: "Mark done" }).click();
+    await expect(visibleIssue.locator('ui-table-cell[column-index="4"] ui-badge')).toHaveText(
+      "Done",
+    );
+
+    await preview.locator("[data-linear-clear-filters]").first().click();
+    await expect(preview.locator("[data-linear-list-row]:not([hidden])")).toHaveCount(5);
+
+    await preview.getByRole("button", { name: "Board" }).click();
+    await expect(preview.locator("[data-linear-board-view]")).toBeVisible();
+    await expect(preview.locator("[data-linear-board-card]:not([hidden])")).toHaveCount(5);
+
+    await preview.locator(".example-linear-main").focus();
+    await page.keyboard.press("Control+k");
+    await expect(preview.getByRole("dialog", { name: "Command menu" })).toBeVisible();
+    await page.keyboard.press("Escape");
+
+    const create = preview.locator("ui-dialog.example-linear-new-issue");
+    await create.locator(":scope > ui-button").click();
+    await expect(create.getByRole("dialog", { name: "Create issue" })).toBeVisible();
+    await create
+      .locator("[data-linear-create-title]")
+      .locator('[part="control"]')
+      .fill("Invent issue choreography");
+    await create.locator("[data-linear-create-action]").click();
+    await expect(
+      preview.locator('[data-linear-list-row][data-linear-issue="MAS-151"]'),
+    ).toHaveCount(1);
+
+    await page.setViewportSize({ width: 900, height: 844 });
+    await page.goto("/components/ui-table?example=Issue%20tracker%20workspace");
+    await expect(preview.locator(".example-linear-sidebar")).toBeHidden();
+    const compactGeometry = await preview.locator(".example-linear-table").evaluate((node) => ({
+      clientWidth: node.clientWidth,
+      scrollWidth: node.scrollWidth,
+    }));
+    expect(compactGeometry.scrollWidth - compactGeometry.clientWidth).toBeLessThanOrEqual(2);
+  });
 });

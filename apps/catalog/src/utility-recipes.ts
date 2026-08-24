@@ -154,6 +154,83 @@ const stageRecipes: UtilityRecipes = {
   "example-pagination":
     "grid gap-container-block rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-pagination-heading": "flex items-center justify-between gap-control-gap",
+  "example-linear-workspace":
+    "grid h-full min-h-0 w-full grid-cols-[13.5rem_minmax(0,1fr)] overflow-hidden bg-canvas text-text max-[45rem]:grid-cols-1",
+  "example-linear-sidebar":
+    "grid min-h-0 grid-rows-[minmax(0,1fr)_auto] overflow-hidden border-e border-border bg-surface-sunken max-[45rem]:hidden",
+  "example-linear-navigation":
+    "grid content-start gap-container-block overflow-y-auto px-control-inline py-container-block",
+  "example-linear-identity":
+    "grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap",
+  "example-linear-identity-copy": "grid min-w-0 gap-[var(--border-hairline)]",
+  "example-linear-search": "w-full! min-w-0",
+  "example-linear-nav-list": "grid gap-[var(--border-hairline)]",
+  "example-linear-nav-section": "grid gap-[var(--border-hairline)]",
+  "example-linear-nav-link":
+    "w-full min-w-0 type-label-small text-text-muted [&::part(control)]:flex [&::part(control)]:w-full [&::part(control)]:min-w-0 [&::part(control)]:items-center [&::part(control)]:gap-control-gap [&::part(control)]:rounded-control [&::part(control)]:px-control-inline-small [&::part(control)]:py-control-block-small hover:text-text hover:[&::part(control)]:bg-neutral-hover",
+  "example-linear-nav-heading":
+    "flex items-center justify-between px-control-inline-small type-label-small text-text-muted",
+  "example-linear-team-mark":
+    "inline-grid size-glyph place-items-center rounded-control bg-neutral text-on-neutral type-code",
+  "example-linear-cycle":
+    "grid gap-control-gap rounded-control border border-border bg-surface px-control-inline py-control-block",
+  "example-linear-cycle-copy": "flex items-center justify-between type-label-small",
+  "example-linear-new-issue": "px-control-inline py-container-block",
+  "example-linear-shell": "grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden",
+  "example-linear-topbar":
+    "flex min-w-0 items-center justify-between gap-control-gap border-b border-border bg-surface px-control-inline py-control-block-small",
+  "example-linear-breadcrumb": "flex min-w-0 items-center gap-control-gap type-label-small",
+  "example-linear-top-actions": "flex items-center gap-control-gap",
+  "example-linear-mobile-navigation": "hidden max-[45rem]:block",
+  "example-linear-mobile-nav": "grid gap-control-gap",
+  "example-linear-command-list": "grid gap-[var(--border-hairline)] pt-control-block",
+  "example-linear-content-grid":
+    "relative grid min-h-0 min-w-0 grid-cols-[minmax(0,1fr)_auto] overflow-hidden",
+  "example-linear-scroll": "h-full min-h-0",
+  "example-linear-main": "grid min-w-0 gap-container-block px-container-inline py-container-block",
+  "example-linear-page-heading": "flex flex-wrap items-start justify-between gap-container-gap",
+  "example-linear-heading-copy": "grid min-w-0 gap-control-block-small",
+  "example-linear-eyebrow": "type-label-small text-text-muted",
+  "example-linear-heading-actions": "flex flex-wrap items-center gap-control-gap",
+  "example-linear-filters": "flex min-w-0 flex-wrap items-center gap-control-gap",
+  "example-linear-filter-search":
+    "min-w-[min(100%,var(--layout-dimension-compact))] flex-[1_1_var(--layout-dimension-compact)]",
+  "example-linear-result-count": "ms-auto type-label-small text-text-muted",
+  "example-linear-list-heading":
+    "flex flex-wrap items-center justify-between gap-control-gap type-label-small text-text-muted",
+  "example-linear-selection-toolbar":
+    "sticky top-0 z-20 flex min-w-0 flex-wrap items-center gap-control-gap rounded-control border border-action bg-surface-raised px-control-inline py-control-block-small shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-linear-table": "min-w-0",
+  "example-linear-key": "type-code text-text-muted",
+  "example-linear-issue": "grid min-w-0 gap-[var(--border-hairline)]",
+  "example-linear-priority": "inline-flex items-center gap-control-gap type-label-small",
+  "example-linear-assignee": "inline-flex items-center gap-control-gap type-label-small",
+  "example-linear-empty":
+    "grid min-h-[var(--layout-dimension-compact)] place-items-center content-center gap-control-gap rounded-container border border-dashed border-border bg-surface-sunken px-container-inline py-container-block text-center text-text-muted",
+  "example-linear-board":
+    "grid min-w-0 grid-cols-[repeat(3,minmax(var(--layout-dimension-compact),1fr))] items-start gap-container-gap overflow-x-auto pb-control-block max-[45rem]:grid-cols-1 max-[45rem]:overflow-visible",
+  "example-linear-board-column":
+    "grid min-w-0 gap-control-gap rounded-container border border-border bg-surface-sunken px-control-inline py-control-block",
+  "example-linear-card-list": "grid gap-control-gap",
+  "example-linear-card-heading": "flex min-w-0 items-center gap-control-gap",
+  "example-linear-card-footer": "flex items-center justify-between gap-control-gap",
+  "example-linear-status-dot": "inline-block size-glyph rounded-full bg-neutral",
+  "example-linear-inspector":
+    "z-30 grid min-h-0 w-[calc(var(--layout-dimension-panel)+var(--layout-dimension-compact))] grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-s border-border bg-surface shadow-[-4px_0_12px_var(--color-shadow)] max-[65rem]:absolute max-[65rem]:inset-y-0 max-[65rem]:end-0 max-[65rem]:w-[min(100%,calc(var(--layout-dimension-panel)+var(--layout-dimension-compact)))]",
+  "example-linear-inspector-header":
+    "flex items-center justify-between gap-control-gap border-b border-border px-control-inline py-control-block-small",
+  "example-linear-inspector-body":
+    "grid content-start gap-container-block overflow-y-auto px-container-inline py-container-block",
+  "example-linear-inspector-title": "grid gap-control-gap",
+  "example-linear-diff-card": "grid gap-control-gap border-action bg-surface-raised",
+  "example-linear-diff-heading": "flex items-center gap-control-gap",
+  "example-linear-properties": "grid gap-control-gap",
+  "example-linear-subissues": "border-y border-border py-control-block",
+  "example-linear-subissue-list": "grid gap-control-gap pt-control-block",
+  "example-linear-activity": "min-w-0",
+  "example-linear-activity-list": "grid gap-container-block p-0",
+  "example-linear-relation": "flex items-center gap-control-gap pt-container-block",
+  "example-linear-toasts": "z-50",
   "example-table-entity": "flex min-w-0 items-center gap-control-gap",
   "example-table-copy": "grid min-w-0 gap-[var(--border-hairline)]",
   "example-table-meta": "type-label-small text-text-muted",
@@ -231,6 +308,57 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-material ui-card", "border-0! bg-transparent! shadow-none!"],
   [".example-editor-status span:last-child", "ms-auto"],
   [".example-pagination-heading > div", "grid gap-[var(--border-hairline)]"],
+  [".example-linear-identity-copy > span", "truncate type-label-small text-text-muted"],
+  [".example-linear-nav-link ui-badge", "ms-auto"],
+  [".example-linear-nav-link[current]", "text-text [&::part(control)]:bg-neutral-hover"],
+  [".example-linear-cycle > span", "type-label-small text-text-muted"],
+  [".example-linear-cycle ui-progress", "w-full! min-w-0"],
+  [
+    ".example-linear-new-issue > ui-button",
+    "w-full! [&::part(control)]:w-full [&::part(control)]:gap-control-gap",
+  ],
+  [".example-linear-new-issue ui-kbd", "ms-auto"],
+  [".example-linear-heading-copy h2, .example-linear-heading-copy p", "m-0"],
+  [".example-linear-heading-copy h2", "type-heading"],
+  [".example-linear-heading-copy p", "type-label-small text-text-muted"],
+  [
+    ".example-linear-command-list > ui-button",
+    "w-full! [&::part(control)]:w-full [&::part(control)]:grid [&::part(control)]:grid-cols-[auto_minmax(0,1fr)_auto] [&::part(control)]:justify-items-start",
+  ],
+  [".example-linear-list-heading > div", "flex items-center gap-control-gap"],
+  [
+    '.example-linear-table :is(ui-table-head, ui-table-cell)[column-index="2"], .example-linear-table :is(ui-table-head, ui-table-cell)[column-index="5"], .example-linear-table :is(ui-table-head, ui-table-cell)[column-index="6"]',
+    "max-[45rem]:hidden!",
+  ],
+  [".example-linear-issue > span", "type-label-small text-text-muted"],
+  [".example-linear-priority[data-priority=high]", "text-warning"],
+  [".example-linear-priority[data-priority=urgent]", "text-critical"],
+  [
+    ".example-linear-table ui-table-row, [data-linear-board-card]",
+    "[&[aria-selected=true]]:bg-neutral-hover [&[data-linear-highlighted=true]]:outline [&[data-linear-highlighted=true]]:outline-action [&[data-linear-highlighted=true]]:outline-offset-[-1px]",
+  ],
+  [
+    ".example-linear-board-column > header, .example-linear-board-column > header > span",
+    "flex items-center justify-between gap-control-gap",
+  ],
+  [".example-linear-board-column > header", "type-label-small"],
+  ["[data-linear-board-card]", "grid gap-control-gap"],
+  [".example-linear-card-heading .example-linear-priority", "ms-auto"],
+  ['.example-linear-status-dot[data-status="progress"]', "bg-action"],
+  ['.example-linear-status-dot[data-status="done"]', "bg-positive"],
+  [".example-linear-inspector-title h2, .example-linear-inspector-title p", "m-0"],
+  [".example-linear-inspector-title h2", "type-heading"],
+  [".example-linear-inspector-title p", "type-body text-text-muted"],
+  [".example-linear-diff-card > span", "type-label-small text-text-muted"],
+  [".example-linear-diff-heading ui-badge", "ms-auto"],
+  [
+    ".example-linear-subissues [slot=trigger]",
+    "flex w-full items-center justify-between gap-control-gap type-label",
+  ],
+  [".example-linear-activity ui-tab-panel", "block pt-container-block"],
+  [".example-linear-activity-list li", "flex items-start gap-control-gap"],
+  [".example-linear-activity-list li > span", "grid gap-[var(--border-hairline)]"],
+  [".example-linear-activity-list small", "text-text-muted"],
   [".example-table-progress ui-progress", "w-full! min-w-0"],
   [
     ".example-pagination-heading span, .example-pagination-heading output",
