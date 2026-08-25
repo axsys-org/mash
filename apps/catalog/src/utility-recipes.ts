@@ -121,22 +121,20 @@ const stageRecipes: UtilityRecipes = {
   "example-navigation":
     "flex flex-wrap items-center gap-control-gap rounded-container border border-border bg-surface px-control-inline py-control-block",
   "example-link-showcase":
-    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface px-control-inline py-control-block",
-  "example-link-heading": "grid gap-[var(--border-hairline)]",
-  "example-link-matrix": "grid border-y border-border",
+    "grid w-[min(100%,var(--layout-dimension-content))] gap-container-block rounded-container border border-border bg-surface px-container-inline py-container-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-link-heading": "grid gap-control-block-small",
+  "example-link-matrix": "grid overflow-hidden rounded-control border border-border",
   "example-link-row":
-    "grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-group-inline py-control-block-small max-[24rem]:grid-cols-1 max-[24rem]:gap-[var(--border-hairline)]",
+    "grid min-h-control min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-group-inline border-b border-border px-control-inline py-control-block max-[28rem]:grid-cols-1 max-[28rem]:gap-control-block-small",
   "example-link-prose": "min-w-0",
   "example-link-content-grid":
     "grid grid-cols-[repeat(2,minmax(0,1fr))] items-center gap-container-gap max-[35rem]:grid-cols-1",
   "example-link-navigation":
-    "grid w-[min(100%,var(--layout-dimension-panel))] gap-[var(--border-hairline)] rounded-container border border-border bg-surface px-control-inline py-control-block",
+    "grid w-[min(100%,calc(var(--layout-dimension-panel)_+_var(--space-region)))]! gap-control-block-small rounded-container border border-border bg-surface px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
   "example-link-navigation-heading":
-    "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap px-control-inline-small py-control-block-small type-label",
-  "example-link-team-mark":
-    "inline-grid size-glyph place-items-center rounded-control bg-neutral text-on-neutral type-code",
-  "example-link-nav-item":
-    "w-full [&::part(control)]:w-full [&::part(control)]:rounded-control [&::part(control)]:px-control-inline-small [&::part(control)]:py-control-block-small hover:[&::part(control)]:bg-neutral-hover",
+    "mb-control-block-small grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap border-b border-border px-control-inline-small pb-control-block type-label-large",
+  "example-link-icon": "inline-grid size-glyph place-items-center rounded-control text-text-muted",
+  "example-link-nav-item": "w-full [&::part(control)]:w-full",
   "example-link-card": "w-[min(100%,var(--layout-dimension-dialog))]",
   "example-link-card-copy": "grid gap-control-gap",
   "example-field": "w-[min(100%,var(--layout-dimension-dialog))]",
@@ -210,10 +208,10 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-link-heading h2", "type-label-large"],
   [".example-link-heading p", "type-label-small text-text-muted"],
   [".example-link-row > span:first-child", "type-code text-text-muted"],
+  [".example-link-row:last-child", "border-b-0"],
   [".example-link-prose, .example-link-card-copy p", "m-0"],
   [".example-link-content-grid ui-link", "justify-self-start"],
   [".example-link-nav-item ui-badge", "ms-auto"],
-  [".example-link-nav-item[current]", "rounded-control bg-neutral-hover"],
   [".example-editor-status span:last-child", "ms-auto"],
   [".example-pagination-heading > div", "grid gap-[var(--border-hairline)]"],
   [".example-table-progress ui-progress", "w-full! min-w-0"],

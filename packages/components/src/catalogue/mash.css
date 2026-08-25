@@ -1666,18 +1666,52 @@
     display: inline-flex;
     min-inline-size: var(--layout-dimension-zero);
     vertical-align: middle;
+    --_mash-link-color: var(--color-action);
+    --_mash-link-hover-color: var(--color-action-hover);
+    --_mash-link-active-color: var(--color-action-pressed);
+    --_mash-link-background: transparent;
+    --_mash-link-hover-background: transparent;
+    --_mash-link-active-background: transparent;
+    --_mash-link-padding-block: var(--layout-dimension-zero);
+    --_mash-link-padding-inline: var(--layout-dimension-zero);
+    --_mash-link-decoration: none;
+    --_mash-link-hover-decoration: underline;
   }
 
   :where([data-mash-catalogue="mash"]) ui-link::part(control) {
     display: inline-flex;
     min-inline-size: var(--layout-dimension-zero);
+    max-inline-size: 100%;
     gap: var(--space-control-gap);
     align-items: center;
-    color: var(--color-action);
+    border-radius: var(--radius-control);
+    padding: var(--_mash-link-padding-block) var(--_mash-link-padding-inline);
+    background: var(--_mash-link-background);
+    color: var(--_mash-link-color);
     font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
       var(--type-label-font-family);
-    text-decoration-line: underline;
+    text-decoration-color: color-mix(in oklab, currentColor 62%, transparent);
+    text-decoration-line: var(--_mash-link-decoration);
+    text-decoration-thickness: var(--border-hairline);
     text-underline-offset: var(--space-control-block);
+    cursor: pointer;
+    transition:
+      background-color var(--duration-control) var(--easing-control),
+      color var(--duration-control) var(--easing-control),
+      text-decoration-color var(--duration-control) var(--easing-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-link::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-link::part(suffix) {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-link::part(label) {
+    min-inline-size: var(--layout-dimension-zero);
+    overflow-wrap: anywhere;
   }
 
   :where([data-mash-catalogue="mash"]) ui-link[variant="inline"] {
@@ -1687,7 +1721,10 @@
 
   :where([data-mash-catalogue="mash"]) ui-link[variant="inline"]::part(control) {
     display: inline;
+    padding: var(--layout-dimension-zero);
+    background: transparent;
     font: inherit;
+    text-decoration-line: underline;
   }
 
   :where([data-mash-catalogue="mash"]) ui-link[variant="inline"]::part(prefix) {
@@ -1698,29 +1735,52 @@
     margin-inline-start: var(--space-control-gap);
   }
 
+  :where([data-mash-catalogue="mash"]) ui-link[variant="quiet"] {
+    --_mash-link-color: var(--color-text-muted);
+    --_mash-link-hover-color: var(--color-text);
+    --_mash-link-active-color: var(--color-text);
+    --_mash-link-hover-background: var(--color-neutral-hover);
+    --_mash-link-active-background: var(--color-neutral-pressed);
+    --_mash-link-padding-block: var(--space-control-block-small);
+    --_mash-link-padding-inline: var(--space-control-inline-small);
+    --_mash-link-hover-decoration: none;
+  }
+
   :where([data-mash-catalogue="mash"]) ui-link[variant="quiet"]::part(control) {
-    color: var(--color-text-muted);
-    text-decoration-line: none;
+    min-block-size: var(--layout-dimension-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-link[variant="quiet"]::part(label) {
+    flex: 1 1 auto;
   }
 
   :where([data-mash-catalogue="mash"]) ui-link:not([disabled]):hover::part(control) {
-    color: var(--color-action-hover);
-  }
-
-  :where([data-mash-catalogue="mash"])
-    ui-link[variant="quiet"]:not([disabled]):hover::part(control) {
-    color: var(--color-text);
-    text-decoration-line: underline;
+    background: var(--_mash-link-hover-background);
+    color: var(--_mash-link-hover-color);
+    text-decoration-line: var(--_mash-link-hover-decoration);
   }
 
   :where([data-mash-catalogue="mash"]) ui-link:not([disabled]):active::part(control) {
-    color: var(--color-action-pressed);
+    background: var(--_mash-link-active-background);
+    color: var(--_mash-link-active-color);
   }
 
   :where([data-mash-catalogue="mash"]) ui-link[current]::part(control) {
-    color: var(--color-text);
+    color: var(--color-action-pressed);
     font-weight: var(--type-label-font-weight);
-    text-decoration-thickness: var(--border-strong);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-link[variant="quiet"][current]::part(control) {
+    background: color-mix(in oklab, var(--color-action) 14%, var(--color-surface));
+    color: var(--color-action);
+    box-shadow: inset 0 0 0 var(--border-hairline)
+      color-mix(in oklab, var(--color-action) 28%, transparent);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-link[variant="quiet"][current]:not([disabled]):hover::part(control) {
+    background: color-mix(in oklab, var(--color-action) 20%, var(--color-surface));
+    color: var(--color-action-hover);
   }
 
   :where([data-mash-catalogue="mash"]) ui-link::part(control):focus-visible {
@@ -1730,7 +1790,9 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-link[disabled]::part(control) {
+    background: transparent;
     color: var(--color-text-disabled);
+    text-decoration-line: none;
     cursor: not-allowed;
   }
 

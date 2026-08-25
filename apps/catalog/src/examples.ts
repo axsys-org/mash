@@ -44,7 +44,7 @@ const curated: Record<string, CatalogExample[]> = {
           <div class="example-link-matrix">
             <div class="example-link-row">
               <span>standalone</span>
-              <ui-link href="#project-overview">Project overview</ui-link>
+              <ui-link href="#project-overview">Project overview<span slot="suffix" aria-hidden="true">→</span></ui-link>
             </div>
             <div class="example-link-row">
               <span>inline</span>
@@ -52,15 +52,15 @@ const curated: Record<string, CatalogExample[]> = {
             </div>
             <div class="example-link-row">
               <span>quiet</span>
-              <ui-link variant="quiet" href="#activity">Recent activity</ui-link>
+              <ui-link variant="quiet" href="#activity"><span slot="prefix" aria-hidden="true">◷</span>Recent activity</ui-link>
             </div>
             <div class="example-link-row">
               <span>current</span>
-              <ui-link variant="quiet" href="#issues" current>Issues</ui-link>
+              <ui-link variant="quiet" href="#issues" current><span slot="prefix" aria-hidden="true">◇</span>Issues</ui-link>
             </div>
             <div class="example-link-row">
               <span>disabled</span>
-              <ui-link href="#archived" disabled>Archived projects</ui-link>
+              <ui-link href="#archived" disabled><span slot="prefix" aria-hidden="true">⊘</span>Archived projects</ui-link>
             </div>
           </div>
         </div>`,
@@ -109,27 +109,27 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <nav class="catalog-example example-link-navigation" aria-label="Interzone workspace">
           <header class="example-link-navigation-heading">
-            <span class="example-link-team-mark">I</span>
+            <ui-avatar size="small">IZ</ui-avatar>
             <span>Interzone</span>
             <ui-button variant="quiet" size="small" aria-label="Add workspace page">+</ui-button>
           </header>
           <ui-link class="example-link-nav-item" variant="quiet" href="#issues" current>
-            <span slot="prefix" aria-hidden="true">◇</span>
+            <span slot="prefix" class="example-link-icon" aria-hidden="true">◇</span>
             Issues
             <ui-badge slot="suffix" size="small">24</ui-badge>
           </ui-link>
           <ui-link class="example-link-nav-item" variant="quiet" href="#projects">
-            <span slot="prefix" aria-hidden="true">□</span>
+            <span slot="prefix" class="example-link-icon" aria-hidden="true">□</span>
             Projects
           </ui-link>
           <ui-link class="example-link-nav-item" variant="quiet" href="#cycles">
-            <span slot="prefix" aria-hidden="true">◔</span>
+            <span slot="prefix" class="example-link-icon" aria-hidden="true">◔</span>
             Cycles
             <ui-badge slot="suffix" size="small" tone="positive">Active</ui-badge>
           </ui-link>
           <ui-separator></ui-separator>
           <ui-link class="example-link-nav-item" variant="quiet" href="#settings">
-            <span slot="prefix" aria-hidden="true">⚙</span>
+            <span slot="prefix" class="example-link-icon" aria-hidden="true">⚙</span>
             Settings
           </ui-link>
         </nav>`,

@@ -133,19 +133,33 @@ test.describe("catalog slot composition", () => {
       const inline = matrix.querySelector<HTMLElement>('ui-link[variant="inline"]')!;
       const quiet = matrix.querySelector<HTMLElement>('ui-link[variant="quiet"]:not([current])')!;
       const current = matrix.querySelector<HTMLElement>("ui-link[current]")!;
+      const standalone = matrix.querySelector<HTMLElement>(
+        'ui-link[variant="standalone"]:not([disabled])',
+      )!;
       const paragraph = inline.closest("p")!;
       const control = (node: HTMLElement) =>
         node.shadowRoot!.querySelector<HTMLElement>('[part="control"]')!;
+      const quietStyle = getComputedStyle(control(quiet));
+      const currentStyle = getComputedStyle(control(current));
       return {
         inlineFont: getComputedStyle(control(inline)).font,
         paragraphFont: getComputedStyle(paragraph).font,
-        quietDecoration: getComputedStyle(control(quiet)).textDecorationLine,
+        standaloneDecoration: getComputedStyle(control(standalone)).textDecorationLine,
+        quietDecoration: quietStyle.textDecorationLine,
+        quietHeight: control(quiet).getBoundingClientRect().height,
+        quietColor: quietStyle.color,
+        currentColor: currentStyle.color,
+        currentBackground: currentStyle.backgroundColor,
         ariaCurrent: control(current).getAttribute("aria-current"),
       };
     });
 
     expect(variantContract.inlineFont).toBe(variantContract.paragraphFont);
+    expect(variantContract.standaloneDecoration).toBe("none");
     expect(variantContract.quietDecoration).toBe("none");
+    expect(variantContract.quietHeight).toBeGreaterThanOrEqual(32);
+    expect(variantContract.currentColor).not.toBe(variantContract.quietColor);
+    expect(variantContract.currentBackground).not.toBe("rgba(0, 0, 0, 0)");
     expect(variantContract.ariaCurrent).toBe("page");
 
     await page.goto("/components/ui-link?theme=dark&example=Prefix+and+suffix+content");
@@ -165,6 +179,23 @@ test.describe("catalog slot composition", () => {
       { prefixHidden: false, suffixHidden: false },
       { prefixHidden: true, suffixHidden: true },
     ]);
+
+    await page.goto("/components/ui-link?theme=dark&example=Workspace+navigation");
+    const navigation = preview.locator(".example-link-navigation");
+    const navigationLinks = preview.locator(".example-link-navigation > ui-link");
+    await expect(navigationLinks).toHaveCount(4);
+    const navigationWidth = await navigation.evaluate((node) => node.getBoundingClientRect().width);
+    const navigationGeometry = await navigationLinks.evaluateAll((links) =>
+      links.map((link) => {
+        const control = link.shadowRoot!.querySelector<HTMLElement>('[part="control"]')!;
+        const box = control.getBoundingClientRect();
+        return { width: box.width, height: box.height };
+      }),
+    );
+    expect(navigationWidth).toBeGreaterThanOrEqual(260);
+    expect(navigationWidth).toBeLessThanOrEqual(320);
+    expect(navigationGeometry.every(({ height }) => height >= 32)).toBe(true);
+    expect(new Set(navigationGeometry.map(({ width }) => Math.round(width))).size).toBe(1);
   });
 
   test("keeps tree rows aligned and controlled pagination live", async ({ page }) => {
