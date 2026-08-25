@@ -165,6 +165,78 @@ const curated: Record<string, CatalogExample[]> = {
       },
     ),
   ],
+  "ui-path": [
+    example(
+      "Breadcrumb navigation",
+      `
+        <div class="catalog-example example-path-showcase">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Namespace</span>
+            <h2>Every ancestor remains reachable</h2>
+            <p>The terminal title can stay human-readable while each preceding segment resolves to its cumulative path.</p>
+          </header>
+          <ui-path
+            class="example-path-narrow"
+            variant="breadcrumb"
+            path="/interzone/projects/billing-migration/invoice-reconciliation"
+            aria-label="Project namespace"
+          >
+            <span slot="title">Invoice reconciliation</span>
+          </ui-path>
+          <p class="example-support">The current segment is preserved at the inline end; clipped ancestors remain discoverable through the progressive edge treatment.</p>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Breadcrumb is a ui-path variant, not a second component. Ancestors use cumulative native destinations and the terminal segment owns aria-current.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Preview overflow",
+      `
+        <div class="catalog-example example-path-showcase">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Overflow contract</span>
+            <h2>Meaning decides which edge survives</h2>
+            <p>Pretty titles preserve their beginning; raw paths preserve the terminal namespace.</p>
+          </header>
+          <div class="example-path-case">
+            <span>pretty title · inline start</span>
+            <ui-path
+              class="example-path-narrow"
+              path="/interzone/projects/billing-migration/invoice-reconciliation"
+            >
+              <span slot="title">Invoice reconciliation requirements for international billing</span>
+            </ui-path>
+          </div>
+          <div class="example-path-case">
+            <span>raw path · inline end</span>
+            <ui-path
+              class="example-path-narrow"
+              path="/interzone/projects/billing-migration/invoice-reconciliation"
+            ></ui-path>
+          </div>
+          <div class="example-path-case">
+            <span>compact current location</span>
+            <ui-path
+              class="example-path-narrow"
+              size="small"
+              current
+              path="/interzone/projects/billing-migration/invoice-reconciliation"
+            >
+              <span slot="title">Invoice reconciliation requirements</span>
+            </ui-path>
+          </div>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The component emits logical overflow states; the Mash catalogue recipe applies the shared mask and progressive blur tokens.",
+        stageLayout: "start",
+      },
+    ),
+  ],
   "ui-table": [
     example(
       "Project status table",
@@ -388,6 +460,55 @@ const curated: Record<string, CatalogExample[]> = {
     ),
   ],
   "ui-card": [
+    example(
+      "Background materials",
+      `
+        <div class="catalog-example example-material-stage">
+          <div class="example-material-grid">
+            <section class="example-material material-ultra-thin">
+              <ui-card>
+                <strong slot="title">Ultra thin</strong>
+                <span slot="description">Minimal tint</span>
+                <p slot="content" class="vibrant-label-primary">Edge chrome that should preserve almost all of its surrounding context.</p>
+              </ui-card>
+            </section>
+            <section class="example-material material-thin">
+              <ui-card>
+                <strong slot="title">Thin</strong>
+                <span slot="description">Compact chrome</span>
+                <p slot="content" class="vibrant-label-primary">Bars, edge treatments, and controls that retain their context.</p>
+              </ui-card>
+            </section>
+            <section class="example-material material-regular">
+              <ui-card>
+                <strong slot="title">Regular</strong>
+                <span slot="description">Default separation</span>
+                <p slot="content" class="vibrant-label-primary">Panels and floating controls over active content.</p>
+              </ui-card>
+            </section>
+            <section class="example-material material-thick">
+              <ui-card>
+                <strong slot="title">Thick</strong>
+                <span slot="description">Content-bearing overlay</span>
+                <p slot="content" class="vibrant-label-primary">Sheets and focused surfaces that need stronger isolation.</p>
+              </ui-card>
+            </section>
+            <section class="example-material material-ultra-thick">
+              <ui-card>
+                <strong slot="title">Ultra thick</strong>
+                <span slot="description">Maximum separation</span>
+                <p slot="content" class="vibrant-label-primary">Dense overlays where content clarity outweighs background continuity.</p>
+              </ui-card>
+            </section>
+          </div>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Five semantic material roles share one backdrop blur and vary tint contribution. Exported title and description parts composite automatically; authored body copy opts into the same semantic label utility.",
+        stageLayout: "start",
+      },
+    ),
     example(
       "Project card",
       `
@@ -1078,17 +1199,112 @@ const curated: Record<string, CatalogExample[]> = {
   ],
   "ui-menu": [
     example(
-      "Project actions",
+      "Pull-down commands",
       `
-        <div class="catalog-example example-stack">
-          <ui-menu label="Project actions">
-            <ui-button slot="trigger" variant="secondary">Actions</ui-button>
-            <ui-menu-item value="rename">Rename project</ui-menu-item>
-            <ui-menu-item value="duplicate">Duplicate project</ui-menu-item>
-            <ui-menu-item value="archive" tone="critical">Archive project</ui-menu-item>
+        <div class="catalog-example example-menu-stage">
+          <ui-menu label="Edit commands" open>
+            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="regular" slot="trigger" tone="neutral" variant="quiet">
+              Edit
+              <span slot="suffix" aria-hidden="true">⌄</span>
+            </ui-button>
+            <ui-menu-item value="undo">
+              <span slot="prefix" aria-hidden="true">↶</span>
+              Undo
+              <span slot="shortcut">⌘Z</span>
+            </ui-menu-item>
+            <ui-menu-item value="redo">
+              <span slot="prefix" aria-hidden="true">↷</span>
+              Redo
+              <span slot="shortcut">⇧⌘Z</span>
+            </ui-menu-item>
+            <ui-separator></ui-separator>
+            <ui-menu-item value="paste">Paste<span slot="shortcut">⌘V</span></ui-menu-item>
+            <ui-menu-item value="paste-style">Paste and Match Style<span slot="shortcut">⌥⇧⌘V</span></ui-menu-item>
+            <ui-menu-item value="delete" tone="critical">Delete<span slot="shortcut">⌫</span></ui-menu-item>
           </ui-menu>
         </div>`,
-      { compositionOnly: true },
+      {
+        compositionOnly: true,
+        description:
+          "A regular 250px pull-down menu with fixed symbol and shortcut lanes, 24px rows, separators, and destructive tone.",
+      },
+    ),
+    example(
+      "Pop-up selection",
+      `
+        <div class="catalog-example example-menu-stage">
+          <ui-menu label="Sort projects" density="compact" open>
+            <ui-button class="example-menu-trigger" data-menu-trigger="popup" data-menu-size="small" slot="trigger" tone="neutral" variant="quiet">
+              Updated
+              <span slot="suffix" aria-hidden="true">↕</span>
+            </ui-button>
+            <ui-menu-item kind="radio" value="name">Name</ui-menu-item>
+            <ui-menu-item kind="radio" value="updated" checked>Updated</ui-menu-item>
+            <ui-menu-item kind="radio" value="created">Created</ui-menu-item>
+            <ui-separator></ui-separator>
+            <ui-menu-item kind="checkbox" value="descending" checked>Descending</ui-menu-item>
+          </ui-menu>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "A pop-up button reports the selected value while the menu uses checkbox and radio semantics with one shared selection lane.",
+      },
+    ),
+    example(
+      "Nested compact leafing",
+      `
+        <div class="catalog-example example-menu-stage">
+          <ui-menu label="Project commands" density="compact" open>
+            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="small" slot="trigger" tone="neutral" variant="quiet">
+              Project
+              <span slot="suffix" aria-hidden="true">⌄</span>
+            </ui-button>
+            <span class="example-menu-header" role="presentation">Navigate</span>
+            <ui-menu-item value="open">Open project<span slot="shortcut">⌘O</span></ui-menu-item>
+            <ui-menu-item value="recent">
+              Recent projects
+              <ui-menu slot="submenu" label="Recent projects" density="compact" open>
+                <ui-menu-item value="billing">Billing migration</ui-menu-item>
+                <ui-menu-item value="invoice">Invoice reconciliation</ui-menu-item>
+                <ui-menu-item value="archive">Legacy ledger verification and archive import</ui-menu-item>
+              </ui-menu>
+            </ui-menu-item>
+            <ui-menu-item value="find">
+              Find
+              <span slot="shortcut">⌘F</span>
+              <ui-menu slot="submenu" label="Find" density="compact">
+                <ui-menu-item value="find-next">Find Next<span slot="shortcut">⌘G</span></ui-menu-item>
+                <ui-menu-item value="find-previous">Find Previous<span slot="shortcut">⇧⌘G</span></ui-menu-item>
+              </ui-menu>
+            </ui-menu-item>
+          </ui-menu>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Nested menus use an anchored child menu, Right/Left/Escape keyboard traversal, and a pointer-safe triangle for diagonal movement into the active branch.",
+      },
+    ),
+    example(
+      "Mini overflow",
+      `
+        <div class="catalog-example example-menu-stage">
+          <ui-menu label="Compact history" density="mini" open>
+            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="mini" slot="trigger" tone="neutral" variant="quiet">
+              History
+              <span slot="suffix" aria-hidden="true">⌄</span>
+            </ui-button>
+            <ui-menu-item value="billing">Billing migration and invoice reconciliation</ui-menu-item>
+            <ui-menu-item value="archive">Legacy ledger verification and archive import</ui-menu-item>
+            <ui-menu-item value="restore" disabled>Restore unavailable workspace snapshot</ui-menu-item>
+          </ui-menu>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The 190px mini tier keeps trailing lanes fixed and applies the shared progressive overflow mask only to the label viewport.",
+      },
     ),
   ],
   "ui-context-menu": [
@@ -1100,8 +1316,16 @@ const curated: Record<string, CatalogExample[]> = {
             <strong>Billing migration</strong>
             <p>Right-click this project row for actions.</p>
           </ui-card>
-          <ui-menu-item value="open">Open project</ui-menu-item>
-          <ui-menu-item value="copy-path">Copy project path</ui-menu-item>
+          <ui-menu-item value="open"><span slot="prefix" aria-hidden="true">↗</span>Open project</ui-menu-item>
+          <ui-menu-item value="copy-path">Copy project path<span slot="shortcut">⇧⌘C</span></ui-menu-item>
+          <ui-menu-item value="share">
+            Share
+            <ui-menu slot="submenu" label="Share project" density="compact">
+              <ui-menu-item value="copy-link">Copy link</ui-menu-item>
+              <ui-menu-item value="email">Email</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+          <ui-separator></ui-separator>
           <ui-menu-item value="archive" tone="critical">Archive project</ui-menu-item>
         </ui-context-menu>`,
       { compositionOnly: true },
@@ -1364,26 +1588,64 @@ const curated: Record<string, CatalogExample[]> = {
       "Project hierarchy",
       `
           <ui-tree class="catalog-example" label="Interzone project hierarchy">
-            <ui-tree-item kind="folder" path="/interzone" title="Interzone" expanded>
+            <ui-tree-item kind="folder" path="/interzone" expanded>
+            <span slot="label">Interzone</span>
             <span slot="icon" class="example-tree-glyph" data-kind="workspace" aria-hidden="true"></span>
             <ui-badge slot="meta">workspace</ui-badge>
-            <ui-tree-item slot="children" kind="folder" path="/interzone/projects" title="Projects" expanded>
+            <ui-tree-item slot="children" kind="folder" path="/interzone/projects" expanded>
+              <span slot="label">Projects</span>
               <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
               <span slot="meta">2 records</span>
-              <ui-tree-item slot="children" kind="file" path="/interzone/projects/billing-migration" title="Billing migration" selected>
+              <ui-tree-item slot="children" kind="file" path="/interzone/projects/billing-migration" selected>
+                <span slot="label">Billing migration</span>
                 <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
                 <ui-badge slot="meta" tone="positive">active</ui-badge>
               </ui-tree-item>
-              <ui-tree-item slot="children" kind="file" path="/interzone/projects/invoice-reconciliation" title="Invoice reconciliation" current>
+              <ui-tree-item slot="children" kind="file" path="/interzone/projects/invoice-reconciliation" current>
+                <span slot="label">Invoice reconciliation</span>
                 <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
               </ui-tree-item>
             </ui-tree-item>
-            <ui-tree-item slot="children" kind="folder" path="/interzone/archive" title="Archive">
+            <ui-tree-item slot="children" kind="folder" path="/interzone/archive">
+              <span slot="label">Archive</span>
               <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
             </ui-tree-item>
           </ui-tree-item>
         </ui-tree>`,
       { compositionOnly: true },
+    ),
+    example(
+      "Constrained namespace labels",
+      `
+        <ui-tree class="catalog-example example-tree-narrow" label="Long namespace labels">
+          <ui-tree-item kind="folder" path="/interzone/projects" expanded>
+            <span slot="label">Interzone project namespace</span>
+            <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+            <ui-tree-item
+              slot="children"
+              kind="file"
+              path="/interzone/projects/billing-migration/invoice-reconciliation"
+              selected
+            >
+              <span slot="label">Invoice reconciliation requirements for international billing</span>
+              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            </ui-tree-item>
+            <ui-tree-item
+              slot="children"
+              kind="file"
+              path="/interzone/projects/archive-import/legacy-ledger-verification"
+            >
+              <span slot="label">Legacy ledger verification and archive import</span>
+              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            </ui-tree-item>
+          </ui-tree-item>
+        </ui-tree>`,
+      {
+        compositionOnly: true,
+        description:
+          "Tree labels consume the same logical overflow states and progressive blur anatomy as ui-path without nesting navigation inside the tree-item button.",
+        stageLayout: "start",
+      },
     ),
   ],
   "ui-toast": [
@@ -1458,7 +1720,7 @@ const curated: Record<string, CatalogExample[]> = {
             <ui-link href="#members">Members</ui-link>
           </ui-navigation-menu>
           <ui-button slot="navigate" variant="secondary">New project</ui-button>
-          <ui-path slot="locator" path="/interzone/projects/billing-migration" title="Billing migration"></ui-path>
+          <ui-path slot="locator" path="/interzone/projects/billing-migration"><span slot="title">Billing migration</span></ui-path>
           <ui-card slot="content" elevation="raised">
             <strong slot="title">Billing migration</strong>
             <span slot="description">Application content remains independent of sidebar layout.</span>

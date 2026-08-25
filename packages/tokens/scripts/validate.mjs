@@ -278,6 +278,15 @@ function checkScope(scopeName, tokens, errors) {
       continue;
     }
 
+    if (token.layer !== LAYER.REFERENCE && !target) {
+      errors.push({
+        file: token.relative,
+        id: token.id,
+        message: `${token.layer} tokens must alias a reference primitive rather than re-authoring a literal value. Move the literal into the reference layer and point this role at it.`,
+      });
+      continue;
+    }
+
     if (!target) continue;
 
     const resolved = byId.get(target);

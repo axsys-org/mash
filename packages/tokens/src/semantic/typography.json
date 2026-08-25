@@ -1,49 +1,73 @@
 {
   "type": {
-    "$description": "Theme-independent typography semantics.\n\nAuthored as groups of individual DTCG tokens (fontFamily / fontSize / fontWeight / lineHeight) rather than as composite `typography` tokens. Composite tokens compile either to a lossy CSS `font` shorthand — which silently drops letter-spacing — or to an expanded form that loses the per-field type information. Individual tokens keep every field independently addressable and keep the generated CSS obvious.",
+    "$description": "Theme-independent typography semantics derived from the Paper Text Styles and Dynamic Type reference. Each role remains a group of independently addressable DTCG tokens so size, weight, family, and leading retain their own provenance.",
 
-    "body": {
-      "$description": "Default running text.",
+    "caption2": {
+      "$description": "Smallest dynamic label role: 10px/13px medium.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
       },
-      "fontSize": {
-        "$type": "dimension",
-        "$value": "{fontSize.reference.300}"
-      },
-      "fontWeight": {
-        "$type": "fontWeight",
-        "$value": "{fontWeight.reference.regular}"
-      },
-      "lineHeight": {
-        "$type": "number",
-        "$value": "{lineHeight.reference.normal}"
-      }
-    },
-
-    "label": {
-      "$description": "Text inside controls: button labels, form labels, table headers. Slightly heavier and tighter than body so it holds its shape at small sizes.",
-      "fontFamily": {
-        "$type": "fontFamily",
-        "$value": "{fontFamily.reference.sans}"
-      },
-      "fontSize": {
-        "$type": "dimension",
-        "$value": "{fontSize.reference.200}"
-      },
+      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.50}" },
       "fontWeight": {
         "$type": "fontWeight",
         "$value": "{fontWeight.reference.medium}"
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.tight}"
+        "$value": "{lineHeight.reference.caption}"
       }
     },
-
-    "labelSmall": {
-      "$description": "Label type for compact controls.",
+    "caption1": {
+      "$description": "Compact caption role: 10px/13px regular.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.50}" },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.caption}"
+      }
+    },
+    "footnote": {
+      "$description": "Footnote role: 10px/13px regular.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.50}" },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.caption}"
+      }
+    },
+    "subheadline": {
+      "$description": "Subheadline role: 11px/14px regular.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.75}" },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.subheadline}"
+      }
+    },
+    "callout": {
+      "$description": "Callout role: 12px/15px regular.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
@@ -54,23 +78,137 @@
       },
       "fontWeight": {
         "$type": "fontWeight",
-        "$value": "{fontWeight.reference.medium}"
+        "$value": "{fontWeight.reference.regular}"
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.tight}"
+        "$value": "{lineHeight.reference.callout}"
       }
     },
-
-    "labelLarge": {
-      "$description": "Label type for prominent controls.",
+    "body": {
+      "$description": "Default running text: 13px/16px regular.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
       },
       "fontSize": {
         "$type": "dimension",
-        "$value": "{fontSize.reference.300}"
+        "$value": "{fontSize.reference.150}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.body}"
+      }
+    },
+    "headline": {
+      "$description": "Headline role: 13px/16px bold.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.150}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.bold}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.body}"
+      }
+    },
+    "title3": {
+      "$description": "Third-level title: 15px/20px regular.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.250}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.title3}"
+      }
+    },
+    "title2": {
+      "$description": "Second-level title: 17px/22px regular.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.350}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.title2}"
+      }
+    },
+    "title1": {
+      "$description": "First-level title: 22px/26px regular.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.500}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.title1}"
+      }
+    },
+    "largeTitle": {
+      "$description": "Largest text-style role: 26px/32px regular.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.550}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.largeTitle}"
+      }
+    },
+
+    "label": {
+      "$description": "Compatibility role for control labels; maps to the 13px/16px medium menu and control treatment.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.150}"
       },
       "fontWeight": {
         "$type": "fontWeight",
@@ -78,12 +216,46 @@
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.tight}"
+        "$value": "{lineHeight.reference.body}"
       }
     },
-
+    "labelSmall": {
+      "$description": "Compatibility role for compact controls; maps to 10px/13px medium.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.50}" },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.medium}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.caption}"
+      }
+    },
+    "labelLarge": {
+      "$description": "Compatibility role for prominent controls; maps to 15px/20px medium.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.250}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.medium}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.title3}"
+      }
+    },
     "heading": {
-      "$description": "Section headings.",
+      "$description": "Compatibility role for section headings; maps to 22px/26px semibold.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
@@ -98,12 +270,11 @@
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.tight}"
+        "$value": "{lineHeight.reference.title1}"
       }
     },
-
     "code": {
-      "$description": "Inline and block code.",
+      "$description": "Inline and block code remains a 14px/21px monospace role outside the dynamic UI scale.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.mono}"

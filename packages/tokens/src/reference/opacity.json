@@ -1,0 +1,26 @@
+{
+  "opacity": {
+    "$type": "number",
+    "reference": {
+      "$description": "Primitive alpha strengths. These remain independent from foreground colour so a renderer can combine the same semantic hierarchy with a black, white, or platform-provided label source.",
+      "label": {
+        "light": {
+          "primary": { "$value": 0.85 },
+          "secondary": { "$value": 0.5 },
+          "tertiary": { "$value": 0.25 },
+          "quaternary": { "$value": 0.1 },
+          "quinary": { "$value": 0.05 },
+          "seximal": { "$value": 0.03 }
+        },
+        "dark": {
+          "primary": { "$value": 0.85 },
+          "secondary": { "$value": 0.55 },
+          "tertiary": { "$value": 0.25 },
+          "quaternary": { "$value": 0.1 },
+          "quinary": { "$value": 0.05 },
+          "seximal": { "$value": 0.03 }
+        }
+      }
+    }
+  }
+}

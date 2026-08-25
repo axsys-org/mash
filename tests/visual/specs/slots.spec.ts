@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("catalog slot composition", () => {
   test("keeps compound examples authored as real component trees", async ({ page }) => {
-    await page.goto("/components/ui-card");
+    await page.goto("/components/ui-card?example=Project+card");
 
     await expect(page.locator(".family-title")).toHaveText([
       "Foundations",
@@ -198,6 +198,143 @@ test.describe("catalog slot composition", () => {
     expect(new Set(navigationGeometry.map(({ width }) => Math.round(width))).size).toBe(1);
   });
 
+  test("composes semantic background material roles in both themes", async ({ page }) => {
+    const preview = page.frameLocator("iframe.stage-frame");
+    const readMaterials = () =>
+      preview.locator(".example-material").evaluateAll((nodes) =>
+        nodes.map((node) => {
+          const style = getComputedStyle(node);
+          const card = node.querySelector("ui-card")!;
+          return {
+            background: style.backgroundColor,
+            backdrop: style.backdropFilter,
+            cardBackground: getComputedStyle(card).backgroundColor,
+          };
+        }),
+      );
+
+    await page.goto("/components/ui-card?theme=light&example=Background+materials");
+    const light = await readMaterials();
+    expect(light).toHaveLength(5);
+    expect(new Set(light.map(({ background }) => background)).size).toBe(5);
+    expect(light.map(({ backdrop }) => backdrop)).toEqual(
+      Array.from({ length: 5 }, () => "blur(15px) saturate(1.2)"),
+    );
+    expect(light.every(({ cardBackground }) => cardBackground === "rgba(0, 0, 0, 0)")).toBe(true);
+
+    await page.goto("/components/ui-card?theme=dark&example=Background+materials");
+    const dark = await readMaterials();
+    expect(dark).toHaveLength(5);
+    expect(dark.map(({ backdrop }) => backdrop)).toEqual(light.map(({ backdrop }) => backdrop));
+    expect(dark.map(({ background }) => background)).not.toEqual(
+      light.map(({ background }) => background),
+    );
+
+    await page.getByRole("button", { name: "vibrant", exact: true }).click();
+    await expect(page).toHaveURL(/vibrancy=vibrant/);
+    await expect(preview.locator("html")).toHaveAttribute("data-vibrancy", "vibrant");
+    const vibrant = await readMaterials();
+    expect(vibrant.map(({ backdrop }) => backdrop)).toEqual(
+      Array.from({ length: 5 }, () => "blur(15px) saturate(1.5)"),
+    );
+
+    await page.getByRole("button", { name: "reduced", exact: true }).click();
+    await expect(page).toHaveURL(/vibrancy=reduced/);
+    await expect(preview.locator("html")).toHaveAttribute("data-vibrancy", "reduced");
+    const reduced = await readMaterials();
+    expect(reduced.every(({ backdrop }) => backdrop === "none")).toBe(true);
+    expect(new Set(reduced.map(({ background }) => background)).size).toBe(1);
+
+    const session = await page.context().newCDPSession(page);
+    await session.send("Emulation.setEmulatedMedia", {
+      features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
+    });
+    await page.goto("/components/ui-card?theme=dark&example=Background+materials");
+    await expect(preview.locator("html")).toHaveAttribute("data-vibrancy", "auto");
+    const automaticReduced = await readMaterials();
+    expect(automaticReduced.every(({ backdrop }) => backdrop === "none")).toBe(true);
+
+    await page.goto("/components/ui-card?theme=dark&vibrancy=vibrant&example=Background+materials");
+    const explicitVibrant = await readMaterials();
+    expect(explicitVibrant.every(({ backdrop }) => backdrop.includes("saturate(1.5)"))).toBe(true);
+    await session.send("Emulation.setEmulatedMedia", { features: [] });
+  });
+
+  test("keeps path breadcrumbs navigable and overflow edges semantic", async ({ page }) => {
+    await page.goto("/components/ui-path?theme=dark&example=Breadcrumb+navigation");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const breadcrumb = preview.locator('ui-path[variant="breadcrumb"]');
+
+    await expect
+      .poll(() => breadcrumb.evaluate((node) => node.matches(":state(overflow-start)")))
+      .toBe(true);
+    const breadcrumbContract = await breadcrumb.evaluate((node) => {
+      const root = node.shadowRoot!.querySelector<HTMLElement>('[part="root"]')!;
+      const viewport = node.shadowRoot!.querySelector<HTMLElement>('[part="viewport"]')!;
+      const links = [
+        ...node.shadowRoot!.querySelectorAll<HTMLAnchorElement>('[part~="segment-link"]'),
+      ];
+      const current = node.shadowRoot!.querySelector<HTMLElement>('[part~="segment-current"]')!;
+      const overflow = node.shadowRoot!.querySelector<HTMLElement>('[part~="overflow-start"]')!;
+      return {
+        role: root.getAttribute("role"),
+        hrefs: links.map((link) => link.getAttribute("href")),
+        current: current.getAttribute("aria-current"),
+        clipped: viewport.scrollWidth > viewport.clientWidth,
+        alignedEnd: Math.abs(viewport.scrollLeft) > 0,
+        overflowDisplay: getComputedStyle(overflow).display,
+        progressiveBlur: getComputedStyle(overflow).backdropFilter,
+        progressiveMask: getComputedStyle(overflow).maskImage,
+      };
+    });
+
+    expect(breadcrumbContract.role).toBe("navigation");
+    expect(breadcrumbContract.hrefs).toEqual([
+      "/",
+      "/interzone",
+      "/interzone/projects",
+      "/interzone/projects/billing-migration",
+    ]);
+    expect(breadcrumbContract.current).toBe("page");
+    expect(breadcrumbContract.clipped).toBe(true);
+    expect(breadcrumbContract.alignedEnd).toBe(true);
+    expect(breadcrumbContract.overflowDisplay).not.toBe("none");
+    expect(breadcrumbContract.progressiveBlur).not.toBe("none");
+    expect(breadcrumbContract.progressiveMask).not.toBe("none");
+
+    await page.goto("/components/ui-path?theme=light&example=Preview+overflow");
+    const paths = preview.locator(".example-path-case ui-path");
+    await expect(paths).toHaveCount(3);
+    await expect
+      .poll(() =>
+        paths.evaluateAll((nodes) => [
+          nodes[0]!.matches(":state(overflow-end)"),
+          nodes[1]!.matches(":state(overflow-start)"),
+        ]),
+      )
+      .toEqual([true, true]);
+
+    await page.goto("/components/ui-tree?theme=dark&example=Constrained+namespace+labels");
+    const longTreeItem = preview.locator("ui-tree-item[selected]");
+    await expect
+      .poll(() => longTreeItem.evaluate((node) => node.matches(":state(overflow-end)")))
+      .toBe(true);
+    const treeOverflow = await longTreeItem.evaluate((node) => {
+      const viewport = node.shadowRoot!.querySelector<HTMLElement>('[part="label-viewport"]')!;
+      const overflow = node.shadowRoot!.querySelector<HTMLElement>('[part~="overflow-end"]')!;
+      return {
+        clipped: viewport.scrollWidth > viewport.clientWidth,
+        overflowDisplay: getComputedStyle(overflow).display,
+        progressiveBlur: getComputedStyle(overflow).backdropFilter,
+        progressiveMask: getComputedStyle(overflow).maskImage,
+      };
+    });
+    expect(treeOverflow.clipped).toBe(true);
+    expect(treeOverflow.overflowDisplay).not.toBe("none");
+    expect(treeOverflow.progressiveBlur).not.toBe("none");
+    expect(treeOverflow.progressiveMask).not.toBe("none");
+  });
+
   test("keeps tree rows aligned and controlled pagination live", async ({ page }) => {
     await page.goto("/components/ui-tree?theme=dark");
     const preview = page.frameLocator("iframe.stage-frame");
@@ -228,8 +365,8 @@ test.describe("catalog slot composition", () => {
       Math.min(...branches.map(({ labelOffset }) => labelOffset)),
     );
 
-    const projects = preview.locator('ui-tree-item[title="Projects"]');
-    const billing = preview.locator('ui-tree-item[title="Billing migration"]');
+    const projects = preview.locator('ui-tree-item[path="/interzone/projects"]');
+    const billing = preview.locator('ui-tree-item[path="/interzone/projects/billing-migration"]');
     await expect(projects).toHaveAttribute("expanded", "");
     const projectsControl = projects.locator('button[part="control"]').first();
     await projectsControl.click();
@@ -370,6 +507,82 @@ test.describe("catalog slot composition", () => {
 
     await page.goto("/components/sh-limb");
     await expect(preview.locator("sh-myth sh-limb").first()).toBeVisible();
+  });
+
+  test("keeps compact nested menus aligned and exposes progressive leaf overflow", async ({
+    page,
+  }) => {
+    await page.goto("/components/ui-menu?theme=dark&example=Nested+compact+leafing");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const menu = preview.locator('ui-menu[label="Project commands"]');
+    const branch = menu.locator(':scope > ui-menu-item[value="recent"]');
+    const branchControl = branch.getByRole("menuitem", {
+      name: "Recent projects",
+      exact: true,
+    });
+    const submenu = branch.locator('ui-menu[label="Recent projects"]');
+    const popup = menu.locator('[part~="popup"]').first();
+    const submenuPopup = submenu.locator('[part~="popup"]').first();
+    const material = menu.locator('[part~="material"]').first();
+
+    await expect(popup).toHaveCSS("width", "210px");
+    await expect(popup).toHaveCSS("border-radius", "13px");
+    await expect(popup).toHaveCSS("padding", "5px");
+    await expect(popup).toHaveCSS("box-shadow", /0px 0px 0px 0.5px inset/);
+    await expect(material).toHaveCSS("background-blend-mode", "normal");
+    await expect(branchControl).toHaveCSS("padding-left", "7px");
+    await expect(branchControl).toHaveAttribute("aria-expanded", "true");
+
+    const [branchBox, submenuBox] = await Promise.all([
+      branchControl.boundingBox(),
+      submenuPopup.boundingBox(),
+    ]);
+    expect(branchBox).not.toBeNull();
+    expect(submenuBox).not.toBeNull();
+    expect(Math.abs(submenuBox!.x - (branchBox!.x + branchBox!.width + 2))).toBeLessThanOrEqual(1);
+    expect(Math.abs(submenuBox!.y - branchBox!.y)).toBeLessThanOrEqual(1);
+
+    const overflowed = await submenu
+      .locator('ui-menu-item[value="archive"]')
+      .evaluate((item) => item.matches(":state(overflow-end)"));
+    expect(overflowed).toBe(true);
+
+    await page.goto("/components/ui-menu?theme=light&vibrancy=vibrant&example=Pull-down+commands");
+    const lightPopup = preview.locator('ui-menu[label="Edit commands"] [part~="popup"]').first();
+    const lightMaterial = await lightPopup.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const materialElement = element.previousElementSibling as HTMLElement;
+      const materialStyle = getComputedStyle(materialElement);
+      const probe = document.createElement("span");
+      probe.style.backgroundColor = "var(--color-background-material-thick)";
+      document.body.append(probe);
+      return {
+        background: materialStyle.backgroundColor,
+        materialImage: materialStyle.backgroundImage,
+        materialBlendMode: materialStyle.backgroundBlendMode,
+        thickMaterial: getComputedStyle(probe).backgroundColor,
+        shadow: style.boxShadow,
+      };
+    });
+    expect(lightMaterial.background).toBe(lightMaterial.thickMaterial);
+    expect(lightMaterial.materialImage).not.toBe("none");
+    expect(lightMaterial.materialBlendMode).toBe("color-dodge");
+    expect(lightMaterial.shadow).toContain("inset");
+    expect(lightMaterial.shadow).toContain("0.5px inset");
+    expect(lightMaterial.shadow).toContain("0.13");
+
+    await page.goto("/components/ui-menu?theme=light&vibrancy=reduced&example=Pull-down+commands");
+    const reducedMaterial = await lightPopup.evaluate((element) => {
+      const materialElement = element.previousElementSibling as HTMLElement;
+      const probe = document.createElement("span");
+      probe.style.backgroundColor = "var(--color-surface-raised)";
+      document.body.append(probe);
+      return {
+        background: getComputedStyle(materialElement).backgroundColor,
+        raisedSurface: getComputedStyle(probe).backgroundColor,
+      };
+    });
+    expect(reducedMaterial.background).toBe(reducedMaterial.raisedSurface);
   });
 
   test("composes scroll-target actions from buttons and a scroll area", async ({ page }) => {

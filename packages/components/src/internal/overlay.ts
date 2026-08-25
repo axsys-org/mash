@@ -90,10 +90,12 @@ export abstract class UIOverlay extends LitElement {
   readonly #titleId = `mash-overlay-title-${++overlayId}`;
   readonly #descriptionId = `mash-overlay-description-${overlayId}`;
   #returnFocus: HTMLElement | null = null;
+  #openReason: OverlayChangeReason | null = null;
+  #movedFocusForOpen = false;
   #contextPoint: { x: number; y: number } | null = null;
   #interactionTimer: number | undefined;
   readonly #positioner = new AnchoredPositionController(this, {
-    anchor: () => this.#triggerElements()[0] ?? null,
+    anchor: () => this.positionAnchor(),
     popup: () => this.renderRoot.querySelector<HTMLElement>("[part='popup']"),
     positioner: () => this.renderRoot.querySelector<HTMLElement>("[part='positioner']"),
     config: () => this.positioningConfig(),
@@ -144,6 +146,22 @@ export abstract class UIOverlay extends LitElement {
     return null;
   }
 
+  /**
+   * The element against which an anchored overlay is positioned.
+   *
+   * Trigger-owned overlays use their authored trigger. Composite controls can
+   * override this without teaching the positioning engine about menu items,
+   * combobox controls, or any other concrete component family.
+   */
+  protected positionAnchor(): HTMLElement | null {
+    return this.#triggerElements()[0] ?? null;
+  }
+
+  /** Re-measures an open anchored overlay after its external anchor changes. */
+  protected queuePosition(): void {
+    this.#positioner.queue();
+  }
+
   /** Lets concrete overlays handle semantic action slots before generic dismissal. */
   protected handleOverlayClick(_event: MouseEvent): boolean {
     return false;
@@ -162,13 +180,14 @@ export abstract class UIOverlay extends LitElement {
   /** Requests the public open state, then announces it through the concrete contract. */
   protected requestOpenChange(open: boolean, reason: OverlayChangeReason = "imperative"): void {
     if ((this.disabled && open) || this.open === open) return;
+    if (open) this.#openReason = reason;
     this.open = open;
     this.emitOpenChange(open, reason);
   }
 
   /** Opens the surface through the same portable state-change contract as a trigger. */
-  show(): void {
-    this.requestOpenChange(true, "imperative");
+  show(reason: OverlayChangeReason = "imperative"): void {
+    this.requestOpenChange(true, reason);
   }
 
   /** Dismisses the surface through the same portable state-change contract as Escape. */
@@ -247,6 +266,11 @@ export abstract class UIOverlay extends LitElement {
     return html`<div part=${this.authoredContentPart}><slot></slot></div>`;
   }
 
+  /** Lets a specialized overlay isolate a visual material plane from popup content. */
+  protected renderPopupMaterial(): TemplateResult {
+    return html`${nothing}`;
+  }
+
   #triggerElements(): HTMLElement[] {
     return [...this.querySelectorAll<HTMLElement>(":scope > [slot='trigger']")];
   }
@@ -289,15 +313,23 @@ export abstract class UIOverlay extends LitElement {
       if (this.open) {
         this.overlayInternals.states.add("open");
         this.#positioner.start();
-        if (this.movesFocus) {
+        const shouldMoveFocus =
+          this.movesFocus && this.#openReason !== null && this.#openReason !== "hover";
+        this.#movedFocusForOpen = shouldMoveFocus;
+        if (shouldMoveFocus) {
           this.#rememberFocus();
           queueMicrotask(() => this.#focusFirst());
+        } else {
+          this.#returnFocus = null;
         }
+        this.#openReason = null;
       } else {
         this.#positioner.stop();
         this.overlayInternals.states.delete("open");
         const previous = changed.get("open");
-        if (this.movesFocus && previous === true) queueMicrotask(() => this.#returnFocus?.focus());
+        if (this.#movedFocusForOpen && previous === true)
+          queueMicrotask(() => this.#returnFocus?.focus());
+        this.#movedFocusForOpen = false;
       }
     }
     if (changed.has("disabled")) {
@@ -365,6 +397,7 @@ export abstract class UIOverlay extends LitElement {
     if (this.handleOverlayKeydown(event)) return;
     if (event.key === "Escape" && this.closeOnEscape) {
       event.preventDefault();
+      event.stopPropagation();
       this.requestOpenChange(false, "escape");
       return;
     }
@@ -390,6 +423,7 @@ export abstract class UIOverlay extends LitElement {
       <div part="trigger"><slot name="trigger"></slot></div>
       <div part="backdrop" ?hidden=${!this.open} @pointerdown=${this.#onBackdropPointerDown}>
         <div part="positioner">
+          ${this.renderPopupMaterial()}
           <div
             part="popup"
             role=${this.overlayRole}
@@ -468,6 +502,8 @@ export abstract class UIAnchoredOverlay extends UIOverlay {
   /** Minimum viewport-edge clearance in CSS pixels. */
   declare collisionPadding: number;
 
+  #anchorElement: HTMLElement | null = null;
+
   constructor() {
     super();
     this.placement = "bottom";
@@ -478,5 +514,25 @@ export abstract class UIAnchoredOverlay extends UIOverlay {
 
   protected override positioningConfig(): AnchoredPositionConfig {
     return this;
+  }
+
+  /**
+   * Optional Web realization anchor for composite-owned overlays such as a
+   * submenu. It is deliberately a property rather than an attribute: the
+   * portable contract remains placement/alignment while the renderer supplies
+   * the concrete element handle.
+   */
+  get anchorElement(): HTMLElement | null {
+    return this.#anchorElement;
+  }
+
+  set anchorElement(value: HTMLElement | null) {
+    if (this.#anchorElement === value) return;
+    this.#anchorElement = value;
+    this.queuePosition();
+  }
+
+  protected override positionAnchor(): HTMLElement | null {
+    return this.#anchorElement ?? super.positionAnchor();
   }
 }

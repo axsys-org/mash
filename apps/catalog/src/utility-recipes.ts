@@ -84,16 +84,14 @@ const catalogRecipes: UtilityRecipes = {
   "provenance-arrow": "me-control-block-small text-text-muted",
   layer:
     "rounded-pill bg-surface-sunken px-control-inline-small py-control-block-small type-label-small uppercase tracking-[0.06em] text-text-muted",
-  "layer-reference":
-    "bg-[color-mix(in_srgb,var(--color-action)_14%,var(--color-canvas))] text-action",
-  "layer-theme":
-    "bg-[color-mix(in_srgb,var(--color-positive)_14%,var(--color-canvas))] text-positive",
+  "layer-reference": "bg-action-subtle text-action",
+  "layer-theme": "bg-positive-subtle text-positive",
   "token-description": "mt-control-gap mb-0 max-w-[80ch] type-label-small text-text-muted",
 };
 
 const stageRecipes: UtilityRecipes = {
   "slot-fill": "inline",
-  demo: "grid h-full min-h-zero place-items-center rounded-control border border-dashed px-control-inline py-control-block type-code text-text-muted [background:color-mix(in_oklab,var(--color-action)_8%,var(--color-surface))] [border-color:color-mix(in_oklab,var(--color-action)_35%,var(--color-border-strong))]",
+  demo: "grid h-full min-h-zero place-items-center rounded-control border border-dashed border-action-border bg-action-wash px-control-inline py-control-block type-code text-text-muted",
   "demo-quiet": "border-solid border-border bg-surface-sunken",
   "demo-main": "border-solid border-border bg-surface text-text",
   "button-showcase":
@@ -137,6 +135,16 @@ const stageRecipes: UtilityRecipes = {
   "example-link-nav-item": "w-full [&::part(control)]:w-full",
   "example-link-card": "w-[min(100%,var(--layout-dimension-dialog))]",
   "example-link-card-copy": "grid gap-control-gap",
+  "example-path-showcase":
+    "grid w-[min(100%,var(--layout-dimension-content))] gap-container-block rounded-container border border-border bg-surface px-container-inline py-container-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-path-case": "grid min-w-0 gap-control-block-small",
+  "example-path-narrow": "w-[min(100%,22rem)]!",
+  "example-material-stage":
+    "relative min-h-compact w-[min(100%,var(--layout-dimension-content))] overflow-hidden rounded-container border border-border bg-[url('/assets/material-reference.png')] bg-cover bg-center px-container-inline py-container-block",
+  "example-material-grid":
+    "relative z-raised grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-container-gap",
+  "example-material":
+    "min-w-0 rounded-container border border-border px-control-inline py-control-block shadow-[0_8px_24px_var(--color-shadow)]",
   "example-field": "w-[min(100%,var(--layout-dimension-dialog))]",
   "example-editor-workspace": "w-[min(100%,var(--layout-dimension-content))]",
   "example-editor-search": "w-[min(22rem,calc(100vw-var(--space-container-inline)*4))]",
@@ -157,12 +165,19 @@ const stageRecipes: UtilityRecipes = {
   "example-table-message": "flex items-center gap-control-gap text-text-muted",
   "example-tree-glyph":
     "inline-block size-[calc(var(--space-control-gap)+var(--space-control-block-small))] rounded-control border border-current [background:color-mix(in_oklab,currentColor_14%,transparent)]",
+  "example-tree-narrow": "w-[min(100%,22rem)]!",
   "example-toolbar-dock":
     "relative grid min-h-[16.25rem] place-items-center overflow-hidden rounded-container border border-dashed border-border-strong bg-surface-sunken type-code text-text-muted",
   "example-tabs":
     "rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-dialog-copy": "grid gap-control-gap",
   "example-popover-content": "grid min-w-[15rem] gap-control-gap",
+  "example-menu-stage":
+    "relative min-h-[22rem] w-[min(100%,var(--layout-dimension-content))] rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-menu-trigger":
+    "w-[6.25rem] [&::part(control)]:w-full [&::part(control)]:justify-between [&::part(control)]:border-0! [&::part(control)]:bg-fill-tertiary-opaque! [&::part(control)]:px-control-inline [&::part(control)]:py-0 [&::part(control)]:text-text",
+  "example-menu-header":
+    "block min-h-[1.0625rem] ps-[calc(var(--space-control-gap)-var(--border-hairline))] pt-[0.1875rem] pb-[0.125rem] type-label-small font-bold text-text-muted",
   "example-context-target": "w-[min(100%,var(--layout-dimension-dialog))]",
   "example-message-thread":
     "flex flex-col gap-control-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
@@ -212,6 +227,8 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-link-prose, .example-link-card-copy p", "m-0"],
   [".example-link-content-grid ui-link", "justify-self-start"],
   [".example-link-nav-item ui-badge", "ms-auto"],
+  [".example-path-case > span", "type-code text-text-muted"],
+  [".example-material ui-card", "border-0! bg-transparent! shadow-none!"],
   [".example-editor-status span:last-child", "ms-auto"],
   [".example-pagination-heading > div", "grid gap-[var(--border-hairline)]"],
   [".example-table-progress ui-progress", "w-full! min-w-0"],
@@ -229,6 +246,18 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     "bg-surface-raised px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
   ],
   [".example-tabs ui-tab-panel", "block pt-container-block"],
+  [
+    '.example-menu-trigger[data-menu-size="mini"]',
+    "[&::part(control)]:h-[1rem] [&::part(control)]:rounded-[0.25rem]",
+  ],
+  [
+    '.example-menu-trigger[data-menu-size="small"]',
+    "[&::part(control)]:h-[1.25rem] [&::part(control)]:rounded-[0.3125rem]",
+  ],
+  [
+    '.example-menu-trigger[data-menu-size="regular"]',
+    "[&::part(control)]:h-[1.5rem] [&::part(control)]:rounded-control",
+  ],
   [".example-support, .example-dialog-copy p, .example-popover-content p", "m-0 text-text-muted"],
   [".example-dialog-copy h2", "m-0"],
   [".example-context-target ui-card", "cursor-context-menu"],
@@ -275,8 +304,8 @@ function expandStage(value: string): string[] {
 
   const basePresentation = new Set([
     "border-dashed",
-    "[background:color-mix(in_oklab,var(--color-action)_8%,var(--color-surface))]",
-    "[border-color:color-mix(in_oklab,var(--color-action)_35%,var(--color-border-strong))]",
+    "border-action-border",
+    "bg-action-wash",
     ...(aliases.includes("demo-main") ? ["text-text-muted"] : []),
   ]);
   return expanded.filter((name) => !basePresentation.has(name));

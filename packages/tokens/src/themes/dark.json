@@ -16,30 +16,138 @@
       "$description": "A surface above another surface. Shadow barely reads on a dark canvas, so elevation is carried by lightness instead."
     },
     "surfaceSunken": {
-      "$value": "{color.reference.neutral.1000}",
-      "$description": "A recessed well inside a surface: code blocks, inset lists, track backgrounds."
+      "$value": "{color.reference.fill.dark.opaque.quaternary}",
+      "$description": "A contextual 3% recessed fill inside a dark surface: code blocks, inset lists, and track backgrounds."
+    },
+    "backgroundMaterialUltraThin": {
+      "$value": "{color.reference.material.dark.ultraThin}",
+      "$description": "Lowest-tint translucent material. Pair with blur.backgroundMaterial.ultraThin."
+    },
+    "backgroundMaterialThin": {
+      "$value": "{color.reference.material.dark.thin}",
+      "$description": "Translucent tint for compact chrome and lightly separated background material. Pair with blur.backgroundMaterial.thin."
+    },
+    "backgroundMaterialRegular": {
+      "$value": "{color.reference.material.dark.regular}",
+      "$description": "Default translucent tint for panels and floating controls. Pair with blur.backgroundMaterial.regular."
+    },
+    "backgroundMaterialThick": {
+      "$value": "{color.reference.material.dark.thick}",
+      "$description": "High-opacity tint for sheets and content-bearing overlays. Pair with blur.backgroundMaterial.thick."
+    },
+    "backgroundMaterialUltraThick": {
+      "$value": "{color.reference.material.dark.ultraThick}",
+      "$description": "Highest-tint translucent material. Pair with blur.backgroundMaterial.ultraThick."
+    },
+    "backgroundMaterialHighlight": {
+      "$value": "{color.reference.material.highlight}",
+      "$description": "Renderer-isolated highlight for color-dodge treatment on a material background."
+    },
+    "backgroundMaterialShadow": {
+      "$value": "{color.reference.shadow.backgroundMaterial}",
+      "$description": "Thirteen-percent elevation shadow for floating material backgrounds."
     },
 
-    "text": {
+    "labelSource": {
       "$value": "{color.reference.neutral.0}",
-      "$description": "Primary body and heading text. Paper uses pure white here; keep it reserved for text on the dark canvas."
+      "$description": "White foreground source from which adaptive opaque label tiers are composed."
+    },
+    "text": {
+      "$value": "{color.reference.label.dark.opaque.primary}",
+      "$description": "Primary body and heading text, expressed as white at the primary semantic label strength."
     },
     "textMuted": {
-      "$value": "{color.reference.neutral.300}",
-      "$description": "Secondary text: captions, help text, metadata."
+      "$value": "{color.reference.label.dark.opaque.secondary}",
+      "$description": "Secondary text: captions, help text, metadata. The translucent source lets the containing surface participate in the result."
     },
     "textDisabled": {
-      "$value": "{color.reference.neutral.500}",
-      "$description": "Text in a disabled control. Deliberately low contrast."
+      "$value": "{color.reference.label.dark.opaque.tertiary}",
+      "$description": "Tertiary-strength text for disabled controls. Deliberately low contrast."
+    },
+    "textOpaque": { "$value": "{color.reference.label.dark.opaque.primary}" },
+    "textVibrant": { "$value": "{color.reference.label.dark.vibrant.primary}" },
+    "textMutedOpaque": {
+      "$value": "{color.reference.label.dark.opaque.secondary}"
+    },
+    "textMutedVibrant": {
+      "$value": "{color.reference.label.dark.vibrant.secondary}"
+    },
+    "textTertiaryOpaque": {
+      "$value": "{color.reference.label.dark.opaque.tertiary}"
+    },
+    "textTertiaryVibrant": {
+      "$value": "{color.reference.label.dark.vibrant.tertiary}"
+    },
+    "textQuaternaryOpaque": {
+      "$value": "{color.reference.label.dark.opaque.quaternary}"
+    },
+    "textQuaternaryVibrant": {
+      "$value": "{color.reference.label.dark.vibrant.quaternary}"
+    },
+    "textQuinaryOpaque": {
+      "$value": "{color.reference.label.dark.opaque.quinary}"
+    },
+    "textQuinaryVibrant": {
+      "$value": "{color.reference.label.dark.vibrant.quinary}"
+    },
+    "textSeximalOpaque": {
+      "$value": "{color.reference.label.dark.opaque.seximal}"
+    },
+    "textDisabledOpaque": {
+      "$value": "{color.reference.label.dark.opaque.tertiary}"
+    },
+
+    "fillPrimaryOpaque": {
+      "$value": "{color.reference.fill.dark.opaque.primary}"
+    },
+    "fillPrimaryVibrant": {
+      "$value": "{color.reference.fill.dark.vibrant.primary}"
+    },
+    "fillSecondaryOpaque": {
+      "$value": "{color.reference.fill.dark.opaque.secondary}"
+    },
+    "fillSecondaryVibrant": {
+      "$value": "{color.reference.fill.dark.vibrant.secondary}"
+    },
+    "fillTertiaryOpaque": {
+      "$value": "{color.reference.fill.dark.opaque.tertiary}"
+    },
+    "fillTertiaryVibrant": {
+      "$value": "{color.reference.fill.dark.vibrant.tertiary}"
+    },
+    "fillQuaternaryOpaque": {
+      "$value": "{color.reference.fill.dark.opaque.quaternary}"
+    },
+    "fillQuaternaryVibrant": {
+      "$value": "{color.reference.fill.dark.vibrant.quaternary}"
+    },
+    "fillQuinaryOpaque": {
+      "$value": "{color.reference.fill.dark.opaque.quinary}"
+    },
+    "fillQuinaryVibrant": {
+      "$value": "{color.reference.fill.dark.vibrant.quinary}"
+    },
+
+    "separatorOpaque": {
+      "$value": "{color.reference.fill.dark.opaque.tertiary}"
+    },
+    "separatorVibrant": {
+      "$value": "{color.reference.fill.dark.vibrant.tertiary}"
+    },
+    "separatorStrongOpaque": {
+      "$value": "{color.reference.fill.dark.opaque.primary}"
+    },
+    "separatorStrongVibrant": {
+      "$value": "{color.reference.fill.dark.vibrant.primary}"
     },
 
     "border": {
-      "$value": "{color.reference.neutral.700}",
-      "$description": "Default separator and control outline."
+      "$value": "{color.reference.fill.dark.opaque.tertiary}",
+      "$description": "Default component boundary, derived from the same opacity-based fill system as separators."
     },
     "borderStrong": {
-      "$value": "{color.reference.neutral.500}",
-      "$description": "Emphasised outline: hovered controls, active field borders."
+      "$value": "{color.reference.fill.dark.opaque.primary}",
+      "$description": "Emphasised component boundary: hovered controls and active field borders."
     },
     "focusRing": {
       "$value": "{color.reference.blue.400}",
@@ -58,6 +166,21 @@
       "$value": "{color.reference.blue.400}",
       "$description": "The accent tone. Lighter than in the light theme so it carries dark foreground text."
     },
+    "actionOpaque": { "$value": "{color.reference.blue.400}" },
+    "actionVibrant": { "$value": "{color.reference.blue.vibrantDark}" },
+    "menuSelection": { "$value": "{color.reference.blue.menuSelection}" },
+    "onMenuSelection": { "$value": "{color.reference.neutral.0}" },
+    "actionWash": {
+      "$value": "{color.reference.blue.400Alpha08}",
+      "$description": "Lowest-emphasis action-tinted surface for provenance and preview scaffolding."
+    },
+    "actionSubtle": {
+      "$value": "{color.reference.blue.400Alpha14}",
+      "$description": "Action-tinted selected surface."
+    },
+    "actionSubtleHover": { "$value": "{color.reference.blue.400Alpha20}" },
+    "actionEmphasis": { "$value": "{color.reference.blue.400Alpha28}" },
+    "actionBorder": { "$value": "{color.reference.blue.400Alpha45}" },
     "actionHover": { "$value": "{color.reference.blue.500}" },
     "actionPressed": { "$value": "{color.reference.blue.600}" },
     "onAction": {
@@ -66,17 +189,20 @@
     },
 
     "neutral": {
-      "$value": "{color.reference.neutral.800}",
-      "$description": "The neutral tone. Secondary buttons and low-emphasis fills."
+      "$value": "{color.reference.fill.dark.opaque.tertiary}",
+      "$description": "Idle neutral control fill, composed as 5% white over its actual dark surface."
     },
-    "neutralHover": { "$value": "{color.reference.neutral.700}" },
-    "neutralPressed": { "$value": "{color.reference.neutral.600}" },
-    "onNeutral": { "$value": "{color.reference.neutral.100}" },
+    "neutralHover": { "$value": "{color.reference.fill.dark.opaque.primary}" },
+    "neutralPressed": {
+      "$value": "{color.reference.fill.dark.opaque.controlPressed}"
+    },
+    "onNeutral": { "$value": "{color.reference.label.dark.opaque.primary}" },
 
     "positive": {
       "$value": "{color.reference.green.400}",
       "$description": "The positive tone. Success, confirmation, safe-to-proceed."
     },
+    "positiveSubtle": { "$value": "{color.reference.positiveTint.dark}" },
     "positiveHover": { "$value": "{color.reference.green.300}" },
     "positivePressed": { "$value": "{color.reference.green.200}" },
     "onPositive": { "$value": "{color.reference.neutral.1000}" },
@@ -96,5 +222,17 @@
     "criticalHover": { "$value": "{color.reference.red.300}" },
     "criticalPressed": { "$value": "{color.reference.red.200}" },
     "onCritical": { "$value": "{color.reference.neutral.1000}" }
+  },
+  "opacity": {
+    "$type": "number",
+    "$description": "Adaptive semantic label strengths for the dark theme. Renderers combine these values with color.labelSource instead of treating every tier as an unrelated grey.",
+    "labelPrimary": { "$value": "{opacity.reference.label.dark.primary}" },
+    "labelSecondary": { "$value": "{opacity.reference.label.dark.secondary}" },
+    "labelTertiary": { "$value": "{opacity.reference.label.dark.tertiary}" },
+    "labelQuaternary": {
+      "$value": "{opacity.reference.label.dark.quaternary}"
+    },
+    "labelQuinary": { "$value": "{opacity.reference.label.dark.quinary}" },
+    "labelSeximal": { "$value": "{opacity.reference.label.dark.seximal}" }
   }
 }

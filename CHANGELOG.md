@@ -16,6 +16,12 @@ from resolved token values.
   `docs/paper-sync.md`.
 - Kept event-driven branch/PR automation deferred until Paper exposes a stable
   change event and conflict-resolution boundary.
+- Rebased labels, neutral fills, inset surfaces, component boundaries, and
+  separators onto the reviewed opacity-based Interzone hierarchy for both
+  light and dark themes.
+- Added shared surface, boundary, divider, and shadow pronunciation roles to
+  every Web Component and Shrine catalogue recipe, including material-aware
+  inheritance and a conformance guard against legacy structural aliases.
 
 ### Shrine primitives
 

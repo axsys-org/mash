@@ -14,10 +14,14 @@ import {
 } from "./schema.js";
 import { applyStageLayout, applyStageUtilityRecipes, stageClassName } from "./utility-recipes.js";
 
+export const vibrancyModes = ["auto", "vibrant", "reduced"] as const;
+export type VibrancyMode = (typeof vibrancyModes)[number];
+
 export interface State {
   tagName: string;
   attrs: Record<string, string | boolean>;
   theme: string;
+  vibrancy: VibrancyMode;
   /** Content projected into each declared slot, including the default `""` slot. */
   slots: Record<string, string>;
   /**
@@ -33,6 +37,7 @@ export function initialState(component: ComponentSchema): State {
     tagName: component.tagName,
     attrs: defaultState(component),
     theme: themes[0] ?? "light",
+    vibrancy: "auto",
     slots: Object.fromEntries(
       component.slots.map((slot) => [slot.name, slot.name ? "" : defaultSlotContent(component)]),
     ),
@@ -439,6 +444,7 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
   if (ticket !== syncToken) return;
 
   doc.documentElement.dataset.theme = state.theme;
+  doc.documentElement.dataset.vibrancy = state.vibrancy;
 
   const example = exampleNamed(component, state.example);
   if (example) {
@@ -651,6 +657,27 @@ function aboveStage(
             text: "Applied to the catalog and preview roots; nested components can still override it.",
           }),
         ),
+        el(
+          "div",
+          { class: "control" },
+          el("span", { class: "control-label", text: "vibrancy" }),
+          el(
+            "div",
+            { class: "segmented" },
+            ...vibrancyModes.map((vibrancy) =>
+              el("button", {
+                type: "button",
+                class: state.vibrancy === vibrancy ? "segment is-active" : "segment",
+                text: vibrancy,
+                onclick: () => callbacks.update({ vibrancy }),
+              }),
+            ),
+          ),
+          el("span", {
+            class: "control-hint",
+            text: "Auto follows reduced-transparency and increased-contrast preferences; explicit modes stay shareable in the URL.",
+          }),
+        ),
       ),
     ),
   ];
@@ -815,6 +842,7 @@ export function render(root: HTMLElement, state: State, callbacks: AppCallbacks)
   // the masthead, controls and API panels on the dark media-query theme, which
   // makes the selected light mode look like a partial or inverted mapping.
   document.documentElement.dataset.theme = state.theme;
+  document.documentElement.dataset.vibrancy = state.vibrancy;
 
   if (!mounted || mounted.root !== root || mounted.tagName !== state.tagName) {
     mounted = mountShell(root, state, callbacks);
