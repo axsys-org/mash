@@ -166,8 +166,7 @@ const stageRecipes: UtilityRecipes = {
   "example-linear-search": "w-full! min-w-0",
   "example-linear-nav-list": "grid gap-[var(--border-hairline)]",
   "example-linear-nav-section": "grid gap-[var(--border-hairline)]",
-  "example-linear-nav-link":
-    "w-full min-w-0 type-label-small text-text-muted [&::part(control)]:flex [&::part(control)]:w-full [&::part(control)]:min-w-0 [&::part(control)]:items-center [&::part(control)]:gap-control-gap [&::part(control)]:rounded-control [&::part(control)]:px-control-inline-small [&::part(control)]:py-control-block-small hover:text-text hover:[&::part(control)]:bg-neutral-hover",
+  "example-linear-nav-link": "w-full min-w-0 [&::part(control)]:w-full",
   "example-linear-nav-heading":
     "flex items-center justify-between px-control-inline-small type-label-small text-text-muted",
   "example-linear-team-mark":
@@ -310,7 +309,6 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-pagination-heading > div", "grid gap-[var(--border-hairline)]"],
   [".example-linear-identity-copy > span", "truncate type-label-small text-text-muted"],
   [".example-linear-nav-link ui-badge", "ms-auto"],
-  [".example-linear-nav-link[current]", "text-text [&::part(control)]:bg-neutral-hover"],
   [".example-linear-cycle > span", "type-label-small text-text-muted"],
   [".example-linear-cycle ui-progress", "w-full! min-w-0"],
   [
