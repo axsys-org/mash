@@ -31,6 +31,188 @@ const example = (
  * is documentation for the system, not a new public API on either primitive.
  */
 const curated: Record<string, CatalogExample[]> = {
+  "ui-draggable": [
+    example(
+      "Movable project card",
+      `
+        <div class="catalog-example example-drag-boundary" data-catalog-drag-boundary>
+          <ui-draggable snap-step="16" containment="parent">
+            <ui-toolbar slot="handle" class="example-drag-titlebar" label="Move project card">
+              <ui-badge>Drag project</ui-badge>
+              <span>Billing migration</span>
+            </ui-toolbar>
+            <ui-card title="Billing migration" description="Interzone project" elevation="raised">
+              <p slot="content">Replace the legacy invoice flow before the next billing cycle.</p>
+            </ui-card>
+          </ui-draggable>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "A dedicated toolbar handle moves a real card; parent containment and grid snapping remain ui-draggable concerns.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Constrained axes",
+      `
+        <div class="catalog-example example-drag-boundary" data-catalog-drag-boundary>
+          <ui-draggable axis="x" containment="parent" snap-step="24">
+            <ui-badge slot="handle">Horizontal only</ui-badge>
+            <ui-card title="Timeline handle">Movement remains on the inline axis.</ui-card>
+          </ui-draggable>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The same primitive narrows movement without inventing an axis-specific wrapper.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Resizable workspace window",
+      `
+        <div class="catalog-example example-window-stage" data-catalog-drag-boundary>
+          <ui-draggable
+            class="example-drag-window"
+            containment="parent"
+            aria-label="Floating billing workspace"
+          >
+            <ui-toolbar slot="handle" class="example-window-titlebar" label="Move billing workspace">
+              <span class="example-window-traffic" aria-hidden="true">● ● ●</span>
+              <strong>Billing migration</strong>
+              <ui-badge size="small">workspace</ui-badge>
+            </ui-toolbar>
+            <ui-resizable class="example-window-panes" orientation="horizontal" label="Window panels">
+              <ui-resizable-panel size="176" min="128" max="240">
+                <ui-tree label="Billing workspace">
+                  <ui-tree-item kind="folder" title="Project" expanded>
+                    <ui-tree-item slot="children" kind="file" title="Overview" selected></ui-tree-item>
+                    <ui-tree-item slot="children" kind="file" title="Invoices"></ui-tree-item>
+                    <ui-tree-item slot="children" kind="file" title="Activity"></ui-tree-item>
+                  </ui-tree-item>
+                </ui-tree>
+              </ui-resizable-panel>
+              <ui-resizable-handle label="Resize window sidebar"></ui-resizable-handle>
+              <ui-resizable-panel min="176">
+                <ui-card title="Invoice reconciliation" description="Updated 8 minutes ago">
+                  <p slot="content">Drag the title bar, resize the outer window, or move its internal panel separator.</p>
+                </ui-card>
+              </ui-resizable-panel>
+            </ui-resizable>
+          </ui-draggable>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "ui-draggable owns window movement, native CSS owns the outer resize affordance, and ui-resizable owns the internal panel split.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Kanban board",
+      `
+        <section class="catalog-example example-kanban-board" data-catalog-kanban-workspace>
+          <header class="example-kanban-heading">
+            <div>
+              <span class="example-eyebrow">Interzone</span>
+              <h2>Billing launch</h2>
+            </div>
+            <ui-badge size="small">6 issues</ui-badge>
+          </header>
+          <div class="example-kanban-columns" data-catalog-drag-boundary>
+            <section class="example-kanban-column" data-catalog-kanban-column="backlog">
+              <header class="example-kanban-column-heading">
+                <strong>Backlog</strong>
+                <ui-badge size="small">2</ui-badge>
+              </header>
+              <div class="example-kanban-list" data-catalog-kanban-list>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Audit invoice states" data-catalog-kanban-id="axi-72">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Audit invoice states">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-72</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Audit invoice states" description="Billing migration">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="MC" size="small"></ui-avatar><span>Maya · Medium</span></div>
+                  </ui-card>
+                </ui-draggable>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Archive legacy receipts" data-catalog-kanban-id="axi-74">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Archive legacy receipts">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-74</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Archive legacy receipts" description="Records">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="AR" size="small"></ui-avatar><span>Alex · Low</span></div>
+                  </ui-card>
+                </ui-draggable>
+              </div>
+            </section>
+            <section class="example-kanban-column" data-catalog-kanban-column="progress">
+              <header class="example-kanban-column-heading">
+                <strong>In progress</strong>
+                <ui-badge size="small">2</ui-badge>
+              </header>
+              <div class="example-kanban-list" data-catalog-kanban-list>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Reconcile tax totals" data-catalog-kanban-id="axi-68">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Reconcile tax totals">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-68</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Reconcile tax totals" description="Operations">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="SO" size="small"></ui-avatar><span>Sam · High</span></div>
+                  </ui-card>
+                </ui-draggable>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Wire activity events" data-catalog-kanban-id="axi-70">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Wire activity events">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-70</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Wire activity events" description="Notifications">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="JB" size="small"></ui-avatar><span>Jo · Medium</span></div>
+                  </ui-card>
+                </ui-draggable>
+              </div>
+            </section>
+            <section class="example-kanban-column" data-catalog-kanban-column="review">
+              <header class="example-kanban-column-heading">
+                <strong>Review</strong>
+                <ui-badge size="small">2</ui-badge>
+              </header>
+              <div class="example-kanban-list" data-catalog-kanban-list>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Verify billing exports" data-catalog-kanban-id="axi-64">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Verify billing exports">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-64</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Verify billing exports" description="Finance">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="MC" size="small"></ui-avatar><span>Maya · High</span></div>
+                  </ui-card>
+                </ui-draggable>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Polish empty states" data-catalog-kanban-id="axi-66">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Polish empty states">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-66</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Polish empty states" description="Catalogue">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="AR" size="small"></ui-avatar><span>Alex · Low</span></div>
+                  </ui-card>
+                </ui-draggable>
+              </div>
+            </section>
+          </div>
+          <ui-separator class="example-drop-indicator" data-catalog-drop-indicator orientation="horizontal" hidden>
+            <span slot="prefix" class="example-drop-indicator-circle" aria-hidden="true"></span>
+          </ui-separator>
+          <output class="example-support" data-catalog-kanban-status aria-live="polite">Drag a card between columns or anywhere along a column detent.</output>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Cards move and reorder across semantic columns with detent targeting, a prefixed ui-separator insertion preview, ambiguous-drop cancellation, and no Kanban behavior baked into ui-draggable.",
+        stageLayout: "fill",
+      },
+    ),
+  ],
   "ui-link": [
     example(
       "Variants and states",
@@ -615,47 +797,44 @@ const curated: Record<string, CatalogExample[]> = {
                   <ui-button type="button" size="small" variant="secondary" data-linear-clear-filters>Clear filters</ui-button>
                 </div>
 
-                <div class="example-linear-board" data-linear-board-view hidden>
-                  <section class="example-linear-board-column" data-linear-board-column="progress">
-                    <header><span><span class="example-linear-status-dot" data-status="progress"></span><strong>In progress</strong></span><ui-badge size="small" data-linear-board-count>2</ui-badge></header>
-                    <div class="example-linear-card-list">
-                      <ui-card data-linear-board-card data-linear-issue="MAS-142" data-title="Preserve filter state in shared views" data-area="Views" data-status="progress" data-priority="high" data-assignee="maya" data-initials="MC">
-                        <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-142"><span class="sr-only">Select MAS-142</span></ui-checkbox><span class="example-linear-key">MAS-142</span><span class="example-linear-priority" data-priority="high">↑ High</span></div>
-                        <ui-link slot="content" href="#mas-142" data-linear-open-issue="MAS-142">Preserve filter state in shared views</ui-link>
-                        <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Views</ui-badge><ui-avatar size="small">MC</ui-avatar></div>
-                      </ui-card>
-                      <ui-card data-linear-board-card data-linear-issue="MAS-138" data-title="Ship keyboard navigation for issue lists" data-area="Accessibility" data-status="review" data-priority="urgent" data-assignee="sam" data-initials="SO">
-                        <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-138"><span class="sr-only">Select MAS-138</span></ui-checkbox><span class="example-linear-key">MAS-138</span><span class="example-linear-priority" data-priority="urgent">! Urgent</span></div>
-                        <ui-link slot="content" href="#mas-138" data-linear-open-issue="MAS-138">Ship keyboard navigation for issue lists</ui-link>
-                        <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Accessibility</ui-badge><ui-avatar size="small">SO</ui-avatar></div>
-                      </ui-card>
+                <div class="example-linear-board" data-linear-board-view data-linear-kanban-workspace hidden>
+                  <section class="example-linear-board-column" data-linear-board-column="progress" data-catalog-kanban-column="progress">
+                    <header><span><span class="example-linear-status-dot" data-status="progress"></span><strong data-catalog-kanban-column-label>In progress</strong></span><ui-badge size="small" data-linear-board-count>2</ui-badge></header>
+                    <div class="example-linear-card-list" data-catalog-kanban-list>
+                      <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Preserve filter state in shared views" data-linear-board-card data-linear-issue="MAS-142" data-title="Preserve filter state in shared views" data-area="Views" data-status="progress" data-priority="high" data-assignee="maya" data-initials="MC">
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-142"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-142</span><span class="example-linear-priority" data-priority="high">↑ High</span></ui-toolbar>
+                        <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-142"><span class="sr-only">Select MAS-142</span></ui-checkbox><ui-badge size="small">Views</ui-badge></div><ui-link slot="content" href="#mas-142" data-linear-open-issue="MAS-142">Preserve filter state in shared views</ui-link><div slot="footer" class="example-linear-card-footer"><span>Cycle 42</span><ui-avatar size="small">MC</ui-avatar></div></ui-card>
+                      </ui-draggable>
+                      <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Ship keyboard navigation for issue lists" data-linear-board-card data-linear-issue="MAS-138" data-title="Ship keyboard navigation for issue lists" data-area="Accessibility" data-status="review" data-priority="urgent" data-assignee="sam" data-initials="SO">
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-138"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-138</span><span class="example-linear-priority" data-priority="urgent">! Urgent</span></ui-toolbar>
+                        <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-138"><span class="sr-only">Select MAS-138</span></ui-checkbox><ui-badge size="small">Accessibility</ui-badge></div><ui-link slot="content" href="#mas-138" data-linear-open-issue="MAS-138">Ship keyboard navigation for issue lists</ui-link><div slot="footer" class="example-linear-card-footer"><span>Cycle 42</span><ui-avatar size="small">SO</ui-avatar></div></ui-card>
+                      </ui-draggable>
                     </div>
                   </section>
-                  <section class="example-linear-board-column" data-linear-board-column="planned">
-                    <header><span><span class="example-linear-status-dot" data-status="planned"></span><strong>Planned</strong></span><ui-badge size="small" data-linear-board-count>2</ui-badge></header>
-                    <div class="example-linear-card-list">
-                      <ui-card data-linear-board-card data-linear-issue="MAS-133" data-title="Add cycle progress to team overview" data-area="Cycles" data-status="todo" data-priority="medium" data-assignee="alex" data-initials="AR">
-                        <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-133"><span class="sr-only">Select MAS-133</span></ui-checkbox><span class="example-linear-key">MAS-133</span><span class="example-linear-priority">→ Medium</span></div>
-                        <ui-link slot="content" href="#mas-133" data-linear-open-issue="MAS-133">Add cycle progress to team overview</ui-link>
-                        <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Cycles</ui-badge><ui-avatar size="small">AR</ui-avatar></div>
-                      </ui-card>
-                      <ui-card data-linear-board-card data-linear-issue="MAS-129" data-title="Clarify archived project permissions" data-area="Projects" data-status="backlog" data-priority="low" data-assignee="priya" data-initials="PJ">
-                        <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-129"><span class="sr-only">Select MAS-129</span></ui-checkbox><span class="example-linear-key">MAS-129</span><span class="example-linear-priority">↓ Low</span></div>
-                        <ui-link slot="content" href="#mas-129" data-linear-open-issue="MAS-129">Clarify archived project permissions</ui-link>
-                        <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Projects</ui-badge><ui-avatar size="small">PJ</ui-avatar></div>
-                      </ui-card>
+                  <section class="example-linear-board-column" data-linear-board-column="planned" data-catalog-kanban-column="planned">
+                    <header><span><span class="example-linear-status-dot" data-status="planned"></span><strong data-catalog-kanban-column-label>Planned</strong></span><ui-badge size="small" data-linear-board-count>2</ui-badge></header>
+                    <div class="example-linear-card-list" data-catalog-kanban-list>
+                      <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Add cycle progress to team overview" data-linear-board-card data-linear-issue="MAS-133" data-title="Add cycle progress to team overview" data-area="Cycles" data-status="todo" data-priority="medium" data-assignee="alex" data-initials="AR">
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-133"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-133</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
+                        <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-133"><span class="sr-only">Select MAS-133</span></ui-checkbox><ui-badge size="small">Cycles</ui-badge></div><ui-link slot="content" href="#mas-133" data-linear-open-issue="MAS-133">Add cycle progress to team overview</ui-link><div slot="footer" class="example-linear-card-footer"><span>Backlog</span><ui-avatar size="small">AR</ui-avatar></div></ui-card>
+                      </ui-draggable>
+                      <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Clarify archived project permissions" data-linear-board-card data-linear-issue="MAS-129" data-title="Clarify archived project permissions" data-area="Projects" data-status="backlog" data-priority="low" data-assignee="priya" data-initials="PJ">
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-129"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-129</span><span class="example-linear-priority">↓ Low</span></ui-toolbar>
+                        <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-129"><span class="sr-only">Select MAS-129</span></ui-checkbox><ui-badge size="small">Projects</ui-badge></div><ui-link slot="content" href="#mas-129" data-linear-open-issue="MAS-129">Clarify archived project permissions</ui-link><div slot="footer" class="example-linear-card-footer"><span>Backlog</span><ui-avatar size="small">PJ</ui-avatar></div></ui-card>
+                      </ui-draggable>
                     </div>
                   </section>
-                  <section class="example-linear-board-column" data-linear-board-column="done">
-                    <header><span><span class="example-linear-status-dot" data-status="done"></span><strong>Done</strong></span><ui-badge size="small" data-linear-board-count>1</ui-badge></header>
-                    <div class="example-linear-card-list">
-                      <ui-card data-linear-board-card data-linear-issue="MAS-121" data-title="Normalize compact density tokens" data-area="Foundations" data-status="done" data-priority="medium" data-assignee="maya" data-initials="MC">
-                        <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-121"><span class="sr-only">Select MAS-121</span></ui-checkbox><span class="example-linear-key">MAS-121</span><span class="example-linear-priority">→ Medium</span></div>
-                        <ui-link slot="content" href="#mas-121" data-linear-open-issue="MAS-121">Normalize compact density tokens</ui-link>
-                        <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Foundations</ui-badge><ui-avatar size="small">MC</ui-avatar></div>
-                      </ui-card>
+                  <section class="example-linear-board-column" data-linear-board-column="done" data-catalog-kanban-column="done">
+                    <header><span><span class="example-linear-status-dot" data-status="done"></span><strong data-catalog-kanban-column-label>Done</strong></span><ui-badge size="small" data-linear-board-count>1</ui-badge></header>
+                    <div class="example-linear-card-list" data-catalog-kanban-list>
+                      <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Normalize compact density tokens" data-linear-board-card data-linear-issue="MAS-121" data-title="Normalize compact density tokens" data-area="Foundations" data-status="done" data-priority="medium" data-assignee="maya" data-initials="MC">
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-121"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-121</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
+                        <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-121"><span class="sr-only">Select MAS-121</span></ui-checkbox><ui-badge size="small">Foundations</ui-badge></div><ui-link slot="content" href="#mas-121" data-linear-open-issue="MAS-121">Normalize compact density tokens</ui-link><div slot="footer" class="example-linear-card-footer"><span>Completed</span><ui-avatar size="small">MC</ui-avatar></div></ui-card>
+                      </ui-draggable>
                     </div>
                   </section>
+                  <output class="example-linear-board-status" data-catalog-kanban-status aria-live="polite">Drag an issue by its handle to reorder it or change status.</output>
+                  <ui-separator class="example-drop-indicator" data-catalog-drop-indicator orientation="horizontal" hidden><span slot="prefix" class="example-drop-indicator-circle" aria-hidden="true"></span></ui-separator>
                 </div>
               </section>
             </ui-scroll-area>
@@ -1283,6 +1462,53 @@ const curated: Record<string, CatalogExample[]> = {
       { compositionOnly: true },
     ),
     example(
+      "Rearrange selected owners",
+      `
+        <div class="catalog-example example-chip-workspace">
+          <ui-field label="Project owners" description="Drag the grip on a selected owner to change precedence.">
+            <ui-combobox slot="control" name="owners" label="Project owners" multiple values='["maya", "sam", "alex", "jo"]'>
+              <span slot="chips" class="example-chip-sort" role="list" data-catalog-drag-boundary>
+                <ui-chip value="maya" data-catalog-label="Maya" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
+                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Maya Chen">⠿</span>
+                  Maya Chen
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Maya">×</ui-button>
+                </ui-chip>
+                <ui-chip value="sam" data-catalog-label="Sam" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
+                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Sam Okafor">⠿</span>
+                  Sam Okafor
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Sam">×</ui-button>
+                </ui-chip>
+                <ui-chip value="alex" data-catalog-label="Alex" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
+                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Alex Rivera">⠿</span>
+                  Alex Rivera
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Alex">×</ui-button>
+                </ui-chip>
+                <ui-chip value="jo" data-catalog-label="Jo" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
+                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Jo Bell">⠿</span>
+                  Jo Bell
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Jo">×</ui-button>
+                </ui-chip>
+              </span>
+              <span slot="icon" aria-hidden="true">⌕</span>
+              <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
+              <ui-option-group label="People">
+                <ui-option value="maya">Maya Chen<span slot="indicator">✓</span></ui-option>
+                <ui-option value="sam">Sam Okafor<span slot="indicator">✓</span></ui-option>
+                <ui-option value="alex">Alex Rivera<span slot="indicator">✓</span></ui-option>
+                <ui-option value="jo">Jo Bell<span slot="indicator">✓</span></ui-option>
+              </ui-option-group>
+            </ui-combobox>
+          </ui-field>
+          <output class="example-drag-status" data-catalog-chip-status>Owner precedence: Maya, Sam, Alex, Jo</output>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The chips remain Combobox-owned values; a catalogue consumer uses the headless drag controller to reorder their authored DOM sequence.",
+        stageLayout: "start",
+      },
+    ),
+    example(
       "Grid suggestions",
       `
         <ui-field class="catalog-example example-field" label="Assignee matrix" description="Arrow keys preserve row and column position.">
@@ -1401,6 +1627,81 @@ const curated: Record<string, CatalogExample[]> = {
           </ui-tab-panel>
         </ui-tabs>`,
       { compositionOnly: true },
+    ),
+    example(
+      "Move views between tabs and tree",
+      `
+        <div class="catalog-example example-tab-workspace" data-catalog-drag-boundary>
+          <aside class="example-tab-sidebar">
+            <strong>Interzone</strong>
+            <ui-tree label="Workspace views">
+              <ui-tree-item
+                class="example-tab-drop"
+                kind="folder"
+                path="/interzone/pinned"
+                title="Pinned views"
+                expanded
+                data-catalog-tab-drop
+              >
+                <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+                <ui-tree-item
+                  slot="children"
+                  kind="file"
+                  value="pinned-timeline"
+                  path="/interzone/pinned/timeline"
+                  data-catalog-label="Timeline"
+                  data-catalog-tab-value="timeline"
+                  data-catalog-drag-source="tree-tab"
+                  data-catalog-drag-free
+                >
+                  <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+                  <span slot="label">Timeline</span>
+                  <ui-button slot="actions" variant="quiet" size="small" data-catalog-drag-handle aria-label="Move Timeline to the tab bar">⠿</ui-button>
+                </ui-tree-item>
+              </ui-tree-item>
+            </ui-tree>
+            <p class="example-support">Transfer or reorder views along either detent. Press Escape to cancel.</p>
+          </aside>
+          <main class="example-tab-main">
+            <ui-tabs class="example-tabbar-drop" value="overview" label="Project views" data-catalog-tabbar-drop>
+              <ui-tab slot="tab" value="overview" data-catalog-label="Overview" data-catalog-drag-source="tab" data-catalog-drag-free>
+                <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Overview tab">⠿</span>Overview
+              </ui-tab>
+              <ui-tab slot="tab" value="invoices" data-catalog-label="Invoices" data-catalog-drag-source="tab" data-catalog-drag-free>
+                <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Invoices tab">⠿</span>Invoices
+              </ui-tab>
+              <ui-tab slot="tab" value="activity" data-catalog-label="Activity" data-catalog-drag-source="tab" data-catalog-drag-free>
+                <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Activity tab">⠿</span>Activity
+              </ui-tab>
+              <ui-tab-panel slot="panel" value="overview">
+                <ui-card title="Billing migration" description="Project overview">
+                  <p slot="content">Three project views can be promoted into the persistent sidebar tree.</p>
+                </ui-card>
+              </ui-tab-panel>
+              <ui-tab-panel slot="panel" value="invoices">
+                <ui-card title="Invoices"><p slot="content">Invoice reconciliation queue.</p></ui-card>
+              </ui-tab-panel>
+              <ui-tab-panel slot="panel" value="activity">
+                <ui-card title="Activity"><p slot="content">Recent project changes.</p></ui-card>
+              </ui-tab-panel>
+            </ui-tabs>
+            <div hidden data-catalog-tab-cache>
+              <ui-tab-panel slot="panel" value="timeline">
+                <ui-card title="Timeline" description="Restored from pinned views"><p slot="content">Milestones and project decisions retain their panel state while pinned in the tree.</p></ui-card>
+              </ui-tab-panel>
+            </div>
+            <output class="example-drag-status" data-catalog-tab-status>Move a view in either direction.</output>
+          </main>
+          <ui-separator class="example-drop-indicator" data-catalog-drop-indicator hidden aria-hidden="true">
+            <span slot="prefix" class="example-drop-indicator-circle"></span>
+          </ui-separator>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Tabs and tree items keep their own contracts; the surrounding workspace transfers or reorders the same view, preserves its panel while pinned, and cancels ambiguous drops.",
+        stageLayout: "fill",
+      },
     ),
   ],
   "ui-toggle": [
@@ -1996,6 +2297,76 @@ const curated: Record<string, CatalogExample[]> = {
         compositionOnly: true,
         description:
           "Tree labels consume the same logical overflow states and progressive blur anatomy as ui-path without nesting navigation inside the tree-item button.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Reorder with handles",
+      `
+        <div class="catalog-example example-drag-tree-workspace">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Controlled order</span>
+            <h2>Tree rows keep their tree semantics</h2>
+            <p>The actions slot supplies a dedicated grip; the owning example commits the new sibling order.</p>
+          </header>
+          <ui-tree class="example-drag-tree" label="Project priority" data-catalog-drag-boundary>
+            <ui-tree-item value="billing" kind="file" title="Billing migration" data-catalog-drag-source="tree-item" data-catalog-drag-axis="y">
+              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+              <ui-badge slot="meta" tone="critical">P0</ui-badge>
+              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Billing migration">⠿</ui-button>
+            </ui-tree-item>
+            <ui-tree-item value="invoices" kind="file" title="Invoice reconciliation" data-catalog-drag-source="tree-item" data-catalog-drag-axis="y">
+              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+              <ui-badge slot="meta" tone="warning">P1</ui-badge>
+              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Invoice reconciliation">⠿</ui-button>
+            </ui-tree-item>
+            <ui-tree-item value="archive" kind="file" title="Archive import" data-catalog-drag-source="tree-item" data-catalog-drag-axis="y">
+              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+              <ui-badge slot="meta">P2</ui-badge>
+              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Archive import">⠿</ui-button>
+            </ui-tree-item>
+          </ui-tree>
+          <output class="example-drag-status" data-catalog-tree-status>Priority: Billing migration, Invoice reconciliation, Archive import</output>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The headless controller attaches directly to each ui-tree-item, preserving the tree's authored hierarchy and actions-slot anatomy.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Nest into leaves",
+      `
+        <div class="catalog-example example-tree-leaf-workspace" data-catalog-tree-leaf-workspace>
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Leaf promotion</span>
+            <h2>Drop a row into another leaf</h2>
+            <p>The nearest valid leaf becomes a branch; dropping outside the tree cancels without changing the hierarchy.</p>
+          </header>
+          <ui-tree class="example-drag-tree" label="Migration work" data-catalog-tree-leaf-zone>
+            <ui-tree-item kind="folder" title="Migration work" expanded>
+              <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+              <ui-tree-item slot="children" value="billing" kind="file" title="Billing migration" data-catalog-label="Billing migration" data-catalog-drag-source="tree-leaf" data-catalog-drag-free data-catalog-tree-leaf-drop>
+                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Billing migration">⠿</ui-button>
+              </ui-tree-item>
+              <ui-tree-item slot="children" value="invoices" kind="file" title="Invoice reconciliation" data-catalog-label="Invoice reconciliation" data-catalog-drag-source="tree-leaf" data-catalog-drag-free data-catalog-tree-leaf-drop>
+                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Invoice reconciliation">⠿</ui-button>
+              </ui-tree-item>
+              <ui-tree-item slot="children" value="archive" kind="file" title="Archive import" data-catalog-label="Archive import" data-catalog-drag-source="tree-leaf" data-catalog-drag-free data-catalog-tree-leaf-drop>
+                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Archive import">⠿</ui-button>
+              </ui-tree-item>
+            </ui-tree-item>
+          </ui-tree>
+          <output class="example-drag-status" data-catalog-tree-leaf-status>Drag a row onto a leaf to nest it.</output>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The tree stays a controlled semantic hierarchy; the owning example validates the target, promotes a leaf to a branch, and cancels invalid drops.",
         stageLayout: "start",
       },
     ),

@@ -607,7 +607,9 @@ test.describe("catalog slot composition", () => {
     await page.goto("/components/ui-table?theme=dark&example=Issue%20tracker%20workspace");
 
     const preview = page.frameLocator("iframe.stage-frame");
+    const workspace = preview.locator("[data-linear-workspace]");
     const table = preview.getByRole("table", { name: "Product issues" });
+    await expect(workspace).toBeVisible();
     await expect(preview.locator("html")).toHaveAttribute("data-layout", "fill");
     await expect(preview.locator(".example-linear-sidebar")).toBeVisible();
     await expect(preview.locator("ui-link.example-linear-nav-link")).toHaveCount(13);
@@ -663,6 +665,33 @@ test.describe("catalog slot composition", () => {
     await preview.getByRole("button", { name: "Board" }).click();
     await expect(preview.locator("[data-linear-board-view]")).toBeVisible();
     await expect(preview.locator("[data-linear-board-card]:not([hidden])")).toHaveCount(5);
+
+    const plannedIssue = preview.locator('[data-linear-board-card][data-linear-issue="MAS-133"]');
+    const doneList = preview.locator(
+      '[data-linear-board-column="done"] [data-catalog-kanban-list]',
+    );
+    const handleBounds = await plannedIssue.locator('[slot="handle"]').boundingBox();
+    const doneBounds = await doneList.boundingBox();
+    if (!handleBounds || !doneBounds) throw new Error("Linear board drag targets must be visible.");
+    await page.mouse.move(
+      handleBounds.x + handleBounds.width / 2,
+      handleBounds.y + handleBounds.height / 2,
+    );
+    await page.mouse.down();
+    await page.mouse.move(doneBounds.x + doneBounds.width / 2, doneBounds.y + 24, { steps: 12 });
+    await expect(preview.locator("[data-catalog-drop-indicator]")).toBeVisible();
+    await page.mouse.up();
+    await expect(
+      doneList.locator(':scope > [data-linear-board-card][data-linear-issue="MAS-133"]'),
+    ).toHaveCount(1);
+    await expect(
+      preview.locator(
+        '[data-linear-list-row][data-linear-issue="MAS-133"] ui-table-cell[column-index="4"] ui-badge',
+      ),
+    ).toHaveText("Done");
+    await expect(preview.locator("[data-catalog-kanban-status]")).toHaveText(
+      "Add cycle progress to team overview moved to Done, position 1.",
+    );
 
     await preview.locator(".example-linear-main").focus();
     await page.keyboard.press("Control+k");

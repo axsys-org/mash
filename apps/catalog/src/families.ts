@@ -76,6 +76,7 @@ const families: ComponentFamily[] = [
       "ui-tree",
       "ui-scroll-area",
       "ui-virtual-list",
+      "ui-draggable",
       "ui-resizable",
       "ui-navigation-menu",
       "ui-menubar",

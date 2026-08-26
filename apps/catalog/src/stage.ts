@@ -13,10 +13,719 @@ import "@mash/ui/catalogue/mash.css";
 import "@mash/shrine/catalogue/mash.css";
 import "@mash/ui/register";
 import "@mash/shrine/register";
+import {
+  createDraggable,
+  cssTranslateDragPositioner,
+  type DragAxis,
+  type DragController,
+  type DragEventDetail,
+} from "@mash/ui";
 
 // Tells the parent the frame is ready without it having to poll for the
 // registry being populated.
 document.documentElement.dataset.mashCatalogue = "mash";
+
+const dragControllers = new Map<HTMLElement, DragController>();
+let activeCatalogDragSource: HTMLElement | null = null;
+const canceledCatalogDrags = new WeakSet<HTMLElement>();
+
+function dragAxis(source: HTMLElement): DragAxis {
+  const axis = source.dataset.catalogDragAxis;
+  return axis === "x" || axis === "y" ? axis : "both";
+}
+
+function syncDragSources(): void {
+  for (const [source, controller] of dragControllers) {
+    if (source.isConnected) continue;
+    controller.destroy();
+    dragControllers.delete(source);
+  }
+
+  for (const source of document.querySelectorAll<HTMLElement>(
+    "[data-catalog-drag-source]:not(ui-draggable)",
+  )) {
+    if (dragControllers.has(source)) continue;
+    const handle = source.querySelector<HTMLElement>("[data-catalog-drag-handle]") ?? source;
+    const boundary = source.closest<HTMLElement>("[data-catalog-drag-boundary]");
+    const controller = createDraggable(source, {
+      axis: dragAxis(source),
+      containment: source.dataset.catalogDragFree !== undefined ? false : (boundary ?? "parent"),
+      handle,
+      positioner: cssTranslateDragPositioner,
+    });
+    dragControllers.set(source, controller);
+  }
+}
+
+new MutationObserver(syncDragSources).observe(document.body, { childList: true, subtree: true });
+queueMicrotask(syncDragSources);
+
+function dragSource(event: Event): HTMLElement | null {
+  const source = event.target;
+  return source instanceof HTMLElement && source.dataset.catalogDragSource !== undefined
+    ? source
+    : null;
+}
+
+function resetDrag(source: HTMLElement): void {
+  const controller = dragControllers.get(source);
+  if (controller) controller.position = { x: 0, y: 0 };
+  else (source as HTMLElement & { resetPosition?: () => void }).resetPosition?.();
+  delete source.dataset.catalogDragging;
+}
+
+function itemLabel(item: HTMLElement): string {
+  return (
+    item.dataset.catalogLabel ??
+    item.getAttribute("title") ??
+    item.querySelector<HTMLElement>(":scope > [slot='label']")?.textContent?.trim() ??
+    item.textContent?.replace("⠿", "").trim() ??
+    "Item"
+  );
+}
+
+function reportOrder(
+  container: Element,
+  selector: string,
+  output: Element | null,
+  prefix: string,
+): void {
+  if (!(output instanceof HTMLOutputElement)) return;
+  const labels = [...container.querySelectorAll<HTMLElement>(`:scope > ${selector}`)].map(
+    itemLabel,
+  );
+  output.textContent = `${prefix}: ${labels.join(", ")}`;
+}
+
+function reorderOnAxis(source: HTMLElement, pointer: { x: number; y: number }): void {
+  const container = source.parentElement;
+  if (!container) return;
+  const siblings = [...container.children].filter(
+    (candidate): candidate is HTMLElement =>
+      candidate instanceof HTMLElement &&
+      candidate !== source &&
+      candidate.dataset.catalogDragSource === source.dataset.catalogDragSource,
+  );
+  const coordinate = dragAxis(source) === "y" ? pointer.y : pointer.x;
+  const insertion = siblings.find((candidate) => {
+    const bounds = candidate.getBoundingClientRect();
+    const midpoint =
+      dragAxis(source) === "y" ? bounds.top + bounds.height / 2 : bounds.left + bounds.width / 2;
+    return coordinate < midpoint;
+  });
+  container.insertBefore(source, insertion ?? null);
+}
+
+function reorderChip(source: HTMLElement, pointer: { x: number; y: number }): void {
+  const container = source.parentElement;
+  if (!container) return;
+  const candidates = [...container.children].filter(
+    (candidate): candidate is HTMLElement =>
+      candidate instanceof HTMLElement &&
+      candidate !== source &&
+      candidate.dataset.catalogDragSource === "chip",
+  );
+  const closest = candidates
+    .map((candidate) => {
+      const bounds = candidate.getBoundingClientRect();
+      const center = { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 };
+      return {
+        candidate,
+        center,
+        distance: Math.hypot(pointer.x - center.x, pointer.y - center.y),
+      };
+    })
+    .sort((a, b) => a.distance - b.distance)[0];
+  if (!closest) return;
+  const before =
+    pointer.y < closest.center.y - closest.candidate.getBoundingClientRect().height / 4 ||
+    (Math.abs(pointer.y - closest.center.y) <=
+      closest.candidate.getBoundingClientRect().height / 4 &&
+      pointer.x < closest.center.x);
+  container.insertBefore(source, before ? closest.candidate : closest.candidate.nextSibling);
+}
+
+function pointerInside(bounds: DOMRect, pointer: { x: number; y: number }): boolean {
+  return (
+    pointer.x >= bounds.left &&
+    pointer.x <= bounds.right &&
+    pointer.y >= bounds.top &&
+    pointer.y <= bounds.bottom
+  );
+}
+
+function createPinnedTreeView(value: string, labelText: string): HTMLElement {
+  const item = document.createElement("ui-tree-item");
+  item.setAttribute("slot", "children");
+  item.setAttribute("kind", "file");
+  item.setAttribute("value", `pinned-${value}`);
+  item.setAttribute("path", `/interzone/pinned/${value}`);
+  item.dataset.catalogLabel = labelText;
+  item.dataset.catalogTabValue = value;
+  item.dataset.catalogDragSource = "tree-tab";
+  item.dataset.catalogDragFree = "";
+
+  const label = document.createElement("span");
+  label.slot = "label";
+  label.textContent = labelText;
+  const icon = document.createElement("span");
+  icon.slot = "icon";
+  icon.className = "example-tree-glyph";
+  icon.dataset.kind = "file";
+  icon.ariaHidden = "true";
+  const handle = document.createElement("ui-button");
+  handle.slot = "actions";
+  handle.setAttribute("variant", "quiet");
+  handle.setAttribute("size", "small");
+  handle.setAttribute("aria-label", `Move ${labelText} to the tab bar`);
+  handle.dataset.catalogDragHandle = "";
+  handle.textContent = "⠿";
+  item.append(label, icon, handle);
+  return item;
+}
+
+function createDraggableTab(value: string, labelText: string): HTMLElement {
+  const tab = document.createElement("ui-tab");
+  tab.setAttribute("slot", "tab");
+  tab.setAttribute("value", value);
+  tab.dataset.catalogLabel = labelText;
+  tab.dataset.catalogDragSource = "tab";
+  tab.dataset.catalogDragFree = "";
+  const handle = document.createElement("span");
+  handle.className = "example-drag-grip";
+  handle.dataset.catalogDragHandle = "";
+  handle.setAttribute("aria-label", `Move ${labelText} tab`);
+  handle.textContent = "⠿";
+  tab.append(handle, document.createTextNode(labelText));
+  return tab;
+}
+
+interface DropPlacement {
+  before: HTMLElement | null;
+  line: { left: number; top: number; width: number; height: number };
+}
+
+function treeDropPlacement(
+  drop: HTMLElement,
+  pointer: { x: number; y: number },
+  ignored?: HTMLElement,
+): DropPlacement {
+  const items = [
+    ...drop.querySelectorAll<HTMLElement>(":scope > ui-tree-item[slot='children']"),
+  ].filter((item) => item !== ignored);
+  const before = items.find((item) => {
+    const bounds = item.getBoundingClientRect();
+    return pointer.y < bounds.top + bounds.height / 2;
+  });
+  const dropBounds = drop.getBoundingClientRect();
+  const firstBounds = items[0]?.getBoundingClientRect();
+  const lastBounds = items.at(-1)?.getBoundingClientRect();
+  const beforeBounds = before?.getBoundingClientRect();
+  const top = beforeBounds?.top ?? lastBounds?.bottom ?? dropBounds.bottom;
+  const left = firstBounds?.left ?? dropBounds.left + 24;
+  return {
+    before: before ?? null,
+    line: {
+      left,
+      top: top - 1,
+      width: Math.max(24, (firstBounds?.right ?? dropBounds.right) - left),
+      height: 2,
+    },
+  };
+}
+
+function tabDropPlacement(
+  tabs: HTMLElement,
+  pointer: { x: number; y: number },
+  ignored?: HTMLElement,
+): DropPlacement | null {
+  const list = tabs.shadowRoot?.querySelector<HTMLElement>("[part='list']");
+  if (!list) return null;
+  const items = [...tabs.querySelectorAll<HTMLElement>(":scope > ui-tab[slot='tab']")].filter(
+    (item) => item !== ignored,
+  );
+  const before = items.find((item) => {
+    const bounds = item.getBoundingClientRect();
+    return pointer.x < bounds.left + bounds.width / 2;
+  });
+  const listBounds = list.getBoundingClientRect();
+  const beforeBounds = before?.getBoundingClientRect();
+  const lastBounds = items.at(-1)?.getBoundingClientRect();
+  const left = beforeBounds?.left ?? lastBounds?.right ?? listBounds.left;
+  return {
+    before: before ?? null,
+    line: {
+      left: left - 1,
+      top: listBounds.top + 3,
+      width: 2,
+      height: Math.max(20, listBounds.height - 6),
+    },
+  };
+}
+
+function dropIndicator(workspace: HTMLElement): HTMLElement | null {
+  return workspace.querySelector<HTMLElement>("[data-catalog-drop-indicator]");
+}
+
+function showDropIndicator(
+  workspace: HTMLElement,
+  orientation: "horizontal" | "vertical",
+  line: DropPlacement["line"],
+): void {
+  const indicator = dropIndicator(workspace);
+  if (!indicator) return;
+  indicator.setAttribute("orientation", orientation);
+  indicator.style.left = `${line.left}px`;
+  indicator.style.top = `${line.top}px`;
+  indicator.style.width = `${line.width}px`;
+  indicator.style.height = `${line.height}px`;
+  indicator.hidden = false;
+}
+
+function hideDropIndicator(workspace: HTMLElement | null): void {
+  const indicator = workspace ? dropIndicator(workspace) : null;
+  if (indicator) indicator.hidden = true;
+}
+
+interface KanbanDropTarget {
+  column: HTMLElement;
+  list: HTMLElement;
+}
+
+interface CatalogKanbanMoveDetail {
+  source: HTMLElement;
+  column: HTMLElement;
+  columnLabel: string;
+  position: number;
+}
+
+function clearKanbanDropFeedback(workspace: HTMLElement | null): void {
+  if (!workspace) return;
+  hideDropIndicator(workspace);
+  for (const column of workspace.querySelectorAll<HTMLElement>("[data-catalog-kanban-active]")) {
+    delete column.dataset.catalogKanbanActive;
+  }
+}
+
+function kanbanWorkspace(source: HTMLElement): HTMLElement | null {
+  return source.closest<HTMLElement>(
+    "[data-catalog-kanban-workspace], [data-linear-kanban-workspace]",
+  );
+}
+
+function kanbanDropTarget(
+  workspace: HTMLElement,
+  pointer: { x: number; y: number },
+): KanbanDropTarget | null {
+  const targets = [...workspace.querySelectorAll<HTMLElement>("[data-catalog-kanban-list]")].map(
+    (list) => ({
+      list,
+      column: list.closest<HTMLElement>("[data-catalog-kanban-column]")!,
+      bounds: list.getBoundingClientRect(),
+    }),
+  );
+  const exact = targets.filter((target) => pointerInside(target.bounds, pointer));
+  if (exact.length === 1) return exact[0]!;
+  if (exact.length > 1) return null;
+  const detents = targets.filter((target) => pointerInsideDetent(target.bounds, pointer, 18, 32));
+  return detents.length === 1 ? detents[0]! : null;
+}
+
+function kanbanDropPlacement(
+  list: HTMLElement,
+  pointer: { x: number; y: number },
+  ignored?: HTMLElement,
+): DropPlacement {
+  const cards = [...list.querySelectorAll<HTMLElement>(":scope > .example-kanban-card")].filter(
+    (card) => card !== ignored,
+  );
+  const before = cards.find((card) => {
+    const bounds = card.getBoundingClientRect();
+    return pointer.y < bounds.top + bounds.height / 2;
+  });
+  const listBounds = list.getBoundingClientRect();
+  const beforeBounds = before?.getBoundingClientRect();
+  const lastBounds = cards.at(-1)?.getBoundingClientRect();
+  const top = beforeBounds?.top ?? lastBounds?.bottom ?? listBounds.top;
+  return {
+    before: before ?? null,
+    line: {
+      left: listBounds.left + 4,
+      top: top - 1,
+      width: Math.max(24, listBounds.width - 8),
+      height: 2,
+    },
+  };
+}
+
+function updateKanbanDropIndicator(source: HTMLElement, pointer: { x: number; y: number }): void {
+  const workspace = kanbanWorkspace(source);
+  if (!workspace) return;
+  clearKanbanDropFeedback(workspace);
+  const target = kanbanDropTarget(workspace, pointer);
+  if (!target) return;
+  target.column.dataset.catalogKanbanActive = "";
+  showDropIndicator(
+    workspace,
+    "horizontal",
+    kanbanDropPlacement(target.list, pointer, source).line,
+  );
+}
+
+function moveKanbanCard(source: HTMLElement, pointer: { x: number; y: number }): boolean {
+  const workspace = kanbanWorkspace(source);
+  if (!workspace) return false;
+  const target = kanbanDropTarget(workspace, pointer);
+  clearKanbanDropFeedback(workspace);
+  if (!target) return false;
+  const placement = kanbanDropPlacement(target.list, pointer, source);
+  resetDrag(source);
+  target.list.insertBefore(source, placement.before);
+  const columnLabel =
+    target.column.querySelector<HTMLElement>(
+      "[data-catalog-kanban-column-label], .example-kanban-column-heading strong, :scope > header strong",
+    )?.textContent ?? "column";
+  const position = [
+    ...target.list.querySelectorAll<HTMLElement>(":scope > .example-kanban-card"),
+  ].indexOf(source);
+  const output = workspace.querySelector<HTMLOutputElement>("[data-catalog-kanban-status]");
+  if (output)
+    output.textContent = `${itemLabel(source)} moved to ${columnLabel}, position ${position + 1}.`;
+  workspace.dispatchEvent(
+    new CustomEvent<CatalogKanbanMoveDetail>("catalog-kanban-move", {
+      bubbles: true,
+      detail: { source, column: target.column, columnLabel, position },
+    }),
+  );
+  return true;
+}
+
+type WorkspaceDropTarget =
+  | { kind: "tree"; element: HTMLElement; bounds: DOMRect }
+  | { kind: "tabs"; element: HTMLElement; bounds: DOMRect };
+
+function pointerInsideDetent(
+  bounds: DOMRect,
+  pointer: { x: number; y: number },
+  inlineDetent: number,
+  blockDetent: number,
+): boolean {
+  return (
+    pointer.x >= bounds.left - inlineDetent &&
+    pointer.x <= bounds.right + inlineDetent &&
+    pointer.y >= bounds.top - blockDetent &&
+    pointer.y <= bounds.bottom + blockDetent
+  );
+}
+
+function workspaceDropTarget(
+  workspace: HTMLElement,
+  pointer: { x: number; y: number },
+): WorkspaceDropTarget | null {
+  const tree = workspace.querySelector<HTMLElement>("[data-catalog-tab-drop]");
+  const tabs = workspace.querySelector<HTMLElement>("[data-catalog-tabbar-drop]");
+  const list = tabs?.shadowRoot?.querySelector<HTMLElement>("[part='list']");
+  const targets: WorkspaceDropTarget[] = [];
+  if (tree) targets.push({ kind: "tree", element: tree, bounds: tree.getBoundingClientRect() });
+  if (tabs && list)
+    targets.push({ kind: "tabs", element: tabs, bounds: list.getBoundingClientRect() });
+
+  const exact = targets.filter((target) => pointerInside(target.bounds, pointer));
+  if (exact.length === 1) return exact[0]!;
+  if (exact.length > 1) return null;
+  const detents = targets.filter((target) =>
+    pointerInsideDetent(target.bounds, pointer, target.kind === "tabs" ? 24 : 16, 28),
+  );
+  return detents.length === 1 ? detents[0]! : null;
+}
+
+function clearWorkspaceDropFeedback(workspace: HTMLElement | null): void {
+  if (!workspace) return;
+  hideDropIndicator(workspace);
+  for (const target of workspace.querySelectorAll<HTMLElement>(
+    "[data-catalog-tab-drop], [data-catalog-tabbar-drop]",
+  )) {
+    delete target.dataset.catalogDropActive;
+  }
+}
+
+function updateDropIndicator(source: HTMLElement, pointer: { x: number; y: number }): void {
+  const workspace = source.closest<HTMLElement>(".example-tab-workspace");
+  if (!workspace) return;
+  clearWorkspaceDropFeedback(workspace);
+  const target = workspaceDropTarget(workspace, pointer);
+  if (!target) return;
+  target.element.dataset.catalogDropActive = "";
+  if (target.kind === "tree") {
+    showDropIndicator(
+      workspace,
+      "horizontal",
+      treeDropPlacement(target.element, pointer, source).line,
+    );
+    return;
+  }
+  const placement = tabDropPlacement(target.element, pointer, source);
+  if (placement) showDropIndicator(workspace, "vertical", placement.line);
+}
+
+function dropTabInSidebar(source: HTMLElement, pointer: { x: number; y: number }): boolean {
+  const workspace = source.closest<HTMLElement>(".example-tab-workspace");
+  const drop = workspace?.querySelector<HTMLElement>("[data-catalog-tab-drop]");
+  if (!workspace || !drop) return false;
+  const target = workspaceDropTarget(workspace, pointer);
+  if (target?.kind !== "tree" || target.element !== drop) return false;
+  clearWorkspaceDropFeedback(workspace);
+
+  const value = source.getAttribute("value") ?? "view";
+  const labelText = itemLabel(source);
+  const placement = treeDropPlacement(drop, pointer);
+  drop.insertBefore(createPinnedTreeView(value, labelText), placement.before);
+
+  const tabs = source.closest<HTMLElement>("ui-tabs");
+  const cache = workspace.querySelector<HTMLElement>("[data-catalog-tab-cache]");
+  const panel = tabs?.querySelector<HTMLElement>(`ui-tab-panel[value="${CSS.escape(value)}"]`);
+  if (panel && cache) cache.append(panel);
+  source.remove();
+  const output = workspace.querySelector<HTMLOutputElement>("[data-catalog-tab-status]");
+  if (output) output.textContent = `${labelText} pinned to the sidebar.`;
+  return true;
+}
+
+function dropTreeViewInTabBar(source: HTMLElement, pointer: { x: number; y: number }): boolean {
+  const workspace = source.closest<HTMLElement>(".example-tab-workspace");
+  const tabs = workspace?.querySelector<HTMLElement>("[data-catalog-tabbar-drop]");
+  const list = tabs?.shadowRoot?.querySelector<HTMLElement>("[part='list']");
+  if (!workspace || !tabs || !list) return false;
+  const target = workspaceDropTarget(workspace, pointer);
+  if (target?.kind !== "tabs" || target.element !== tabs) return false;
+  clearWorkspaceDropFeedback(workspace);
+
+  const value = source.dataset.catalogTabValue ?? source.getAttribute("value") ?? "view";
+  const labelText = itemLabel(source);
+  const placement = tabDropPlacement(tabs, pointer);
+  if (!placement) return false;
+  const nextPanel = tabs.querySelector<HTMLElement>(":scope > ui-tab-panel[slot='panel']");
+  tabs.insertBefore(createDraggableTab(value, labelText), placement.before ?? nextPanel);
+  const cache = workspace.querySelector<HTMLElement>("[data-catalog-tab-cache]");
+  const panel = cache?.querySelector<HTMLElement>(`ui-tab-panel[value="${CSS.escape(value)}"]`);
+  if (panel) tabs.append(panel);
+  (tabs as HTMLElement & { value: string }).value = value;
+  source.remove();
+  const output = workspace.querySelector<HTMLOutputElement>("[data-catalog-tab-status]");
+  if (output) output.textContent = `${labelText} restored to the top tab bar.`;
+  return true;
+}
+
+function reorderTabInBar(source: HTMLElement, pointer: { x: number; y: number }): boolean {
+  const workspace = source.closest<HTMLElement>(".example-tab-workspace");
+  const tabs = source.closest<HTMLElement>("[data-catalog-tabbar-drop]");
+  if (!workspace || !tabs) return false;
+  const target = workspaceDropTarget(workspace, pointer);
+  if (target?.kind !== "tabs" || target.element !== tabs) return false;
+  const placement = tabDropPlacement(tabs, pointer, source);
+  if (!placement) return false;
+  const nextPanel = tabs.querySelector<HTMLElement>(":scope > ui-tab-panel[slot='panel']");
+  resetDrag(source);
+  tabs.insertBefore(source, placement.before ?? nextPanel);
+  clearWorkspaceDropFeedback(workspace);
+  const position = [...tabs.querySelectorAll<HTMLElement>(":scope > ui-tab[slot='tab']")].indexOf(
+    source,
+  );
+  const output = workspace.querySelector<HTMLOutputElement>("[data-catalog-tab-status]");
+  if (output) output.textContent = `${itemLabel(source)} moved to tab position ${position + 1}.`;
+  return true;
+}
+
+function reorderPinnedTreeView(source: HTMLElement, pointer: { x: number; y: number }): boolean {
+  const workspace = source.closest<HTMLElement>(".example-tab-workspace");
+  const drop = source.parentElement;
+  if (!workspace || !drop?.matches("[data-catalog-tab-drop]")) return false;
+  const target = workspaceDropTarget(workspace, pointer);
+  if (target?.kind !== "tree" || target.element !== drop) return false;
+  const placement = treeDropPlacement(drop, pointer, source);
+  resetDrag(source);
+  drop.insertBefore(source, placement.before);
+  clearWorkspaceDropFeedback(workspace);
+  const position = [
+    ...drop.querySelectorAll<HTMLElement>(":scope > ui-tree-item[slot='children']"),
+  ].indexOf(source);
+  const output = workspace.querySelector<HTMLOutputElement>("[data-catalog-tab-status]");
+  if (output) output.textContent = `${itemLabel(source)} moved to pinned position ${position + 1}.`;
+  return true;
+}
+
+function clearTreeLeafTarget(workspace: HTMLElement | null): void {
+  for (const target of workspace?.querySelectorAll<HTMLElement>(
+    "[data-catalog-leaf-drop-active]",
+  ) ?? []) {
+    delete target.dataset.catalogLeafDropActive;
+  }
+}
+
+function treeLeafTarget(
+  source: HTMLElement,
+  pointer: { x: number; y: number },
+): HTMLElement | null {
+  const workspace = source.closest<HTMLElement>("[data-catalog-tree-leaf-workspace]");
+  const tree = workspace?.querySelector<HTMLElement>("[data-catalog-tree-leaf-zone]");
+  if (!workspace || !tree) return null;
+  if (!pointerInsideDetent(tree.getBoundingClientRect(), pointer, 20, 28)) return null;
+  const candidates = [
+    ...tree.querySelectorAll<HTMLElement>("[data-catalog-tree-leaf-drop]"),
+  ].filter((candidate) => candidate !== source && !source.contains(candidate));
+  return (
+    candidates
+      .map((candidate) => {
+        const bounds = candidate.getBoundingClientRect();
+        return {
+          candidate,
+          distance: Math.hypot(
+            (pointer.x - (bounds.left + bounds.width / 2)) * 0.25,
+            pointer.y - (bounds.top + bounds.height / 2),
+          ),
+        };
+      })
+      .sort((a, b) => a.distance - b.distance)[0]?.candidate ?? null
+  );
+}
+
+function updateTreeLeafTarget(source: HTMLElement, pointer: { x: number; y: number }): void {
+  const workspace = source.closest<HTMLElement>("[data-catalog-tree-leaf-workspace]");
+  clearTreeLeafTarget(workspace);
+  const target = treeLeafTarget(source, pointer);
+  if (target) target.dataset.catalogLeafDropActive = "";
+}
+
+function nestTreeLeaf(source: HTMLElement, pointer: { x: number; y: number }): boolean {
+  const workspace = source.closest<HTMLElement>("[data-catalog-tree-leaf-workspace]");
+  if (!workspace) return false;
+  const target = treeLeafTarget(source, pointer);
+  clearTreeLeafTarget(workspace);
+  if (!target) return false;
+  const sourceLabel = itemLabel(source);
+  const targetLabel = itemLabel(target);
+  resetDrag(source);
+  source.setAttribute("slot", "children");
+  target.append(source);
+  target.setAttribute("kind", "folder");
+  (target as HTMLElement & { expanded: boolean }).expanded = true;
+  delete target.dataset.catalogTreeLeafDrop;
+  const output = workspace.querySelector<HTMLOutputElement>("[data-catalog-tree-leaf-status]");
+  if (output) output.textContent = `${sourceLabel} nested under ${targetLabel}.`;
+  return true;
+}
+
+function reportCanceledDrag(source: HTMLElement): void {
+  const tabWorkspace = source.closest<HTMLElement>(".example-tab-workspace");
+  const tabOutput = tabWorkspace?.querySelector<HTMLOutputElement>("[data-catalog-tab-status]");
+  if (tabOutput) tabOutput.textContent = `${itemLabel(source)} stayed where it was.`;
+  const treeWorkspace = source.closest<HTMLElement>("[data-catalog-tree-leaf-workspace]");
+  const treeOutput = treeWorkspace?.querySelector<HTMLOutputElement>(
+    "[data-catalog-tree-leaf-status]",
+  );
+  if (treeOutput) treeOutput.textContent = `${itemLabel(source)} stayed where it was.`;
+  const workspace = kanbanWorkspace(source);
+  const kanbanOutput = workspace?.querySelector<HTMLOutputElement>("[data-catalog-kanban-status]");
+  if (kanbanOutput) kanbanOutput.textContent = `${itemLabel(source)} stayed where it was.`;
+}
+
+document.addEventListener("ui-drag-start", (event) => {
+  const source = dragSource(event);
+  if (!source) return;
+  activeCatalogDragSource = source;
+  source.focus();
+  source.dataset.catalogDragging = "";
+  clearWorkspaceDropFeedback(source.closest<HTMLElement>(".example-tab-workspace"));
+  clearTreeLeafTarget(source.closest<HTMLElement>("[data-catalog-tree-leaf-workspace]"));
+  clearKanbanDropFeedback(kanbanWorkspace(source));
+});
+
+document.addEventListener("ui-drag-move", (event) => {
+  const source = dragSource(event);
+  if (!source) return;
+  const { pointer } = (event as CustomEvent<DragEventDetail>).detail;
+  if (source.dataset.catalogDragSource === "kanban-card")
+    updateKanbanDropIndicator(source, pointer);
+  else if (source.dataset.catalogDragSource === "tree-leaf") updateTreeLeafTarget(source, pointer);
+  else updateDropIndicator(source, pointer);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape" || !activeCatalogDragSource) return;
+  event.preventDefault();
+  const source = activeCatalogDragSource;
+  const controller =
+    dragControllers.get(source) ??
+    (source as HTMLElement & { controller?: DragController }).controller;
+  if (!controller) return;
+  canceledCatalogDrags.add(source);
+  controller.disabled = true;
+  controller.disabled = false;
+});
+
+document.addEventListener("ui-drag-end", (event) => {
+  const source = dragSource(event);
+  if (!source) return;
+  activeCatalogDragSource = null;
+  clearWorkspaceDropFeedback(source.closest<HTMLElement>(".example-tab-workspace"));
+  clearTreeLeafTarget(source.closest<HTMLElement>("[data-catalog-tree-leaf-workspace]"));
+  clearKanbanDropFeedback(kanbanWorkspace(source));
+  const { pointer } = (event as CustomEvent<DragEventDetail>).detail;
+  const kind = source.dataset.catalogDragSource;
+  if (canceledCatalogDrags.has(source)) {
+    canceledCatalogDrags.delete(source);
+    reportCanceledDrag(source);
+    resetDrag(source);
+    return;
+  }
+  if (kind === "tab") {
+    if (dropTabInSidebar(source, pointer) || reorderTabInBar(source, pointer)) return;
+    reportCanceledDrag(source);
+    resetDrag(source);
+    return;
+  }
+  if (kind === "tree-tab") {
+    if (dropTreeViewInTabBar(source, pointer) || reorderPinnedTreeView(source, pointer)) return;
+    reportCanceledDrag(source);
+    resetDrag(source);
+    return;
+  }
+  if (kind === "tree-leaf") {
+    if (nestTreeLeaf(source, pointer)) return;
+    reportCanceledDrag(source);
+    resetDrag(source);
+    return;
+  }
+  if (kind === "kanban-card") {
+    if (moveKanbanCard(source, pointer)) return;
+    reportCanceledDrag(source);
+    resetDrag(source);
+    return;
+  }
+  if (kind === "tree-item") {
+    const tree = source.parentElement!;
+    if (pointerInsideDetent(tree.getBoundingClientRect(), pointer, 20, 28)) {
+      reorderOnAxis(source, pointer);
+      reportOrder(
+        tree,
+        '[data-catalog-drag-source="tree-item"]',
+        tree.closest(".example-drag-tree-workspace")?.querySelector("[data-catalog-tree-status]") ??
+          null,
+        "Priority",
+      );
+    }
+  } else if (kind === "chip") {
+    reorderChip(source, pointer);
+    const chips = source.parentElement!;
+    reportOrder(
+      chips,
+      '[data-catalog-drag-source="chip"]',
+      chips.closest(".example-chip-workspace")?.querySelector("[data-catalog-chip-status]") ?? null,
+      "Owner precedence",
+    );
+  }
+  resetDrag(source);
+});
 
 // The catalogue is a consumer of the controlled tree contract: it opts into
 // the requested expansion state so the example remains interactive without
@@ -488,11 +1197,10 @@ function linearCreateIssue(workspace: HTMLElement, action: HTMLElement): void {
   );
   column?.insertAdjacentHTML(
     "beforeend",
-    `<ui-card data-linear-board-card data-linear-issue="${id}" data-title="${escapedTitle}" data-area="Product" data-status="${status}" data-priority="medium" data-assignee="maya" data-initials="MC">
-      <div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="${id}"><span class="sr-only">Select ${id}</span></ui-checkbox><span class="example-linear-key">${id}</span><span class="example-linear-priority">→ Medium</span></div>
-      <ui-link slot="content" href="#${id.toLocaleLowerCase()}" data-linear-open-issue="${id}">${escapedTitle}</ui-link>
-      <div slot="footer" class="example-linear-card-footer"><ui-badge size="small">Product</ui-badge><ui-avatar size="small">MC</ui-avatar></div>
-    </ui-card>`,
+    `<ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="${escapedTitle}" data-linear-board-card data-linear-issue="${id}" data-title="${escapedTitle}" data-area="Product" data-status="${status}" data-priority="medium" data-assignee="maya" data-initials="MC">
+      <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move ${id}"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">${id}</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
+      <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="${id}"><span class="sr-only">Select ${id}</span></ui-checkbox><ui-badge size="small">Product</ui-badge></div><ui-link slot="content" href="#${id.toLocaleLowerCase()}" data-linear-open-issue="${id}">${escapedTitle}</ui-link><div slot="footer" class="example-linear-card-footer"><span>New issue</span><ui-avatar size="small">MC</ui-avatar></div></ui-card>
+    </ui-draggable>`,
   );
   if (table) table.setAttribute("row-count", String(rowIndex));
   if (titleInput) titleInput.value = "";
@@ -660,6 +1368,19 @@ document.addEventListener("click", (event) => {
   }
   const command = action.dataset.linearCommand;
   if (command) linearRunCommand(workspace, command);
+});
+
+document.addEventListener("catalog-kanban-move", (event) => {
+  const { source, column, columnLabel } = (event as CustomEvent<CatalogKanbanMoveDetail>).detail;
+  const workspace = source.closest<HTMLElement>("[data-linear-workspace]");
+  const issueId = source.dataset.linearIssue;
+  const linearColumn = column.dataset.linearBoardColumn;
+  if (!workspace || !issueId || !linearColumn) return;
+  const nextStatus =
+    linearColumn === "done" ? "done" : linearColumn === "progress" ? "progress" : "todo";
+  linearUpdateStatus(workspace, issueId, nextStatus);
+  linearSyncFilters(workspace);
+  linearToast(workspace, `${issueId} moved to ${columnLabel}`);
 });
 
 document.addEventListener("keydown", (event) => {

@@ -209,8 +209,12 @@ const stageRecipes: UtilityRecipes = {
   "example-linear-board":
     "grid min-w-0 grid-cols-[repeat(3,minmax(var(--layout-dimension-compact),1fr))] items-start gap-container-gap overflow-x-auto pb-control-block max-[45rem]:grid-cols-1 max-[45rem]:overflow-visible",
   "example-linear-board-column":
-    "grid min-w-0 gap-control-gap rounded-container border border-border bg-surface-sunken px-control-inline py-control-block",
-  "example-linear-card-list": "grid gap-control-gap",
+    "grid min-h-[12rem] min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-control-gap rounded-container border border-border bg-surface-sunken px-control-inline py-control-block transition-colors data-[catalog-kanban-active]:border-action data-[catalog-kanban-active]:bg-action-wash",
+  "example-linear-card-list": "grid content-start gap-control-gap",
+  "example-linear-board-status": "type-label-small text-text-muted",
+  "example-linear-board-card": "relative block w-full",
+  "example-linear-card-drag-handle":
+    "flex cursor-grab touch-none items-center gap-control-gap rounded-t-container border border-b-0 border-border bg-surface-raised px-control-inline py-control-block-small active:cursor-grabbing",
   "example-linear-card-heading": "flex min-w-0 items-center gap-control-gap",
   "example-linear-card-footer": "flex items-center justify-between gap-control-gap",
   "example-linear-status-dot": "inline-block size-glyph rounded-full bg-neutral",
@@ -242,6 +246,59 @@ const stageRecipes: UtilityRecipes = {
   "example-tree-glyph":
     "inline-block size-[calc(var(--space-control-gap)+var(--space-control-block-small))] rounded-control border border-current [background:color-mix(in_oklab,currentColor_14%,transparent)]",
   "example-tree-narrow": "w-[min(100%,22rem)]!",
+  "example-drag-boundary":
+    "relative grid h-full min-h-compact w-full place-items-center overflow-hidden bg-surface-sunken px-container-inline py-container-block",
+  "example-drag-titlebar":
+    "flex cursor-grab touch-none items-center gap-control-gap active:cursor-grabbing",
+  "example-window-stage":
+    "relative grid h-full min-h-[24rem] w-full place-items-center overflow-hidden bg-surface-sunken px-container-inline py-container-block",
+  "example-drag-window":
+    "h-[20rem] min-h-[15rem] w-[min(34rem,calc(100%-var(--space-container-inline)*2))] min-w-[18rem] resize overflow-hidden rounded-container border border-border bg-surface shadow-[0_12px_40px_var(--color-shadow)] [&::part(root)]:grid [&::part(root)]:h-full [&::part(root)]:grid-rows-[auto_minmax(0,1fr)]",
+  "example-window-titlebar":
+    "flex cursor-grab touch-none items-center gap-control-gap border-b border-border bg-surface-raised px-control-inline py-control-block active:cursor-grabbing",
+  "example-window-traffic": "text-critical tracking-[0.18em]",
+  "example-window-panes": "h-full min-h-0! [&::part(root)]:h-full",
+  "example-kanban-board":
+    "relative grid h-full min-h-[24rem] w-full grid-rows-[auto_minmax(0,1fr)_auto] gap-container-gap overflow-hidden bg-surface-sunken px-container-inline py-container-block",
+  "example-kanban-heading": "flex items-center justify-between gap-control-gap",
+  "example-kanban-columns":
+    "grid min-h-0 grid-cols-3 gap-container-gap overflow-x-auto pb-control-block max-[46rem]:grid-cols-[repeat(3,minmax(15rem,1fr))]",
+  "example-kanban-column":
+    "grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-container border border-border bg-surface transition-colors data-[catalog-kanban-active]:border-action data-[catalog-kanban-active]:bg-action-wash",
+  "example-kanban-column-heading":
+    "flex items-center justify-between gap-control-gap border-b border-border bg-surface-raised px-control-inline py-control-block",
+  "example-kanban-list":
+    "grid content-start gap-control-gap overflow-y-auto px-control-inline py-control-block",
+  "example-kanban-card": "relative block w-full",
+  "example-kanban-card-handle":
+    "flex cursor-grab touch-none items-center gap-control-gap rounded-t-container border border-b-0 border-border bg-surface-raised px-control-inline py-control-block-small active:cursor-grabbing",
+  "example-kanban-card-meta": "flex items-center gap-control-gap text-text-muted type-label-small",
+  "example-chip-workspace":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-block rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-chip-sort":
+    "flex min-h-control flex-wrap items-center gap-control-gap rounded-control border border-dashed border-border-strong bg-surface-sunken px-control-inline py-control-block",
+  "example-drag-grip":
+    "inline-grid cursor-grab touch-none place-items-center text-text-muted active:cursor-grabbing",
+  "example-drag-status": "type-label-small text-text-muted",
+  "example-tab-workspace":
+    "grid h-full min-h-[24rem] w-full grid-cols-[minmax(11rem,0.34fr)_minmax(0,1fr)] overflow-hidden bg-surface max-[38rem]:grid-cols-1",
+  "example-tab-sidebar":
+    "grid content-start gap-container-block border-e border-border bg-surface-sunken px-container-inline py-container-block max-[38rem]:border-e-0 max-[38rem]:border-b",
+  "example-tab-main":
+    "grid min-w-0 content-start gap-container-block px-container-inline py-container-block",
+  "example-tab-drop": "rounded-control",
+  "example-tabbar-drop": "rounded-control",
+  "example-drop-indicator":
+    "fixed! z-[1000] pointer-events-none [&::part(root)]:h-full [&::part(root)]:w-full [&::part(root)]:bg-action [&::part(root)]:mix-blend-normal! [&::part(root)]:shadow-[0_0_0_var(--border-hairline)_var(--color-surface),0_0_8px_var(--color-action)]",
+  "example-drop-indicator-circle":
+    "block size-control-gap rounded-full border border-surface bg-action shadow-[0_0_8px_var(--color-action)]",
+  "example-drag-tree-workspace":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-block rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-tree-leaf-workspace":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-block rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-drag-tree":
+    "grid gap-control-block-small overflow-hidden rounded-control bg-surface-sunken",
+  "example-drag-handle": "cursor-grab touch-none active:cursor-grabbing",
   "example-toolbar-dock":
     "relative grid min-h-[16.25rem] place-items-center overflow-hidden rounded-container border border-dashed border-border-strong bg-surface-sunken type-code text-text-muted",
   "example-tabs":
@@ -341,6 +398,10 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   ],
   [".example-linear-board-column > header", "type-label-small"],
   ["[data-linear-board-card]", "grid gap-control-gap"],
+  [
+    ".example-linear-board-card ui-card",
+    "[&::part(root)]:rounded-t-none! [&::part(root)]:border-t-0!",
+  ],
   [".example-linear-card-heading .example-linear-priority", "ms-auto"],
   ['.example-linear-status-dot[data-status="progress"]', "bg-action"],
   ['.example-linear-status-dot[data-status="done"]', "bg-positive"],
@@ -367,6 +428,20 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     "rounded-[var(--border-hairline)] text-action [box-shadow:inset_0_0_0_var(--border-hairline)_var(--color-surface)]",
   ],
   ['.example-tree-glyph[data-kind="file"]', "rounded-[var(--border-hairline)] text-text-muted"],
+  [
+    "[data-catalog-drag-source]",
+    "relative will-change-transform data-[catalog-dragging]:z-raised data-[catalog-dragging]:opacity-80 data-[catalog-dragging]:[&::part(control)]:outline-none!",
+  ],
+  [
+    ".example-window-panes ui-resizable-panel",
+    "[&::part(root)]:rounded-none! [&::part(root)]:border-0!",
+  ],
+  [".example-drag-tree ui-tree-item", "w-full"],
+  [
+    ".example-tree-leaf-workspace ui-tree-item[data-catalog-leaf-drop-active]",
+    "[&::part(control)]:outline-[var(--border-focus-ring)] [&::part(control)]:outline-action [&::part(control)]:bg-action-muted",
+  ],
+  [".example-tab-main ui-tab-panel", "block pt-container-block"],
   [
     ".example-toolbar-dock ui-toolbar[data-mash-toolbar-dock]",
     "bg-surface-raised px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
