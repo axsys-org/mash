@@ -5,6 +5,7 @@ import {
   type AnchoredAlign,
   type AnchoredPlacement,
   type AnchoredPositionConfig,
+  type AnchoredPositionSnapshot,
 } from "./anchored-position.js";
 import { baseStyles } from "./base-styles.js";
 import { MotionLifecycleController } from "./motion-lifecycle.js";
@@ -181,6 +182,10 @@ export abstract class UIOverlay extends LitElement {
   /** Re-measures an open anchored overlay after its external anchor changes. */
   protected queuePosition(): void {
     this.#positioner.queue();
+  }
+
+  protected overlayPositionSnapshot(): AnchoredPositionSnapshot | null {
+    return this.#positioner.snapshot;
   }
 
   /** Lets concrete overlays handle semantic action slots before generic dismissal. */
@@ -575,6 +580,11 @@ export abstract class UIAnchoredOverlay extends UIOverlay {
     if (this.#anchorElement === value) return;
     this.#anchorElement = value;
     this.queuePosition();
+  }
+
+  /** Read-only Web geometry for composite pointer corridors such as submenus. */
+  get positionSnapshot(): AnchoredPositionSnapshot | null {
+    return this.overlayPositionSnapshot();
   }
 
   protected override positionAnchor(): HTMLElement | null {

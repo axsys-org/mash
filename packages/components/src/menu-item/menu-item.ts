@@ -216,10 +216,13 @@ export class UIMenuItem extends LitElement {
     if (this.#closeTimer !== undefined) window.clearTimeout(this.#closeTimer);
     this.#closeTimer = undefined;
     if (this.#submenu.open || this.#openTimer !== undefined) return;
-    this.#openTimer = window.setTimeout(() => {
-      this.#openTimer = undefined;
-      this.showSubmenu();
-    }, 80);
+    this.#openTimer = window.setTimeout(
+      () => {
+        this.#openTimer = undefined;
+        this.showSubmenu();
+      },
+      Math.max(0, this.#submenu.submenuOpenDelay),
+    );
   }
 
   #scheduleClose(): void {
@@ -227,10 +230,13 @@ export class UIMenuItem extends LitElement {
     if (this.#openTimer !== undefined) window.clearTimeout(this.#openTimer);
     this.#openTimer = undefined;
     if (this.#closeTimer !== undefined) window.clearTimeout(this.#closeTimer);
-    this.#closeTimer = window.setTimeout(() => {
-      this.#closeTimer = undefined;
-      this.#submenu?.dismiss("hover");
-    }, 280);
+    this.#closeTimer = window.setTimeout(
+      () => {
+        this.#closeTimer = undefined;
+        this.#submenu?.dismiss("hover");
+      },
+      Math.max(0, this.#submenu.submenuCloseDelay),
+    );
   }
 
   #onNamedSlotChange = (event: Event): void => {
@@ -321,12 +327,11 @@ export class UIMenuItem extends LitElement {
 
   #onPointerMove = (event: PointerEvent): void => {
     if (!this.#submenu?.open || event.pointerType === "touch") return;
-    const popup = this.#submenu.shadowRoot?.querySelector<HTMLElement>("[part~='popup']");
-    const positioner = this.#submenu.shadowRoot?.querySelector<HTMLElement>("[part~='positioner']");
+    const snapshot = this.#submenu.positionSnapshot;
     const safe = this.renderRoot.querySelector<HTMLElement>("[part~='safe-triangle']");
-    if (!popup || !safe) return;
-    const rect = popup.getBoundingClientRect();
-    const side = positioner?.dataset.side === "left" ? "left" : "right";
+    if (!snapshot || !safe) return;
+    const rect = snapshot.popup;
+    const side = snapshot.placement === "left" ? "left" : "right";
     const safeLeft = side === "right" ? event.clientX - 2 : rect.right;
     const safeRight = side === "right" ? rect.left : event.clientX + 2;
     const width = Math.max(0, safeRight - safeLeft);

@@ -16,6 +16,11 @@ export interface ResolvedAnchoredPosition {
   top: number;
 }
 
+export interface AnchoredPositionSnapshot extends ResolvedAnchoredPosition {
+  align: AnchoredAlign;
+  popup: DOMRect;
+}
+
 /**
  * Resolves preferred-side placement, opposite-side flipping, logical
  * alignment, and viewport clamping without depending on a DOM element type.
@@ -115,6 +120,7 @@ export class AnchoredPositionController {
   #frame?: number;
   #observer?: ResizeObserver;
   #active = false;
+  #snapshot: AnchoredPositionSnapshot | null = null;
 
   constructor(host: HTMLElement, elements: AnchoredPositionElements) {
     this.#host = host;
@@ -147,12 +153,18 @@ export class AnchoredPositionController {
     if (this.#frame !== undefined && view) view.cancelAnimationFrame(this.#frame);
     this.#frame = undefined;
     this.#active = false;
+    this.#snapshot = null;
     const positioner = this.#elements.positioner();
     if (positioner) {
       positioner.removeAttribute("style");
       delete positioner.dataset.side;
       delete positioner.dataset.align;
     }
+  }
+
+  get snapshot(): AnchoredPositionSnapshot | null {
+    const snapshot = this.#snapshot;
+    return snapshot ? { ...snapshot, popup: DOMRect.fromRect(snapshot.popup) } : null;
   }
 
   queue = (): void => {
@@ -175,9 +187,10 @@ export class AnchoredPositionController {
     const anchor = point
       ? new DOMRect(point.x, point.y, 0, 0)
       : anchorElement.getBoundingClientRect();
+    const popupRect = popup.getBoundingClientRect();
     const resolved = resolveAnchoredPosition(
       anchor,
-      popup.getBoundingClientRect(),
+      popupRect,
       { width: view.innerWidth, height: view.innerHeight },
       config,
       getComputedStyle(anchorElement).direction as "ltr" | "rtl",
@@ -201,5 +214,10 @@ export class AnchoredPositionController {
     }
     positioner.dataset.side = resolved.placement;
     positioner.dataset.align = config.align;
+    this.#snapshot = {
+      ...resolved,
+      align: config.align,
+      popup: DOMRect.fromRect(popupRect),
+    };
   }
 }
