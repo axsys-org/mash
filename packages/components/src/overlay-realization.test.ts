@@ -220,7 +220,9 @@ describe("overlay authored-slot realizations", () => {
   });
 
   it("keeps an inert overlay present until its exit motion settles", async () => {
-    const dialog = await fixture<HTMLElement & { open: boolean }>(`
+    const dialog = await fixture<
+      HTMLElement & { open: boolean; updateComplete: Promise<unknown> }
+    >(`
       <ui-dialog label="Motion policy" open>
         <button slot="trigger">Open</button>
         <span>Body</span>
@@ -231,7 +233,7 @@ describe("overlay authored-slot realizations", () => {
     const exit = popup.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1_000 });
 
     dialog.open = false;
-    await (dialog as HTMLElement & { updateComplete: Promise<unknown> }).updateComplete;
+    await dialog.updateComplete;
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
     expect(backdrop.hidden).toBe(false);
@@ -241,7 +243,7 @@ describe("overlay authored-slot realizations", () => {
     exit.finish();
     await exit.finished;
     await Promise.resolve();
-    await (dialog as HTMLElement & { updateComplete: Promise<unknown> }).updateComplete;
+    await dialog.updateComplete;
 
     expect(backdrop.hidden).toBe(true);
     expect(dialog.matches(":state(present)")).toBe(false);
