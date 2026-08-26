@@ -1167,21 +1167,66 @@
     padding: var(--space-container-inline);
   }
 
-  /* `display: grid` above is an authored declaration and therefore wins over
-     the browser's weak `[hidden]` rule. Key visibility off the reflected
-     component state as well, otherwise a closed overlay leaves an invisible
-     full-viewport layer in front of its trigger. */
-  :where([data-mash-catalogue="mash"]) ui-dialog:not([open])::part(backdrop),
-  :where([data-mash-catalogue="mash"]) ui-alert-dialog:not([open])::part(backdrop),
-  :where([data-mash-catalogue="mash"]) ui-drawer:not([open])::part(backdrop),
-  :where([data-mash-catalogue="mash"]) ui-popover:not([open])::part(backdrop),
-  :where([data-mash-catalogue="mash"]) ui-date-picker:not([open])::part(backdrop),
-  :where([data-mash-catalogue="mash"]) ui-color-picker:not([open])::part(backdrop),
-  :where([data-mash-catalogue="mash"]) ui-menu:not([open])::part(backdrop),
-  :where([data-mash-catalogue="mash"]) ui-context-menu:not([open])::part(backdrop),
-  :where([data-mash-catalogue="mash"]) ui-preview-card:not([open])::part(backdrop),
-  :where([data-mash-catalogue="mash"]) ui-tooltip:not([open])::part(backdrop) {
+  /* Authored display declarations beat the browser's weak `[hidden]` rule.
+     Presence outlives `open` while exit motion settles, then disappears. */
+  :where([data-mash-catalogue="mash"]) ui-dialog:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-drawer:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-popover:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-date-picker:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-color-picker:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-menu:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-preview-card:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-tooltip:not(:state(present))::part(backdrop) {
     display: none;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(
+      ui-dialog,
+      ui-alert-dialog,
+      ui-drawer,
+      ui-popover,
+      ui-date-picker,
+      ui-color-picker,
+      ui-menu,
+      ui-context-menu,
+      ui-preview-card,
+      ui-tooltip
+    ):state(entering)::part(popup) {
+    animation: mash-overlay-enter var(--duration-surface) var(--easing-spring-gentle) both;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(
+      ui-dialog,
+      ui-alert-dialog,
+      ui-drawer,
+      ui-popover,
+      ui-date-picker,
+      ui-color-picker,
+      ui-menu,
+      ui-context-menu,
+      ui-preview-card,
+      ui-tooltip
+    ):state(exiting)::part(popup) {
+    animation: mash-overlay-exit var(--duration-surface) var(--easing-surface) both;
+    pointer-events: none;
+  }
+
+  @keyframes mash-overlay-enter {
+    from {
+      opacity: var(--motion-opacity-hidden);
+      scale: var(--motion-scale-enter);
+    }
+  }
+
+  @keyframes mash-overlay-exit {
+    to {
+      opacity: var(--motion-opacity-hidden);
+      scale: var(--motion-scale-enter);
+    }
   }
 
   :where([data-mash-catalogue="mash"]) ui-dialog::part(backdrop),

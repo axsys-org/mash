@@ -7,6 +7,7 @@ import {
   type AnchoredPositionConfig,
 } from "./anchored-position.js";
 import { baseStyles } from "./base-styles.js";
+import { MotionLifecycleController } from "./motion-lifecycle.js";
 
 /** The user interaction that opens a portable overlay. */
 export type OverlayTriggerAction = "click" | "contextmenu" | "hover" | "manual";
@@ -60,6 +61,7 @@ export abstract class UIOverlay extends LitElement {
     disabled: { type: Boolean, reflect: true },
     closeOnEscape: { type: Boolean, attribute: "close-on-escape", reflect: true },
     closeOnOutside: { type: Boolean, attribute: "close-on-outside", reflect: true },
+    overlayPresent: { state: true },
   };
 
   /** Whether the overlay is visible. */
@@ -72,6 +74,8 @@ export abstract class UIOverlay extends LitElement {
   declare closeOnEscape: boolean;
   /** Whether an interaction outside the popup requests dismissal. */
   declare closeOnOutside: boolean;
+  /** Internal render-presence; public state remains the `open` contract. */
+  declare protected overlayPresent: boolean;
 
   protected abstract readonly overlayRole:
     "dialog" | "alertdialog" | "menu" | "tooltip" | "listbox";
@@ -94,6 +98,7 @@ export abstract class UIOverlay extends LitElement {
   #movedFocusForOpen = false;
   #contextPoint: { x: number; y: number } | null = null;
   #interactionTimer: number | undefined;
+  readonly #motion: MotionLifecycleController<"entering" | "exiting">;
   readonly #positioner = new AnchoredPositionController(this, {
     anchor: () => this.positionAnchor(),
     popup: () => this.renderRoot.querySelector<HTMLElement>("[part='popup']"),
@@ -109,7 +114,23 @@ export abstract class UIOverlay extends LitElement {
     this.disabled = false;
     this.closeOnEscape = true;
     this.closeOnOutside = true;
+    this.overlayPresent = false;
     this.overlayInternals = this.attachInternals();
+    this.#motion = new MotionLifecycleController(this, {
+      target: () => this.renderRoot.querySelector<HTMLElement>("[part='popup']"),
+      onFinish: ({ value, interrupted }) => {
+        if (interrupted) return;
+        this.overlayInternals.states.delete(value);
+        if (value === "entering") {
+          this.overlayInternals.states.add("active");
+          return;
+        }
+        this.overlayInternals.states.delete("active");
+        this.overlayInternals.states.delete("present");
+        this.overlayPresent = false;
+        this.#positioner.stop();
+      },
+    });
     this.addEventListener("click", this.#onHostClick);
     this.addEventListener("pointerover", this.#onPointerOver);
     this.addEventListener("pointerout", this.#onPointerOut);
@@ -221,6 +242,7 @@ export abstract class UIOverlay extends LitElement {
 
   override disconnectedCallback(): void {
     this.#cancelInteractionChange();
+    this.#motion.destroy();
     this.#positioner.stop();
     super.disconnectedCallback();
   }
@@ -308,10 +330,18 @@ export abstract class UIOverlay extends LitElement {
     target?.focus();
   }
 
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    if (changed.has("open") && this.open) this.overlayPresent = true;
+  }
+
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("open")) {
       if (this.open) {
+        this.overlayInternals.states.add("present");
         this.overlayInternals.states.add("open");
+        this.overlayInternals.states.delete("active");
+        this.overlayInternals.states.delete("exiting");
+        this.overlayInternals.states.add("entering");
         this.#positioner.start();
         const shouldMoveFocus =
           this.movesFocus && this.#openReason !== null && this.#openReason !== "hover";
@@ -323,13 +353,23 @@ export abstract class UIOverlay extends LitElement {
           this.#returnFocus = null;
         }
         this.#openReason = null;
+        this.#motion.play("entering");
       } else {
-        this.#positioner.stop();
         this.overlayInternals.states.delete("open");
+        this.overlayInternals.states.delete("active");
         const previous = changed.get("open");
         if (this.#movedFocusForOpen && previous === true)
           queueMicrotask(() => this.#returnFocus?.focus());
         this.#movedFocusForOpen = false;
+        if (previous === true && this.overlayPresent) {
+          this.overlayInternals.states.delete("entering");
+          this.overlayInternals.states.add("exiting");
+          this.#motion.play("exiting");
+        } else {
+          this.overlayInternals.states.delete("present");
+          this.overlayPresent = false;
+          this.#positioner.stop();
+        }
       }
     }
     if (changed.has("disabled")) {
@@ -421,7 +461,12 @@ export abstract class UIOverlay extends LitElement {
   protected renderOverlay(): TemplateResult {
     return html`
       <div part="trigger"><slot name="trigger"></slot></div>
-      <div part="backdrop" ?hidden=${!this.open} @pointerdown=${this.#onBackdropPointerDown}>
+      <div
+        part="backdrop"
+        ?hidden=${!this.overlayPresent}
+        .inert=${!this.open}
+        @pointerdown=${this.#onBackdropPointerDown}
+      >
         <div part="positioner">
           ${this.renderPopupMaterial()}
           <div

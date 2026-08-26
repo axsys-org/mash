@@ -1,6 +1,7 @@
 import { LitElement, css, html, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { MotionLifecycleController } from "../internal/motion-lifecycle.js";
 
 export type MotionRecipe =
   | "none"
@@ -93,8 +94,7 @@ export class UIMotion extends LitElement {
   declare target: MotionTarget;
 
   readonly #internals: ElementInternals;
-  #cycle = 0;
-  #activeDetail: MotionEventDetail | undefined;
+  readonly #lifecycle: MotionLifecycleController<MotionEventDetail>;
 
   constructor() {
     super();
@@ -102,6 +102,32 @@ export class UIMotion extends LitElement {
     this.state = "idle";
     this.target = "content";
     this.#internals = this.attachInternals();
+    this.#lifecycle = new MotionLifecycleController(this, {
+      target: () => this.renderRoot.querySelector<HTMLElement>(".motion-target"),
+      skipAnimations: (detail) => detail.motion === "none",
+      onStart: ({ value, reducedMotion }) => {
+        this.#internals.states.add("animating");
+        if (reducedMotion) this.#internals.states.add("reduced-motion");
+        else this.#internals.states.delete("reduced-motion");
+        this.dispatchEvent(
+          new CustomEvent<MotionEventDetail>("mash-motion-start", {
+            bubbles: true,
+            composed: true,
+            detail: { ...value, reducedMotion },
+          }),
+        );
+      },
+      onFinish: ({ value, reducedMotion, interrupted }) => {
+        this.#internals.states.delete("animating");
+        this.dispatchEvent(
+          new CustomEvent<MotionEventDetail>("mash-motion-end", {
+            bubbles: true,
+            composed: true,
+            detail: { ...value, reducedMotion, interrupted },
+          }),
+        );
+      },
+    });
   }
 
   static override styles = [
@@ -368,7 +394,7 @@ export class UIMotion extends LitElement {
   }
 
   override disconnectedCallback(): void {
-    this.#finish(true);
+    this.#lifecycle.destroy();
     super.disconnectedCallback();
   }
 
@@ -382,67 +408,16 @@ export class UIMotion extends LitElement {
     await this.updateComplete;
   }
 
-  #reducedMotion(): boolean {
-    return (
-      typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches
-    );
-  }
-
   #begin(previousState: MotionState): void {
-    this.#finish(true);
-    const reducedMotion = this.#reducedMotion();
     const detail: MotionEventDetail = {
       motion: this.motion,
       state: this.state,
       previousState,
       target: this.target,
-      reducedMotion,
+      reducedMotion: false,
       interrupted: false,
     };
-    this.#activeDetail = detail;
-    const cycle = ++this.#cycle;
-    this.#internals.states.add("animating");
-    if (reducedMotion) this.#internals.states.add("reduced-motion");
-    else this.#internals.states.delete("reduced-motion");
-
-    this.dispatchEvent(
-      new CustomEvent<MotionEventDetail>("mash-motion-start", {
-        bubbles: true,
-        composed: true,
-        detail: { ...detail },
-      }),
-    );
-
-    requestAnimationFrame(() => {
-      if (cycle !== this.#cycle) return;
-      const target = this.renderRoot.querySelector<HTMLElement>(".motion-target");
-      const animations =
-        reducedMotion || this.motion === "none" ? [] : (target?.getAnimations() ?? []);
-      if (animations.length === 0) {
-        queueMicrotask(() => {
-          if (cycle === this.#cycle) this.#finish(false);
-        });
-        return;
-      }
-
-      void Promise.allSettled(animations.map((animation) => animation.finished)).then(() => {
-        if (cycle === this.#cycle) this.#finish(false);
-      });
-    });
-  }
-
-  #finish(interrupted: boolean): void {
-    const detail = this.#activeDetail;
-    if (!detail) return;
-    this.#activeDetail = undefined;
-    this.#internals.states.delete("animating");
-    this.dispatchEvent(
-      new CustomEvent<MotionEventDetail>("mash-motion-end", {
-        bubbles: true,
-        composed: true,
-        detail: { ...detail, interrupted },
-      }),
-    );
+    this.#lifecycle.play(detail);
   }
 
   #targetClass(target: MotionTarget): string {
