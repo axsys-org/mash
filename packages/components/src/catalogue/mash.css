@@ -2359,6 +2359,49 @@
     outline-offset: var(--border-focus-ring-offset);
   }
 
+  :where([data-mash-catalogue="mash"]) ui-draggable {
+    display: block;
+    inline-size: fit-content;
+    max-inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-draggable::part(root) {
+    min-inline-size: var(--layout-dimension-zero);
+    min-block-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-draggable::part(handle) {
+    display: block;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-draggable:not(:has(> [slot="handle"]))::part(root) {
+    cursor: grab;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-draggable[dragging] {
+    z-index: var(--layer-raised);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-draggable[dragging]::part(handle),
+  :where([data-mash-catalogue="mash"])
+    ui-draggable[dragging]:not(:has(> [slot="handle"]))::part(root) {
+    cursor: grabbing;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-draggable[snapped]::part(root) {
+    outline: var(--border-hairline) solid var(--color-action);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-draggable[disabled]::part(handle),
+  :where([data-mash-catalogue="mash"])
+    ui-draggable[disabled]:not(:has(> [slot="handle"]))::part(root) {
+    cursor: not-allowed;
+  }
+
   :where([data-mash-catalogue="mash"]) ui-virtual-list {
     display: block;
     inline-size: min(100%, var(--layout-dimension-content));
@@ -3068,8 +3111,19 @@
   :where([data-mash-catalogue="mash"]) ui-separator {
     display: block;
   }
+  :where([data-mash-catalogue="mash"]) ui-separator::part(frame) {
+    display: flex;
+    align-items: center;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-separator::part(prefix) {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
   :where([data-mash-catalogue="mash"]) ui-separator::part(root) {
     display: block;
+    flex: 1 1 auto;
     inline-size: 100%;
     block-size: var(--border-hairline);
     background: var(
@@ -3091,6 +3145,9 @@
   :where([data-mash-catalogue="mash"]) ui-separator[orientation="vertical"] {
     display: inline-flex;
     align-self: stretch;
+  }
+  :where([data-mash-catalogue="mash"]) ui-separator[orientation="vertical"]::part(frame) {
+    flex-direction: column;
   }
   :where([data-mash-catalogue="mash"]) ui-separator[orientation="vertical"]::part(root) {
     inline-size: var(--border-hairline);

@@ -16,7 +16,17 @@ export type SeparatorOrientation = "horizontal" | "vertical";
  *   <span>Before</span><ui-separator orientation="vertical"></ui-separator><span>After</span>
  * </div>
  *
+ * @slot prefix - Optional marker anchored to the separator's leading edge.
+ * @csspart frame - The marker-and-rule composition frame.
+ * @csspart prefix - The optional leading marker binding.
  * @csspart root - The visible rule.
+ * @mashnode frame group root
+ * @mashnode prefix prefix frame
+ * @mashnode root separator frame
+ * @mashrole slot prefix prefix prefix
+ * @mashrole part frame group frame
+ * @mashrole part prefix prefix prefix
+ * @mashrole part root separator root
  */
 export class UISeparator extends LitElement {
   static override properties = {
@@ -34,11 +44,16 @@ export class UISeparator extends LitElement {
   static override styles = baseStyles;
 
   protected override render(): TemplateResult {
-    return html`<span
-      part="root"
-      class="separator"
-      role="separator"
-      aria-orientation=${this.orientation}
-    ></span>`;
+    return html`
+      <span part="frame">
+        <slot part="prefix" name="prefix"></slot>
+        <span
+          part="root"
+          class="separator"
+          role="separator"
+          aria-orientation=${this.orientation}
+        ></span>
+      </span>
+    `;
   }
 }

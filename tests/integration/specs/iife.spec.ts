@@ -31,6 +31,7 @@ const expectedTags = [
   "ui-context-menu",
   "ui-date-picker",
   "ui-dialog",
+  "ui-draggable",
   "ui-drawer",
   "ui-editor",
   "ui-field",
@@ -92,6 +93,8 @@ const expectedTags = [
 ];
 
 const expectedGlobalExports = [
+  "DragAutoScrollController",
+  "DragController",
   "ShrineConfirm",
   "ShrineLimb",
   "ShrineLocator",
@@ -118,6 +121,7 @@ const expectedGlobalExports = [
   "UIContextMenu",
   "UIDatePicker",
   "UIDialog",
+  "UIDraggable",
   "UIDrawer",
   "UIEditor",
   "UIField",
@@ -176,7 +180,22 @@ const expectedGlobalExports = [
   "UITreeItem",
   "UIVirtualItem",
   "UIVirtualList",
+  "clamp",
+  "clampDragPosition",
+  "createDraggable",
+  "cssTranslateDragPositioner",
+  "cssVariableDragPositioner",
+  "elementPaddingRect",
+  "leftTopDragPositioner",
   "normalizeHexColor",
+  "pointsEqual",
+  "rectFromDomRect",
+  "rectFromEdges",
+  "resolveDragRect",
+  "resolveDragSnap",
+  "subtractPoint",
+  "translateDragRect",
+  "viewportRect",
 ];
 
 test.describe("single-file browser distribution", () => {

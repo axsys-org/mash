@@ -126,3 +126,6 @@ export { UITreeItem } from "./tree-item/tree-item.js";
 export type { TreeItemKind, TreeItemSize } from "./tree-item/tree-item.js";
 export { UIVirtualItem, UIVirtualList } from "./virtual-list/virtual-list.js";
 export type { VirtualListAlignment, VirtualListOrientation } from "./virtual-list/virtual-list.js";
+export * from "./drag/drag.js";
+export { UIDraggable } from "./draggable/draggable.js";
+export type { DraggableContainment } from "./draggable/draggable.js";

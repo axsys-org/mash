@@ -29,3 +29,12 @@ from resolved token values.
   including small/medium presentations, icon slots, state, and overflow rules.
 - Added compositional `ui-tree` and `ui-tree-item` primitives for deeply nested
   Shrine namespaces and explicit empty intermediate nodes.
+
+### Interaction primitives
+
+- Added the side-effect-free `@mash/ui/drag` TypeScript controller with typed
+  containment, point/line/grid/rectangle/element snapping, dedicated handles,
+  controlled ownership, HTML/SVG positioning adapters, and edge auto-scroll.
+- Added the optional `<ui-draggable>` adapter with semantic slots, parts,
+  runtime states, cancelable proposals, and catalogue examples composed from
+  existing Mash components.

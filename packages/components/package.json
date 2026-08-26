@@ -566,6 +566,18 @@
       "types": "./dist/editor/register.d.ts",
       "import": "./dist/editor/register.js"
     },
+    "./drag": {
+      "types": "./dist/drag/drag.d.ts",
+      "import": "./dist/drag/drag.js"
+    },
+    "./draggable": {
+      "types": "./dist/draggable/draggable.d.ts",
+      "import": "./dist/draggable/draggable.js"
+    },
+    "./draggable/register": {
+      "types": "./dist/draggable/register.d.ts",
+      "import": "./dist/draggable/register.js"
+    },
     "./custom-elements.json": "./custom-elements.json",
     "./package.json": "./package.json"
   },
