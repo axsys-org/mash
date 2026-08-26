@@ -275,10 +275,7 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
     css,
     /\.rotate-motion-quarter\s*{[^}]*rotate: calc\(var\(--motion-rotation-quarter\) \* 1turn\)/s,
   );
-  assert.match(
-    css,
-    /\.w-scrollbar-hit-area-compact\s*{[^}]*var\(--scrollbar-hit-area-compact\)/s,
-  );
+  assert.match(css, /\.w-scrollbar-hit-area-compact\s*{[^}]*var\(--scrollbar-hit-area-compact\)/s);
   assert.match(css, /\.animate-fade-in\s*{[^}]*animation: semantic-fade-in/s);
   assert.match(
     css,
