@@ -1,7 +1,7 @@
 import { LitElement, html, nothing, type TemplateResult } from "lit";
 
-import { parseGestureShortcut, type GestureModifier } from "../gesture/gesture.js";
 import { baseStyles } from "../internal/base-styles.js";
+import { parseGestureShortcut, type GestureModifier } from "../internal/gesture-shortcut.js";
 
 const modifierLabel = (
   modifier: GestureModifier,
