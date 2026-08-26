@@ -45,6 +45,17 @@ function tailwindThemeName(token) {
     return `--spacing-menu-${suffix(id, 2)}`;
   }
 
+  // Spatial motion distances and scrollbar geometry are dimensions with the
+  // same compositional value as spacing: applications can use them for size,
+  // inset, translation, min/max constraints, and gaps without copying values.
+  if (id.startsWith("motion.distance.")) {
+    return `--spacing-motion-${suffix(id, 2)}`;
+  }
+
+  if (id.startsWith("scrollbar.")) {
+    return `--spacing-scrollbar-${suffix(id)}`;
+  }
+
   if (id.startsWith("radius.")) {
     return `--radius-${suffix(id)}`;
   }
@@ -55,6 +66,10 @@ function tailwindThemeName(token) {
 
   if (id.startsWith("blur.")) {
     return `--blur-${suffix(id)}`;
+  }
+
+  if (id.startsWith("motion.blur.")) {
+    return `--blur-motion-${suffix(id, 2)}`;
   }
 
   return null;
@@ -103,13 +118,19 @@ function renderTypographyUtilities(graph) {
     .join("\n\n");
 }
 
-function renderTokenUtilities(graph, pattern, utilityName, property) {
+function renderTokenUtilities(
+  graph,
+  pattern,
+  utilityName,
+  property,
+  value = (cssVar) => `var(${cssVar})`,
+) {
   return tokenEntries(graph)
     .map((token) => [token, pattern.exec(token.id)])
     .filter(([, match]) => match)
     .map(([token, match]) => {
       const name = utilityName(match[1]);
-      return `@utility ${name} {\n  ${property}: var(${token.cssVar});\n}`;
+      return `@utility ${name} {\n  ${property}: ${value(token.cssVar)};\n}`;
     })
     .join("\n\n");
 }
@@ -369,6 +390,25 @@ function renderUtilities(graph) {
     (name) => `z-${kebab(name)}`,
     "z-index",
   );
+  const motionScale = renderTokenUtilities(
+    graph,
+    /^motion\.scale\.([^.]+)$/,
+    (name) => `scale-motion-${kebab(name)}`,
+    "scale",
+  );
+  const motionOpacity = renderTokenUtilities(
+    graph,
+    /^motion\.opacity\.([^.]+)$/,
+    (name) => `opacity-motion-${kebab(name)}`,
+    "opacity",
+  );
+  const motionRotation = renderTokenUtilities(
+    graph,
+    /^motion\.rotation\.([^.]+)$/,
+    (name) => `rotate-motion-${kebab(name)}`,
+    "rotate",
+    (cssVar) => `calc(var(${cssVar}) * 1turn)`,
+  );
   const typography = renderTypographyUtilities(graph);
   const materials = renderMaterialUtilities(graph);
   const vibrancy = renderVibrancyScope();
@@ -526,6 +566,12 @@ ${vibrancyUtilities}
 ${duration}
 
 ${border}
+
+${motionScale}
+
+${motionOpacity}
+
+${motionRotation}
 
 ${typography}${layer ? `\n\n${layer}` : ""}`;
 }

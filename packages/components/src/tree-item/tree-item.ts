@@ -2,7 +2,6 @@ import { LitElement, html, nothing, type PropertyValues, type TemplateResult } f
 
 import { baseStyles } from "../internal/base-styles.js";
 import { InlineOverflowController } from "../internal/inline-overflow.js";
-import { renderProgressiveOverflow } from "../internal/progressive-overflow.js";
 
 /** The physical scale a recipe may apply to a tree item. */
 export type TreeItemSize = "small" | "medium";
@@ -49,9 +48,6 @@ export type TreeItemKind = "file" | "folder";
  * @csspart meta - The optional secondary `meta` slot.
  * @csspart actions - The wrapper around the `actions` slot.
  * @csspart children - The nested child group.
- * @csspart overflow - A recipe-defined directional overflow overlay.
- * @csspart overflow-start - The overlay at the logical start edge.
- * @csspart overflow-end - The overlay at the logical end edge.
  *
  * @cssstate expanded - Matches `:state(expanded)` while the child group is visible.
  * @cssstate current - Matches `:state(current)` when this is the current location.
@@ -317,8 +313,6 @@ export class UITreeItem extends LitElement {
             >
           </span>
         </span>
-        ${renderProgressiveOverflow("start", this.#overflow.state.start)}
-        ${renderProgressiveOverflow("end", this.#overflow.state.end)}
       </span>
     `;
   }

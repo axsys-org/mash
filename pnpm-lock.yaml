@@ -52,6 +52,9 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
     devDependencies:
+      '@carbon/icons':
+        specifier: 11.86.0
+        version: 11.86.0
       '@custom-elements-manifest/analyzer':
         specifier: 0.11.0
         version: 0.11.0
@@ -185,6 +188,9 @@ packages:
   '@bundled-es-modules/memfs@4.17.0':
     resolution: {integrity: sha512-ykdrkEmQr9BV804yd37ikXfNnvxrwYfY9Z2/EtMHFEFadEjsQXJ1zL9bVZrKNLDtm91UdUOEHso6Aweg93K6xQ==}
 
+  '@carbon/icons@11.86.0':
+    resolution: {integrity: sha512-EWrCD+58w3BSzwB2wFG3sk5Dzm09oZHNX0N0CKgnmMx/rPHY5jO1/Zdue04h6oL53y3iSYPtv31BtHNYpatsgw==}
+
   '@custom-elements-manifest/analyzer@0.11.0':
     resolution: {integrity: sha512-F2jQFk6igV5vrTZYDBLVr0GDQF3cTJ2VwwzPdsmkzUE+SHiYAQNKYebIq8qphZdJeTcZtVhvw336FQVZsMqh4A==}
     hasBin: true
@@ -203,6 +209,10 @@ packages:
 
   '@github/catalyst@1.8.1':
     resolution: {integrity: sha512-dnN4WWpbeuQvA17LvsGdlXEueJdBk9y+I+WO5pdNpoHNOXPsFcz3hJrq1iRmdsNgQOf4S8e83axtwIxvG62eWA==}
+
+  '@ibm/telemetry-js@1.11.0':
+    resolution: {integrity: sha512-RO/9j+URJnSfseWg9ZkEX9p+a3Ousd33DBU7rOafoZB08RqdzxFVYJ2/iM50dkBuD0o7WX7GYt1sLbNgCoE+pA==}
+    hasBin: true
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -2140,6 +2150,10 @@ snapshots:
       stream: 0.0.3
       util: 0.12.5
 
+  '@carbon/icons@11.86.0':
+    dependencies:
+      '@ibm/telemetry-js': 1.11.0
+
   '@custom-elements-manifest/analyzer@0.11.0':
     dependencies:
       '@custom-elements-manifest/find-dependencies': 0.0.7
@@ -2175,6 +2189,8 @@ snapshots:
     optional: true
 
   '@github/catalyst@1.8.1': {}
+
+  '@ibm/telemetry-js@1.11.0': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

@@ -420,8 +420,6 @@ describe("Base UI control families", () => {
       "shortcut",
       "chevron",
       "safe-triangle",
-      "overflow-start",
-      "overflow-end",
     ]) {
       expect(inShadow(item, `[part~="${part}"]`)).toBeInstanceOf(HTMLElement);
     }

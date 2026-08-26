@@ -154,6 +154,12 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
     "type-caption2",
     "type-large-title",
     "duration-control",
+    "translate-x-motion-short",
+    "blur-motion-subtle",
+    "scale-motion-pressed",
+    "opacity-motion-muted",
+    "rotate-motion-quarter",
+    "w-scrollbar-hit-area-compact",
     "animate-fade-in",
     "backdrop-blur-progressive",
     "backdrop-blur-progressive-1",
@@ -261,6 +267,18 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
   assert.match(css, /\.type-caption2\s*{[^}]*font-size: var\(--type-caption2-font-size\)/s);
   assert.match(css, /\.type-large-title\s*{[^}]*font-size: var\(--type-large-title-font-size\)/s);
   assert.match(css, /\.duration-control\s*{[^}]*transition-duration: var\(--duration-control\)/s);
+  assert.match(css, /\.translate-x-motion-short\s*{[^}]*var\(--motion-distance-short\)/s);
+  assert.match(css, /\.blur-motion-subtle\s*{[^}]*var\(--motion-blur-subtle\)/s);
+  assert.match(css, /\.scale-motion-pressed\s*{[^}]*scale: var\(--motion-scale-pressed\)/s);
+  assert.match(css, /\.opacity-motion-muted\s*{[^}]*opacity: var\(--motion-opacity-muted\)/s);
+  assert.match(
+    css,
+    /\.rotate-motion-quarter\s*{[^}]*rotate: calc\(var\(--motion-rotation-quarter\) \* 1turn\)/s,
+  );
+  assert.match(
+    css,
+    /\.w-scrollbar-hit-area-compact\s*{[^}]*var\(--scrollbar-hit-area-compact\)/s,
+  );
   assert.match(css, /\.animate-fade-in\s*{[^}]*animation: semantic-fade-in/s);
   assert.match(
     css,

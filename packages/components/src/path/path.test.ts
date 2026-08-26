@@ -109,8 +109,6 @@ describe("ui-path", () => {
         "segments",
         "separator",
         "segment",
-        "overflow overflow-start",
-        "overflow overflow-end",
       ]),
     );
     const iconSlot = shadow(el).querySelector('slot[name="icon"]') as HTMLSlotElement;

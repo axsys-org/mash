@@ -9,6 +9,8 @@ export interface ResizeDetail {
   phase: "start" | "move" | "end";
 }
 
+let generatedPanelId = 0;
+
 /**
  * An unstyled group of user-resizable regions.
  *
@@ -87,6 +89,7 @@ export class UIResizable extends LitElement {
     for (const handle of this.querySelectorAll<UIResizableHandle>(":scope > ui-resizable-handle")) {
       handle.orientation = this.orientation;
     }
+    void this.updateComplete.then(() => this.#syncHandles());
   };
 
   #onResize = (event: CustomEvent<ResizeDetail>): void => {
@@ -138,6 +141,32 @@ export class UIResizable extends LitElement {
     return true;
   }
 
+  #syncHandles(): void {
+    for (const handle of this.querySelectorAll<UIResizableHandle>(":scope > ui-resizable-handle")) {
+      const [previous, next] = this.#adjacentPanels(handle);
+      if (!previous || !next) {
+        handle.hidden = true;
+        handle.setRange(0, 0, 0, "");
+        continue;
+      }
+
+      handle.hidden = false;
+
+      const previousSize = previous.measuredSize(this.orientation);
+      const nextSize = next.measuredSize(this.orientation);
+      const totalSize = previousSize + nextSize;
+      const minimum = Math.max(previous.min, totalSize - next.max);
+      const maximum = Math.min(previous.max, totalSize - next.min);
+      if (!previous.id) previous.id = `mash-resizable-panel-${++generatedPanelId}`;
+      handle.setRange(previousSize, minimum, maximum, previous.id);
+    }
+  }
+
+  /** @internal Resynchronizes adjacency after one direct panel changes its constraints. */
+  syncPanelState(panel: UIResizablePanel): void {
+    if (panel.parentElement === this) this.#syncHandles();
+  }
+
   /** Resizes one visible panel and redistributes the delta to its neighbor. */
   resizePanel(index: number, size: number): void {
     const panels = this.#panels;
@@ -158,6 +187,7 @@ export class UIResizable extends LitElement {
   }
 
   #reportSizes(): void {
+    this.#syncHandles();
     this.dispatchEvent(
       new CustomEvent<{ sizes: number[] }>("ui-resizable-change", {
         detail: { sizes: this.#panels.map((panel) => panel.measuredSize(this.orientation)) },
@@ -272,12 +302,25 @@ export class UIResizablePanel extends LitElement {
       if (orientation === "horizontal") this.style.maxInlineSize = maximum;
       else this.style.maxBlockSize = maximum;
     }
-    if (changed.has("size") && this.size > 0) this.setSize(this.size, orientation);
+    if (changed.has("size")) {
+      if (this.size > 0) this.setSize(this.size, orientation);
+      else {
+        this.style.removeProperty("flex-basis");
+        this.style.removeProperty("flex-grow");
+        this.style.removeProperty("inline-size");
+        this.style.removeProperty("block-size");
+      }
+    }
     if (changed.has("visible")) {
       this.hidden = !this.visible;
       if (this.visible) this.#internals.states.add("visible");
       else this.#internals.states.delete("visible");
     }
+    if (
+      (changed.has("size") || changed.has("min") || changed.has("max") || changed.has("visible")) &&
+      group instanceof UIResizable
+    )
+      group.syncPanelState(this);
   }
 
   protected override render(): TemplateResult {
@@ -293,7 +336,10 @@ export class UIResizablePanel extends LitElement {
  * @slot - Optional handle content or grip.
  * @csspart control - The focusable separator control.
  * @csspart indicator - The authored or fallback grip binding.
+ * @csspart grip - The fallback visual grip shown when the default slot is empty.
  * @cssstate resizing - Matches `:state(resizing)` during a pointer drag.
+ * @cssstate at-min - Matches `:state(at-min)` when the primary panel is at its minimum.
+ * @cssstate at-max - Matches `:state(at-max)` when the primary panel is at its maximum.
  * @fires {CustomEvent<ResizeDetail>} ui-resize - Reports a resize phase and axis delta.
  * @mashnode control separator
  * @mashnode indicator indicator control
@@ -326,6 +372,10 @@ export class UIResizableHandle extends LitElement {
   readonly #internals: ElementInternals;
   #pointerId: number | undefined;
   #lastPosition = 0;
+  #valueNow = 0;
+  #valueMin = 0;
+  #valueMax = 0;
+  #controls = "";
 
   constructor() {
     super();
@@ -337,6 +387,22 @@ export class UIResizableHandle extends LitElement {
   }
 
   static override styles = baseStyles;
+
+  /** @internal Synchronizes the accessible splitter range with the adjacent primary panel. */
+  setRange(value: number, min: number, max: number, controls: string): void {
+    this.#valueMin = Number.isFinite(min) ? min : 0;
+    const resolvedMax = Number.isFinite(max) ? max : value;
+    this.#valueMax = Math.max(this.#valueMin, resolvedMax);
+    this.#valueNow = Math.max(this.#valueMin, Math.min(value, this.#valueMax));
+    this.#controls = controls;
+
+    const tolerance = 0.5;
+    if (this.#valueNow <= this.#valueMin + tolerance) this.#internals.states.add("at-min");
+    else this.#internals.states.delete("at-min");
+    if (this.#valueNow >= this.#valueMax - tolerance) this.#internals.states.add("at-max");
+    else this.#internals.states.delete("at-max");
+    this.requestUpdate();
+  }
 
   #emit(delta: number, phase: ResizeDetail["phase"]): void {
     this.dispatchEvent(
@@ -394,13 +460,17 @@ export class UIResizableHandle extends LitElement {
         tabindex="0"
         aria-label=${this.label}
         aria-orientation=${this.orientation}
+        aria-valuemin=${Math.round(this.#valueMin)}
+        aria-valuemax=${Math.round(this.#valueMax)}
+        aria-valuenow=${Math.round(this.#valueNow)}
+        aria-controls=${this.#controls || undefined}
         @pointerdown=${this.#onPointerDown}
         @pointermove=${this.#onPointerMove}
         @pointerup=${this.#onPointerEnd}
         @pointercancel=${this.#onPointerEnd}
         @keydown=${this.#onKeyDown}
       >
-        <slot part="indicator">⋮</slot>
+        <slot part="indicator"><span part="grip" aria-hidden="true"></span></slot>
       </div>
     `;
   }

@@ -2,7 +2,6 @@ import { LitElement, html, nothing, type PropertyValues, type TemplateResult } f
 
 import { baseStyles } from "../internal/base-styles.js";
 import { InlineOverflowController } from "../internal/inline-overflow.js";
-import { renderProgressiveOverflow } from "../internal/progressive-overflow.js";
 import type { UIMenu } from "../menu/menu.js";
 
 /** Accessible action semantics exposed by a menu item. */
@@ -55,9 +54,6 @@ export interface MenuItemSubmenuChangeDetail {
  * @csspart chevron - The submenu disclosure lane.
  * @csspart submenu - The authored nested-menu realization.
  * @csspart safe-triangle - The pointer-safe corridor between a branch and submenu.
- * @csspart overflow - A renderer-owned progressive overflow edge.
- * @csspart overflow-start - The logical-start overflow edge.
- * @csspart overflow-end - The logical-end overflow edge.
  *
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  * @cssstate checked - Matches `:state(checked)` for checked checkbox/radio items.
@@ -410,8 +406,6 @@ export class UIMenuItem extends LitElement {
             <span part="label-viewport">
               <span part="label-content"><slot></slot></span>
             </span>
-            ${renderProgressiveOverflow("start", this.#overflow.state.start)}
-            ${renderProgressiveOverflow("end", this.#overflow.state.end)}
           </span>
           <span part="shortcut" ?hidden=${!this._hasShortcut}>
             <slot name="shortcut" @slotchange=${this.#onNamedSlotChange}></slot>

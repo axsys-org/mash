@@ -44,8 +44,6 @@ describe("ui-tree-item", () => {
         "label",
         "label-viewport",
         "label-content",
-        "overflow overflow-start",
-        "overflow overflow-end",
         "meta",
         "actions",
         "children",

@@ -624,6 +624,10 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-scroll-area {
+    --_ui-scrollbar-hit-area: var(--scrollbar-hit-area-medium);
+    --_ui-scrollbar-track: var(--scrollbar-track-medium);
+    --_ui-scrollbar-detent: var(--scrollbar-detent-medium);
+
     display: grid;
     grid-template-rows: minmax(0, 1fr);
     min-inline-size: var(--layout-dimension-zero);
@@ -631,15 +635,33 @@
     overflow: hidden;
   }
 
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[size="compact"] {
+    --_ui-scrollbar-hit-area: var(--scrollbar-hit-area-compact);
+    --_ui-scrollbar-track: var(--scrollbar-track-compact);
+    --_ui-scrollbar-detent: var(--scrollbar-detent-compact);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[size="large"] {
+    --_ui-scrollbar-hit-area: var(--scrollbar-hit-area-large);
+    --_ui-scrollbar-track: var(--scrollbar-track-large);
+    --_ui-scrollbar-detent: var(--scrollbar-detent-large);
+  }
+
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(root) {
     position: relative;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
     block-size: 100%;
     max-block-size: inherit;
     min-inline-size: var(--layout-dimension-zero);
     min-block-size: var(--layout-dimension-zero);
     overflow: hidden;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[gutter="stable"]::part(root) {
+    grid-template-columns: minmax(0, 1fr) var(--_ui-scrollbar-hit-area);
+    grid-template-rows: minmax(0, 1fr) var(--_ui-scrollbar-hit-area);
   }
 
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(viewport) {
@@ -649,6 +671,9 @@
     max-inline-size: 100%;
     max-block-size: inherit;
     overflow: auto;
+    grid-column: 1;
+    grid-row: 1;
+    scrollbar-gutter: auto;
     scrollbar-width: none;
     color: var(--color-text);
     font-family: var(--type-body-font-family);
@@ -681,46 +706,122 @@
     pointer-events: auto;
   }
 
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[data-scroll-visible]::part(block-scrollbar),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[data-scroll-visible]::part(inline-scrollbar) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(block-scrollbar) {
     inset-block: var(--space-control-block-small);
-    inset-inline-end: var(--space-control-block-small);
-    inline-size: var(--space-control-block-small);
+    inset-inline-end: var(--layout-dimension-zero);
+    inline-size: var(--_ui-scrollbar-hit-area);
   }
 
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(inline-scrollbar) {
     inset-inline: var(--space-control-block-small);
-    inset-block-end: var(--space-control-block-small);
-    block-size: var(--space-control-block-small);
+    inset-block-end: var(--layout-dimension-zero);
+    block-size: var(--_ui-scrollbar-hit-area);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[gutter="stable"]::part(block-scrollbar) {
+    position: relative;
+    grid-column: 2;
+    grid-row: 1;
+    inline-size: var(--_ui-scrollbar-hit-area);
+    block-size: auto;
+    inset: auto;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[gutter="stable"]::part(inline-scrollbar) {
+    position: relative;
+    grid-column: 1;
+    grid-row: 2;
+    inline-size: auto;
+    block-size: var(--_ui-scrollbar-hit-area);
+    inset: auto;
   }
 
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(block-track),
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(inline-track) {
     position: absolute;
-    inset: var(--layout-dimension-zero);
     border-radius: inherit;
     background: var(--color-fill-tertiary-opaque);
+    transition:
+      background var(--duration-control) var(--easing-control),
+      opacity var(--duration-control) var(--easing-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area::part(block-track) {
+    inset-block: var(--layout-dimension-zero);
+    inset-inline-start: 50%;
+    inline-size: var(--_ui-scrollbar-track);
+    transform: translateX(-50%);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area::part(inline-track) {
+    inset-inline: var(--layout-dimension-zero);
+    inset-block-start: 50%;
+    block-size: var(--_ui-scrollbar-track);
+    transform: translateY(-50%);
   }
 
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(block-thumb),
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(inline-thumb) {
     position: absolute;
+    z-index: var(--layer-raised);
     border-radius: inherit;
     background: var(--color-text-muted);
+    transition:
+      background var(--duration-control) var(--easing-control),
+      transform var(--duration-control) var(--easing-control);
   }
 
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(block-thumb) {
     inset-inline: var(--layout-dimension-zero);
-    min-block-size: var(--layout-dimension-glyph);
+    min-block-size: var(--scrollbar-thumb-minimum);
   }
 
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(inline-thumb) {
     inset-block: var(--layout-dimension-zero);
-    min-inline-size: var(--layout-dimension-glyph);
+    min-inline-size: var(--scrollbar-thumb-minimum);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area::part(block-detents),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area::part(inline-detents) {
+    position: absolute;
+    inset: var(--layout-dimension-zero);
+    z-index: var(--layer-overlay);
+    pointer-events: none;
   }
 
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(block-scrollbar):hover,
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(inline-scrollbar):hover {
     background: var(--color-fill-secondary-opaque);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area:state(active)::part(block-track),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area:state(active)::part(inline-track),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area:state(dragging)::part(block-track),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area:state(dragging)::part(inline-track) {
+    background: var(--color-fill-secondary-opaque);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[data-scroll-active]::part(block-track),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[data-scroll-active]::part(inline-track) {
+    background: var(--color-fill-secondary-opaque);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area:state(active)::part(block-thumb),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area:state(active)::part(inline-thumb),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area:state(dragging)::part(block-thumb),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area:state(dragging)::part(inline-thumb) {
+    background: var(--color-text);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[data-scroll-active]::part(block-thumb),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[data-scroll-active]::part(inline-thumb) {
+    background: var(--color-text);
   }
 
   :where([data-mash-catalogue="mash"]) ui-scroll-area::part(block-scrollbar):focus-visible,
@@ -736,6 +837,198 @@
     inline-size: var(--space-control-block);
     block-size: var(--space-control-block);
     background: var(--_mash-component-surface-sunken);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[gutter="stable"]::part(corner) {
+    position: relative;
+    grid-column: 2;
+    grid-row: 2;
+    inline-size: auto;
+    block-size: auto;
+    inset: auto;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[snap="proximity"]::part(viewport) {
+    scroll-snap-type: block proximity;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[snap="mandatory"]::part(viewport) {
+    scroll-snap-type: block mandatory;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[data-detents-only]::part(block-track) {
+    background: transparent;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[data-detents-only]::part(block-thumb) {
+    opacity: 0;
+  }
+
+  /* No-gutter is the behavioral layout choice. These opt-in catalogue recipes
+     demonstrate that its exposed parts can be pronounced independently without
+     adding appearance variants to the component API. */
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-edge::part(block-scrollbar) {
+    inset-block: var(--space-control-block-small);
+    inset-inline-end: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-edge::part(inline-scrollbar) {
+    inset-inline: var(--space-control-block-small);
+    inset-block: auto var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-edge::part(block-track),
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-edge::part(inline-track) {
+    background: color-mix(in srgb, var(--_mash-component-surface-raised) 70%, transparent);
+    box-shadow: inset 0 0 0 var(--border-hairline) var(--_mash-component-boundary);
+    -webkit-backdrop-filter: blur(var(--blur-background-material-thin));
+    backdrop-filter: blur(var(--blur-background-material-thin));
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-inset::part(block-scrollbar) {
+    inset-block: var(--space-control-block);
+    inset-inline-end: var(--space-control-inline-small);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-inset::part(inline-scrollbar) {
+    inset-inline: var(--space-control-inline-small);
+    inset-block: auto var(--space-control-block);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-inset::part(block-track),
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-inset::part(inline-track) {
+    background: var(--color-fill-secondary-opaque);
+    box-shadow: 0 var(--border-hairline) var(--space-control-block-small)
+      var(--_mash-component-shadow);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-trackless::part(block-scrollbar) {
+    inset-block: var(--space-control-block-small);
+    inset-inline-end: var(--space-control-inline-small);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-trackless::part(inline-scrollbar) {
+    inset-inline: var(--space-control-block-small);
+    inset-block: auto var(--space-control-inline-small);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-trackless::part(block-track),
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-trackless::part(inline-track) {
+    background: transparent;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-trackless::part(block-thumb),
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-no-gutter-trackless::part(inline-thumb) {
+    background: var(--color-action);
+  }
+
+  /* The same viewport part accepts intersecting logical block and inline edge
+     masks. ScrollArea only emits position states; this visual treatment stays
+     an optional catalogue recipe shared by vertical and horizontal scrollers. */
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.example-scroll-edge-mask {
+    --mash-scroll-mask-size: var(--space-container-inline);
+    --mash-scroll-inline-direction: to right;
+    --mash-scroll-block-mask: linear-gradient(black, black);
+    --mash-scroll-inline-mask: linear-gradient(black, black);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.example-scroll-edge-mask:dir(rtl) {
+    --mash-scroll-inline-direction: to left;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-edge-mask:state(scrollable-block):state(at-block-start):not(
+      :state(at-block-end)
+    ) {
+    --mash-scroll-block-mask: linear-gradient(
+      to bottom,
+      black calc(100% - var(--mash-scroll-mask-size)),
+      transparent 100%
+    );
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-edge-mask:state(scrollable-block):not(
+      :state(at-block-start)
+    ):state(at-block-end) {
+    --mash-scroll-block-mask: linear-gradient(
+      to bottom,
+      transparent 0,
+      black var(--mash-scroll-mask-size)
+    );
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-edge-mask:state(scrollable-block):not(:state(at-block-start)):not(
+      :state(at-block-end)
+    ) {
+    --mash-scroll-block-mask: linear-gradient(
+      to bottom,
+      transparent 0,
+      black var(--mash-scroll-mask-size),
+      black calc(100% - var(--mash-scroll-mask-size)),
+      transparent 100%
+    );
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-edge-mask:state(scrollable-inline):state(at-inline-start):not(
+      :state(at-inline-end)
+    ) {
+    --mash-scroll-inline-mask: linear-gradient(
+      var(--mash-scroll-inline-direction),
+      black calc(100% - var(--mash-scroll-mask-size)),
+      transparent 100%
+    );
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-edge-mask:state(scrollable-inline):not(
+      :state(at-inline-start)
+    ):state(at-inline-end) {
+    --mash-scroll-inline-mask: linear-gradient(
+      var(--mash-scroll-inline-direction),
+      transparent 0,
+      black var(--mash-scroll-mask-size)
+    );
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.example-scroll-edge-mask:state(scrollable-inline):not(
+      :state(at-inline-start)
+    ):not(:state(at-inline-end)) {
+    --mash-scroll-inline-mask: linear-gradient(
+      var(--mash-scroll-inline-direction),
+      transparent 0,
+      black var(--mash-scroll-mask-size),
+      black calc(100% - var(--mash-scroll-mask-size)),
+      transparent 100%
+    );
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.example-scroll-edge-mask::part(viewport) {
+    -webkit-mask-image: var(--mash-scroll-block-mask), var(--mash-scroll-inline-mask);
+    mask-image: var(--mash-scroll-block-mask), var(--mash-scroll-inline-mask);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
   }
 
   :where([data-mash-catalogue="mash"]) ui-field::part(root) {
@@ -2247,12 +2540,14 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-table-head::part(column-header),
+  :where([data-mash-catalogue="mash"]) ui-table-head::part(row-header),
   :where([data-mash-catalogue="mash"]) ui-table-cell::part(cell) {
     display: table-cell;
     vertical-align: top;
   }
 
   :where([data-mash-catalogue="mash"]) ui-table-head::part(column-header),
+  :where([data-mash-catalogue="mash"]) ui-table-head::part(row-header),
   :where([data-mash-catalogue="mash"]) ui-table-cell::part(cell) {
     min-inline-size: var(--layout-dimension-zero);
     padding: var(--space-control-block) var(--space-control-inline);
@@ -2265,6 +2560,13 @@
 
   :where([data-mash-catalogue="mash"]) ui-table-head::part(column-header) {
     border-block-end: var(--border-hairline) solid var(--_mash-component-divider);
+    background: var(--_mash-component-surface-sunken);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-table-head::part(row-header) {
+    border-inline-end: var(--border-hairline) solid var(--_mash-component-divider);
     background: var(--_mash-component-surface-sunken);
     font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
       var(--type-label-font-family);
@@ -2285,6 +2587,192 @@
     font: var(--type-heading-font-weight) var(--type-heading-font-size) /
       var(--type-heading-line-height) var(--type-heading-font-family);
     text-align: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table {
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+    min-block-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table::part(root) {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    min-inline-size: var(--layout-dimension-zero);
+    min-block-size: var(--layout-dimension-zero);
+    overflow: hidden;
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    background: var(--_mash-component-surface);
+    box-shadow: 0 var(--border-hairline) var(--space-control-block-small)
+      var(--_mash-component-shadow);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table::part(toolbar),
+  :where([data-mash-catalogue="mash"]) ui-data-table::part(footer) {
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table:has(> [slot="toolbar"])::part(toolbar) {
+    border-block-end: var(--border-hairline) solid var(--_mash-component-divider);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--_mash-component-surface-raised);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table:has(> [slot="footer"])::part(footer) {
+    border-block-start: var(--border-hairline) solid var(--_mash-component-divider);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--_mash-component-surface-raised);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table::part(viewport) {
+    min-inline-size: var(--layout-dimension-zero);
+    min-block-size: var(--layout-dimension-zero);
+    overflow: auto;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table ui-table::part(table) {
+    border: 0;
+    border-radius: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table > ui-table {
+    inline-size: auto;
+    min-inline-size: var(--layout-dimension-zero);
+    max-inline-size: none;
+    overflow: visible;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table ui-table-caption {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table::part(empty) {
+    place-items: center;
+    min-block-size: calc(var(--layout-dimension-compact) * 2);
+    padding: var(--space-region);
+    color: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table[empty]::part(empty) {
+    display: grid;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table::part(loading) {
+    position: absolute;
+    z-index: var(--layer-overlay);
+    inset-block-start: var(--space-control-block);
+    inset-inline-end: var(--space-control-inline);
+    padding: var(--space-control-block-small) var(--space-control-inline-small);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-pill);
+    background: var(--_mash-component-surface-raised);
+    color: var(--color-text-muted);
+    box-shadow: 0 var(--border-hairline) var(--space-control-block-small)
+      var(--_mash-component-shadow);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-data-table[density="compact"]
+    :is(ui-table-head, ui-table-cell)::part(root) {
+    padding: var(--space-control-block-small) var(--space-control-inline-small);
+    font-size: var(--type-label-small-font-size);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-data-table[density="spacious"]
+    :is(ui-table-head, ui-table-cell)::part(root) {
+    padding: var(--space-container-block) var(--space-container-inline);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table ui-table-cell[selected]::part(cell),
+  :where([data-mash-catalogue="mash"]) ui-data-table ui-table-head[selected]::part(column-header),
+  :where([data-mash-catalogue="mash"]) ui-data-table ui-table-head[selected]::part(row-header) {
+    position: relative;
+    background: var(--color-action-wash);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table ui-table-cell[active]::part(cell),
+  :where([data-mash-catalogue="mash"]) ui-data-table ui-table-head[active]::part(column-header),
+  :where([data-mash-catalogue="mash"]) ui-data-table ui-table-head[active]::part(row-header) {
+    box-shadow: inset 0 0 0 var(--border-strong) var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-data-table
+    ui-table-row[selected]
+    ui-table-cell::part(cell),
+  :where([data-mash-catalogue="mash"])
+    ui-data-table
+    ui-table-row[selected]
+    ui-table-head::part(row-header) {
+    background: var(--color-action-wash);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-data-table
+    :is(ui-table-row, ui-table-head, ui-table-cell):focus-visible {
+    outline: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table ui-table-cell:focus-visible::part(cell),
+  :where([data-mash-catalogue="mash"])
+    ui-data-table
+    ui-table-head:focus-visible::part(column-header),
+  :where([data-mash-catalogue="mash"]) ui-data-table ui-table-head:focus-visible::part(row-header) {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: calc(var(--border-focus-ring) * -1);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-data-table
+    ui-table-row:focus-visible
+    ui-table-cell::part(cell) {
+    box-shadow: inset 0 0 0 var(--border-focus-ring) var(--color-focus-ring);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-data-table.example-workbook ui-table::part(table) {
+    min-inline-size: 64rem;
+    table-layout: fixed;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-data-table.example-workbook
+    :is(ui-table-head, ui-table-cell)[column-index="1"]::part(root) {
+    inline-size: 3rem;
+    background: var(--_mash-component-surface-sunken);
+    text-align: center;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-data-table.example-workbook
+    :is(ui-table-head, ui-table-cell)[column-index="2"]::part(root) {
+    inline-size: 15rem;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-data-table.example-workbook
+    :is(ui-table-head, ui-table-cell)[column-index="3"]::part(root) {
+    inline-size: 12rem;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-data-table.example-workbook
+    :is(ui-table-head, ui-table-cell)[column-index="4"]::part(root),
+  :where([data-mash-catalogue="mash"])
+    ui-data-table.example-workbook
+    :is(ui-table-head, ui-table-cell)[column-index="5"]::part(root),
+  :where([data-mash-catalogue="mash"])
+    ui-data-table.example-workbook
+    :is(ui-table-head, ui-table-cell)[column-index="6"]::part(root) {
+    inline-size: 10rem;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-data-table.example-data-explorer-table
+    ui-table::part(table) {
+    min-inline-size: 42rem;
   }
 
   :where([data-mash-catalogue="mash"]) ui-resizable {
@@ -2327,36 +2815,92 @@
     flex: none;
     align-items: stretch;
     justify-content: center;
-    inline-size: var(--space-container-inline);
+    inline-size: calc(var(--space-control-inline-small) + var(--space-control-block-small));
     cursor: col-resize;
     touch-action: none;
   }
 
   :where([data-mash-catalogue="mash"]) ui-resizable[orientation="vertical"] > ui-resizable-handle {
     inline-size: auto;
-    block-size: var(--space-container-inline);
+    block-size: calc(var(--space-control-inline-small) + var(--space-control-block-small));
     cursor: row-resize;
   }
 
   :where([data-mash-catalogue="mash"]) ui-resizable-handle::part(control) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
+    display: grid;
+    place-items: center;
     inline-size: 100%;
     min-block-size: 100%;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-control);
     color: var(--color-text-muted);
+    outline: none;
   }
 
-  :where([data-mash-catalogue="mash"]) ui-resizable-handle::part(control):hover,
-  :where([data-mash-catalogue="mash"]) ui-resizable-handle[resizing]::part(control) {
-    background: var(--color-neutral-hover);
-    color: var(--color-action);
+  :where([data-mash-catalogue="mash"]) ui-resizable-handle::part(indicator) {
+    display: grid;
+    inline-size: 100%;
+    block-size: 100%;
+    place-items: center;
+    pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-resizable-handle::part(grip) {
+    display: block;
+    inline-size: var(--border-hairline);
+    block-size: min(100%, calc(var(--layout-dimension-control) * 2));
+    border-radius: var(--radius-pill);
+    background: var(--_mash-component-divider);
+    transition:
+      inline-size var(--duration-control) var(--easing-control),
+      block-size var(--duration-control) var(--easing-control),
+      background-color var(--duration-control) var(--easing-control),
+      box-shadow var(--duration-control) var(--easing-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-resizable-handle[orientation="vertical"]::part(grip) {
+    inline-size: min(100%, calc(var(--layout-dimension-control) * 2));
+    block-size: var(--border-hairline);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-resizable-handle:hover::part(grip),
+  :where([data-mash-catalogue="mash"]) ui-resizable-handle:focus-within::part(grip) {
+    inline-size: var(--border-strong);
+    background: var(--_mash-component-boundary-strong);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-resizable-handle[orientation="vertical"]:hover::part(grip),
+  :where([data-mash-catalogue="mash"])
+    ui-resizable-handle[orientation="vertical"]:focus-within::part(grip) {
+    inline-size: min(100%, calc(var(--layout-dimension-control) * 2));
+    block-size: var(--border-strong);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-resizable-handle[resizing]::part(grip) {
+    background: var(--color-action);
+    box-shadow: 0 0 0 var(--space-control-block-small) var(--color-action-subtle);
   }
 
   :where([data-mash-catalogue="mash"]) ui-resizable-handle::part(control):focus-visible {
     outline: var(--border-focus-ring) solid var(--color-focus-ring);
-    outline-offset: var(--border-focus-ring-offset);
+    outline-offset: calc(var(--border-focus-ring) * -1);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-resizable-handle > ui-separator {
+    inline-size: 100%;
+    block-size: 100%;
+    pointer-events: none;
+    --mash-material-separator-source: var(--_mash-component-divider);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-resizable-handle:hover > ui-separator,
+  :where([data-mash-catalogue="mash"]) ui-resizable-handle:focus-within > ui-separator {
+    --mash-material-separator-source: var(--_mash-component-boundary-strong);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-resizable-handle[resizing] > ui-separator {
+    --mash-material-separator-source: var(--color-action);
   }
 
   :where([data-mash-catalogue="mash"]) ui-draggable {
@@ -2857,6 +3401,59 @@
     white-space: nowrap;
   }
 
+  :where([data-mash-catalogue="mash"]) ui-icon {
+    display: inline-flex;
+    flex: none;
+    color: currentColor;
+    line-height: 1;
+    vertical-align: -0.125em;
+  }
+  :where([data-mash-catalogue="mash"]) ui-icon[size="small"] {
+    font-size: 1rem;
+  }
+  :where([data-mash-catalogue="mash"]) ui-icon[size="medium"] {
+    font-size: 1.25rem;
+  }
+  :where([data-mash-catalogue="mash"]) ui-icon[size="large"] {
+    font-size: 1.5rem;
+  }
+  :where([data-mash-catalogue="mash"]) ui-icon::part(root),
+  :where([data-mash-catalogue="mash"]) ui-icon::part(glyph),
+  :where([data-mash-catalogue="mash"]) ui-icon::part(primary),
+  :where([data-mash-catalogue="mash"]) ui-icon::part(secondary),
+  :where([data-mash-catalogue="mash"]) ui-icon::part(badge) {
+    display: inline-grid;
+    place-items: center;
+  }
+  :where([data-mash-catalogue="mash"]) ui-icon::part(glyph),
+  :where([data-mash-catalogue="mash"]) ui-icon::part(primary),
+  :where([data-mash-catalogue="mash"]) ui-icon::part(secondary),
+  :where([data-mash-catalogue="mash"]) ui-icon::part(badge) {
+    grid-area: 1 / 1;
+  }
+  :where([data-mash-catalogue="mash"]) ui-icon::part(source) {
+    display: block;
+    inline-size: 1em;
+    block-size: 1em;
+  }
+  :where([data-mash-catalogue="mash"]) ui-icon::part(badge) {
+    align-self: start;
+    justify-self: end;
+    translate: 35% -35%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-icon::part(fallback) {
+    color: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-motion::part(root) {
+    border-radius: inherit;
+  }
+  :where([data-mash-catalogue="mash"]) ui-motion::part(indicator) {
+    align-self: start;
+    justify-self: end;
+    margin: var(--space-control-gap);
+  }
+
   :where([data-mash-catalogue="mash"]) ui-path {
     display: inline-flex;
     inline-size: 100%;
@@ -2963,83 +3560,57 @@
      baking a visual effect into either unstyled component. */
   :where([data-mash-catalogue="mash"]) :is(ui-path, ui-tree-item, ui-menu-item) {
     --mash-overflow-inline-size: var(--space-container-inline);
-  }
-  :where([data-mash-catalogue="mash"]) :is(ui-path, ui-tree-item, ui-menu-item)::part(overflow) {
-    position: absolute;
-    z-index: 1;
-    inset-block: var(--layout-dimension-zero);
-    display: block;
-    inline-size: var(--mash-overflow-inline-size);
-    background: transparent;
-    pointer-events: none;
-    -webkit-backdrop-filter: blur(var(--blur-progressive-2));
-    backdrop-filter: blur(var(--blur-progressive-2));
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 100%);
-    mask-image: linear-gradient(to right, transparent 0%, black 100%);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
+    --mash-overflow-mask: none;
   }
   :where([data-mash-catalogue="mash"])
-    :is(ui-path, ui-tree-item, ui-menu-item)::part(overflow-start) {
-    inset-inline-start: var(--layout-dimension-zero);
-    transform: scaleX(-1);
-  }
-  :where([data-mash-catalogue="mash"])
-    :is(ui-path, ui-tree-item, ui-menu-item)::part(overflow-end) {
-    inset-inline-end: var(--layout-dimension-zero);
-  }
-  :where([data-mash-catalogue="mash"])
-    :is(ui-path, ui-tree-item, ui-menu-item):not(:state(overflow-start))::part(overflow-start),
-  :where([data-mash-catalogue="mash"])
-    :is(ui-path, ui-tree-item, ui-menu-item):not(:state(overflow-end))::part(overflow-end) {
-    display: none;
-  }
-  :where([data-mash-catalogue="mash"]) ui-path:state(overflow-start)::part(viewport),
-  :where([data-mash-catalogue="mash"]) ui-tree-item:state(overflow-start)::part(label-viewport),
-  :where([data-mash-catalogue="mash"]) ui-menu-item:state(overflow-start)::part(label-viewport) {
-    -webkit-mask-image: linear-gradient(
+    :is(ui-path, ui-tree-item, ui-menu-item):state(overflow-start) {
+    --mash-overflow-mask: linear-gradient(
       to right,
-      transparent,
+      transparent 0,
       black var(--mash-overflow-inline-size)
     );
-    mask-image: linear-gradient(to right, transparent, black var(--mash-overflow-inline-size));
   }
-  :where([data-mash-catalogue="mash"]) ui-path:state(overflow-end)::part(viewport),
-  :where([data-mash-catalogue="mash"]) ui-tree-item:state(overflow-end)::part(label-viewport),
-  :where([data-mash-catalogue="mash"]) ui-menu-item:state(overflow-end)::part(label-viewport) {
-    -webkit-mask-image: linear-gradient(
+  :where([data-mash-catalogue="mash"])
+    :is(ui-path, ui-tree-item, ui-menu-item):state(overflow-end) {
+    --mash-overflow-mask: linear-gradient(
       to right,
       black calc(100% - var(--mash-overflow-inline-size)),
-      transparent
-    );
-    mask-image: linear-gradient(
-      to right,
-      black calc(100% - var(--mash-overflow-inline-size)),
-      transparent
+      transparent 100%
     );
   }
   :where([data-mash-catalogue="mash"])
-    ui-path:state(overflow-start):state(overflow-end)::part(viewport),
-  :where([data-mash-catalogue="mash"])
-    ui-tree-item:state(overflow-start):state(overflow-end)::part(label-viewport),
-  :where([data-mash-catalogue="mash"])
-    ui-menu-item:state(overflow-start):state(overflow-end)::part(label-viewport) {
-    -webkit-mask-image: linear-gradient(
+    :is(ui-path, ui-tree-item, ui-menu-item):dir(rtl):state(overflow-start) {
+    --mash-overflow-mask: linear-gradient(
       to right,
-      transparent,
+      black calc(100% - var(--mash-overflow-inline-size)),
+      transparent 100%
+    );
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-path, ui-tree-item, ui-menu-item):dir(rtl):state(overflow-end) {
+    --mash-overflow-mask: linear-gradient(
+      to right,
+      transparent 0,
+      black var(--mash-overflow-inline-size)
+    );
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-path, ui-tree-item, ui-menu-item):state(overflow-start):state(overflow-end) {
+    --mash-overflow-mask: linear-gradient(
+      to right,
+      transparent 0,
       black var(--mash-overflow-inline-size),
       black calc(100% - var(--mash-overflow-inline-size)),
-      transparent
+      transparent 100%
     );
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      black var(--mash-overflow-inline-size),
-      black calc(100% - var(--mash-overflow-inline-size)),
-      transparent
-    );
+  }
+  :where([data-mash-catalogue="mash"]) ui-path::part(viewport) {
+    -webkit-mask-image: var(--mash-overflow-mask);
+    mask-image: var(--mash-overflow-mask);
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-tree-item, ui-menu-item)::part(label-viewport) {
+    -webkit-mask-image: var(--mash-overflow-mask);
+    mask-image: var(--mash-overflow-mask);
   }
 
   :where([data-mash-catalogue="mash"]) ui-progress {
@@ -3131,6 +3702,9 @@
       var(--mash-material-separator-source, var(--_mash-component-boundary-strong))
     );
     mix-blend-mode: var(--mash-vibrancy-blend-mode, var(--mash-vibrancy-theme-blend-mode, normal));
+    transition:
+      background-color var(--duration-control) var(--easing-control),
+      box-shadow var(--duration-control) var(--easing-control);
   }
   :where([data-mash-catalogue="mash"][data-theme="dark"][data-vibrancy="vibrant"])
     ui-separator::part(root) {

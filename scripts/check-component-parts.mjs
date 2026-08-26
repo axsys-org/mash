@@ -77,11 +77,21 @@ async function main() {
       }
     }
 
-    for (const match of catalogue.matchAll(
-      /\b((?:ui|sh|shrine)-[a-z0-9-]+)[^,{]*?::part\(\s*([a-z0-9-]+)\s*\)/g,
-    )) {
+    for (const match of catalogue.matchAll(/::part\(\s*([a-z0-9-]+)\s*\)/g)) {
       recipeReferenceCount += 1;
-      const [, tagName, partName] = match;
+      const selectorStart = Math.max(
+        catalogue.lastIndexOf("{", match.index),
+        catalogue.lastIndexOf("}", match.index),
+        catalogue.lastIndexOf(",", match.index),
+      );
+      const selector = catalogue.slice(selectorStart + 1, match.index);
+      const tags = [...selector.matchAll(/\b(?:ui|sh|shrine)-[a-z0-9-]+\b/g)];
+      const tagName = tags.at(-1)?.[0];
+      const partName = match[1];
+
+      // Class-only selectors cannot be checked against a component manifest.
+      if (!tagName) continue;
+
       const parts = components.get(tagName);
       const location = `${entry.catalogue}:${lineAt(catalogue, match.index)}`;
 

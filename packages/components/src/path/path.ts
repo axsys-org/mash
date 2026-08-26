@@ -2,7 +2,6 @@ import { LitElement, html, nothing, type PropertyValues, type TemplateResult } f
 
 import { baseStyles } from "../internal/base-styles.js";
 import { InlineOverflowController } from "../internal/inline-overflow.js";
-import { renderProgressiveOverflow } from "../internal/progressive-overflow.js";
 
 /** The physical context where a path preview appears. */
 export type PathSize = "small" | "medium";
@@ -32,9 +31,6 @@ export type PathVariant = "preview" | "breadcrumb";
  * @csspart segment - An individual raw path segment.
  * @csspart segment-link - A navigable ancestor in the breadcrumb variant.
  * @csspart segment-current - The terminal breadcrumb segment.
- * @csspart overflow - A recipe-defined directional overflow overlay.
- * @csspart overflow-start - The overlay at the logical start edge.
- * @csspart overflow-end - The overlay at the logical end edge.
  *
  * @cssstate current - Matches `:state(current)` when this is the current location.
  * @cssstate selected - Matches `:state(selected)` when this path is selected.
@@ -236,8 +232,6 @@ export class UIPath extends LitElement {
                 : html`${this.renderTitle()} ${this.effectiveTitle ? nothing : this.renderRaw()}`
             }
           </span>
-          ${renderProgressiveOverflow("start", this.#overflow.state.start)}
-          ${renderProgressiveOverflow("end", this.#overflow.state.end)}
         </span>
       </div>
     `;

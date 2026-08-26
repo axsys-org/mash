@@ -1,0 +1,38 @@
+{
+  "scrollbarSize": {
+    "$type": "dimension",
+    "reference": {
+      "$description": "Raw measures for semantic scrollbar hit areas. The visible track remains narrower than the pointer target.",
+      "compact": { "$value": { "value": 0.5, "unit": "rem" } },
+      "medium": { "$value": { "value": 0.75, "unit": "rem" } },
+      "large": { "$value": { "value": 1, "unit": "rem" } }
+    }
+  },
+  "scrollbarTrack": {
+    "$type": "dimension",
+    "reference": {
+      "$description": "Visible track measures within the larger scrollbar hit area.",
+      "compact": { "$value": { "value": 0.125, "unit": "rem" } },
+      "medium": { "$value": { "value": 0.25, "unit": "rem" } },
+      "large": { "$value": { "value": 0.375, "unit": "rem" } }
+    }
+  },
+  "scrollbarDetent": {
+    "$type": "dimension",
+    "reference": {
+      "$description": "Default visible length for authored scrollbar detent marks.",
+      "compact": { "$value": { "value": 0.375, "unit": "rem" } },
+      "medium": { "$value": { "value": 0.625, "unit": "rem" } },
+      "large": { "$value": { "value": 0.875, "unit": "rem" } }
+    }
+  },
+  "scrollbarThumb": {
+    "$type": "dimension",
+    "reference": {
+      "minimum": {
+        "$value": { "value": 1.5, "unit": "rem" },
+        "$description": "Minimum visual thumb length retained for pointer legibility."
+      }
+    }
+  }
+}

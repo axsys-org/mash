@@ -1,0 +1,22 @@
+{
+  "scrollbar": {
+    "$type": "dimension",
+    "$description": "Renderer-independent scrollbar geometry. Hit areas, visible tracks, and authored detents remain independently tunable.",
+    "hitArea": {
+      "compact": { "$value": "{scrollbarSize.reference.compact}" },
+      "medium": { "$value": "{scrollbarSize.reference.medium}" },
+      "large": { "$value": "{scrollbarSize.reference.large}" }
+    },
+    "track": {
+      "compact": { "$value": "{scrollbarTrack.reference.compact}" },
+      "medium": { "$value": "{scrollbarTrack.reference.medium}" },
+      "large": { "$value": "{scrollbarTrack.reference.large}" }
+    },
+    "detent": {
+      "compact": { "$value": "{scrollbarDetent.reference.compact}" },
+      "medium": { "$value": "{scrollbarDetent.reference.medium}" },
+      "large": { "$value": "{scrollbarDetent.reference.large}" }
+    },
+    "thumbMinimum": { "$value": "{scrollbarThumb.reference.minimum}" }
+  }
+}
