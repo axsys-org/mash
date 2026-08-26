@@ -7,8 +7,12 @@
  * design values, while the catalogue and its examples already own base styles.
  */
 
-@layer theme, base, components, utilities;
+/* Catalogue recipes establish the default pronunciation; application
+   components and utilities intentionally remain able to override it. */
+@layer theme, base, mash.catalogue, components, utilities;
 
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "@mash/tokens/tailwind.css";
+@import "@mash/ui/tailwind.css";
+@import "@mash/shrine/tailwind.css";

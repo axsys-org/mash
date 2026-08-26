@@ -22,7 +22,7 @@ export type MenuDensity = "regular" | "compact" | "mini";
  * @example Project actions
  * <ui-menu label="Project actions">
  *   <ui-button slot="trigger" variant="secondary">Actions</ui-button>
- *   <ui-menu-item value="rename">Rename</ui-menu-item>
+ *   <ui-menu-item value="rename">Rename<ui-kbd slot="shortcut" command="project.rename" shortcut="Primary+R"></ui-kbd></ui-menu-item>
  *   <ui-menu-item value="archive">Archive</ui-menu-item>
  * </ui-menu>
  *

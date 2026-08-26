@@ -79,6 +79,11 @@ export const carbonIcons = Object.freeze({
     20: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M14 26 15.41 24.59 7.83 17 28 17 28 15 7.83 15 15.41 7.41 14 6 4 16 14 26z"></path></svg>',
     24: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M14 26 15.41 24.59 7.83 17 28 17 28 15 7.83 15 15.41 7.41 14 6 4 16 14 26z"></path></svg>',
   },
+  "navigation.chevron-down": {
+    16: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M8 11 3 6 3.7 5.3 8 9.6 12.3 5.3 13 6z"></path></svg>',
+    20: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M16 22 6 12 7.4 10.6 16 19.2 24.6 10.6 26 12z"></path></svg>',
+    24: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M16 22 6 12 7.4 10.6 16 19.2 24.6 10.6 26 12z"></path></svg>',
+  },
   "navigation.disclosure": {
     16: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M11 8 6 13 5.3 12.3 9.6 8 5.3 3.7 6 3z"></path></svg>',
     20: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M22 16 12 26 10.6 24.6 19.2 16 10.6 7.4 12 6z"></path></svg>',

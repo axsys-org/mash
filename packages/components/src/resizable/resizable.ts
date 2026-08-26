@@ -216,6 +216,12 @@ export class UIResizable extends LitElement {
  *
  * @tag ui-resizable-panel
  * @summary Owns one authored region and its semantic size constraints.
+ * @example Sidebar panel
+ * <ui-resizable label="Workspace panels">
+ *   <ui-resizable-panel min="160" size="240">Project tree</ui-resizable-panel>
+ *   <ui-resizable-handle label="Resize project tree"></ui-resizable-handle>
+ *   <ui-resizable-panel min="320">Editor</ui-resizable-panel>
+ * </ui-resizable>
  * @slot - Panel content.
  * @csspart root - The panel realization.
  * @csspart content - The authored panel content binding.
@@ -333,6 +339,14 @@ export class UIResizablePanel extends LitElement {
  *
  * @tag ui-resizable-handle
  * @summary Requests size transfer between the adjacent panels.
+ * @example Interactive separator
+ * <ui-resizable label="Inspector split">
+ *   <ui-resizable-panel min="240">Canvas</ui-resizable-panel>
+ *   <ui-resizable-handle label="Resize inspector">
+ *     <ui-icon name="action.drag" label=""></ui-icon>
+ *   </ui-resizable-handle>
+ *   <ui-resizable-panel min="180" size="260">Inspector</ui-resizable-panel>
+ * </ui-resizable>
  * @slot - Optional handle content or grip.
  * @csspart control - The focusable separator control.
  * @csspart indicator - The authored or fallback grip binding.

@@ -21,7 +21,7 @@ import type { MenuDensity } from "../menu/menu.js";
  * @example Project row context menu
  * <ui-context-menu label="Project actions">
  *   <span slot="trigger">Billing migration</span>
- *   <ui-menu-item value="copy-path">Copy path</ui-menu-item>
+ *   <ui-menu-item value="copy-path">Copy path<ui-kbd slot="shortcut" command="project.copy-path" shortcut="Primary+Shift+C"></ui-kbd></ui-menu-item>
  * </ui-context-menu>
  *
  * @slot trigger - Surface that receives the context-menu gesture.

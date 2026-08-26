@@ -1935,6 +1935,30 @@
     line-height: var(--type-label-small-line-height);
   }
 
+  /* A shortcut is a semantic binding inside a menu, not a second raised
+     control. Preserve ui-kbd's generated token anatomy while letting the menu
+     shortcut lane own its compact visual pronunciation. */
+  :where([data-mash-catalogue="mash"]) ui-menu-item > ui-kbd[slot="shortcut"]::part(root) {
+    min-block-size: var(--layout-dimension-zero);
+    padding: var(--layout-dimension-zero);
+    border: 0;
+    border-radius: var(--layout-dimension-zero);
+    background: transparent;
+    box-shadow: none;
+    color: currentColor;
+    font: inherit;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item > ui-kbd[slot="shortcut"]::part(value) {
+    gap: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item
+    > :is(ui-icon[slot="prefix"], ui-icon[slot="chevron"]) {
+    font-size: var(--type-label-font-size);
+  }
+
   :where([data-mash-catalogue="mash"])
     ui-menu-item:is(:hover, :focus-within, :state(submenu-open))::part(shortcut) {
     color: currentColor;
@@ -3345,6 +3369,7 @@
     display: flex;
     align-items: center;
     min-inline-size: var(--layout-dimension-zero);
+    overflow: clip;
     border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
     border-radius: var(--radius-control);
     background: var(--_mash-component-surface);
@@ -3371,6 +3396,11 @@
     border-radius: 0;
     outline: 0;
     background: transparent;
+    box-shadow: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-input-group > ui-input::part(control):focus-visible {
+    outline: 0;
+    outline-offset: 0;
   }
   :where([data-mash-catalogue="mash"]) ui-input-group::part(prefix),
   :where([data-mash-catalogue="mash"]) ui-input-group::part(suffix) {
@@ -3378,6 +3408,18 @@
     flex: none;
     align-items: center;
     color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-input-group::part(prefix-separator),
+  :where([data-mash-catalogue="mash"]) ui-input-group::part(suffix-separator) {
+    align-self: stretch;
+    inline-size: var(--border-hairline);
+    background: transparent;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-input-group.example-input-group-divided::part(prefix-separator),
+  :where([data-mash-catalogue="mash"])
+    ui-input-group.example-input-group-divided::part(suffix-separator) {
+    background: var(--_mash-component-divider);
   }
   :where([data-mash-catalogue="mash"]) ui-input-group::part(prefix) {
     margin-inline-start: var(--space-control-inline);
@@ -3399,6 +3441,22 @@
     font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
       var(--type-code-font-family);
     white-space: nowrap;
+  }
+  :where([data-mash-catalogue="mash"]) ui-kbd::part(value) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-control-block-small);
+  }
+  :where([data-mash-catalogue="mash"]) ui-kbd::part(key),
+  :where([data-mash-catalogue="mash"]) ui-kbd::part(modifier),
+  :where([data-mash-catalogue="mash"]) ui-kbd::part(glyph) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 1em;
+  }
+  :where([data-mash-catalogue="mash"]) ui-kbd::part(separator) {
+    display: none;
   }
 
   :where([data-mash-catalogue="mash"]) ui-icon {

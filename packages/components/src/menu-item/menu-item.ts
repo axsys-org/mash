@@ -29,7 +29,8 @@ export interface MenuItemSubmenuChangeDetail {
  * @example Nested command
  * <ui-menu-item value="share">
  *   Share
- *   <span slot="prefix" aria-hidden="true">↗</span>
+ *   <ui-icon slot="prefix" name="action.launch" label=""></ui-icon>
+ *   <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
  *   <ui-menu slot="submenu" label="Share with">
  *     <ui-menu-item value="email">Email</ui-menu-item>
  *     <ui-menu-item value="messages">Messages</ui-menu-item>

@@ -201,6 +201,12 @@ function recipeSpecifier(component: ComponentSchema): string {
     : "@mash/ui/catalogue/mash.css";
 }
 
+function anatomySpecifier(component: ComponentSchema): string {
+  return component.packageName === "@mash/shrine"
+    ? "@mash/shrine/tailwind.css"
+    : "@mash/ui/tailwind.css";
+}
+
 function swatch(value: string): HTMLElement | null {
   return value.startsWith("oklch(")
     ? el("span", { class: "swatch", style: `background:${value}` })
@@ -243,7 +249,12 @@ function provenanceRow(cssVar: string, theme: string): HTMLElement {
 // API tables
 // ---------------------------------------------------------------------------
 
-function describedList(title: string, items: Described[], emptyNote: string): HTMLElement {
+function describedList(
+  title: string,
+  items: Described[],
+  emptyNote: string,
+  variantPrefix?: string,
+): HTMLElement {
   if (items.length === 0) {
     return el(
       "section",
@@ -262,7 +273,18 @@ function describedList(title: string, items: Described[], emptyNote: string): HT
       { class: "api-list" },
       ...items.flatMap((item) => [
         el("dt", { class: "api-term" }, el("code", { text: item.name || "(default)" })),
-        el("dd", { class: "api-description", text: item.description ?? "" }),
+        el(
+          "dd",
+          { class: "api-description" },
+          item.description ?? "",
+          variantPrefix && item.name
+            ? el("code", {
+                class: "api-variant",
+                text: `${variantPrefix}-${item.name}:*`,
+                title: "Generated Tailwind variant",
+              })
+            : null,
+        ),
       ]),
     ),
   );
@@ -708,7 +730,7 @@ function belowStage(
       ),
       el("p", {
         class: "note",
-        text: "tokens.css is the minimal component token cascade. Tailwind applications import tailwind.css once from their CSS entrypoint instead; it includes the same cascade and the semantic utility vocabulary.",
+        text: `tokens.css is the minimal component token cascade. Tailwind applications import @mash/tokens/tailwind.css plus ${anatomySpecifier(component)} once from their CSS entrypoint; together they expose semantic utilities and generated part, slot, and state variants.`,
       }),
       component.registerPath
         ? el("p", {
@@ -724,14 +746,14 @@ function belowStage(
       el("h3", { class: "panel-heading", text: "API" }),
       el("p", { class: "note", text: "Read from custom-elements.json." }),
       attributeTable(component),
-      describedList("Slots", component.slots, "No slots."),
-      describedList("Parts", component.cssParts, "No exposed parts."),
+      describedList("Slots", component.slots, "No slots.", "slot"),
+      describedList("Parts", component.cssParts, "No exposed parts.", "part"),
       describedList(
         "CSS properties",
         component.cssProperties,
         "No public CSS properties — recipes style its documented parts and reflected state.",
       ),
-      describedList("Custom states", component.cssStates, "No custom states."),
+      describedList("Custom states", component.cssStates, "No custom states.", "state"),
       describedList("Events", component.events, "No events."),
     ),
 

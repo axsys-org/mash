@@ -31,6 +31,7 @@ const icons = {
   "action.search": "search",
   "action.settings": "settings",
   "navigation.back": "arrow--left",
+  "navigation.chevron-down": "chevron--down",
   "navigation.disclosure": "chevron--right",
   "navigation.down": "arrow--down",
   "navigation.forward": "arrow--right",

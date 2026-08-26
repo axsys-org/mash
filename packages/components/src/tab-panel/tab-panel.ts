@@ -12,6 +12,12 @@ import { baseStyles } from "../internal/base-styles.js";
  * @tag ui-tab-panel
  * @summary Content associated with a selected tab.
  *
+ * @example Project panel
+ * <ui-tabs value="billing">
+ *   <ui-tab value="billing" selected>Billing migration</ui-tab>
+ *   <ui-tab-panel value="billing" selected>Project overview</ui-tab-panel>
+ * </ui-tabs>
+ *
  * @slot - Panel content.
  *
  * @csspart root - The semantic tabpanel container.
