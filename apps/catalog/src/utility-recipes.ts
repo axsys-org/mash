@@ -112,6 +112,45 @@ const stageRecipes: UtilityRecipes = {
     "flex flex-col items-start gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-eyebrow": "m-0 type-label text-text-muted",
   "example-support": "m-0 text-text-muted",
+  "example-icon-library":
+    "flex flex-wrap items-center gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-icon-state-dot":
+    "block size-control-gap rounded-full border border-surface bg-positive shadow-[0_0_0_var(--border-hairline)_var(--color-positive)]",
+  "example-gesture-command":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] cursor-pointer gap-control-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block outline-none focus-visible:focus-ring",
+  "example-gesture-arena-shell":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] place-items-center gap-container-gap overflow-hidden rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-gesture-arena":
+    "grid min-h-control w-[min(100%,var(--layout-dimension-compact))] cursor-grab grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap rounded-container border border-border bg-surface px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)] outline-none [touch-action:none] [translate:var(--gesture-x,0)_var(--gesture-y,0)] active:cursor-grabbing focus-visible:focus-ring",
+  "example-gesture-status": "flex min-w-0 items-center gap-control-gap type-code text-text-muted",
+  "example-gesture-heading": "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-container-gap",
+  "example-gesture-shortcuts":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block outline-none focus-visible:focus-ring",
+  "example-gesture-command-list":
+    "grid overflow-hidden rounded-control border border-border bg-surface",
+  "example-gesture-selection":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-gesture-selection-list":
+    "grid overflow-hidden rounded-control border border-border bg-surface",
+  "example-gesture-scrubber":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-gesture-scrub-track":
+    "relative grid min-h-control cursor-ew-resize items-center rounded-control border border-border bg-surface px-control-inline outline-none [touch-action:none] focus-visible:focus-ring",
+  "example-gesture-scrub-thumb":
+    "pointer-events-none absolute left-[var(--gesture-progress,46%)] top-1/2 size-control-gap -translate-x-1/2 -translate-y-1/2 rounded-full border border-surface bg-action shadow-[0_0_0_var(--border-hairline)_var(--color-action)]",
+  "example-gesture-preview":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-container-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block max-[38rem]:grid-cols-1",
+  "example-gesture-preview-list":
+    "grid content-start overflow-hidden rounded-control border border-border bg-surface",
+  "example-gesture-preview-card": "min-h-[var(--layout-dimension-control-large)]",
+  "example-motion-demo":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-motion-drop":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-motion-wash": "block h-full w-full rounded-container bg-action-wash",
+  "example-motion-scene": "w-full [&::part(root)]:w-full",
+  "example-shortcut-list":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] overflow-hidden rounded-container border border-border bg-surface",
   "example-card-heading":
     "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap max-[35rem]:grid-cols-[auto_minmax(0,1fr)]",
   "example-actions": "flex flex-wrap items-center gap-control-gap",
@@ -243,6 +282,27 @@ const stageRecipes: UtilityRecipes = {
   "example-table-states":
     "grid w-[min(100%,var(--layout-dimension-content))] grid-cols-2 gap-container-gap max-[45rem]:grid-cols-1",
   "example-table-message": "flex items-center gap-control-gap text-text-muted",
+  "example-table-components": "min-w-0",
+  "example-table-chip-list": "flex flex-wrap gap-control-gap",
+  "example-workbook": "h-full min-h-0 w-full [&::part(root)]:h-full [&::part(viewport)]:min-h-0",
+  "example-workbook-toolbar":
+    "grid min-w-0 grid-cols-[auto_auto_minmax(12rem,1fr)] items-center gap-control-gap max-[48rem]:grid-cols-[auto_minmax(10rem,1fr)]",
+  "example-workbook-name-box":
+    "min-w-[4rem] rounded-control border border-border bg-surface-sunken px-control-inline py-control-block-small text-center type-code",
+  "example-workbook-formula": "min-w-0",
+  "example-workbook-corner": "block size-glyph border-s border-t border-border-strong",
+  "example-workbook-cell-form": "grid min-w-[18rem] gap-control-gap",
+  "example-data-table-loading": "flex items-center gap-control-gap type-label-small",
+  "example-data-table-footer":
+    "flex min-w-0 items-center justify-between gap-control-gap type-label-small text-text-muted",
+  "example-data-table-modes":
+    "grid h-full min-h-0 w-full grid-cols-3 gap-container-gap px-container-inline py-container-block max-[64rem]:grid-cols-1 max-[64rem]:overflow-y-auto",
+  "example-data-explorer":
+    "h-full min-h-[28rem] w-full [&::part(root)]:h-full [&::part(root)]:min-h-0",
+  "example-data-explorer-tree":
+    "grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] bg-surface-sunken",
+  "example-data-explorer-table":
+    "h-full min-h-0 [&::part(root)]:h-full [&::part(viewport)]:min-h-0",
   "example-tree-glyph":
     "inline-block size-[calc(var(--space-control-gap)+var(--space-control-block-small))] rounded-control border border-current [background:color-mix(in_oklab,currentColor_14%,transparent)]",
   "example-tree-narrow": "w-[min(100%,22rem)]!",
@@ -258,6 +318,33 @@ const stageRecipes: UtilityRecipes = {
     "flex cursor-grab touch-none items-center gap-control-gap border-b border-border bg-surface-raised px-control-inline py-control-block active:cursor-grabbing",
   "example-window-traffic": "text-critical tracking-[0.18em]",
   "example-window-panes": "h-full min-h-0! [&::part(root)]:h-full",
+  "example-resizable-showcase":
+    "grid w-[min(100%,var(--layout-dimension-content))] gap-container-gap",
+  "example-resizable-case":
+    "grid min-w-0 gap-control-block-small rounded-container border border-border bg-surface p-control-block-small",
+  "example-resizable-label": "px-control-inline-small type-code text-text-muted",
+  "example-resizable-split":
+    "h-[6rem] min-h-0! overflow-hidden rounded-control border border-border bg-surface [&::part(root)]:h-full",
+  "example-resizable-pane":
+    "grid h-full min-h-0 content-start gap-control-gap overflow-auto px-control-inline py-control-block type-label",
+  "example-resizable-pane-muted": "bg-surface-sunken",
+  "example-resize-handle-rail": "bg-surface-sunken [&::part(control)]:rounded-none!",
+  "example-resize-detent-rule":
+    "[&::part(frame)]:relative [&::part(prefix)]:absolute [&::part(prefix)]:start-1/2 [&::part(prefix)]:top-1/2 [&::part(prefix)]:z-10 [&::part(prefix)]:-translate-x-1/2 [&::part(prefix)]:-translate-y-1/2",
+  "example-resize-detent":
+    "block size-[calc(var(--space-control-block-small)*2)] rounded-pill border border-border-strong bg-surface-raised shadow-[0_1px_2px_var(--color-shadow)]",
+  "example-resizable-workspace":
+    "h-full min-h-0! w-full overflow-hidden bg-surface [&::part(root)]:h-full",
+  "example-resizable-nested": "h-full min-h-0! [&::part(root)]:h-full",
+  "example-resizable-demo": "grid w-[min(100%,var(--layout-dimension-content))] gap-container-gap",
+  "example-resizable-demo-fill":
+    "h-full min-h-0 w-full max-w-none grid-rows-[auto_minmax(0,1fr)] px-container-inline py-container-block",
+  "example-resizable-complex":
+    "h-full min-h-0! overflow-hidden rounded-container border border-border bg-surface [&::part(root)]:h-full",
+  "example-resizable-stage":
+    "h-[14rem] min-h-0! overflow-hidden rounded-container border border-border bg-surface [&::part(root)]:h-full",
+  "example-resizable-actions": "flex flex-wrap items-center gap-control-gap",
+  "example-resizable-output": "type-code text-text-muted",
   "example-kanban-board":
     "relative grid h-full min-h-[24rem] w-full grid-rows-[auto_minmax(0,1fr)_auto] gap-container-gap overflow-hidden bg-surface-sunken px-container-inline py-container-block",
   "example-kanban-heading": "flex items-center justify-between gap-control-gap",
@@ -330,6 +417,62 @@ const stageRecipes: UtilityRecipes = {
   "example-scroll-jump":
     "relative pb-[calc(var(--space-container-block)+var(--space-container-inline))]",
   "example-scroll-actions": "absolute end-control-inline bottom-control-block flex gap-control-gap",
+  "example-scroll-no-gutter-grid":
+    "grid h-full min-h-0 w-full grid-cols-3 gap-container-gap px-container-inline py-container-block max-[60rem]:grid-cols-1 max-[60rem]:overflow-y-auto",
+  "example-scroll-no-gutter": "block h-[16rem] min-h-0",
+  "example-scroll-no-gutter-content": "grid gap-control-block-small p-control-inline",
+  "example-scroll-size-grid":
+    "grid h-full min-h-0 w-full grid-cols-3 gap-container-gap px-container-inline py-container-block max-[60rem]:grid-cols-1 max-[60rem]:overflow-y-auto",
+  "example-scroll-size-sample": "block h-[13rem] min-h-0",
+  "example-scroll-size-content": "grid gap-control-gap p-control-inline",
+  "example-scroll-alpha-card": "w-full",
+  "example-scroll-alpha": "block h-[28rem] min-h-0",
+  "example-scroll-alpha-list": "grid p-control-inline",
+  "example-scroll-alpha-section":
+    "grid min-h-[5rem] snap-start grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-container-gap border-b border-border px-control-inline py-control-block",
+  "example-scroll-detent":
+    "absolute top-[var(--ui-scroll-detent-position)] left-1/2 m-0 -translate-x-1/2 -translate-y-1/2",
+  "example-scroll-letter":
+    "pointer-events-auto grid size-[0.875rem] cursor-pointer place-items-center rounded-pill border-0 bg-transparent p-0 type-code text-[0.5rem] leading-none text-text-muted hover:bg-action-wash hover:text-action focus-visible:focus-ring data-[scroll-detent-current]:bg-action data-[scroll-detent-current]:text-on-action",
+  "example-scroll-reader": "min-h-0 w-full bg-surface-sunken",
+  "example-scroll-reading": "block h-[32.5rem] min-h-0",
+  "example-scroll-reading-copy":
+    "mx-auto grid w-[min(100%,var(--layout-dimension-content))] gap-region px-region py-container-block",
+  "example-scroll-reading-section": "grid min-h-[22rem] snap-start content-center gap-control-gap",
+  "example-scroll-reading-detent":
+    "pointer-events-none h-px w-[var(--scrollbar-detent-large)] border-0 bg-border-strong p-0 data-[scroll-detent-current]:h-[var(--border-strong)] data-[scroll-detent-current]:w-[calc(var(--scrollbar-detent-large)*2)] data-[scroll-detent-current]:bg-text",
+  "example-scroll-reading-detent-major": "w-[calc(var(--scrollbar-detent-large)*1.5)]",
+  "example-scroll-preview-anchor":
+    "group pointer-events-auto absolute top-[var(--ui-scroll-detent-position)] end-0 z-overlay -translate-y-1/2",
+  "example-scroll-reading-current":
+    "block h-[var(--border-strong)] w-[calc(var(--scrollbar-detent-large)*2)] cursor-pointer rounded-pill border-0 bg-text p-0 focus-visible:focus-ring",
+  "example-scroll-preview-card":
+    "pointer-events-none absolute top-1/2 end-[calc(var(--space-control-inline)+var(--scrollbar-hit-area-large))] w-[min(20rem,calc(100vw-var(--space-region)*2))] -translate-y-1/2 opacity-0 shadow-[0_8px_24px_var(--color-shadow)] transition-opacity group-hover:opacity-100 group-focus-within:opacity-100",
+  "example-scroll-breadcrumb":
+    "grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] bg-canvas",
+  "example-scroll-breadcrumb-header":
+    "flex min-w-0 items-center justify-between gap-control-gap border-b border-border bg-surface px-container-inline py-control-block",
+  "example-scroll-breadcrumb-area": "block min-h-0",
+  "example-scroll-snap-pages": "grid",
+  "example-scroll-chapter-detent":
+    "pointer-events-auto grid size-glyph cursor-pointer place-items-center rounded-pill border border-border bg-surface p-0 type-code text-[0.625rem] text-text-muted shadow-[0_1px_3px_var(--color-shadow)] hover:border-action hover:text-action focus-visible:focus-ring data-[scroll-detent-current]:border-action data-[scroll-detent-current]:bg-action data-[scroll-detent-current]:text-on-action",
+  "example-scroll-menu-card": "w-[min(100%,var(--layout-dimension-panel))]",
+  "example-scroll-menu": "block h-[10rem]",
+  "example-scroll-command-menu": "w-full",
+  "example-scroll-menu-detent":
+    "pointer-events-auto h-[var(--scrollbar-detent-medium)] w-[var(--scrollbar-track-medium)] cursor-pointer rounded-pill border-0 bg-action p-0 focus-visible:focus-ring",
+  "example-scroll-bidirectional":
+    "grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] bg-canvas",
+  "example-scroll-bidirectional-header":
+    "flex min-w-0 items-center justify-between gap-control-gap border-b border-border bg-surface px-container-inline py-control-block",
+  "example-scroll-bidirectional-area": "block min-h-0",
+  "example-scroll-canvas": "grid min-w-[76rem] gap-control-gap p-container-block",
+  "example-scroll-canvas-row": "grid grid-cols-[repeat(8,9rem)] gap-control-gap",
+  "example-scroll-canvas-card": "min-h-[7rem]",
+  "example-scroll-canvas-block-detent":
+    "pointer-events-auto h-[var(--border-strong)] w-[var(--scrollbar-detent-medium)] cursor-pointer rounded-pill border-0 bg-action p-0 focus-visible:focus-ring",
+  "example-scroll-inline-detent":
+    "pointer-events-auto absolute top-1/2 left-[var(--ui-scroll-detent-position)] h-[var(--scrollbar-detent-medium)] w-[var(--border-strong)] -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-pill border-0 bg-action p-0 focus-visible:focus-ring",
   "example-sidebar-navigation": "grid gap-control-gap px-container-inline py-container-block",
   "example-activity": "block h-[11.875rem]",
   "example-message-bubble-me": "self-end",
@@ -363,6 +506,64 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-path-case > span", "type-code text-text-muted"],
   [".example-material ui-card", "border-0! bg-transparent! shadow-none!"],
   [".example-editor-status span:last-child", "ms-auto"],
+  [".example-icon-library > span", "inline-flex items-center gap-control-gap type-label"],
+  [".example-gesture-command > ui-card", "w-full"],
+  [".example-gesture-command .example-card-heading > span", "grid min-w-0 gap-control-block-small"],
+  [".example-gesture-status output", "min-w-0 truncate"],
+  [".example-gesture-heading > span", "grid min-w-0 gap-control-block-small"],
+  [".example-gesture-heading output", "type-title text-action"],
+  [
+    ".example-gesture-command-list ui-button",
+    "w-full! border-b border-border last:border-b-0 [&::part(control)]:w-full [&::part(control)]:grid [&::part(control)]:grid-cols-[auto_minmax(0,1fr)_auto] [&::part(control)]:justify-items-start [&::part(control)]:rounded-none!",
+  ],
+  [".example-gesture-command-list ui-button > span", "truncate"],
+  [
+    ".example-gesture-selection-list ui-button",
+    "w-full! border-b border-border last:border-b-0 [&::part(control)]:w-full [&::part(control)]:grid [&::part(control)]:grid-cols-[auto_minmax(0,1fr)] [&::part(control)]:justify-items-start [&::part(control)]:rounded-none!",
+  ],
+  [".example-gesture-selection-list ui-button > span", "truncate"],
+  [
+    ".example-gesture-selection-list ui-button[data-gesture-selected]",
+    "[&::part(control)]:bg-action-wash! [&::part(control)]:text-action!",
+  ],
+  [".example-gesture-scrubber ui-progress", "pointer-events-none w-full!"],
+  [
+    ".example-gesture-scrubber ui-toolbar",
+    "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap",
+  ],
+  [".example-gesture-scrubber .example-gesture-status", "justify-center"],
+  [
+    ".example-gesture-preview-list ui-button",
+    "w-full! border-b border-border last:border-b-0 [&::part(control)]:w-full [&::part(control)]:grid [&::part(control)]:grid-cols-[auto_minmax(0,1fr)] [&::part(control)]:justify-items-start [&::part(control)]:rounded-none!",
+  ],
+  [".example-gesture-preview-list ui-button > span", "truncate"],
+  [
+    ".example-gesture-preview-list ui-button[data-gesture-preview-active]",
+    "[&::part(control)]:bg-action-wash! [&::part(control)]:text-action!",
+  ],
+  [".example-gesture-preview > .example-gesture-status", "col-span-full"],
+  [".example-gesture-arena > div", "grid min-w-0 gap-control-block-small"],
+  [".example-gesture-arena > div > span", "truncate type-label-small text-text-muted"],
+  [
+    ".example-gesture-arena[data-gesture-selected]",
+    "border-action bg-action-wash shadow-[0_0_0_var(--border-hairline)_var(--color-action)]",
+  ],
+  [
+    ".example-gesture-arena[data-gesture-preview]",
+    "scale-[var(--motion-scale-pressed)] bg-surface-raised",
+  ],
+  [".example-motion-demo > ui-motion, .example-motion-drop > ui-motion", "w-full"],
+  [".example-motion-demo ui-toolbar", "flex flex-wrap gap-control-gap"],
+  [".example-motion-demo output", "type-code text-text-muted"],
+  [
+    ".example-motion-drop ui-separator",
+    "self-center [&::part(root)]:bg-action [&::part(root)]:shadow-[0_0_8px_var(--color-action)]",
+  ],
+  [
+    ".example-shortcut-list > span",
+    "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap border-b border-border px-control-inline py-control-block last:border-b-0",
+  ],
+  [".example-shortcut-list > span > span", "flex items-center gap-control-block-small"],
   [".example-pagination-heading > div", "grid gap-[var(--border-hairline)]"],
   [".example-linear-identity-copy > span", "truncate type-label-small text-text-muted"],
   [".example-linear-nav-link ui-badge", "ms-auto"],
@@ -418,6 +619,17 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-linear-activity-list li", "flex items-start gap-control-gap"],
   [".example-linear-activity-list li > span", "grid gap-[var(--border-hairline)]"],
   [".example-linear-activity-list small", "text-text-muted"],
+  [
+    ".example-data-explorer-tree > header",
+    "flex items-center justify-between gap-control-gap border-b border-border px-control-inline py-control-block",
+  ],
+  [".example-data-explorer-tree ui-scroll-area", "h-full min-h-0"],
+  [".example-data-explorer-tree ui-tree", "block p-control-block"],
+  [".example-data-table-modes ui-card", "min-w-0"],
+  [".example-data-table-modes ui-data-table", "min-w-0"],
+  [".example-workbook-toolbar ui-toolbar", "min-w-max"],
+  [".example-workbook ui-table-cell[column-index='1']", "type-code text-text-muted"],
+  [".example-workbook ui-popover > ui-button[slot='trigger']", "w-full justify-start"],
   [".example-table-progress ui-progress", "w-full! min-w-0"],
   [
     ".example-pagination-heading span, .example-pagination-heading output",
@@ -436,6 +648,11 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     ".example-window-panes ui-resizable-panel",
     "[&::part(root)]:rounded-none! [&::part(root)]:border-0!",
   ],
+  [
+    ".example-resizable-split ui-resizable-panel, .example-resizable-workspace ui-resizable-panel, .example-resizable-complex ui-resizable-panel, .example-resizable-stage ui-resizable-panel",
+    "[&::part(root)]:rounded-none! [&::part(root)]:border-0! [&::part(root)]:p-0!",
+  ],
+  [".example-resizable-pane > span", "type-label-small text-text-muted"],
   [".example-drag-tree ui-tree-item", "w-full"],
   [
     ".example-tree-leaf-workspace ui-tree-item[data-catalog-leaf-drop-active]",
@@ -485,6 +702,34 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-slider-matrix ui-field", "flex-[1_1_var(--layout-dimension-panel)]"],
   [".example-sidebar-navigation ui-collapsible", "grid gap-control-gap"],
   [".example-activity ol", "grid gap-group-inline ps-[calc(var(--space-group-inline)*2)]"],
+  [
+    ".example-scroll-no-gutter-content span",
+    "rounded-control bg-surface-sunken px-control-inline py-control-block type-label-small",
+  ],
+  [
+    ".example-scroll-size-content span",
+    "rounded-control bg-surface-sunken px-control-inline py-control-block-small type-label-small",
+  ],
+  [".example-scroll-alpha-section > strong", "type-heading text-action"],
+  [".example-scroll-alpha-section > span", "type-label-small text-text-muted"],
+  [".example-scroll-alpha-section > span:last-child", "text-end"],
+  [".example-scroll-reading-section h3, .example-scroll-reading-section p", "m-0"],
+  [".example-scroll-reading-section h3", "type-heading"],
+  [".example-scroll-reading-section p", "max-w-[70ch] text-text-muted"],
+  [
+    ".example-scroll-reading-section pre",
+    "m-0 overflow-x-auto rounded-container bg-surface px-container-inline py-container-block type-code",
+  ],
+  [
+    ".example-scroll-snap-pages > section",
+    "grid min-h-[24rem] snap-start content-center gap-control-gap border-b border-border px-region py-container-block",
+  ],
+  [".example-scroll-snap-pages h3, .example-scroll-snap-pages p", "m-0"],
+  [".example-scroll-snap-pages h3", "type-heading"],
+  [".example-scroll-snap-pages p", "max-w-[60ch] text-text-muted"],
+  [".example-scroll-bidirectional-header > div", "grid gap-[var(--border-hairline)]"],
+  [".example-scroll-bidirectional-header strong", "type-label"],
+  [".example-scroll-canvas-card [slot='content']", "type-label-small text-text-muted"],
   [".example-navigation a, ui-preview-card a", "text-action no-underline hover:underline"],
 ];
 

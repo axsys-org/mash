@@ -772,10 +772,116 @@ document.addEventListener("input", (event) => {
   if (editor) editor.searchQuery = search.value ?? "";
 });
 
+type CatalogResizable = HTMLElement & {
+  sizes: readonly number[];
+  resizePanel: (index: number, size: number) => void;
+  resetPanel: (index: number) => void;
+};
+
+type CatalogResizablePanel = HTMLElement & {
+  defaultSize: number;
+  min: number;
+  size: number;
+  visible: boolean;
+};
+
+function catalogResizableGroup(action: HTMLElement): CatalogResizable | null {
+  return (
+    action
+      .closest<HTMLElement>("[data-catalog-resizable-demo]")
+      ?.querySelector<CatalogResizable>("[data-catalog-resizable-group]") ?? null
+  );
+}
+
+function catalogResizablePanels(group: CatalogResizable): CatalogResizablePanel[] {
+  return [...group.children].filter(
+    (child): child is CatalogResizablePanel => child.localName === "ui-resizable-panel",
+  );
+}
+
+function syncCatalogResizableOutput(group: CatalogResizable): void {
+  const demo = group.closest<HTMLElement>("[data-catalog-resizable-demo]");
+  const output = demo?.querySelector<HTMLOutputElement>("[data-catalog-resizable-output]");
+  if (!demo || !output) return;
+  const panels = catalogResizablePanels(group);
+  if (demo.dataset.catalogResizableDemo === "visibility") {
+    const navigator = panels[0];
+    const visible = panels.filter((panel) => panel.visible).length;
+    const sizing = navigator?.size === 0 ? "flexible" : `fixed at ${navigator?.size ?? 0}px`;
+    output.textContent = `Navigator ${sizing} · ${visible} panels visible`;
+    return;
+  }
+  const [left, center, right] = group.sizes.map((size) => Math.round(size));
+  output.textContent = `Navigator ${left}px · Workspace ${center}px · Inspector ${right}px`;
+}
+
 // Scroll-to is intentionally a catalogue composition rather than a new
 // component. The button names the intent; the example owns which scroll area
 // and edge that intent targets.
 document.addEventListener("click", (event) => {
+  const motionAction = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement && node.dataset.catalogMotionState !== undefined,
+    );
+  if (motionAction) {
+    const demo = motionAction.closest<HTMLElement>("[data-catalog-motion-demo]");
+    const motion = demo?.querySelector<HTMLElement>("[data-catalog-motion]") as
+      (HTMLElement & { state?: string; play?: (state: string) => Promise<void> }) | null;
+    const state = motionAction.dataset.catalogMotionState;
+    if (motion && state) void motion.play?.(state);
+    return;
+  }
+
+  const resizeAction = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement &&
+        node.matches(
+          "[data-catalog-resizable-size], [data-catalog-resizable-reset], [data-catalog-resizable-visibility], [data-catalog-resizable-flex]",
+        ),
+    );
+  if (resizeAction) {
+    const group = catalogResizableGroup(resizeAction);
+    if (!group) return;
+    const panels = catalogResizablePanels(group);
+    const sizeRequest = resizeAction.dataset.catalogResizableSize;
+    const resetRequest = resizeAction.dataset.catalogResizableReset;
+    const visibilityRequest = resizeAction.dataset.catalogResizableVisibility;
+    const flexRequest = resizeAction.dataset.catalogResizableFlex;
+
+    if (sizeRequest) {
+      const [index, size] = sizeRequest.split(":").map(Number);
+      if (Number.isFinite(index) && Number.isFinite(size)) group.resizePanel(index!, size!);
+    } else if (resetRequest !== undefined) {
+      const index = Number(resetRequest);
+      if (Number.isFinite(index)) group.resetPanel(index);
+    } else if (visibilityRequest !== undefined) {
+      const panel = panels[Number(visibilityRequest)];
+      if (panel) {
+        panel.visible = !panel.visible;
+        resizeAction.textContent = panel.visible ? "Hide navigator" : "Show navigator";
+      }
+    } else if (flexRequest !== undefined) {
+      const panel = panels[Number(flexRequest)];
+      if (panel) {
+        if (panel.size === 0) {
+          const size = Number(panel.dataset.catalogFixedSize) || panel.defaultSize || panel.min;
+          panel.size = size;
+          resizeAction.textContent = "Make navigator flexible";
+        } else {
+          panel.dataset.catalogFixedSize = String(panel.size);
+          panel.size = 0;
+          resizeAction.textContent = `Fix navigator at ${panel.dataset.catalogFixedSize}px`;
+        }
+      }
+    }
+    queueMicrotask(() => syncCatalogResizableOutput(group));
+    return;
+  }
+
   const editorAction = event
     .composedPath()
     .find(
@@ -806,6 +912,236 @@ document.addEventListener("click", (event) => {
     top: end ? viewport.scrollHeight : 0,
     behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
   });
+});
+
+document.addEventListener("mash-motion-start", (event) => {
+  const source = event.target;
+  if (!(source instanceof HTMLElement) || !source.matches("[data-catalog-motion]")) return;
+  const output = source
+    .closest<HTMLElement>("[data-catalog-motion-demo]")
+    ?.querySelector<HTMLOutputElement>("[data-catalog-motion-output]");
+  const state = (event as CustomEvent<{ state: string }>).detail.state;
+  if (output) output.textContent = `${state}…`;
+});
+
+interface CatalogGestureCommandDetail {
+  command: string;
+  gesture: string;
+  phase: "began" | "changed" | "ended" | "cancelled";
+  value: {
+    movement?: { x: number; y: number };
+    wheel?: { x: number; y: number };
+  };
+}
+
+const clampGestureValue = (value: number): number => Math.min(100, Math.max(0, value));
+
+function updateGestureSelection(
+  demo: HTMLElement,
+  target: HTMLElement,
+  detail: CatalogGestureCommandDetail,
+  output: HTMLOutputElement | null,
+  state: HTMLElement | null,
+): void {
+  if (!demo.hasAttribute("data-gesture-selection-demo") || detail.phase !== "ended") return;
+  if (detail.command !== "selection.set" && detail.command !== "selection.extend") return;
+  const items = [...demo.querySelectorAll<HTMLElement>("[data-gesture-selection-key]")];
+  const focusIndex = items.indexOf(target);
+  if (focusIndex < 0) return;
+  const anchorIndex = Number(demo.dataset.gestureSelectionAnchor ?? focusIndex);
+  const start =
+    detail.command === "selection.extend" ? Math.min(anchorIndex, focusIndex) : focusIndex;
+  const end =
+    detail.command === "selection.extend" ? Math.max(anchorIndex, focusIndex) : focusIndex;
+  if (detail.command === "selection.set") demo.dataset.gestureSelectionAnchor = String(focusIndex);
+  const selected: string[] = [];
+  items.forEach((item, index) => {
+    const isSelected = index >= start && index <= end;
+    item.toggleAttribute("data-gesture-selected", isSelected);
+    item.setAttribute("aria-selected", String(isSelected));
+    if (isSelected && item.dataset.gestureSelectionKey) {
+      selected.push(item.dataset.gestureSelectionKey);
+    }
+  });
+  if (output) output.value = `${detail.command} · ${selected.join(" ")}`;
+  if (state) state.textContent = detail.command === "selection.extend" ? "range" : "anchor";
+}
+
+function syncGestureScrubber(demo: HTMLElement, value: number): void {
+  const normalized = clampGestureValue(value);
+  demo.dataset.gestureValue = String(normalized);
+  demo.style.setProperty("--gesture-progress", `${normalized}%`);
+  const progress = demo.querySelector<HTMLElement>("[data-gesture-progress]");
+  progress?.setAttribute("value", String(normalized));
+  progress?.setAttribute("label", `Timeline position ${Math.round(normalized)} percent`);
+  const valueOutput = demo.querySelector<HTMLOutputElement>("[data-gesture-value-output]");
+  if (valueOutput) valueOutput.value = `${Math.round(normalized)}%`;
+}
+
+function updateGestureScrubber(
+  demo: HTMLElement,
+  target: HTMLElement,
+  detail: CatalogGestureCommandDetail,
+): void {
+  if (!demo.hasAttribute("data-gesture-scrubber")) return;
+  const current = Number(demo.dataset.gestureValue ?? 0);
+  if (detail.command === "timeline.step-back" || detail.command === "timeline.step-forward") {
+    const shouldStep =
+      detail.gesture === "key"
+        ? detail.phase === "began" || detail.phase === "changed"
+        : detail.phase === "ended";
+    if (!shouldStep) return;
+    syncGestureScrubber(demo, current + (detail.command.endsWith("forward") ? 5 : -5));
+    return;
+  }
+  if (detail.command !== "timeline.scrub") return;
+  if (detail.gesture === "wheel") {
+    if (detail.phase !== "began" && detail.phase !== "changed") return;
+    const wheel = detail.value.wheel ?? { x: 0, y: 0 };
+    syncGestureScrubber(demo, current - (wheel.y || wheel.x) * 0.1);
+    return;
+  }
+  const track = target.matches("#gesture-scrub-track")
+    ? target
+    : demo.querySelector<HTMLElement>("#gesture-scrub-track");
+  if (!track) return;
+  if (detail.phase === "began") demo.dataset.gestureScrubOrigin = String(current);
+  const origin = Number(demo.dataset.gestureScrubOrigin ?? current);
+  if (detail.phase === "cancelled") {
+    syncGestureScrubber(demo, origin);
+    delete demo.dataset.gestureScrubOrigin;
+    return;
+  }
+  const movement = detail.value.movement ?? { x: 0, y: 0 };
+  syncGestureScrubber(demo, origin + (movement.x / Math.max(1, track.clientWidth)) * 100);
+  if (detail.phase === "ended") delete demo.dataset.gestureScrubOrigin;
+}
+
+function updateGesturePreview(
+  demo: HTMLElement,
+  target: HTMLElement,
+  detail: CatalogGestureCommandDetail,
+): void {
+  if (!demo.hasAttribute("data-gesture-preview-demo") || detail.command !== "preview.project") {
+    return;
+  }
+  const items = demo.querySelectorAll<HTMLElement>("[data-gesture-preview-title]");
+  const card = demo.querySelector<HTMLElement>("[data-gesture-preview-card]");
+  const title = card?.querySelector<HTMLElement>("[data-gesture-preview-card-title]");
+  const copy = card?.querySelector<HTMLElement>("[data-gesture-preview-card-copy]");
+  if (!card || !title || !copy) return;
+  items.forEach((item) => item.removeAttribute("data-gesture-preview-active"));
+  if (detail.phase === "began") {
+    target.setAttribute("data-gesture-preview-active", "");
+    title.textContent = target.dataset.gesturePreviewTitle ?? "Project preview";
+    copy.textContent = target.dataset.gesturePreviewCopy ?? "";
+    return;
+  }
+  if (detail.phase === "ended" || detail.phase === "cancelled") {
+    title.textContent = "Hover a project";
+    copy.textContent = "Transient preview state appears here.";
+  }
+}
+
+document.addEventListener("mash-command", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const demo = target.closest<HTMLElement>("[data-catalog-gesture-demo]");
+  if (!demo) return;
+  const detail = (event as CustomEvent<CatalogGestureCommandDetail>).detail;
+  const output = demo.querySelector<HTMLOutputElement>("[data-catalog-gesture-output]");
+  const state = demo.querySelector<HTMLElement>("[data-catalog-gesture-state]");
+  if (output) output.value = `${detail.command} · ${detail.gesture} · ${detail.phase}`;
+  if (state) state.textContent = detail.phase;
+
+  updateGestureSelection(demo, target, detail, output, state);
+  updateGestureScrubber(demo, target, detail);
+  updateGesturePreview(demo, target, detail);
+
+  if (detail.command === "workspace.inspect" && detail.phase === "ended") {
+    target.toggleAttribute("data-gesture-selected");
+  }
+  if (detail.command === "canvas.select" && detail.phase === "ended") {
+    target.toggleAttribute("data-gesture-selected");
+  }
+  if (detail.command === "canvas.preview" && detail.phase === "ended") {
+    target.toggleAttribute("data-gesture-preview");
+  }
+  if (detail.command !== "canvas.move") return;
+
+  const movement = detail.value.movement ?? { x: 0, y: 0 };
+  const originX = Number(target.dataset.gestureOriginX ?? target.dataset.gestureX ?? 0);
+  const originY = Number(target.dataset.gestureOriginY ?? target.dataset.gestureY ?? 0);
+  if (detail.phase === "began") {
+    target.dataset.gestureOriginX = String(originX);
+    target.dataset.gestureOriginY = String(originY);
+  }
+  if (detail.phase === "began" || detail.phase === "changed" || detail.phase === "ended") {
+    const x = originX + movement.x;
+    const y = originY + movement.y;
+    target.style.setProperty("--gesture-x", `${x}px`);
+    target.style.setProperty("--gesture-y", `${y}px`);
+    if (detail.phase === "ended") {
+      target.dataset.gestureX = String(x);
+      target.dataset.gestureY = String(y);
+      delete target.dataset.gestureOriginX;
+      delete target.dataset.gestureOriginY;
+    }
+  }
+  if (detail.phase === "cancelled") {
+    target.style.setProperty("--gesture-x", `${originX}px`);
+    target.style.setProperty("--gesture-y", `${originY}px`);
+    delete target.dataset.gestureOriginX;
+    delete target.dataset.gestureOriginY;
+  }
+});
+
+document.addEventListener("mash-gesture-state", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const demo = target.closest<HTMLElement>("[data-catalog-gesture-demo]");
+  if (!demo) return;
+  const detail = (event as CustomEvent<{ command: string; state: string }>).detail;
+  const state = demo.querySelector<HTMLElement>("[data-catalog-gesture-state]");
+  if (state) state.textContent = detail.state;
+});
+
+document.addEventListener("ui-scroll-area-target", (event) => {
+  const source = event.target;
+  if (!(source instanceof HTMLElement) || !source.matches("[data-catalog-scroll-targets]")) return;
+  const detail = (event as CustomEvent<{ target: string | null }>).detail;
+  if (!detail.target) return;
+  const composition = source.closest<HTMLElement>("[data-catalog-scroll-breadcrumb]");
+  if (!composition) return;
+  const title = detail.target.replaceAll("-", " ").replace(/^./, (value) => value.toUpperCase());
+  const path = composition.querySelector<HTMLElement>("ui-path");
+  const titleSlot = composition.querySelector<HTMLElement>(
+    "[data-catalog-scroll-breadcrumb-title]",
+  );
+  const output = composition.querySelector<HTMLElement>("[data-catalog-scroll-target-output]");
+  path?.setAttribute("path", `/interzone/foundations/scrolling/${detail.target}`);
+  if (titleSlot) titleSlot.textContent = title;
+  if (output) output.textContent = detail.target;
+});
+
+document.addEventListener("mash-motion-end", (event) => {
+  const source = event.target;
+  if (!(source instanceof HTMLElement) || !source.matches("[data-catalog-motion]")) return;
+  const output = source
+    .closest<HTMLElement>("[data-catalog-motion-demo]")
+    ?.querySelector<HTMLOutputElement>("[data-catalog-motion-output]");
+  const detail = (event as CustomEvent<{ state: string; interrupted: boolean }>).detail;
+  if (output)
+    output.textContent = detail.interrupted
+      ? `${detail.state} interrupted`
+      : `${detail.state} complete`;
+});
+
+document.addEventListener("ui-resizable-change", (event) => {
+  const group = event.target;
+  if (group instanceof HTMLElement && group.matches("[data-catalog-resizable-group]")) {
+    syncCatalogResizableOutput(group as CatalogResizable);
+  }
 });
 
 type MashValueElement = HTMLElement & { value?: string };
@@ -1450,6 +1786,97 @@ document.addEventListener("keydown", (event) => {
     event.preventDefault();
     linearOpenIssue(workspace, state.highlighted);
   }
+});
+
+interface CatalogDataTableSelectionDetail {
+  columnIndex: number | null;
+  extended: boolean;
+  key: string;
+  range: {
+    anchor: { columnIndex: number | null; key: string; rowIndex: number | null };
+    focus: { columnIndex: number | null; key: string; rowIndex: number | null };
+  };
+  reason: "keyboard" | "pointer" | "imperative";
+  rowIndex: number | null;
+  selection: "none" | "row" | "column" | "cell";
+}
+
+type CatalogDataTable = HTMLElement & { selected: string };
+
+function dataTableCoordinateLabel(
+  dataTable: HTMLElement,
+  detail: CatalogDataTableSelectionDetail,
+): string {
+  const workbook = dataTable.dataset.catalogWorkbook !== undefined;
+  const label = (rowIndex: number | null, columnIndex: number | null): string => {
+    if (detail.selection === "row") {
+      const row = workbook && rowIndex !== null ? rowIndex - 1 : rowIndex;
+      return `Row ${row ?? "—"}`;
+    }
+    if (detail.selection === "column") {
+      const column = workbook && columnIndex !== null ? columnIndex - 1 : columnIndex;
+      return workbook && column !== null
+        ? `Column ${String.fromCharCode(64 + Math.max(1, column))}`
+        : `Column ${column ?? "—"}`;
+    }
+    if (rowIndex === null || columnIndex === null) return "No cell";
+    const column = workbook ? columnIndex - 1 : columnIndex;
+    const row = rowIndex - 1;
+    return `${String.fromCharCode(64 + Math.max(1, column))}${Math.max(1, row)}`;
+  };
+  const focus = label(detail.rowIndex, detail.columnIndex);
+  if (!detail.extended || detail.range.anchor.key === detail.range.focus.key) return focus;
+  return `${label(detail.range.anchor.rowIndex, detail.range.anchor.columnIndex)}–${focus}`;
+}
+
+document.addEventListener("ui-data-table-select", (event) => {
+  const dataTable = event.target as CatalogDataTable;
+  if (!dataTable.matches("[data-catalog-data-table]")) return;
+  const detail = (event as CustomEvent<CatalogDataTableSelectionDetail>).detail;
+  dataTable.selected = detail.key;
+  const coordinate = dataTableCoordinateLabel(dataTable, detail);
+  const coordinateOutput = dataTable.querySelector<HTMLOutputElement>(
+    "[data-catalog-data-table-coordinate]",
+  );
+  if (coordinateOutput) coordinateOutput.value = coordinate;
+  const selectionOutput = dataTable.querySelector<HTMLOutputElement>(
+    "[data-catalog-data-table-selection]",
+  );
+  if (selectionOutput) selectionOutput.value = `${coordinate} selected`;
+  if (detail.rowIndex === null || detail.columnIndex === null) return;
+  const cell = dataTable.querySelector<HTMLElement>(
+    `ui-table-row[row-index="${detail.rowIndex}"] ui-table-cell[column-index="${detail.columnIndex}"]`,
+  );
+  const formula = dataTable.querySelector<MashValueElement>("[data-catalog-data-table-formula]");
+  if (formula) formula.value = cell?.dataset.formula ?? cell?.textContent?.trim() ?? "";
+});
+
+document.addEventListener("ui-data-table-activate", (event) => {
+  const dataTable = event.target as HTMLElement;
+  if (!dataTable.matches("[data-catalog-data-table]")) return;
+  const detail = (event as CustomEvent<CatalogDataTableSelectionDetail>).detail;
+  if (detail.rowIndex === null || detail.columnIndex === null) return;
+  const cell = dataTable.querySelector<HTMLElement>(
+    `ui-table-row[row-index="${detail.rowIndex}"] ui-table-cell[column-index="${detail.columnIndex}"]`,
+  );
+  const editor = cell?.querySelector<MashOverlayElement>("ui-popover");
+  editor?.show?.();
+});
+
+document.addEventListener("ui-tree-select", (event) => {
+  const explorer = (event.target as HTMLElement).closest<HTMLElement>(
+    "[data-catalog-data-explorer]",
+  );
+  if (!explorer) return;
+  const value = (event as CustomEvent<{ value: string }>).detail.value;
+  const items = [...explorer.querySelectorAll<HTMLElement>("ui-tree-item")];
+  for (const item of items) item.toggleAttribute("selected", item.getAttribute("value") === value);
+  const selected = items.find((item) => item.getAttribute("value") === value);
+  const label =
+    selected?.querySelector<HTMLElement>(":scope > [slot='label']")?.textContent?.trim() ?? value;
+  const workspace = explorer.closest("ui-resizable");
+  const title = workspace?.querySelector<HTMLElement>("[data-catalog-data-explorer-title]");
+  if (title) title.textContent = label;
 });
 
 document.documentElement.dataset.stageReady = "true";

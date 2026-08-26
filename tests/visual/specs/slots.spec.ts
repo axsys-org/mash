@@ -275,16 +275,13 @@ test.describe("catalog slot composition", () => {
         ...node.shadowRoot!.querySelectorAll<HTMLAnchorElement>('[part~="segment-link"]'),
       ];
       const current = node.shadowRoot!.querySelector<HTMLElement>('[part~="segment-current"]')!;
-      const overflow = node.shadowRoot!.querySelector<HTMLElement>('[part~="overflow-start"]')!;
       return {
         role: root.getAttribute("role"),
         hrefs: links.map((link) => link.getAttribute("href")),
         current: current.getAttribute("aria-current"),
         clipped: viewport.scrollWidth > viewport.clientWidth,
         alignedEnd: Math.abs(viewport.scrollLeft) > 0,
-        overflowDisplay: getComputedStyle(overflow).display,
-        progressiveBlur: getComputedStyle(overflow).backdropFilter,
-        progressiveMask: getComputedStyle(overflow).maskImage,
+        viewportMask: getComputedStyle(viewport).maskImage,
       };
     });
 
@@ -298,9 +295,7 @@ test.describe("catalog slot composition", () => {
     expect(breadcrumbContract.current).toBe("page");
     expect(breadcrumbContract.clipped).toBe(true);
     expect(breadcrumbContract.alignedEnd).toBe(true);
-    expect(breadcrumbContract.overflowDisplay).not.toBe("none");
-    expect(breadcrumbContract.progressiveBlur).not.toBe("none");
-    expect(breadcrumbContract.progressiveMask).not.toBe("none");
+    expect(breadcrumbContract.viewportMask).not.toBe("none");
 
     await page.goto("/components/ui-path?theme=light&example=Preview+overflow");
     const paths = preview.locator(".example-path-case ui-path");
@@ -321,18 +316,13 @@ test.describe("catalog slot composition", () => {
       .toBe(true);
     const treeOverflow = await longTreeItem.evaluate((node) => {
       const viewport = node.shadowRoot!.querySelector<HTMLElement>('[part="label-viewport"]')!;
-      const overflow = node.shadowRoot!.querySelector<HTMLElement>('[part~="overflow-end"]')!;
       return {
         clipped: viewport.scrollWidth > viewport.clientWidth,
-        overflowDisplay: getComputedStyle(overflow).display,
-        progressiveBlur: getComputedStyle(overflow).backdropFilter,
-        progressiveMask: getComputedStyle(overflow).maskImage,
+        viewportMask: getComputedStyle(viewport).maskImage,
       };
     });
     expect(treeOverflow.clipped).toBe(true);
-    expect(treeOverflow.overflowDisplay).not.toBe("none");
-    expect(treeOverflow.progressiveBlur).not.toBe("none");
-    expect(treeOverflow.progressiveMask).not.toBe("none");
+    expect(treeOverflow.viewportMask).not.toBe("none");
   });
 
   test("keeps tree rows aligned and controlled pagination live", async ({ page }) => {
