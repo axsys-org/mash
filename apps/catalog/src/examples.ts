@@ -3583,6 +3583,247 @@ const curated: Record<string, CatalogExample[]> = {
       { compositionOnly: true },
     ),
   ],
+  "sh-tree": [
+    example(
+      "Inline path lanes",
+      `
+        <div class="catalog-example example-sh-tree-hover-stage" data-catalog-gesture-demo data-shrine-path-preview-stage>
+          <ui-context-menu class="example-sh-tree-context" data-shrine-tree-context label="Shrine path actions" density="compact">
+            <sh-tree slot="trigger" variant="inline" class="example-sh-tree example-sh-tree-inline">
+            <ui-tree slot="tree" label="Addressable Shrine path history">
+              <ui-tree-item value="KTK-1" path="/work/KTK-1" title="Stitch revision topology" kind="folder" expanded current selected data-shrine-lane="0" data-shrine-parents="MIR-8">
+                <ui-path id="shrine-path-ktk-1" slot="label" size="small" path="/work/KTK-1"><span slot="title">Stitch revision topology</span></ui-path>
+                <span slot="meta">current</span>
+                <ui-menu slot="actions" label="KTK-1 actions" density="mini">
+                  <ui-button slot="trigger" size="small" variant="quiet" aria-label="Open KTK-1 actions">•••</ui-button>
+                  <ui-menu-item value="open">Open path</ui-menu-item>
+                  <ui-menu-item value="overlay">Show overlays</ui-menu-item>
+                  <ui-menu-item value="copy">Copy address</ui-menu-item>
+                </ui-menu>
+                <ui-tree-item slot="children" value="KTK-1/overlay" path="/work/KTK-1/overlays/invoice" title="Invoice overlay" data-shrine-lane="1" data-shrine-parents="KTK-1">
+                  <ui-path id="shrine-path-ktk-overlay" slot="label" size="small" path="/work/KTK-1/overlays/invoice"><span slot="title">Invoice overlay</span></ui-path>
+                  <ui-badge slot="meta" size="small" tone="warning">x→x</ui-badge>
+                </ui-tree-item>
+                <ui-tree-item slot="children" value="KTK-1/source" path="/work/KTK-1/source" title="Source witness" data-shrine-lane="2" data-shrine-parents="KTK-1">
+                  <ui-path id="shrine-path-ktk-source" slot="label" size="small" path="/work/KTK-1/source"><span slot="title">Source witness</span></ui-path>
+                  <span slot="meta">child</span>
+                </ui-tree-item>
+              </ui-tree-item>
+              <ui-tree-item value="MIR-8" path="/work/MIR-8" title="Reconcile namespace witnesses" kind="folder" expanded data-shrine-lane="0" data-shrine-parents="BASE-1">
+                <ui-path id="shrine-path-mir-8" slot="label" size="small" path="/work/MIR-8"><span slot="title">Reconcile namespace witnesses</span></ui-path>
+                <span slot="meta">parent</span>
+                <ui-menu slot="actions" label="MIR-8 actions" density="mini">
+                  <ui-button slot="trigger" size="small" variant="quiet" aria-label="Open MIR-8 actions">•••</ui-button>
+                  <ui-menu-item value="open">Open path</ui-menu-item>
+                  <ui-menu-item value="new-child">Create child</ui-menu-item>
+                  <ui-menu-item value="copy">Copy address</ui-menu-item>
+                </ui-menu>
+                <ui-tree-item slot="children" value="MIR-8/records" path="/work/MIR-8/records" title="Projected records" data-shrine-lane="3" data-shrine-parents="MIR-8">
+                  <ui-path id="shrine-path-mir-records" slot="label" size="small" path="/work/MIR-8/records"><span slot="title">Projected records</span></ui-path>
+                  <ui-badge slot="meta" size="small">overlay</ui-badge>
+                </ui-tree-item>
+              </ui-tree-item>
+              <ui-tree-item value="BASE-1" path="/work/BASE-1" title="Addressable Shrine lineage" data-shrine-lane="0">
+                <ui-path id="shrine-path-base-1" slot="label" size="small" path="/work/BASE-1"><span slot="title">Addressable Shrine lineage</span></ui-path>
+                <span slot="meta">root</span>
+              </ui-tree-item>
+              </ui-tree>
+            </sh-tree>
+            <ui-menu-item value="open"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Open <span data-shrine-context-title>path node</span></ui-menu-item>
+            <ui-menu-item value="reveal">Reveal in namespace tree</ui-menu-item>
+            <ui-menu-item value="copy-path">Copy <code data-shrine-context-path>/</code><ui-kbd slot="shortcut" command="path.copy" shortcut="Primary+Shift+C"></ui-kbd></ui-menu-item>
+            <ui-menu-item value="overlay">Inspect x→x overlays</ui-menu-item>
+            <ui-separator></ui-separator>
+            <ui-menu-item value="detach" tone="critical">Detach projection</ui-menu-item>
+          </ui-context-menu>
+          <ui-preview-card class="example-sh-tree-hover-preview" data-shrine-path-preview label="Shrine path preview" trigger="manual" placement="right" align="center" offset="12" collision-padding="12" open-delay="140" close-delay="320">
+            <sh-myth variant="preview" kind="Branch" title="Stitch revision topology" path="/work/KTK-1" data-shrine-preview-myth>
+              <sh-limb>
+                <sh-slot slot="label" title="node"></sh-slot>
+                <sh-pail slot="value" text="KTK-1" data-shrine-preview-value></sh-pail>
+              </sh-limb>
+              <sh-limb>
+                <sh-slot slot="label" title="lane"></sh-slot>
+                <sh-pail slot="value" text="0" data-shrine-preview-lane></sh-pail>
+              </sh-limb>
+              <sh-limb>
+                <sh-slot slot="label" title="children"></sh-slot>
+                <sh-pail slot="value" text="2" data-shrine-preview-children></sh-pail>
+              </sh-limb>
+              <sh-limb>
+                <sh-slot slot="label" title="relation"></sh-slot>
+                <ui-badge slot="value" size="small" data-shrine-preview-relation>current</ui-badge>
+              </sh-limb>
+              <nav slot="actions" class="example-sh-tree-preview-actions" aria-label="Previewed path actions">
+                <ui-link data-shrine-preview-open href="#KTK-1"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Open path</ui-link>
+                <ui-link data-shrine-preview-reveal href="#KTK-1-reveal">Reveal in namespace</ui-link>
+              </nav>
+            </sh-myth>
+          </ui-preview-card>
+          <ui-gesture-binding for="shrine-path-ktk-1" gesture="hover" command="preview.shrine-path" group="shrine-path-preview"></ui-gesture-binding>
+          <ui-gesture-binding for="shrine-path-ktk-overlay" gesture="hover" command="preview.shrine-path" group="shrine-path-preview"></ui-gesture-binding>
+          <ui-gesture-binding for="shrine-path-ktk-source" gesture="hover" command="preview.shrine-path" group="shrine-path-preview"></ui-gesture-binding>
+          <ui-gesture-binding for="shrine-path-mir-8" gesture="hover" command="preview.shrine-path" group="shrine-path-preview"></ui-gesture-binding>
+          <ui-gesture-binding for="shrine-path-mir-records" gesture="hover" command="preview.shrine-path" group="shrine-path-preview"></ui-gesture-binding>
+          <ui-gesture-binding for="shrine-path-base-1" gesture="hover" command="preview.shrine-path" group="shrine-path-preview"></ui-gesture-binding>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Each row begins beside its own data lane while ui-tree still owns hierarchy, disclosure, roving focus, and selection. Declarative hover bindings emit preview commands that the recipe realizes as a right-anchored provenance card; focus, row actions, and right-click commands remain independently available.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Mixed node forms",
+      `
+        <sh-tree variant="inline" class="catalog-example example-sh-tree example-sh-tree-inline">
+          <ui-tree slot="tree" label="Mixed Shrine node pronunciations">
+            <ui-tree-item value="HEAD" path="/revisions/head" title="Current revision" current selected data-shrine-capsule="HEAD" data-shrine-lane="0" data-shrine-parents="MAIN">
+              <ui-path slot="label" size="small" path="/revisions/head"><span slot="title">Current revision</span></ui-path>
+              <span slot="meta">capsule opt-in</span>
+            </ui-tree-item>
+            <ui-tree-item value="PATCH" path="/revisions/patch" title="Overlay patch" data-shrine-lane="2" data-shrine-parents="MAIN">
+              <ui-path slot="label" size="small" path="/revisions/patch"><span slot="title">Overlay patch</span></ui-path>
+              <span slot="meta">regular node</span>
+            </ui-tree-item>
+            <ui-tree-item value="MAIN" path="/revisions/main" title="Main witness" data-shrine-lane="0">
+              <ui-path slot="label" size="small" path="/revisions/main"><span slot="title">Main witness</span></ui-path>
+              <span slot="meta">regular node</span>
+            </ui-tree-item>
+          </ui-tree>
+        </sh-tree>`,
+      {
+        compositionOnly: true,
+        description:
+          "Regular nodes are the inline default. data-shrine-capsule opt-in changes only a node's pronunciation; it keeps the same path identity and selection contract.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "KTK-1 trace ledger",
+      `
+        <sh-tree variant="ledger" class="catalog-example example-sh-tree example-sh-tree-ledger">
+          <ui-tree slot="tree" label="KTK-1 Shrine trace ledger">
+            <ui-tree-item value="KTK-1" title="Stitch revision topology into the Shrine tree" current selected data-shrine-lane="0" data-shrine-parents="MIR-8">
+              <ui-path slot="label" size="small" path="/trace/KTK-1"><span slot="title">Stitch revision topology into the Shrine tree</span></ui-path>
+              <ui-badge slot="meta" tone="positive">KTK-1 · current</ui-badge>
+            </ui-tree-item>
+            <ui-tree-item value="MIR-8" title="Reconcile projected namespace witnesses" data-shrine-lane="0" data-shrine-parents="AXL-6 VEL-3">
+              <ui-path slot="label" size="small" path="/trace/MIR-8"><span slot="title">Reconcile projected namespace witnesses</span></ui-path>
+              <span slot="meta">MIR-8 · now</span>
+            </ui-tree-item>
+            <ui-tree-item value="AXL-6" title="Admit stable path identities" data-shrine-lane="0" data-shrine-parents="AXL-5">
+              <ui-path slot="label" size="small" path="/trace/AXL-6"><span slot="title">Admit stable path identities</span></ui-path>
+              <ui-badge slot="meta">main trace</ui-badge>
+            </ui-tree-item>
+            <ui-tree-item value="VEL-3" title="Carry revision provenance through the catalogue" data-shrine-lane="3" data-shrine-parents="VEL-2">
+              <ui-path slot="label" size="small" path="/trace/VEL-3"><span slot="title">Carry revision provenance through the catalogue</span></ui-path>
+              <ui-badge slot="meta" tone="warning">projection</ui-badge>
+            </ui-tree-item>
+            <ui-tree-item value="AXL-5" title="Sew semantic handles into record rows" data-shrine-lane="0" data-shrine-parents="AXL-4 ORB-2">
+              <ui-path slot="label" size="small" path="/trace/AXL-5"><span slot="title">Sew semantic handles into record rows</span></ui-path>
+              <span slot="meta">AXL-5 · 14m</span>
+            </ui-tree-item>
+            <ui-tree-item value="ORB-2" title="Prototype alternate locator pronunciation" data-shrine-lane="5" data-shrine-parents="ORB-1">
+              <ui-path slot="label" size="small" path="/trace/ORB-2"><span slot="title">Prototype alternate locator pronunciation</span></ui-path>
+              <ui-badge slot="meta" tone="critical">detached</ui-badge>
+            </ui-tree-item>
+            <ui-tree-item value="VEL-2" title="Normalize trace color roles" data-shrine-lane="3" data-shrine-parents="JOIN-4">
+              <ui-path slot="label" size="small" path="/trace/VEL-2"><span slot="title">Normalize trace color roles</span></ui-path>
+              <span slot="meta">VEL-2 · 31m</span>
+            </ui-tree-item>
+            <ui-tree-item value="AXL-4" title="Preserve tree keyboard ownership" data-shrine-lane="0" data-shrine-parents="BASE-1">
+              <ui-path slot="label" size="small" path="/trace/AXL-4"><span slot="title">Preserve tree keyboard ownership</span></ui-path>
+              <span slot="meta">AXL-4 · 42m</span>
+            </ui-tree-item>
+            <ui-tree-item value="ORB-1" title="Test an independent material branch" data-shrine-lane="5" data-shrine-parents="JOIN-4">
+              <ui-path slot="label" size="small" path="/trace/ORB-1"><span slot="title">Test an independent material branch</span></ui-path>
+              <span slot="meta">ORB-1 · 1h</span>
+            </ui-tree-item>
+            <ui-tree-item value="JOIN-4" title="Join projected histories without rewriting identity" data-shrine-lane="2" data-shrine-parents="BASE-1">
+              <ui-path slot="label" size="small" path="/trace/JOIN-4"><span slot="title">Join projected histories without rewriting identity</span></ui-path>
+              <ui-badge slot="meta" tone="positive">witnessed</ui-badge>
+            </ui-tree-item>
+            <ui-tree-item value="BASE-1" title="Establish the first addressable Shrine lineage" data-shrine-lane="0">
+              <ui-path slot="label" size="small" path="/trace/BASE-1"><span slot="title">Establish the first addressable Shrine lineage</span></ui-path>
+              <span slot="meta">BASE-1 · yesterday</span>
+            </ui-tree-item>
+          </ui-tree>
+        </sh-tree>`,
+      {
+        compositionOnly: true,
+        description:
+          "A Shrine-native history view: flat records, dense colored topology, no nested branch guides, and the same ui-tree keyboard and selection contract.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Revision graph",
+      `
+        <sh-tree class="catalog-example example-sh-tree">
+          <ui-tree slot="tree" label="Shrine revision graph">
+            <ui-tree-item value="head" title="AXI-37 Shrine revision graph" current selected data-shrine-lane="0" data-shrine-parents="merge">
+              <span slot="icon" aria-hidden="true">◆</span>
+              <span slot="meta"><ui-badge tone="positive">HEAD</ui-badge></span>
+            </ui-tree-item>
+            <ui-tree-item value="merge" title="Merge catalogue conformance" data-shrine-lane="0" data-shrine-parents="main feature-a">
+              <span slot="meta">0bce38b · 8m</span>
+            </ui-tree-item>
+            <ui-tree-item value="main" title="Normalize component recipes" data-shrine-lane="0" data-shrine-parents="base">
+              <span slot="meta"><ui-badge>main</ui-badge></span>
+            </ui-tree-item>
+            <ui-tree-item value="feature-a" title="Add progressive path masks" data-shrine-lane="2" data-shrine-parents="feature-b">
+              <span slot="meta"><ui-badge tone="warning">AXI-62</ui-badge></span>
+            </ui-tree-item>
+            <ui-tree-item value="feature-b" title="Expose semantic overflow parts" data-shrine-lane="2" data-shrine-parents="base">
+              <span slot="meta">ae91d4c · 2h</span>
+            </ui-tree-item>
+            <ui-tree-item value="base" title="Establish Mash component foundations" data-shrine-lane="0">
+              <span slot="meta">c4a23f1 · yesterday</span>
+            </ui-tree-item>
+          </ui-tree>
+        </sh-tree>`,
+      {
+        compositionOnly: true,
+        description:
+          "Revision lanes are a decorative projection. The slotted ui-tree remains the only owner of selection, roving focus, typeahead, and ARIA.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Expandable change sets",
+      `
+        <sh-tree class="catalog-example example-sh-tree">
+          <ui-tree slot="tree" label="Expandable Shrine changes">
+            <ui-tree-item value="rev-current" kind="folder" title="Checkpoint namespace migration" expanded current data-shrine-lane="0" data-shrine-parents="rev-parent">
+              <ui-badge slot="meta" tone="positive">current</ui-badge>
+              <ui-tree-item slot="children" value="path-preserved" title="/foo" kind="folder" expanded data-shrine-graph="none">
+                <ui-badge slot="meta">preserved</ui-badge>
+                <ui-tree-item slot="children" value="path-preserved-leaf" title="/foo/baz" data-shrine-graph="none">
+                  <span slot="meta">addressable child</span>
+                </ui-tree-item>
+              </ui-tree-item>
+              <ui-tree-item slot="children" value="path-compacted" title="/records/archive/import" data-shrine-graph="none" data-shrine-compressed-from="/records /records/archive">
+                <ui-badge slot="meta" tone="warning">compacted projection</ui-badge>
+              </ui-tree-item>
+            </ui-tree-item>
+            <ui-tree-item value="rev-parent" title="Define namespace contracts" data-shrine-lane="0" data-shrine-parents="rev-branch">
+              <span slot="meta">parent</span>
+            </ui-tree-item>
+            <ui-tree-item value="rev-branch" title="Admit projected records" data-shrine-lane="1">
+              <span slot="meta"><ui-badge>branch</ui-badge></span>
+            </ui-tree-item>
+          </ui-tree>
+        </sh-tree>`,
+      {
+        compositionOnly: true,
+        description:
+          "Meaningful intermediate namespaces remain real tree items. A semantically empty linear chain may instead be compacted by the authoring projection and records its source explicitly.",
+        stageLayout: "start",
+      },
+    ),
+  ],
   "sh-triptych": [
     example(
       "Application sidebar composition",

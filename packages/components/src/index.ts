@@ -141,6 +141,7 @@ export { UIProgress } from "./progress/progress.js";
 export type { ProgressTone } from "./progress/progress.js";
 export { UIPopover } from "./popover/popover.js";
 export { UIPreviewCard } from "./preview-card/preview-card.js";
+export type { PreviewCardTrigger } from "./preview-card/preview-card.js";
 export { UIRadio } from "./radio/radio.js";
 export { UIRadioGroup } from "./radio-group/radio-group.js";
 export type { RadioGroupOrientation } from "./radio-group/radio-group.js";

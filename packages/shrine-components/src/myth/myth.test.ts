@@ -84,4 +84,22 @@ describe("sh-myth", () => {
     expect(inShadow<HTMLElement>(element, "[part=kind]").hidden).toBe(true);
     expect(inShadow<HTMLElement>(element, "[part=path]").hidden).toBe(true);
   });
+
+  it("reflects the compact preview pronunciation without changing its anatomy", async () => {
+    const element = await fixture<ShrineMyth>(`
+      <sh-myth variant="preview" kind="Path node" title="Source witness" path="/work/KTK-1/source">
+        <sh-limb>
+          <sh-slot slot="label" title="lane"></sh-slot>
+          <sh-pail slot="value" text="2"></sh-pail>
+        </sh-limb>
+        <a slot="actions" href="#source">Open source</a>
+      </sh-myth>
+    `);
+
+    expect(element.variant).toBe("preview");
+    expect(element.getAttribute("variant")).toBe("preview");
+    expect(inShadow(element, "ui-card")).toBeDefined();
+    expect(element.querySelector("sh-limb")).not.toBeNull();
+    expect(inShadow(element, "[part=actions]").getAttribute("slot")).toBe("footer");
+  });
 });

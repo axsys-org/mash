@@ -273,4 +273,28 @@ describe("overlay authored-slot realizations", () => {
     await new Promise((resolve) => window.setTimeout(resolve, 10));
     expect(preview.open).toBe(false);
   });
+
+  it("leaves a manually anchored preview under its external interaction owner", async () => {
+    const preview = await fixture<
+      HTMLElement & { open: boolean; show: (reason?: string) => void }
+    >(`
+      <ui-preview-card label="External preview" trigger="manual" close-delay="5">
+        <a href="#open">Open path</a>
+      </ui-preview-card>
+    `);
+
+    preview.show("hover");
+    await settled(preview);
+    preview.dispatchEvent(
+      new PointerEvent("pointerout", {
+        bubbles: true,
+        composed: true,
+        relatedTarget: document.body,
+      }),
+    );
+    await new Promise((resolve) => window.setTimeout(resolve, 10));
+
+    expect(preview.open).toBe(true);
+    expect(preview.getAttribute("trigger")).toBe("manual");
+  });
 });

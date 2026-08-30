@@ -116,6 +116,30 @@ describe("ui-tree", () => {
     expect(selections).toEqual([{ value: "billing", reason: "keyboard", index: 1 }]);
   });
 
+  it("does not consume keyboard input from authored row actions", async () => {
+    const tree = await fixture<UITree>(`
+      <ui-tree>
+        <ui-tree-item value="alpha">Alpha<button slot="actions">More</button></ui-tree-item>
+        <ui-tree-item value="billing">Billing</ui-tree-item>
+      </ui-tree>
+    `);
+    const [alpha, billing] = [...tree.querySelectorAll<HTMLElement>("ui-tree-item")];
+    const action = alpha!.querySelector<HTMLButtonElement>('button[slot="actions"]')!;
+    const selections: string[] = [];
+    tree.addEventListener("ui-tree-select", (event) => {
+      selections.push((event as CustomEvent<{ value: string }>).detail.value);
+    });
+
+    action.focus();
+    action.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
+    );
+
+    expect(document.activeElement).toBe(action);
+    expect(shadow(billing!).activeElement).not.toBe(inShadow(billing!, '[part="control"]'));
+    expect(selections).toEqual([]);
+  });
+
   it("reveals identified nested items through controlled ancestor requests", async () => {
     const tree = await fixture<UITree>(`
       <ui-tree>

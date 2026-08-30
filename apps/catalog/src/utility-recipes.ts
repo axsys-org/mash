@@ -334,6 +334,15 @@ const stageRecipes: UtilityRecipes = {
   "example-data-explorer-table":
     "h-full min-h-0 [&::part(root)]:h-full [&::part(viewport)]:min-h-0",
   "example-tree-narrow": "w-[min(100%,22rem)]!",
+  "example-sh-tree":
+    "w-[min(100%,52rem)]! min-w-0 [&>ui-tree::part(root)]:rounded-none! [&>ui-tree::part(root)]:border-0! [&>ui-tree::part(root)]:bg-transparent!",
+  "example-sh-tree-ledger": "w-[min(100%,64rem)]!",
+  "example-sh-tree-context": "block w-[min(100%,40rem)]!",
+  "example-sh-tree-inline": "w-full!",
+  "example-sh-tree-hover-stage": "relative block w-[min(100%,64rem)]!",
+  "example-sh-tree-hover-preview":
+    "[&::part(popup)]:w-[min(20rem,calc(100vw-var(--space-region)*2))] [&::part(popup)]:gap-0 [&::part(popup)]:p-control-inline [&::part(title)]:hidden [&::part(description)]:hidden",
+  "example-sh-tree-preview-actions": "grid gap-[var(--border-hairline)]",
   "example-drag-boundary":
     "relative grid h-full min-h-compact w-full place-items-center overflow-hidden bg-surface-sunken px-container-inline py-container-block",
   "example-drag-titlebar":
@@ -692,6 +701,19 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-data-table-modes ui-data-table", "min-w-0"],
   [".example-workbook-toolbar ui-toolbar", "min-w-max"],
   [".example-workbook ui-table-cell[column-index='1']", "type-code text-text-muted"],
+  [
+    ".example-sh-tree-ledger ui-tree-item",
+    "[&::part(children)]:ms-0! [&::part(children)]:border-s-0! [&::part(children)]:ps-control-block! [&::part(control)]:rounded-control-small!",
+  ],
+  [
+    ".example-sh-tree-preview-actions ui-link",
+    "w-full [&::part(control)]:w-full [&::part(control)]:justify-start",
+  ],
+  [
+    ".example-sh-tree-hover-stage ui-tree-item[data-shrine-preview-active]",
+    "[&::part(control)]:bg-action-wash!",
+  ],
+  [".example-sh-tree-hover-stage ui-path[slot='label']", "block w-full [&::part(root)]:w-full"],
   [".example-workbook ui-popover > ui-button[slot='trigger']", "w-full justify-start"],
   [".example-table-progress ui-progress", "w-full! min-w-0"],
   [

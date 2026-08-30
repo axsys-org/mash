@@ -3,8 +3,12 @@ import { type TemplateResult } from "lit";
 import {
   type OverlayChangeReason,
   type OverlayOpenChangeDetail,
+  type OverlayTriggerAction,
   UIAnchoredOverlay,
 } from "../internal/overlay.js";
+
+/** Interaction that owns a preview card's visibility. */
+export type PreviewCardTrigger = "hover" | "manual";
 
 /**
  * A hover/focus preview surface for an existing trigger link or control.
@@ -26,6 +30,8 @@ import {
  * @slot title - Optional visible preview title; the `label` attribute is the fallback.
  * @slot description - Supporting preview description.
  * @slot - Preview content.
+ *
+ * @attr trigger - `hover` binds the authored trigger; `manual` lets an external gesture or focus owner call `show()` and `dismiss()`.
  *
  * @csspart trigger - The authored trigger realization.
  * @csspart backdrop - The pointer-dismissal boundary behind the preview.
@@ -60,12 +66,15 @@ export class UIPreviewCard extends UIAnchoredOverlay {
     ...UIAnchoredOverlay.properties,
     openDelay: { type: Number, attribute: "open-delay", reflect: true },
     closeDelay: { type: Number, attribute: "close-delay", reflect: true },
+    trigger: { type: String, reflect: true },
   };
 
   /** Delay in milliseconds before the preview opens. */
   declare openDelay: number;
   /** Grace period in milliseconds before the preview closes. */
   declare closeDelay: number;
+  /** Interaction that controls visibility. */
+  declare trigger: PreviewCardTrigger;
 
   protected readonly overlayRole = "dialog";
   protected override readonly triggerAction = "hover";
@@ -78,6 +87,11 @@ export class UIPreviewCard extends UIAnchoredOverlay {
     super();
     this.openDelay = 600;
     this.closeDelay = 300;
+    this.trigger = "hover";
+  }
+
+  protected override interactionTriggerAction(): OverlayTriggerAction {
+    return this.trigger;
   }
 
   protected override interactionDelay(open: boolean): number {

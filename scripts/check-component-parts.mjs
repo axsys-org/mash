@@ -22,6 +22,7 @@ const PACKAGES = [
   },
   {
     manifest: "packages/shrine-components/custom-elements.json",
+    dependencyManifests: ["packages/components/custom-elements.json"],
     catalogue: "packages/shrine-components/src/catalogue/mash.css",
     tailwind: "packages/shrine-components/dist/tailwind.css",
   },
@@ -94,6 +95,20 @@ async function main() {
             `${declaration.tagName} custom state ${state.name} is missing from the Tailwind adapter`,
           );
         }
+      }
+    }
+
+    // A composed package may pronounce public parts from its declared UI
+    // dependency. These declarations authorize recipe targets only; the owner
+    // package above remains responsible for part, slot, state, and Tailwind
+    // conformance so totals and failures are not counted twice.
+    for (const dependencyManifest of entry.dependencyManifests ?? []) {
+      const dependency = JSON.parse(await readFile(path.join(ROOT, dependencyManifest), "utf8"));
+      for (const declaration of declarationsIn(dependency)) {
+        components.set(
+          declaration.tagName,
+          new Set((declaration.cssParts ?? []).map((part) => part.name)),
+        );
       }
     }
 
