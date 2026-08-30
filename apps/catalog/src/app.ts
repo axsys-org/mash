@@ -30,6 +30,8 @@ export interface State {
    * curated demo is a better first impression than an empty element.
    */
   example: string | null;
+  /** URL-safe state owned by the selected authored example, not by the component contract. */
+  exampleState: Record<string, string>;
 }
 
 export function initialState(component: ComponentSchema): State {
@@ -42,6 +44,7 @@ export function initialState(component: ComponentSchema): State {
       component.slots.map((slot) => [slot.name, slot.name ? "" : defaultSlotContent(component)]),
     ),
     example: examplesFor(component)[0]?.name ?? null,
+    exampleState: {},
   };
 }
 

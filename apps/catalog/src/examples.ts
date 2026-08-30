@@ -335,6 +335,28 @@ const curated: Record<string, CatalogExample[]> = {
       },
     ),
   ],
+  "ui-spinner": [
+    example(
+      "Coordinated loading command",
+      `
+        <section id="catalog-loading-command" class="catalog-example example-stack" tabindex="0">
+          <ui-motion motion="pulse" state="loading" target="content">
+            <ui-button variant="secondary" loading>
+              <ui-spinner slot="prefix" size="small" label=""></ui-spinner>
+              Refresh projects
+              <ui-kbd slot="suffix" command="project.refresh" shortcut="Primary+R"></ui-kbd>
+            </ui-button>
+          </ui-motion>
+          <ui-gesture-binding for="catalog-loading-command" gesture="key" shortcut="Primary+R" command="project.refresh" prevent-default="recognized"></ui-gesture-binding>
+          <p class="example-support">The gesture emits the command, Kbd advertises it, Motion owns lifecycle, and Spinner supplies status.</p>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "A loading recipe composes four independent contracts without moving shortcut, animation, or progress behavior into the button.",
+      },
+    ),
+  ],
   "ui-kbd": [
     example(
       "Shortcut vocabulary",
@@ -350,6 +372,64 @@ const curated: Record<string, CatalogExample[]> = {
         compositionOnly: true,
         description:
           "Keyboard modifiers remain portable Unicode text; Carbon supplies only the surrounding action vocabulary.",
+      },
+    ),
+  ],
+  "ui-typeset": [
+    example(
+      "Dynamic type scale",
+      `
+        <section class="catalog-example example-typeset-specimen">
+          <header class="example-typeset-heading">
+            <ui-typeset preset="title2">Text Styles and Dynamic Type</ui-typeset>
+            <ui-typeset preset="body" tone="secondary">Every sample resolves an independent semantic family, size, weight, and leading token.</ui-typeset>
+          </header>
+          <div class="example-typeset-scale">
+            <div><ui-typeset preset="caption2">Caption 2 · 10/13 medium</ui-typeset><code>caption2</code></div>
+            <div><ui-typeset preset="caption1">Caption 1 · 10/13 regular</ui-typeset><code>caption1</code></div>
+            <div><ui-typeset preset="footnote">Footnote · supporting context</ui-typeset><code>footnote</code></div>
+            <div><ui-typeset preset="subheadline">Subheadline · compact hierarchy</ui-typeset><code>subheadline</code></div>
+            <div><ui-typeset preset="callout">Callout · concise emphasis</ui-typeset><code>callout</code></div>
+            <div><ui-typeset preset="body">Body · Billing migration replaces the legacy invoicer.</ui-typeset><code>body</code></div>
+            <div><ui-typeset preset="headline">Headline · Billing migration</ui-typeset><code>headline</code></div>
+            <div><ui-typeset preset="title3">Title 3 · Project activity</ui-typeset><code>title3</code></div>
+            <div><ui-typeset preset="title2">Title 2 · Interzone</ui-typeset><code>title2</code></div>
+            <div><ui-typeset preset="title1">Title 1 · Workspace</ui-typeset><code>title1</code></div>
+            <div><ui-typeset preset="large-title">Large title</ui-typeset><code>large-title</code></div>
+            <div><ui-typeset preset="code">/rec/project/billing-migration</ui-typeset><code>code</code></div>
+          </div>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "The component pronounces semantic type tokens without replacing the author's heading, paragraph, link, or other document semantics.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Label tiers and spacing rhythm",
+      `
+        <section class="catalog-example example-typeset-specimen">
+          <div class="example-typeset-tones">
+            <ui-typeset preset="headline" tone="primary">Primary label</ui-typeset>
+            <ui-typeset preset="body" tone="secondary">Secondary label</ui-typeset>
+            <ui-typeset preset="body" tone="tertiary">Tertiary label</ui-typeset>
+            <ui-typeset preset="body" tone="disabled">Disabled label</ui-typeset>
+            <ui-typeset preset="label" tone="accent">Accent label</ui-typeset>
+            <ui-typeset preset="label" tone="critical">Critical label</ui-typeset>
+          </div>
+          <div class="example-spacing-rhythm" aria-label="Semantic spacing rhythm">
+            <div data-space="group-related"><span></span><ui-typeset preset="label-small" tone="secondary">group-related</ui-typeset></div>
+            <div data-space="inline"><span></span><ui-typeset preset="label-small" tone="secondary">inline</ui-typeset></div>
+            <div data-space="container-gap"><span></span><ui-typeset preset="label-small" tone="secondary">container-gap</ui-typeset></div>
+            <div data-space="region"><span></span><ui-typeset preset="label-small" tone="secondary">region</ui-typeset></div>
+          </div>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Opacity-aware label roles adapt with material vibrancy, while the companion specimen makes semantic spacing steps visible without introducing a stack or spacer primitive.",
+        stageLayout: "start",
       },
     ),
   ],
@@ -451,7 +531,7 @@ const curated: Record<string, CatalogExample[]> = {
               <div class="example-kanban-list" data-catalog-kanban-list>
                 <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Audit invoice states" data-catalog-kanban-id="axi-72">
                   <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Audit invoice states">
-                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon>
                     <ui-badge size="small">AXI-72</ui-badge>
                   </ui-toolbar>
                   <ui-card title="Audit invoice states" description="Billing migration">
@@ -460,7 +540,7 @@ const curated: Record<string, CatalogExample[]> = {
                 </ui-draggable>
                 <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Archive legacy receipts" data-catalog-kanban-id="axi-74">
                   <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Archive legacy receipts">
-                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon>
                     <ui-badge size="small">AXI-74</ui-badge>
                   </ui-toolbar>
                   <ui-card title="Archive legacy receipts" description="Records">
@@ -477,7 +557,7 @@ const curated: Record<string, CatalogExample[]> = {
               <div class="example-kanban-list" data-catalog-kanban-list>
                 <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Reconcile tax totals" data-catalog-kanban-id="axi-68">
                   <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Reconcile tax totals">
-                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon>
                     <ui-badge size="small">AXI-68</ui-badge>
                   </ui-toolbar>
                   <ui-card title="Reconcile tax totals" description="Operations">
@@ -486,7 +566,7 @@ const curated: Record<string, CatalogExample[]> = {
                 </ui-draggable>
                 <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Wire activity events" data-catalog-kanban-id="axi-70">
                   <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Wire activity events">
-                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon>
                     <ui-badge size="small">AXI-70</ui-badge>
                   </ui-toolbar>
                   <ui-card title="Wire activity events" description="Notifications">
@@ -503,7 +583,7 @@ const curated: Record<string, CatalogExample[]> = {
               <div class="example-kanban-list" data-catalog-kanban-list>
                 <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Verify billing exports" data-catalog-kanban-id="axi-64">
                   <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Verify billing exports">
-                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon>
                     <ui-badge size="small">AXI-64</ui-badge>
                   </ui-toolbar>
                   <ui-card title="Verify billing exports" description="Finance">
@@ -512,7 +592,7 @@ const curated: Record<string, CatalogExample[]> = {
                 </ui-draggable>
                 <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Polish empty states" data-catalog-kanban-id="axi-66">
                   <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Polish empty states">
-                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon>
                     <ui-badge size="small">AXI-66</ui-badge>
                   </ui-toolbar>
                   <ui-card title="Polish empty states" description="Catalogue">
@@ -888,7 +968,7 @@ const curated: Record<string, CatalogExample[]> = {
     example(
       "Issue tracker workspace",
       `
-        <div class="catalog-example example-linear-workspace" data-linear-workspace data-linear-view="list" data-inspector-open="false">
+        <div id="linear-workspace-command-scope" class="catalog-example example-linear-workspace" data-linear-workspace data-linear-view="list" data-inspector-open="false">
           <aside class="example-linear-sidebar">
             <ui-navigation-menu class="example-linear-navigation" label="Axiomatic workspace">
               <div class="example-linear-identity">
@@ -897,7 +977,7 @@ const curated: Record<string, CatalogExample[]> = {
                   <strong>Axiomatic</strong>
                   <span>Product workspace</span>
                 </span>
-                <ui-button type="button" size="small" variant="quiet" aria-label="Switch workspace">⌄</ui-button>
+                <ui-button type="button" size="small" variant="quiet" aria-label="Switch workspace"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-button>
               </div>
 
               <ui-input class="example-linear-search" data-linear-search type="search" size="small" label="Search issues" placeholder="Search issues…"></ui-input>
@@ -1019,26 +1099,48 @@ const curated: Record<string, CatalogExample[]> = {
 
                 <ui-toolbar class="example-linear-filters" label="Issue filters">
                   <ui-input class="example-linear-filter-search" data-linear-search type="search" size="small" label="Filter issues" placeholder="Filter issues…"></ui-input>
-                  <ui-menu data-linear-filter="status" label="Status filter">
-                    <ui-button slot="trigger" data-linear-filter-label type="button" size="small" variant="secondary">Status · All</ui-button>
-                    <ui-menu-item value="all">All statuses</ui-menu-item>
-                    <ui-menu-item value="backlog">Backlog</ui-menu-item>
-                    <ui-menu-item value="todo">Todo</ui-menu-item>
-                    <ui-menu-item value="progress">In progress</ui-menu-item>
-                    <ui-menu-item value="review">In review</ui-menu-item>
-                    <ui-menu-item value="done">Done</ui-menu-item>
+                  <ui-menu data-linear-view-preset label="Saved issue view">
+                    <ui-button slot="trigger" type="button" size="small" variant="secondary"><span data-linear-view-preset-label>All issues</span><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-button>
+                    <ui-menu-item value="all">All issues</ui-menu-item>
+                    <ui-menu-item value="mine">My issues</ui-menu-item>
+                    <ui-menu-item value="release-risk">Release risk</ui-menu-item>
                   </ui-menu>
-                  <ui-menu data-linear-filter="assignee" label="Assignee filter">
-                    <ui-button slot="trigger" data-linear-filter-label type="button" size="small" variant="secondary">Assignee · All</ui-button>
-                    <ui-menu-item value="all">All assignees</ui-menu-item>
-                    <ui-menu-item value="maya">Maya Chen</ui-menu-item>
-                    <ui-menu-item value="sam">Sam Ortiz</ui-menu-item>
-                    <ui-menu-item value="alex">Alex Rivera</ui-menu-item>
-                    <ui-menu-item value="priya">Priya Jain</ui-menu-item>
+                  <ui-button id="linear-filter-trigger" type="button" size="small" variant="secondary" data-linear-query-toggle aria-expanded="false" aria-controls="linear-query-panel">
+                    <ui-icon name="action.search" label=""></ui-icon>
+                    Filters
+                    <ui-badge size="small" data-linear-filter-count>0</ui-badge>
+                    <ui-kbd command="workspace.filters" shortcut="Primary+Shift+F"></ui-kbd>
+                  </ui-button>
+                  <ui-menu data-linear-demo-state label="Example data state">
+                    <ui-button slot="trigger" type="button" size="small" variant="quiet"><span data-linear-demo-state-label>Ready</span><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-button>
+                    <ui-menu-item value="ready">Ready</ui-menu-item>
+                    <ui-menu-item value="loading">Loading</ui-menu-item>
+                    <ui-menu-item value="error">Error</ui-menu-item>
                   </ui-menu>
                   <ui-button type="button" size="small" variant="quiet" data-linear-clear-filters>Clear</ui-button>
+                  <output class="example-linear-view-state" data-linear-view-state aria-live="polite">All issues · match all</output>
                   <output class="example-linear-result-count" data-linear-visible-count aria-live="polite">5 issues</output>
                 </ui-toolbar>
+
+                <ui-motion id="linear-query-panel" class="example-linear-query-motion" motion="slide-block" state="idle" target="content" data-linear-query-panel hidden>
+                  <section class="example-linear-query-panel" aria-labelledby="linear-query-title">
+                    <header class="example-linear-query-panel-header">
+                      <div>
+                        <strong id="linear-query-title">Filter issues</strong>
+                        <span>Combine conditions and nested groups. Changes apply to both list and board views.</span>
+                      </div>
+                      <ui-button type="button" size="small" variant="quiet" data-linear-query-done aria-label="Close filter editor"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
+                    </header>
+                    <div class="example-linear-query-builder" data-linear-query-builder aria-label="Issue filter expression"></div>
+                    <footer class="example-linear-query-actions">
+                      <ui-button type="button" size="small" variant="quiet" data-linear-query-reset>Reset</ui-button>
+                      <ui-button type="button" size="small" data-linear-query-done>Done</ui-button>
+                    </footer>
+                  </section>
+                </ui-motion>
+
+                <div class="example-linear-filter-chips" data-linear-filter-chips role="list" aria-label="Active issue filters"></div>
+                <ui-gesture-binding for="linear-workspace-command-scope" gesture="key" shortcut="Primary+Shift+F" command="workspace.filters" group="linear-workspace" prevent-default="recognized"></ui-gesture-binding>
 
                 <div class="example-linear-list-heading">
                   <div><strong>Active cycle</strong><ui-badge size="small" data-linear-group-count>5</ui-badge></div>
@@ -1054,7 +1156,21 @@ const curated: Record<string, CatalogExample[]> = {
                   <ui-button type="button" size="small" variant="quiet" data-linear-clear-selection aria-label="Clear selection">×</ui-button>
                 </ui-toolbar>
 
-                <div data-linear-list-view>
+                <div class="example-linear-data-state" data-linear-loading hidden aria-live="polite">
+                  <ui-motion motion="pulse" state="loading" target="content">
+                    <ui-spinner size="small" label="Loading issues"></ui-spinner>
+                    <span>Refreshing issue data…</span>
+                  </ui-motion>
+                </div>
+
+                <div class="example-linear-data-state" data-linear-error hidden role="alert">
+                  <ui-icon name="status.warning" label=""></ui-icon>
+                  <strong>Issue data could not be refreshed</strong>
+                  <span>The current filters are preserved. Retry when the workspace is available.</span>
+                  <ui-button type="button" size="small" variant="secondary" data-linear-retry>Retry</ui-button>
+                </div>
+
+                <div class="example-linear-list-view" data-linear-list-view>
 
                 <ui-table class="example-linear-table" label="Product issues" row-count="6" column-count="6">
                   <ui-table-header>
@@ -1124,11 +1240,11 @@ const curated: Record<string, CatalogExample[]> = {
                     <header><span><span class="example-linear-status-dot" data-status="progress"></span><strong data-catalog-kanban-column-label>In progress</strong></span><ui-badge size="small" data-linear-board-count>2</ui-badge></header>
                     <div class="example-linear-card-list" data-catalog-kanban-list>
                       <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Preserve filter state in shared views" data-linear-board-card data-linear-issue="MAS-142" data-title="Preserve filter state in shared views" data-area="Views" data-status="progress" data-priority="high" data-assignee="maya" data-initials="MC">
-                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-142"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-142</span><span class="example-linear-priority" data-priority="high">↑ High</span></ui-toolbar>
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-142"><ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon><span class="example-linear-key">MAS-142</span><span class="example-linear-priority" data-priority="high">↑ High</span></ui-toolbar>
                         <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-142"><span class="sr-only">Select MAS-142</span></ui-checkbox><ui-badge size="small">Views</ui-badge></div><ui-link slot="content" href="#mas-142" data-linear-open-issue="MAS-142">Preserve filter state in shared views</ui-link><div slot="footer" class="example-linear-card-footer"><span>Cycle 42</span><ui-avatar size="small">MC</ui-avatar></div></ui-card>
                       </ui-draggable>
                       <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Ship keyboard navigation for issue lists" data-linear-board-card data-linear-issue="MAS-138" data-title="Ship keyboard navigation for issue lists" data-area="Accessibility" data-status="review" data-priority="urgent" data-assignee="sam" data-initials="SO">
-                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-138"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-138</span><span class="example-linear-priority" data-priority="urgent">! Urgent</span></ui-toolbar>
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-138"><ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon><span class="example-linear-key">MAS-138</span><span class="example-linear-priority" data-priority="urgent">! Urgent</span></ui-toolbar>
                         <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-138"><span class="sr-only">Select MAS-138</span></ui-checkbox><ui-badge size="small">Accessibility</ui-badge></div><ui-link slot="content" href="#mas-138" data-linear-open-issue="MAS-138">Ship keyboard navigation for issue lists</ui-link><div slot="footer" class="example-linear-card-footer"><span>Cycle 42</span><ui-avatar size="small">SO</ui-avatar></div></ui-card>
                       </ui-draggable>
                     </div>
@@ -1137,11 +1253,11 @@ const curated: Record<string, CatalogExample[]> = {
                     <header><span><span class="example-linear-status-dot" data-status="planned"></span><strong data-catalog-kanban-column-label>Planned</strong></span><ui-badge size="small" data-linear-board-count>2</ui-badge></header>
                     <div class="example-linear-card-list" data-catalog-kanban-list>
                       <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Add cycle progress to team overview" data-linear-board-card data-linear-issue="MAS-133" data-title="Add cycle progress to team overview" data-area="Cycles" data-status="todo" data-priority="medium" data-assignee="alex" data-initials="AR">
-                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-133"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-133</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-133"><ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon><span class="example-linear-key">MAS-133</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
                         <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-133"><span class="sr-only">Select MAS-133</span></ui-checkbox><ui-badge size="small">Cycles</ui-badge></div><ui-link slot="content" href="#mas-133" data-linear-open-issue="MAS-133">Add cycle progress to team overview</ui-link><div slot="footer" class="example-linear-card-footer"><span>Backlog</span><ui-avatar size="small">AR</ui-avatar></div></ui-card>
                       </ui-draggable>
                       <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Clarify archived project permissions" data-linear-board-card data-linear-issue="MAS-129" data-title="Clarify archived project permissions" data-area="Projects" data-status="backlog" data-priority="low" data-assignee="priya" data-initials="PJ">
-                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-129"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-129</span><span class="example-linear-priority">↓ Low</span></ui-toolbar>
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-129"><ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon><span class="example-linear-key">MAS-129</span><span class="example-linear-priority">↓ Low</span></ui-toolbar>
                         <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-129"><span class="sr-only">Select MAS-129</span></ui-checkbox><ui-badge size="small">Projects</ui-badge></div><ui-link slot="content" href="#mas-129" data-linear-open-issue="MAS-129">Clarify archived project permissions</ui-link><div slot="footer" class="example-linear-card-footer"><span>Backlog</span><ui-avatar size="small">PJ</ui-avatar></div></ui-card>
                       </ui-draggable>
                     </div>
@@ -1150,7 +1266,7 @@ const curated: Record<string, CatalogExample[]> = {
                     <header><span><span class="example-linear-status-dot" data-status="done"></span><strong data-catalog-kanban-column-label>Done</strong></span><ui-badge size="small" data-linear-board-count>1</ui-badge></header>
                     <div class="example-linear-card-list" data-catalog-kanban-list>
                       <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Normalize compact density tokens" data-linear-board-card data-linear-issue="MAS-121" data-title="Normalize compact density tokens" data-area="Foundations" data-status="done" data-priority="medium" data-assignee="maya" data-initials="MC">
-                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-121"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-121</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-121"><ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon><span class="example-linear-key">MAS-121</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
                         <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-121"><span class="sr-only">Select MAS-121</span></ui-checkbox><ui-badge size="small">Foundations</ui-badge></div><ui-link slot="content" href="#mas-121" data-linear-open-issue="MAS-121">Normalize compact density tokens</ui-link><div slot="footer" class="example-linear-card-footer"><span>Completed</span><ui-avatar size="small">MC</ui-avatar></div></ui-card>
                       </ui-draggable>
                     </div>
@@ -1225,12 +1341,13 @@ const curated: Record<string, CatalogExample[]> = {
             </aside>
             </div>
           </main>
+          <output class="sr-only" data-linear-announcer aria-live="polite"></output>
           <ui-toast-stack class="example-linear-toasts" data-linear-toasts placement="bottom-end" limit="3" label="Workspace updates"></ui-toast-stack>
         </div>`,
       {
         compositionOnly: true,
         description:
-          "A controlled issue-tracking system with shared list and board data, live filtering, keyboard navigation, bulk actions, creation, command routing, and integrated detail inspection—composed entirely from Mash primitives.",
+          "A controlled issue-tracking system with a nested URL-safe filter recipe, shared list and board data, loading/error/empty states, keyboard command routing, bulk actions, creation, and integrated detail inspection—composed entirely from Mash primitives.",
         stageLayout: "fill",
       },
     ),
@@ -1368,8 +1485,8 @@ const curated: Record<string, CatalogExample[]> = {
         <ui-data-table class="catalog-example example-workbook" data-catalog-data-table data-catalog-workbook label="Project planning workbook" selection="cell" selected="3:3" density="compact">
           <div slot="toolbar" class="example-workbook-toolbar">
             <ui-toolbar label="Workbook tools">
-              <ui-button type="button" size="small" variant="quiet" aria-label="Undo">↶</ui-button>
-              <ui-button type="button" size="small" variant="quiet" aria-label="Redo">↷</ui-button>
+              <ui-button type="button" size="small" variant="quiet" aria-label="Undo"><ui-icon name="action.reset" label=""></ui-icon></ui-button>
+              <ui-button type="button" size="small" variant="quiet" aria-label="Redo"><ui-icon name="action.refresh" label=""></ui-icon></ui-button>
               <ui-separator orientation="vertical"></ui-separator>
               <ui-toggle size="small">B</ui-toggle>
               <ui-toggle size="small">I</ui-toggle>
@@ -1398,18 +1515,7 @@ const curated: Record<string, CatalogExample[]> = {
                 <ui-table-cell column-index="2" data-formula="=PROJECT(AXI-36)"><ui-link href="#axi-36">Billing migration</ui-link></ui-table-cell>
                 <ui-table-cell column-index="3" data-formula="=OWNER(&quot;Maya Chen&quot;)"><span class="example-table-entity"><ui-avatar size="small">MC</ui-avatar><span>Maya Chen</span></span></ui-table-cell>
                 <ui-table-cell column-index="4" data-formula="=STATUS(&quot;Active&quot;)"><ui-chip value="active" readonly>Active</ui-chip></ui-table-cell>
-                <ui-table-cell column-index="5" editable data-formula="=SUM(42000,6000)">
-                  <ui-popover label="Edit Billing migration budget" placement="bottom-start">
-                    <ui-button slot="trigger" size="small" variant="quiet">$48,000</ui-button>
-                    <strong slot="title">Cell D1 · Budget</strong>
-                    <span slot="description">Insert a numeric value or formula.</span>
-                    <div class="example-workbook-cell-form">
-                      <ui-field label="Value"><ui-number-field slot="control" value="48000" min="0" step="1000" label="Budget value"></ui-number-field></ui-field>
-                      <ui-field label="Formula"><ui-input slot="control" value="=SUM(42000,6000)" label="Budget formula"></ui-input></ui-field>
-                    </div>
-                    <div slot="actions" class="example-actions"><ui-button size="small" variant="secondary">Cancel</ui-button><ui-button size="small">Apply</ui-button></div>
-                  </ui-popover>
-                </ui-table-cell>
+                <ui-table-cell column-index="5" editable data-formula="=SUM(42000,6000)"><ui-intl-formatter kind="currency" value="48000" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
                 <ui-table-cell column-index="6" data-formula="=DATE(2026,9,12)"><ui-intl-formatter kind="date" value="2026-09-12" locale="en-US"></ui-intl-formatter></ui-table-cell>
               </ui-table-row>
               <ui-table-row row-index="3">
@@ -1438,6 +1544,19 @@ const curated: Record<string, CatalogExample[]> = {
               </ui-table-row>
             </ui-table-body>
           </ui-table>
+          <form slot="editor" class="example-workbook-editor" data-catalog-data-table-editor>
+            <div class="example-workbook-editor-heading">
+              <strong data-catalog-data-table-editor-coordinate>Editing D2</strong>
+              <span>Authored form · controlled cell identity</span>
+            </div>
+            <ui-field label="Value">
+              <ui-number-field slot="control" data-catalog-data-table-editor-value name="value" value="32500" min="0" step="1000" label="Budget value"></ui-number-field>
+            </ui-field>
+            <ui-field label="Formula">
+              <ui-input slot="control" data-catalog-data-table-editor-formula name="formula" value="=32500" label="Budget formula"></ui-input>
+            </ui-field>
+            <div class="example-actions"><ui-button type="reset" size="small" variant="secondary">Cancel</ui-button><ui-button type="submit" size="small">Apply</ui-button></div>
+          </form>
           <div slot="loading" class="example-data-table-loading"><ui-spinner size="small" label="Refreshing workbook"></ui-spinner>Refreshing</div>
           <div slot="footer" class="example-data-table-footer">
             <output data-catalog-data-table-selection>Cell B2 selected</output>
@@ -1447,7 +1566,7 @@ const curated: Record<string, CatalogExample[]> = {
       {
         compositionOnly: true,
         description:
-          "A Sheets-like surface assembled from ordinary Mash anatomy: toolbar, formula input, links, avatars, chips, formatters, a popover cell editor, pagination, selectable row and column titles, and controlled Shift-click or Shift-arrow ranges.",
+          "A Sheets-like surface assembled from ordinary Mash anatomy: toolbar, formula input, links, avatars, chips, formatters, one slotted form editor, pagination, selectable row and column titles, and controlled Shift-click or Shift-arrow ranges.",
         stageLayout: "fill",
       },
     ),
@@ -1817,7 +1936,7 @@ const curated: Record<string, CatalogExample[]> = {
       "Search with affordances",
       `
         <ui-field class="catalog-example example-field" label="Search projects" description="Search by name, owner, or namespace.">
-          <ui-input-group id="catalog-project-search" class="example-input-group-divided" slot="control">
+          <ui-input-group id="catalog-project-search" class="part-prefix-separator:bg-[var(--_mash-component-divider)] part-suffix-separator:bg-[var(--_mash-component-divider)]" slot="control">
             <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
             <ui-input slot="control" type="search" label="Search projects" placeholder="Billing migration"></ui-input>
             <ui-kbd slot="suffix" command="workspace.search" shortcut="Primary+K"></ui-kbd>
@@ -1884,14 +2003,19 @@ const curated: Record<string, CatalogExample[]> = {
             value="type ProjectStatus = &quot;active&quot; | &quot;paused&quot;;&#10;const projectStatus: ProjectStatus = &quot;active&quot;;"
           >
             <ui-input-group slot="search" class="example-editor-search">
-              <span slot="prefix" aria-hidden="true">Find</span>
+              <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
               <ui-input slot="control" data-catalog-editor-search label="Find in source" value="Project"></ui-input>
-              <ui-button slot="suffix" size="small" variant="secondary" data-catalog-editor-find="next">Next</ui-button>
+              <ui-button id="editor-find-next" slot="suffix" size="small" variant="secondary" data-catalog-editor-find="next">
+                <ui-icon name="navigation.forward" label=""></ui-icon>
+                Next
+                <ui-kbd command="editor.find-next" shortcut="Enter"></ui-kbd>
+              </ui-button>
             </ui-input-group>
+            <ui-gesture-binding for="editor-find-next" gesture="key" shortcut="Enter" command="editor.find-next" prevent-default="recognized"></ui-gesture-binding>
             <ui-card slot="completion" elevation="raised" class="example-editor-completion">
               <strong slot="title">ProjectStatus</strong>
               <span slot="description">type alias</span>
-              <ui-kbd slot="value">Tab</ui-kbd>
+              <ui-kbd slot="value" command="editor.accept-completion" shortcut="Tab"></ui-kbd>
               <code slot="content">&quot;active&quot; | &quot;paused&quot;</code>
             </ui-card>
             <span slot="diagnostics">Status must match ProjectStatus</span>
@@ -1976,10 +2100,10 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Project visibility" description="Controls who can find this project.">
           <ui-select slot="control" name="visibility" value="team" label="Project visibility">
-            <span slot="icon" aria-hidden="true">⌄</span>
-            <ui-option value="private">Private<span slot="indicator">✓</span></ui-option>
-            <ui-option value="team">Everyone in Interzone<span slot="indicator">✓</span></ui-option>
-            <ui-option value="public">Anyone with the link<span slot="indicator">✓</span></ui-option>
+            <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+            <ui-option value="private">Private<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="team">Everyone in Interzone<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="public">Anyone with the link<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
           </ui-select>
         </ui-field>`,
       { compositionOnly: true },
@@ -1989,14 +2113,14 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Project access" description="Choose one or more audiences.">
           <ui-select slot="control" name="access" label="Project access" multiple values='["team", "guests"]'>
-            <span slot="icon" aria-hidden="true">⌄</span>
+            <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
             <ui-option-group label="Workspace">
-              <ui-option value="team">Everyone in Interzone<span slot="indicator">✓</span></ui-option>
-              <ui-option value="admins">Administrators<span slot="indicator">✓</span></ui-option>
+              <ui-option value="team">Everyone in Interzone<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="admins">Administrators<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
             </ui-option-group>
             <ui-option-group label="External">
-              <ui-option value="guests">Invited guests<span slot="indicator">✓</span></ui-option>
-              <ui-option value="public">Anyone with the link<span slot="indicator">✓</span></ui-option>
+              <ui-option value="guests">Invited guests<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="public">Anyone with the link<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
             </ui-option-group>
           </ui-select>
         </ui-field>`,
@@ -2009,8 +2133,8 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Project owner" description="Search the workspace to assign responsibility.">
           <ui-combobox slot="control" name="owner" value="maya" label="Project owner">
-            <span slot="icon" aria-hidden="true">⌕</span>
-            <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Show project owners">⌄</ui-button>
+            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
+            <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Show project owners"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-button>
             <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
             <span slot="empty">No matching people</span>
             <ui-option value="maya">Maya Chen</ui-option>
@@ -2026,16 +2150,16 @@ const curated: Record<string, CatalogExample[]> = {
         <ui-field class="catalog-example example-field" label="Project owners" description="Search and assign more than one owner.">
           <ui-combobox slot="control" name="owners" label="Project owners" multiple values='["maya", "sam"]'>
             <span slot="chips">
-              <ui-chip value="maya">Maya Chen<ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Maya">×</ui-button></ui-chip>
-              <ui-chip value="sam">Sam Okafor<ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Sam">×</ui-button></ui-chip>
+              <ui-chip value="maya">Maya Chen<ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Maya"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button></ui-chip>
+              <ui-chip value="sam">Sam Okafor<ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Sam"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button></ui-chip>
             </span>
-            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
             <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
             <span slot="empty">No matching people</span>
             <ui-option-group label="People">
-              <ui-option value="maya">Maya Chen<span slot="indicator">✓</span></ui-option>
-              <ui-option value="sam">Sam Okafor<span slot="indicator">✓</span></ui-option>
-              <ui-option value="alex">Alex Rivera<span slot="indicator">✓</span></ui-option>
+              <ui-option value="maya">Maya Chen<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="sam">Sam Okafor<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="alex">Alex Rivera<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
             </ui-option-group>
           </ui-combobox>
         </ui-field>`,
@@ -2049,33 +2173,33 @@ const curated: Record<string, CatalogExample[]> = {
             <ui-combobox slot="control" name="owners" label="Project owners" multiple values='["maya", "sam", "alex", "jo"]'>
               <span slot="chips" class="example-chip-sort" role="list" data-catalog-drag-boundary>
                 <ui-chip value="maya" data-catalog-label="Maya" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
-                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Maya Chen">⠿</span>
+                  <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Maya Chen"></ui-icon>
                   Maya Chen
-                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Maya">×</ui-button>
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Maya"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
                 </ui-chip>
                 <ui-chip value="sam" data-catalog-label="Sam" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
-                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Sam Okafor">⠿</span>
+                  <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Sam Okafor"></ui-icon>
                   Sam Okafor
-                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Sam">×</ui-button>
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Sam"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
                 </ui-chip>
                 <ui-chip value="alex" data-catalog-label="Alex" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
-                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Alex Rivera">⠿</span>
+                  <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Alex Rivera"></ui-icon>
                   Alex Rivera
-                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Alex">×</ui-button>
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Alex"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
                 </ui-chip>
                 <ui-chip value="jo" data-catalog-label="Jo" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
-                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Jo Bell">⠿</span>
+                  <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Jo Bell"></ui-icon>
                   Jo Bell
-                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Jo">×</ui-button>
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Jo"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
                 </ui-chip>
               </span>
-              <span slot="icon" aria-hidden="true">⌕</span>
+              <ui-icon slot="icon" name="action.search" label=""></ui-icon>
               <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
               <ui-option-group label="People">
-                <ui-option value="maya">Maya Chen<span slot="indicator">✓</span></ui-option>
-                <ui-option value="sam">Sam Okafor<span slot="indicator">✓</span></ui-option>
-                <ui-option value="alex">Alex Rivera<span slot="indicator">✓</span></ui-option>
-                <ui-option value="jo">Jo Bell<span slot="indicator">✓</span></ui-option>
+                <ui-option value="maya">Maya Chen<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+                <ui-option value="sam">Sam Okafor<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+                <ui-option value="alex">Alex Rivera<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+                <ui-option value="jo">Jo Bell<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
               </ui-option-group>
             </ui-combobox>
           </ui-field>
@@ -2093,7 +2217,7 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Assignee matrix" description="Arrow keys preserve row and column position.">
           <ui-combobox slot="control" name="assignee" label="Assignee matrix" grid>
-            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
             <ui-option-row>
               <ui-option value="maya">Maya Chen</ui-option>
               <ui-option value="sam">Sam Okafor</ui-option>
@@ -2111,7 +2235,7 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Remote project" description="The caller owns async sourcing; Combobox owns the pending and listbox semantics.">
           <ui-combobox slot="control" name="remote-project" label="Remote project" filter="none" loading open>
-            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
             <ui-spinner slot="loading" size="small" label="Searching projects"></ui-spinner>
             <span slot="empty">No remote projects found</span>
           </ui-combobox>
@@ -2123,7 +2247,7 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Project command" description="Only option labels beginning with the query remain visible.">
           <ui-combobox slot="control" name="command" value="re" filter="starts-with" label="Project command" open>
-            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
             <span slot="empty">No matching commands</span>
             <ui-option value="rename">Rename project</ui-option>
             <ui-option value="review">Review changes</ui-option>
@@ -2139,7 +2263,7 @@ const curated: Record<string, CatalogExample[]> = {
       `
         <ui-field class="catalog-example example-field" label="Related project" description="Start typing to narrow the project list.">
           <ui-autocomplete slot="control" name="related-project" label="Related project">
-            <span slot="icon" aria-hidden="true">⌕</span>
+            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
             <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
             <span slot="empty">No matching projects</span>
             <ui-option-group label="Active projects">
@@ -2223,7 +2347,7 @@ const curated: Record<string, CatalogExample[]> = {
                 expanded
                 data-catalog-tab-drop
               >
-                <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.folder" label=""></ui-icon>
                 <ui-tree-item
                   slot="children"
                   kind="file"
@@ -2234,9 +2358,9 @@ const curated: Record<string, CatalogExample[]> = {
                   data-catalog-drag-source="tree-tab"
                   data-catalog-drag-free
                 >
-                  <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
                   <span slot="label">Timeline</span>
-                  <ui-button slot="actions" variant="quiet" size="small" data-catalog-drag-handle aria-label="Move Timeline to the tab bar">⠿</ui-button>
+                  <ui-button slot="actions" variant="quiet" size="small" data-catalog-drag-handle aria-label="Move Timeline to the tab bar"><ui-icon name="action.drag" label=""></ui-icon></ui-button>
                 </ui-tree-item>
               </ui-tree-item>
             </ui-tree>
@@ -2245,13 +2369,13 @@ const curated: Record<string, CatalogExample[]> = {
           <main class="example-tab-main">
             <ui-tabs class="example-tabbar-drop" value="overview" label="Project views" data-catalog-tabbar-drop>
               <ui-tab slot="tab" value="overview" data-catalog-label="Overview" data-catalog-drag-source="tab" data-catalog-drag-free>
-                <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Overview tab">⠿</span>Overview
+                <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Overview tab"></ui-icon>Overview
               </ui-tab>
               <ui-tab slot="tab" value="invoices" data-catalog-label="Invoices" data-catalog-drag-source="tab" data-catalog-drag-free>
-                <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Invoices tab">⠿</span>Invoices
+                <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Invoices tab"></ui-icon>Invoices
               </ui-tab>
               <ui-tab slot="tab" value="activity" data-catalog-label="Activity" data-catalog-drag-source="tab" data-catalog-drag-free>
-                <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Activity tab">⠿</span>Activity
+                <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Activity tab"></ui-icon>Activity
               </ui-tab>
               <ui-tab-panel slot="panel" value="overview">
                 <ui-card title="Billing migration" description="Project overview">
@@ -2432,6 +2556,63 @@ const curated: Record<string, CatalogExample[]> = {
   ],
   "ui-menu": [
     example(
+      "Stateful sections and flexible bounds",
+      `
+        <div class="catalog-example example-menu-stage">
+          <ui-menu class="example-menu-flex" label="Workspace view options" density="compact" sizing="content" open>
+            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="small" slot="trigger" tone="neutral" variant="quiet">
+              View
+              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
+            </ui-button>
+            <ui-menu-label>Layout</ui-menu-label>
+            <ui-menu-item kind="checkbox" value="breadcrumbs">Show full namespace ancestry in breadcrumbs</ui-menu-item>
+            <ui-menu-item kind="checkbox" value="sidebar" checked>Show sidebar</ui-menu-item>
+            <ui-separator></ui-separator>
+            <ui-menu-label>Appearance</ui-menu-label>
+            <ui-menu-item kind="radio" value="comfortable" checked>Comfortable</ui-menu-item>
+            <ui-menu-item kind="radio" value="compact">Compact</ui-menu-item>
+            <ui-separator></ui-separator>
+            <ui-menu-label>Danger zone</ui-menu-label>
+            <ui-menu-item value="reset" tone="critical">Reset workspace layout</ui-menu-item>
+          </ui-menu>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Content sizing flexes between declarable semantic bounds. Menu labels provide regular text fallbacks plus optional sewn lanes; checkbox/radio items own toggle semantics; checked, focus, hover, submenu-open, and destructive tone remain separately styleable states.",
+      },
+    ),
+    example(
+      "Motion lifecycle contracts",
+      `
+        <div class="catalog-example example-menu-stage example-actions">
+          <ui-menu label="Snappy project commands">
+            <ui-button class="example-menu-trigger" slot="trigger" variant="secondary">
+              Snappy
+              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
+            </ui-button>
+            <ui-menu-item value="open"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Open project</ui-menu-item>
+            <ui-menu-item value="search">Search project<ui-kbd slot="shortcut" command="project.search" shortcut="Primary+F"></ui-kbd></ui-menu-item>
+          </ui-menu>
+          <ui-menu
+            label="Deliberate project commands"
+            class="state-entering:part-popup:[animation-duration:var(--duration-surface)] state-exiting:part-popup:[animation-duration:var(--duration-surface)]"
+          >
+            <ui-button class="example-menu-trigger" slot="trigger" variant="secondary">
+              Deliberate override
+              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
+            </ui-button>
+            <ui-menu-item value="open"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Open project</ui-menu-item>
+            <ui-menu-item value="search">Search project<ui-kbd slot="shortcut" command="project.search" shortcut="Primary+F"></ui-kbd></ui-menu-item>
+          </ui-menu>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Menus default to the 120ms transient tier. Generated entering/exiting state variants and the popup part let an application opt a specific surface into a different semantic duration without changing menu behavior.",
+      },
+    ),
+    example(
       "Pull-down commands",
       `
         <div class="catalog-example example-menu-stage">
@@ -2441,12 +2622,12 @@ const curated: Record<string, CatalogExample[]> = {
               <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
             </ui-button>
             <ui-menu-item value="undo">
-              <span slot="prefix" aria-hidden="true">↶</span>
+              <ui-icon slot="prefix" name="action.reset" label=""></ui-icon>
               Undo
               <ui-kbd slot="shortcut" command="edit.undo" shortcut="Primary+Z"></ui-kbd>
             </ui-menu-item>
             <ui-menu-item value="redo">
-              <span slot="prefix" aria-hidden="true">↷</span>
+              <ui-icon slot="prefix" name="action.refresh" label=""></ui-icon>
               Redo
               <ui-kbd slot="shortcut" command="edit.redo" shortcut="Primary+Shift+Z"></ui-kbd>
             </ui-menu-item>
@@ -2493,21 +2674,18 @@ const curated: Record<string, CatalogExample[]> = {
               Project
               <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
             </ui-button>
-            <span class="example-menu-header" role="presentation">Navigate</span>
             <ui-menu-item value="open">Open project<ui-kbd slot="shortcut" command="project.open" shortcut="Primary+O"></ui-kbd></ui-menu-item>
             <ui-menu-item value="recent">
               Recent projects
-              <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
               <ui-menu slot="submenu" label="Recent projects" density="compact" open>
                 <ui-menu-item value="billing">Billing migration</ui-menu-item>
                 <ui-menu-item value="invoice">Invoice reconciliation</ui-menu-item>
-                <ui-menu-item value="archive">Legacy ledger verification and archive import</ui-menu-item>
+                <ui-menu-item value="archive">Legacy ledger</ui-menu-item>
               </ui-menu>
             </ui-menu-item>
             <ui-menu-item value="find">
               Find
               <ui-kbd slot="shortcut" command="project.find" shortcut="Primary+F"></ui-kbd>
-              <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
               <ui-menu slot="submenu" label="Find" density="compact">
                 <ui-menu-item value="find-next">Find Next<ui-kbd slot="shortcut" command="project.find-next" shortcut="Primary+G"></ui-kbd></ui-menu-item>
                 <ui-menu-item value="find-previous">Find Previous<ui-kbd slot="shortcut" command="project.find-previous" shortcut="Primary+Shift+G"></ui-kbd></ui-menu-item>
@@ -3222,25 +3400,25 @@ const curated: Record<string, CatalogExample[]> = {
           <ui-tree class="catalog-example" label="Interzone project hierarchy">
             <ui-tree-item kind="folder" path="/interzone" expanded>
             <span slot="label">Interzone</span>
-            <span slot="icon" class="example-tree-glyph" data-kind="workspace" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.folder" label=""></ui-icon>
             <ui-badge slot="meta">workspace</ui-badge>
             <ui-tree-item slot="children" kind="folder" path="/interzone/projects" expanded>
               <span slot="label">Projects</span>
-              <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.folder" label=""></ui-icon>
               <span slot="meta">2 records</span>
               <ui-tree-item slot="children" kind="file" path="/interzone/projects/billing-migration" selected>
                 <span slot="label">Billing migration</span>
-                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
                 <ui-badge slot="meta" tone="positive">active</ui-badge>
               </ui-tree-item>
               <ui-tree-item slot="children" kind="file" path="/interzone/projects/invoice-reconciliation" current>
                 <span slot="label">Invoice reconciliation</span>
-                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
               </ui-tree-item>
             </ui-tree-item>
             <ui-tree-item slot="children" kind="folder" path="/interzone/archive">
               <span slot="label">Archive</span>
-              <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.folder" label=""></ui-icon>
             </ui-tree-item>
           </ui-tree-item>
         </ui-tree>`,
@@ -3252,7 +3430,7 @@ const curated: Record<string, CatalogExample[]> = {
         <ui-tree class="catalog-example example-tree-narrow" label="Long namespace labels">
           <ui-tree-item kind="folder" path="/interzone/projects" expanded>
             <span slot="label">Interzone project namespace</span>
-            <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.folder" label=""></ui-icon>
             <ui-tree-item
               slot="children"
               kind="file"
@@ -3260,7 +3438,7 @@ const curated: Record<string, CatalogExample[]> = {
               selected
             >
               <span slot="label">Invoice reconciliation requirements for international billing</span>
-              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
             </ui-tree-item>
             <ui-tree-item
               slot="children"
@@ -3268,7 +3446,7 @@ const curated: Record<string, CatalogExample[]> = {
               path="/interzone/projects/archive-import/legacy-ledger-verification"
             >
               <span slot="label">Legacy ledger verification and archive import</span>
-              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
             </ui-tree-item>
           </ui-tree-item>
         </ui-tree>`,
@@ -3290,19 +3468,19 @@ const curated: Record<string, CatalogExample[]> = {
           </header>
           <ui-tree class="example-drag-tree" label="Project priority" data-catalog-drag-boundary>
             <ui-tree-item value="billing" kind="file" title="Billing migration" data-catalog-drag-source="tree-item" data-catalog-drag-axis="y">
-              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
               <ui-badge slot="meta" tone="critical">P0</ui-badge>
-              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Billing migration">⠿</ui-button>
+              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Billing migration"><ui-icon name="action.drag" label=""></ui-icon></ui-button>
             </ui-tree-item>
             <ui-tree-item value="invoices" kind="file" title="Invoice reconciliation" data-catalog-drag-source="tree-item" data-catalog-drag-axis="y">
-              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
               <ui-badge slot="meta" tone="warning">P1</ui-badge>
-              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Invoice reconciliation">⠿</ui-button>
+              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Invoice reconciliation"><ui-icon name="action.drag" label=""></ui-icon></ui-button>
             </ui-tree-item>
             <ui-tree-item value="archive" kind="file" title="Archive import" data-catalog-drag-source="tree-item" data-catalog-drag-axis="y">
-              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
               <ui-badge slot="meta">P2</ui-badge>
-              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Archive import">⠿</ui-button>
+              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Archive import"><ui-icon name="action.drag" label=""></ui-icon></ui-button>
             </ui-tree-item>
           </ui-tree>
           <output class="example-drag-status" data-catalog-tree-status>Priority: Billing migration, Invoice reconciliation, Archive import</output>
@@ -3325,18 +3503,18 @@ const curated: Record<string, CatalogExample[]> = {
           </header>
           <ui-tree class="example-drag-tree" label="Migration work" data-catalog-tree-leaf-zone>
             <ui-tree-item kind="folder" title="Migration work" expanded>
-              <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+            <ui-icon slot="icon" name="object.folder" label=""></ui-icon>
               <ui-tree-item slot="children" value="billing" kind="file" title="Billing migration" data-catalog-label="Billing migration" data-catalog-drag-source="tree-leaf" data-catalog-drag-free data-catalog-tree-leaf-drop>
-                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
-                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Billing migration">⠿</ui-button>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
+                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Billing migration"><ui-icon name="action.drag" label=""></ui-icon></ui-button>
               </ui-tree-item>
               <ui-tree-item slot="children" value="invoices" kind="file" title="Invoice reconciliation" data-catalog-label="Invoice reconciliation" data-catalog-drag-source="tree-leaf" data-catalog-drag-free data-catalog-tree-leaf-drop>
-                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
-                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Invoice reconciliation">⠿</ui-button>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
+                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Invoice reconciliation"><ui-icon name="action.drag" label=""></ui-icon></ui-button>
               </ui-tree-item>
               <ui-tree-item slot="children" value="archive" kind="file" title="Archive import" data-catalog-label="Archive import" data-catalog-drag-source="tree-leaf" data-catalog-drag-free data-catalog-tree-leaf-drop>
-                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
-                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Archive import">⠿</ui-button>
+            <ui-icon slot="icon" name="object.document" label=""></ui-icon>
+                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Archive import"><ui-icon name="action.drag" label=""></ui-icon></ui-button>
               </ui-tree-item>
             </ui-tree-item>
           </ui-tree>
@@ -3364,9 +3542,9 @@ const curated: Record<string, CatalogExample[]> = {
       "Semantic tones and icons",
       `
         <div class="catalog-example example-toast-list">
-          <ui-toast open tone="positive" duration="0"><span slot="icon" aria-hidden="true">✓</span>Project saved</ui-toast>
-          <ui-toast open tone="warning" duration="0"><span slot="icon" aria-hidden="true">!</span>Migration needs attention</ui-toast>
-          <ui-toast open tone="critical" duration="0"><span slot="icon" aria-hidden="true">×</span>Invoice replay failed</ui-toast>
+          <ui-toast open tone="positive" duration="0"><ui-icon slot="icon" name="action.confirm" label=""></ui-icon>Project saved</ui-toast>
+          <ui-toast open tone="warning" duration="0"><ui-icon slot="icon" name="status.warning" label=""></ui-icon>Migration needs attention</ui-toast>
+          <ui-toast open tone="critical" duration="0"><ui-icon slot="icon" name="status.error" label=""></ui-icon>Invoice replay failed</ui-toast>
         </div>`,
       { compositionOnly: true },
     ),
@@ -3461,6 +3639,11 @@ const familyCompositions: Record<
   "ui-chip": { parent: "ui-combobox", example: "Multiple owners" },
   "ui-color-swatch": { parent: "ui-color-picker" },
   "ui-menu-item": { parent: "ui-menu", openParent: true },
+  "ui-menu-label": {
+    parent: "ui-menu",
+    example: "Stateful sections and flexible bounds",
+    openParent: true,
+  },
   "ui-option": { parent: "ui-select", openParent: true },
   "ui-option-group": {
     parent: "ui-select",

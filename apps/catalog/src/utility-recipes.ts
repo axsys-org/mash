@@ -226,19 +226,43 @@ const stageRecipes: UtilityRecipes = {
   "example-linear-content-grid":
     "relative grid min-h-0 min-w-0 grid-cols-[minmax(0,1fr)_auto] overflow-hidden",
   "example-linear-scroll": "h-full min-h-0",
-  "example-linear-main": "grid min-w-0 gap-container-block px-container-inline py-container-block",
-  "example-linear-page-heading": "flex flex-wrap items-start justify-between gap-container-gap",
+  "example-linear-main":
+    "grid min-w-0 grid-cols-[minmax(0,1fr)] gap-container-block px-container-inline py-container-block",
+  "example-linear-page-heading":
+    "flex w-full min-w-0 flex-wrap items-start justify-between gap-container-gap",
   "example-linear-heading-copy": "grid min-w-0 gap-control-block-small",
   "example-linear-eyebrow": "type-label-small text-text-muted",
-  "example-linear-heading-actions": "flex flex-wrap items-center gap-control-gap",
-  "example-linear-filters": "flex min-w-0 flex-wrap items-center gap-control-gap",
+  "example-linear-heading-actions": "flex max-w-full flex-wrap items-center gap-control-gap",
+  "example-linear-filters":
+    "flex w-full min-w-0 flex-wrap items-center gap-control-gap [&::part(root)]:w-full [&::part(root)]:min-w-0 [&::part(root)]:flex-wrap [&::part(actions)]:w-full [&::part(actions)]:min-w-0 [&::part(actions)]:flex-wrap",
   "example-linear-filter-search":
     "min-w-[min(100%,var(--layout-dimension-compact))] flex-[1_1_var(--layout-dimension-compact)]",
+  "example-linear-query-motion": "block min-w-0 w-full",
+  "example-linear-query-panel":
+    "grid min-w-0 gap-container-block rounded-container border border-border bg-surface-raised px-container-inline py-container-block shadow-[0_4px_16px_var(--color-shadow)]",
+  "example-linear-query-panel-header": "flex min-w-0 items-start justify-between gap-container-gap",
+  "example-linear-query-builder":
+    "grid max-h-[min(60vh,32rem)] min-w-[min(78vw,38rem)] gap-control-gap overflow-y-auto pe-control-inline",
+  "example-linear-query-group":
+    "grid gap-control-gap rounded-container border border-border bg-surface-sunken px-control-inline py-control-block",
+  "example-linear-query-group-header":
+    "flex flex-wrap items-center gap-control-gap type-label-small",
+  "example-linear-query-children": "grid gap-control-gap",
+  "example-linear-query-rule":
+    "grid min-w-0 grid-cols-[minmax(7rem,0.8fr)_auto_minmax(9rem,1.2fr)_auto] items-center gap-control-gap max-[45rem]:grid-cols-[minmax(0,1fr)_auto]",
+  "example-linear-query-connector": "type-code text-text-muted",
+  "example-linear-query-empty":
+    "flex items-center gap-control-gap rounded-control border border-dashed border-border px-control-inline py-control-block text-text-muted",
+  "example-linear-query-group-actions": "flex flex-wrap items-center gap-control-gap",
+  "example-linear-query-actions": "flex items-center justify-end gap-control-gap",
+  "example-linear-filter-chips": "flex min-w-0 flex-wrap items-center gap-control-gap",
+  "example-linear-view-state": "type-label-small text-text-muted",
   "example-linear-result-count": "ms-auto type-label-small text-text-muted",
   "example-linear-list-heading":
     "flex flex-wrap items-center justify-between gap-control-gap type-label-small text-text-muted",
   "example-linear-selection-toolbar":
     "sticky top-0 z-20 flex min-w-0 flex-wrap items-center gap-control-gap rounded-control border border-action bg-surface-raised px-control-inline py-control-block-small shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-linear-list-view": "w-full min-w-0 overflow-x-auto",
   "example-linear-table": "min-w-0",
   "example-linear-key": "type-code text-text-muted",
   "example-linear-issue": "grid min-w-0 gap-[var(--border-hairline)]",
@@ -246,6 +270,8 @@ const stageRecipes: UtilityRecipes = {
   "example-linear-assignee": "inline-flex items-center gap-control-gap type-label-small",
   "example-linear-empty":
     "grid min-h-[var(--layout-dimension-compact)] place-items-center content-center gap-control-gap rounded-container border border-dashed border-border bg-surface-sunken px-container-inline py-container-block text-center text-text-muted",
+  "example-linear-data-state":
+    "grid min-h-[var(--layout-dimension-compact)] place-items-center content-center gap-control-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block text-center text-text-muted",
   "example-linear-board":
     "grid min-w-0 grid-cols-[repeat(3,minmax(var(--layout-dimension-compact),1fr))] items-start gap-container-gap overflow-x-auto pb-control-block max-[45rem]:grid-cols-1 max-[45rem]:overflow-visible",
   "example-linear-board-column":
@@ -285,14 +311,17 @@ const stageRecipes: UtilityRecipes = {
   "example-table-message": "flex items-center gap-control-gap text-text-muted",
   "example-table-components": "min-w-0",
   "example-table-chip-list": "flex flex-wrap gap-control-gap",
-  "example-workbook": "h-full min-h-0 w-full [&::part(root)]:h-full [&::part(viewport)]:min-h-0",
+  "example-workbook":
+    "h-full min-h-0 w-full [&::part(root)]:h-full [&::part(viewport)]:min-h-0 [&::part(editor)]:border-t [&::part(editor)]:border-border [&::part(editor)]:bg-surface-raised",
   "example-workbook-toolbar":
     "grid min-w-0 grid-cols-[auto_auto_minmax(12rem,1fr)] items-center gap-control-gap max-[48rem]:grid-cols-[auto_minmax(10rem,1fr)]",
   "example-workbook-name-box":
     "min-w-[4rem] rounded-control border border-border bg-surface-sunken px-control-inline py-control-block-small text-center type-code",
   "example-workbook-formula": "min-w-0",
   "example-workbook-corner": "block size-glyph border-s border-t border-border-strong",
-  "example-workbook-cell-form": "grid min-w-[18rem] gap-control-gap",
+  "example-workbook-editor":
+    "grid min-w-0 grid-cols-[minmax(10rem,auto)_minmax(10rem,1fr)_minmax(12rem,1fr)_auto] items-end gap-control-gap px-control-inline py-control-block max-[52rem]:grid-cols-1",
+  "example-workbook-editor-heading": "grid gap-[var(--border-hairline)] type-label-small",
   "example-data-table-loading": "flex items-center gap-control-gap type-label-small",
   "example-data-table-footer":
     "flex min-w-0 items-center justify-between gap-control-gap type-label-small text-text-muted",
@@ -304,8 +333,6 @@ const stageRecipes: UtilityRecipes = {
     "grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] bg-surface-sunken",
   "example-data-explorer-table":
     "h-full min-h-0 [&::part(root)]:h-full [&::part(viewport)]:min-h-0",
-  "example-tree-glyph":
-    "inline-block size-[calc(var(--space-control-gap)+var(--space-control-block-small))] rounded-control border border-current [background:color-mix(in_oklab,currentColor_14%,transparent)]",
   "example-tree-narrow": "w-[min(100%,22rem)]!",
   "example-drag-boundary":
     "relative grid h-full min-h-compact w-full place-items-center overflow-hidden bg-surface-sunken px-container-inline py-container-block",
@@ -397,8 +424,15 @@ const stageRecipes: UtilityRecipes = {
     "relative min-h-[22rem] w-[min(100%,var(--layout-dimension-content))] rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-menu-trigger":
     "w-[6.25rem] [&::part(control)]:w-full [&::part(control)]:justify-between [&::part(control)]:border-0! [&::part(control)]:bg-fill-tertiary-opaque! [&::part(control)]:px-control-inline [&::part(control)]:py-0 [&::part(control)]:text-text",
-  "example-menu-header":
-    "block min-h-[1.0625rem] ps-[calc(var(--space-control-gap)-var(--border-hairline))] pt-[0.1875rem] pb-[0.125rem] type-label-small font-bold text-text-muted",
+  "example-menu-flex":
+    "[&::part(popup)]:min-w-[var(--layout-menu-inline-compact)]! [&::part(popup)]:max-w-[var(--layout-dimension-dialog)]!",
+  "example-typeset-specimen":
+    "grid w-[min(100%,var(--layout-dimension-content))] gap-region rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-typeset-heading": "grid gap-control-gap",
+  "example-typeset-scale": "grid gap-control-block-small",
+  "example-typeset-tones":
+    "grid gap-control-gap rounded-control bg-surface-sunken px-container-inline py-container-block",
+  "example-spacing-rhythm": "grid gap-control-gap",
   "example-context-target": "w-[min(100%,var(--layout-dimension-dialog))]",
   "example-message-thread":
     "flex flex-col gap-control-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
@@ -565,6 +599,23 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap border-b border-border px-control-inline py-control-block last:border-b-0",
   ],
   [".example-shortcut-list > span > span", "flex items-center gap-control-block-small"],
+  [
+    ".example-typeset-scale > div",
+    "grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-container-gap border-b border-border py-control-block-small last:border-b-0",
+  ],
+  [
+    ".example-typeset-scale code",
+    "rounded-control bg-surface-sunken px-control-inline-small py-control-block-small type-label-small text-text-muted",
+  ],
+  [
+    ".example-spacing-rhythm > div",
+    "grid grid-cols-[var(--layout-dimension-compact)_minmax(0,1fr)] items-center gap-container-gap",
+  ],
+  [".example-spacing-rhythm > div > span", "block h-control-block-small rounded-pill bg-action"],
+  ['.example-spacing-rhythm [data-space="group-related"] > span', "w-[var(--space-group-related)]"],
+  ['.example-spacing-rhythm [data-space="inline"] > span', "w-[var(--space-inline)]"],
+  ['.example-spacing-rhythm [data-space="container-gap"] > span', "w-[var(--space-container-gap)]"],
+  ['.example-spacing-rhythm [data-space="region"] > span', "w-[var(--space-region)]"],
   [".example-pagination-heading > div", "grid gap-[var(--border-hairline)]"],
   [".example-linear-identity-copy > span", "truncate type-label-small text-text-muted"],
   [".example-linear-nav-link ui-badge", "ms-auto"],
@@ -578,6 +629,17 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-linear-heading-copy h2, .example-linear-heading-copy p", "m-0"],
   [".example-linear-heading-copy h2", "type-heading"],
   [".example-linear-heading-copy p", "type-label-small text-text-muted"],
+  [".example-linear-query-panel-header > div", "grid min-w-0 gap-control-block-small"],
+  [".example-linear-query-panel-header > div > span", "type-label-small text-text-muted"],
+  [".example-linear-query-group-header > ui-toggle-group", "ms-auto"],
+  [".example-linear-query-group .example-linear-query-group", "ms-container-inline"],
+  [".example-linear-query-rule > ui-select", "min-w-0"],
+  [".example-linear-filter-chips ui-chip", "max-w-full"],
+  [".example-linear-filter-chips ui-chip ui-button", "ms-control-gap"],
+  [
+    ".example-linear-data-state ui-motion",
+    "[&::part(content)]:flex [&::part(content)]:items-center [&::part(content)]:gap-control-gap",
+  ],
   [
     ".example-linear-command-list > ui-button",
     "w-full! [&::part(control)]:w-full [&::part(control)]:grid [&::part(control)]:grid-cols-[auto_minmax(0,1fr)_auto] [&::part(control)]:justify-items-start",
@@ -636,11 +698,6 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     ".example-pagination-heading span, .example-pagination-heading output",
     "type-label-small text-text-muted",
   ],
-  [
-    '.example-tree-glyph[data-kind="workspace"]',
-    "rounded-[var(--border-hairline)] text-action [box-shadow:inset_0_0_0_var(--border-hairline)_var(--color-surface)]",
-  ],
-  ['.example-tree-glyph[data-kind="file"]', "rounded-[var(--border-hairline)] text-text-muted"],
   [
     "[data-catalog-drag-source]",
     "relative will-change-transform data-[catalog-dragging]:z-raised data-[catalog-dragging]:opacity-80 data-[catalog-dragging]:[&::part(control)]:outline-none!",

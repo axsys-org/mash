@@ -39,6 +39,8 @@ export interface OverlayOpenChangeDetail {
   reason: OverlayChangeReason;
 }
 
+type OverlayInitialFocus = "first" | "popup" | "none";
+
 let overlayId = 0;
 
 /**
@@ -83,6 +85,7 @@ export abstract class UIOverlay extends LitElement {
   protected readonly modal: boolean = false;
   protected readonly triggerAction: OverlayTriggerAction = "click";
   protected readonly movesFocus: boolean = true;
+  protected readonly pointerOpenFocus: OverlayInitialFocus = "first";
   protected readonly authoredContentPart: "content" | "actions" | "description" = "content";
   protected readonly rendersTitle: boolean = false;
   protected readonly rendersDescription: boolean = false;
@@ -96,6 +99,7 @@ export abstract class UIOverlay extends LitElement {
   readonly #descriptionId = `mash-overlay-description-${overlayId}`;
   #returnFocus: HTMLElement | null = null;
   #openReason: OverlayChangeReason | null = null;
+  #initialFocus: OverlayInitialFocus | null = null;
   #movedFocusForOpen = false;
   #contextPoint: { x: number; y: number } | null = null;
   #interactionTimer: number | undefined;
@@ -204,9 +208,16 @@ export abstract class UIOverlay extends LitElement {
   }
 
   /** Requests the public open state, then announces it through the concrete contract. */
-  protected requestOpenChange(open: boolean, reason: OverlayChangeReason = "imperative"): void {
+  protected requestOpenChange(
+    open: boolean,
+    reason: OverlayChangeReason = "imperative",
+    initialFocus: OverlayInitialFocus | null = null,
+  ): void {
     if ((this.disabled && open) || this.open === open) return;
-    if (open) this.#openReason = reason;
+    if (open) {
+      this.#openReason = reason;
+      this.#initialFocus = initialFocus;
+    }
     this.open = open;
     this.emitOpenChange(open, reason);
   }
@@ -335,6 +346,10 @@ export abstract class UIOverlay extends LitElement {
     target?.focus();
   }
 
+  #focusPopup(): void {
+    this.renderRoot.querySelector<HTMLElement>("[part='popup']")?.focus();
+  }
+
   protected override willUpdate(changed: PropertyValues<this>): void {
     if (changed.has("open") && this.open) this.overlayPresent = true;
   }
@@ -348,16 +363,22 @@ export abstract class UIOverlay extends LitElement {
         this.overlayInternals.states.delete("exiting");
         this.overlayInternals.states.add("entering");
         this.#positioner.start();
+        const initialFocus =
+          this.#initialFocus ?? (this.#openReason === "hover" ? "none" : "first");
         const shouldMoveFocus =
-          this.movesFocus && this.#openReason !== null && this.#openReason !== "hover";
+          this.movesFocus && this.#openReason !== null && initialFocus !== "none";
         this.#movedFocusForOpen = shouldMoveFocus;
         if (shouldMoveFocus) {
           this.#rememberFocus();
-          queueMicrotask(() => this.#focusFirst());
+          queueMicrotask(() => {
+            if (initialFocus === "popup") this.#focusPopup();
+            else this.#focusFirst();
+          });
         } else {
           this.#returnFocus = null;
         }
         this.#openReason = null;
+        this.#initialFocus = null;
         this.#motion.play("entering");
       } else {
         this.overlayInternals.states.delete("open");
@@ -395,7 +416,11 @@ export abstract class UIOverlay extends LitElement {
     }
     if (this.interactionTriggerAction() === "click" && this.#eventIsWithinTrigger(event)) {
       event.preventDefault();
-      this.requestOpenChange(!this.open, "trigger");
+      this.requestOpenChange(
+        !this.open,
+        "trigger",
+        event.detail > 0 ? this.pointerOpenFocus : "first",
+      );
     }
   };
 

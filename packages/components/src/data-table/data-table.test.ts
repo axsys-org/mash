@@ -46,11 +46,21 @@ describe("ui-data-table", () => {
         ${authoredTable}
         <p slot="empty">No projects</p>
         <span slot="loading">Loading projects</span>
+        <form slot="editor"><input name="value" /></form>
         <output slot="footer">4 rows</output>
       </ui-data-table>
     `);
 
-    for (const part of ["root", "toolbar", "viewport", "table", "empty", "loading", "footer"]) {
+    for (const part of [
+      "root",
+      "toolbar",
+      "viewport",
+      "table",
+      "empty",
+      "loading",
+      "editor",
+      "footer",
+    ]) {
       expect(inShadow(dataTable, `[part~="${part}"]`)).toBeTruthy();
     }
     expect(
@@ -148,6 +158,87 @@ describe("ui-data-table", () => {
       columnIndex: 1,
       reason: "keyboard",
     });
+  });
+
+  it("keeps the slotted editor lifecycle controlled and event driven", async () => {
+    const dataTable = await fixture<UIDataTable>(`
+      <ui-data-table selection="cell" selected="2:2">
+        ${authoredTable}
+        <form slot="editor"><input name="value" value="Active" /></form>
+      </ui-data-table>
+    `);
+    await settled(dataTable.parentElement!);
+    const cell = dataTable.querySelector<UITableCell>(
+      'ui-table-row[row-index="2"] ui-table-cell[column-index="2"]',
+    )!;
+    const form = dataTable.querySelector<HTMLFormElement>('form[slot="editor"]')!;
+    const input = form.querySelector<HTMLInputElement>("input")!;
+    const requestListener = vi.fn();
+    const commitListener = vi.fn();
+    const cancelListener = vi.fn();
+    dataTable.addEventListener("ui-data-table-edit-request", requestListener);
+    dataTable.addEventListener("ui-data-table-edit-commit", commitListener);
+    dataTable.addEventListener("ui-data-table-edit-cancel", cancelListener);
+
+    cell.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, composed: true }));
+
+    expect(requestListener).toHaveBeenCalledOnce();
+    expect(requestListener.mock.calls[0]![0].detail).toMatchObject({
+      key: "2:2",
+      rowIndex: 2,
+      columnIndex: 2,
+      reason: "pointer",
+    });
+    expect(dataTable.editing).toBe("");
+    expect(inShadow<HTMLElement>(dataTable, '[part="editor"]').hidden).toBe(true);
+
+    dataTable.editing = "2:2";
+    await settled(dataTable.parentElement!);
+    expect(dataTable.matches(":state(editing)")).toBe(true);
+    expect(cell.hasAttribute("data-editing")).toBe(true);
+    expect(inShadow<HTMLElement>(dataTable, '[part="editor"]').hidden).toBe(false);
+
+    form.requestSubmit();
+    expect(commitListener).toHaveBeenCalledOnce();
+    expect(commitListener.mock.calls[0]![0].detail).toMatchObject({
+      key: "2:2",
+      reason: "submit",
+      form,
+    });
+    expect(dataTable.editing).toBe("2:2");
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }),
+    );
+    expect(cancelListener).toHaveBeenCalledOnce();
+    expect(cancelListener.mock.calls[0]![0].detail).toMatchObject({
+      key: "2:2",
+      reason: "escape",
+    });
+    expect(dataTable.editing).toBe("2:2");
+    dataTable.editing = "";
+    await settled(dataTable.parentElement!);
+    expect(dataTable.hasAttribute("editing")).toBe(false);
+  });
+
+  it("offers imperative edit requests without owning the editor identity", async () => {
+    const dataTable = await fixture<UIDataTable>(`
+      <ui-data-table selection="cell">${authoredTable}</ui-data-table>
+    `);
+    const requestListener = vi.fn();
+    const commitListener = vi.fn();
+    dataTable.addEventListener("ui-data-table-edit-request", requestListener);
+    dataTable.addEventListener("ui-data-table-edit-commit", commitListener);
+
+    expect(dataTable.requestEdit(2, 2)).toBe(true);
+    expect(dataTable.requestEdit(3, 2)).toBe(false);
+    expect(requestListener).toHaveBeenCalledOnce();
+    expect(dataTable.editing).toBe("");
+
+    dataTable.editing = "2:2";
+    expect(dataTable.commitEdit()).toBe(true);
+    expect(commitListener).toHaveBeenCalledOnce();
+    expect(dataTable.editing).toBe("2:2");
   });
 
   it("requests and projects parent-owned rectangular ranges with Shift-click", async () => {

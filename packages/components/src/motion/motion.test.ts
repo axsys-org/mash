@@ -56,6 +56,22 @@ describe("ui-motion", () => {
     expect(events.some((event) => event.name === "mash-motion-end")).toBe(true);
   });
 
+  it("keeps empty higher scene lanes transparent to content interaction", async () => {
+    const motion = await fixture<UIMotion>(`
+      <ui-motion style="--duration-surface: 1ms; --easing-spring-gentle: linear; --motion-distance-medium: 1px">
+        <button type="button">Edit filters</button>
+      </ui-motion>
+    `);
+    const button = motion.querySelector("button")!;
+    const bounds = button.getBoundingClientRect();
+    const hit = document.elementFromPoint(
+      bounds.x + bounds.width / 2,
+      bounds.y + bounds.height / 2,
+    );
+
+    expect(hit).toBe(button);
+  });
+
   it("interrupts an in-flight loading lifecycle when state changes", async () => {
     const motion = await fixture<UIMotion>(`
       <ui-motion

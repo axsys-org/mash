@@ -83,4 +83,28 @@ globalThis.addEventListener("popstate", () => {
   render(root!, state, callbacks);
 });
 
+globalThis.addEventListener("message", (event) => {
+  if (event.origin !== location.origin || event.source === window) return;
+  const data: unknown = event.data;
+  if (
+    typeof data !== "object" ||
+    data === null ||
+    !("type" in data) ||
+    data.type !== "mash-catalog-example-state" ||
+    !("key" in data) ||
+    typeof data.key !== "string" ||
+    !/^[a-z][a-z0-9-]{0,31}$/.test(data.key) ||
+    !("value" in data) ||
+    typeof data.value !== "string" ||
+    data.value.length > 4096
+  )
+    return;
+  state = {
+    ...state,
+    exampleState: { ...state.exampleState, [data.key]: data.value },
+  };
+  const next = urlForState(state);
+  if (next !== location.pathname + location.search) history.replaceState(null, "", next);
+});
+
 update();

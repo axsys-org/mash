@@ -99,6 +99,9 @@ export type {
   DataTableActivationDetail,
   DataTableCoordinate,
   DataTableDensity,
+  DataTableEditCommitDetail,
+  DataTableEditDetail,
+  DataTableEditReason,
   DataTableInteractionReason,
   DataTableSelection,
   DataTableSelectionDetail,
@@ -116,7 +119,14 @@ export type {
   MotionTarget,
 } from "./motion/motion.js";
 export { UIMenu } from "./menu/menu.js";
+export type { MenuDensity, MenuSizing } from "./menu/menu.js";
 export { UIMenuItem } from "./menu-item/menu-item.js";
+export type {
+  MenuItemKind,
+  MenuItemSelectDetail,
+  MenuItemSubmenuChangeDetail,
+  MenuItemTone,
+} from "./menu-item/menu-item.js";
 export { UIMenubar } from "./menubar/menubar.js";
 export { UINavigationMenu } from "./navigation-menu/navigation-menu.js";
 export { UINumberField } from "./number-field/number-field.js";
@@ -186,3 +196,6 @@ export type { VirtualListAlignment, VirtualListOrientation } from "./virtual-lis
 export * from "./drag/drag.js";
 export { UIDraggable } from "./draggable/draggable.js";
 export type { DraggableContainment } from "./draggable/draggable.js";
+export { UITypeset } from "./typeset/typeset.js";
+export type { TypesetPreset, TypesetTone } from "./typeset/typeset.js";
+export { UIMenuLabel } from "./menu-label/menu-label.js";

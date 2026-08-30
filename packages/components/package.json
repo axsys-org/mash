@@ -620,6 +620,22 @@
       "types": "./dist/motion/register.d.ts",
       "import": "./dist/motion/register.js"
     },
+    "./typeset": {
+      "types": "./dist/typeset/typeset.d.ts",
+      "import": "./dist/typeset/typeset.js"
+    },
+    "./typeset/register": {
+      "types": "./dist/typeset/register.d.ts",
+      "import": "./dist/typeset/register.js"
+    },
+    "./menu-label": {
+      "types": "./dist/menu-label/menu-label.d.ts",
+      "import": "./dist/menu-label/menu-label.js"
+    },
+    "./menu-label/register": {
+      "types": "./dist/menu-label/register.d.ts",
+      "import": "./dist/menu-label/register.js"
+    },
     "./custom-elements.json": "./custom-elements.json",
     "./package.json": "./package.json"
   },

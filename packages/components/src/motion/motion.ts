@@ -167,6 +167,19 @@ export class UIMotion extends LitElement {
         z-index: 3;
       }
 
+      /* Empty scene lanes still occupy the shared grid area. They must not
+         swallow pointer input intended for the primary content; authored
+         overlay or indicator children opt themselves back into hit testing. */
+      [part="underlay"],
+      [part="overlay"],
+      [part="indicator"] {
+        pointer-events: none;
+      }
+
+      slot[name]::slotted(*) {
+        pointer-events: auto;
+      }
+
       .motion-target {
         transform-origin: center;
         will-change: filter, opacity, rotate, scale, translate;

@@ -13,6 +13,12 @@ export interface MenuItemSubmenuChangeDetail {
   open: boolean;
 }
 
+export interface MenuItemSelectDetail {
+  value: string;
+  checked: boolean;
+  kind: MenuItemKind;
+}
+
 /**
  * A selectable command or submenu branch inside `ui-menu` or `ui-context-menu`.
  *
@@ -67,7 +73,7 @@ export interface MenuItemSubmenuChangeDetail {
  * @cssstate overflow-start - Matches when label content continues before the viewport.
  * @cssstate overflow-end - Matches when label content continues after the viewport.
  *
- * @fires {CustomEvent<{ value: string; checked: boolean; kind: MenuItemKind }>} ui-menu-item-select - Emitted when a leaf command is activated.
+ * @fires {CustomEvent<MenuItemSelectDetail>} ui-menu-item-select - Emitted when a leaf command is activated, after checkbox/radio state is updated.
  * @fires {CustomEvent<MenuItemSubmenuChangeDetail>} ui-menu-item-submenu-change - Emitted when a submenu branch opens or closes.
  *
  * @mashnode root item
@@ -113,7 +119,7 @@ export class UIMenuItem extends LitElement {
   declare value: string;
   /** Prevents command activation while retaining menu focus semantics. */
   declare disabled: boolean;
-  /** Controlled checked state for checkbox and radio menu items. */
+  /** Current checked state for checkbox and radio menu items. */
   declare checked: boolean;
   /** Accessible action semantics. */
   declare kind: MenuItemKind;
@@ -351,15 +357,23 @@ export class UIMenuItem extends LitElement {
       this.showSubmenu(true);
       return;
     }
+
+    if (this.kind === "checkbox") {
+      this.checked = !this.checked;
+    } else if (this.kind === "radio") {
+      for (const sibling of this.parentElement?.querySelectorAll<UIMenuItem>(
+        ":scope > ui-menu-item[kind='radio']",
+      ) ?? []) {
+        sibling.checked = sibling === this;
+      }
+    }
+
     this.dispatchEvent(
-      new CustomEvent<{ value: string; checked: boolean; kind: MenuItemKind }>(
-        "ui-menu-item-select",
-        {
-          bubbles: true,
-          composed: true,
-          detail: { value: this.value, checked: this.checked, kind: this.kind },
-        },
-      ),
+      new CustomEvent<MenuItemSelectDetail>("ui-menu-item-select", {
+        bubbles: true,
+        composed: true,
+        detail: { value: this.value, checked: this.checked, kind: this.kind },
+      }),
     );
   };
 

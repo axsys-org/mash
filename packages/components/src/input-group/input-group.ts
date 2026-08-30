@@ -33,6 +33,7 @@ import { baseStyles } from "../internal/base-styles.js";
  * @csspart suffix - The wrapper around the `suffix` slot.
  *
  * @cssstate has-prefix - Matches while authored prefix content is present.
+ * @cssstate has-control - Matches while the required control content is present.
  * @cssstate has-suffix - Matches while authored suffix content is present.
  *
  * @mashnode root root
@@ -48,16 +49,19 @@ import { baseStyles } from "../internal/base-styles.js";
 export class UIInputGroup extends LitElement {
   static override properties = {
     _hasPrefix: { type: Boolean, state: true },
+    _hasControl: { type: Boolean, state: true },
     _hasSuffix: { type: Boolean, state: true },
   };
 
   declare private _hasPrefix: boolean;
+  declare private _hasControl: boolean;
   declare private _hasSuffix: boolean;
   readonly #internals: ElementInternals;
 
   constructor() {
     super();
     this._hasPrefix = false;
+    this._hasControl = false;
     this._hasSuffix = false;
     this.#internals = this.attachInternals();
   }
@@ -66,11 +70,18 @@ export class UIInputGroup extends LitElement {
 
   #onSlotChange = (event: Event): void => {
     const slot = event.target as HTMLSlotElement;
-    const hasContent = slot.assignedNodes({ flatten: true }).length > 0;
+    const hasContent = slot.assignedNodes({ flatten: true }).some((node) => {
+      if (node.nodeType === Node.TEXT_NODE) return Boolean(node.textContent?.trim());
+      return true;
+    });
     if (slot.name === "prefix") {
       this._hasPrefix = hasContent;
       if (hasContent) this.#internals.states.add("has-prefix");
       else this.#internals.states.delete("has-prefix");
+    } else if (slot.name === "control") {
+      this._hasControl = hasContent;
+      if (hasContent) this.#internals.states.add("has-control");
+      else this.#internals.states.delete("has-control");
     } else if (slot.name === "suffix") {
       this._hasSuffix = hasContent;
       if (hasContent) this.#internals.states.add("has-suffix");
@@ -85,7 +96,9 @@ export class UIInputGroup extends LitElement {
           <slot name="prefix" @slotchange=${this.#onSlotChange}></slot>
         </span>
         <span part="prefix-separator" ?hidden=${!this._hasPrefix} aria-hidden="true"></span>
-        <span part="control"><slot name="control"></slot></span>
+        <span part="control" ?hidden=${!this._hasControl}
+          ><slot name="control" @slotchange=${this.#onSlotChange}></slot
+        ></span>
         <span part="suffix-separator" ?hidden=${!this._hasSuffix} aria-hidden="true"></span>
         <span part="suffix" ?hidden=${!this._hasSuffix}>
           <slot name="suffix" @slotchange=${this.#onSlotChange}></slot>

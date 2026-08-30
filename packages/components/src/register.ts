@@ -78,3 +78,5 @@ import "./tree/register.js";
 import "./tree-item/register.js";
 import "./virtual-list/register.js";
 import "./draggable/register.js";
+import "./typeset/register.js";
+import "./menu-label/register.js";

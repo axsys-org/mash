@@ -20,6 +20,25 @@ import {
   type DragController,
   type DragEventDetail,
 } from "@mash/ui";
+import {
+  defaultLinearWorkspaceSnapshot,
+  linearAppendFilterNode,
+  linearFilterNodeAtPath,
+  linearGroup,
+  linearMatchesFilter,
+  linearPresetSnapshot,
+  linearRemoveFilterNode,
+  linearRule,
+  linearSetFilterGroupCombinator,
+  linearUpdateFilterRule,
+  parseLinearWorkspaceSnapshot,
+  serializeLinearWorkspaceSnapshot,
+  type LinearFilterField,
+  type LinearFilterGroup,
+  type LinearFilterNode,
+  type LinearFilterPreset,
+  type LinearWorkspaceSnapshot,
+} from "./linear-workspace-state.js";
 
 // Tells the parent the frame is ready without it having to poll for the
 // registry being populated.
@@ -57,8 +76,13 @@ function syncDragSources(): void {
   }
 }
 
-new MutationObserver(syncDragSources).observe(document.body, { childList: true, subtree: true });
-queueMicrotask(syncDragSources);
+function syncStageContent(): void {
+  syncDragSources();
+  syncLinearWorkspaces();
+}
+
+new MutationObserver(syncStageContent).observe(document.body, { childList: true, subtree: true });
+queueMicrotask(syncStageContent);
 
 function dragSource(event: Event): HTMLElement | null {
   const source = event.target;
@@ -79,7 +103,7 @@ function itemLabel(item: HTMLElement): string {
     item.dataset.catalogLabel ??
     item.getAttribute("title") ??
     item.querySelector<HTMLElement>(":scope > [slot='label']")?.textContent?.trim() ??
-    item.textContent?.replace("⠿", "").trim() ??
+    item.textContent?.trim() ??
     "Item"
   );
 }
@@ -168,18 +192,20 @@ function createPinnedTreeView(value: string, labelText: string): HTMLElement {
   const label = document.createElement("span");
   label.slot = "label";
   label.textContent = labelText;
-  const icon = document.createElement("span");
+  const icon = document.createElement("ui-icon");
   icon.slot = "icon";
-  icon.className = "example-tree-glyph";
-  icon.dataset.kind = "file";
-  icon.ariaHidden = "true";
+  icon.setAttribute("name", "object.document");
+  icon.setAttribute("label", "");
   const handle = document.createElement("ui-button");
   handle.slot = "actions";
   handle.setAttribute("variant", "quiet");
   handle.setAttribute("size", "small");
   handle.setAttribute("aria-label", `Move ${labelText} to the tab bar`);
   handle.dataset.catalogDragHandle = "";
-  handle.textContent = "⠿";
+  const handleIcon = document.createElement("ui-icon");
+  handleIcon.setAttribute("name", "action.drag");
+  handleIcon.setAttribute("label", "");
+  handle.append(handleIcon);
   item.append(label, icon, handle);
   return item;
 }
@@ -191,11 +217,11 @@ function createDraggableTab(value: string, labelText: string): HTMLElement {
   tab.dataset.catalogLabel = labelText;
   tab.dataset.catalogDragSource = "tab";
   tab.dataset.catalogDragFree = "";
-  const handle = document.createElement("span");
+  const handle = document.createElement("ui-icon");
   handle.className = "example-drag-grip";
   handle.dataset.catalogDragHandle = "";
-  handle.setAttribute("aria-label", `Move ${labelText} tab`);
-  handle.textContent = "⠿";
+  handle.setAttribute("name", "action.drag");
+  handle.setAttribute("label", `Move ${labelText} tab`);
   tab.append(handle, document.createTextNode(labelText));
   return tab;
 }
@@ -1145,8 +1171,10 @@ document.addEventListener("ui-resizable-change", (event) => {
 });
 
 type MashValueElement = HTMLElement & { value?: string };
+type MashNumericValueElement = HTMLElement & { value?: number };
 type MashCheckboxElement = HTMLElement & { checked?: boolean; indeterminate?: boolean };
 type MashOverlayElement = HTMLElement & { open?: boolean; show?: () => void; dismiss?: () => void };
+type MashMotionElement = HTMLElement & { state?: string };
 
 interface LinearIssue {
   id: string;
@@ -1158,14 +1186,11 @@ interface LinearIssue {
   initials: string;
 }
 
-interface LinearWorkspaceState {
-  query: string;
-  status: string;
-  assignee: string;
-  view: "list" | "board";
+interface LinearWorkspaceState extends LinearWorkspaceSnapshot {
   selected: Set<string>;
   highlighted: string | null;
   currentIssue: string | null;
+  dataState: "ready" | "loading" | "error";
   nextIssueNumber: number;
 }
 
@@ -1204,21 +1229,58 @@ function linearWorkspaceFromEvent(event: Event): HTMLElement | null {
   return null;
 }
 
+function linearRouteWindow(): Window {
+  try {
+    return window.parent !== window && window.parent.location.origin === window.location.origin
+      ? window.parent
+      : window;
+  } catch {
+    return window;
+  }
+}
+
 function linearState(workspace: HTMLElement): LinearWorkspaceState {
   let state = linearStates.get(workspace);
   if (state) return state;
+  const routeWindow = linearRouteWindow();
+  const restored = parseLinearWorkspaceSnapshot(
+    new URL(routeWindow.location.href).searchParams.get("state-linear"),
+  );
+  const snapshot =
+    restored ??
+    defaultLinearWorkspaceSnapshot(workspace.dataset.linearView === "board" ? "board" : "list");
   state = {
-    query: "",
-    status: "all",
-    assignee: "all",
-    view: workspace.dataset.linearView === "board" ? "board" : "list",
+    ...snapshot,
     selected: new Set<string>(),
     highlighted: null,
     currentIssue: null,
+    dataState: "ready",
     nextIssueNumber: 151,
   };
   linearStates.set(workspace, state);
   return state;
+}
+
+function linearPersistState(workspace: HTMLElement): void {
+  const state = linearState(workspace);
+  const routeWindow = linearRouteWindow();
+  const value = serializeLinearWorkspaceSnapshot({
+    filters: state.filters,
+    preset: state.preset,
+    query: state.query,
+    version: 1,
+    view: state.view,
+  });
+  if (routeWindow !== window) {
+    routeWindow.postMessage(
+      { key: "linear", type: "mash-catalog-example-state", value },
+      window.location.origin,
+    );
+    return;
+  }
+  const url = new URL(routeWindow.location.href);
+  url.searchParams.set("state-linear", value);
+  routeWindow.history.replaceState(routeWindow.history.state, "", url);
 }
 
 function linearIssueFromElement(element: HTMLElement | null): LinearIssue | null {
@@ -1253,11 +1315,7 @@ function linearMatches(issue: LinearIssue, state: LinearWorkspaceState): boolean
   const query = state.query.trim().toLocaleLowerCase();
   const searchable =
     `${issue.id} ${issue.title} ${issue.area} ${issue.assignee}`.toLocaleLowerCase();
-  return (
-    (!query || searchable.includes(query)) &&
-    (state.status === "all" || issue.status === state.status) &&
-    (state.assignee === "all" || issue.assignee === state.assignee)
-  );
+  return (!query || searchable.includes(query)) && linearMatchesFilter(issue, state.filters);
 }
 
 function linearVisibleIssues(workspace: HTMLElement): LinearIssue[] {
@@ -1265,6 +1323,229 @@ function linearVisibleIssues(workspace: HTMLElement): LinearIssue[] {
   return [...workspace.querySelectorAll<HTMLElement>("[data-linear-list-row]")]
     .map((row) => linearIssueFromElement(row))
     .filter((issue): issue is LinearIssue => issue !== null && linearMatches(issue, state));
+}
+
+const linearFilterDefaults: Record<LinearFilterField, string> = {
+  status: "progress",
+  assignee: "maya",
+  priority: "high",
+};
+
+const linearFilterOptions: Record<LinearFilterField, readonly [string, string][]> = {
+  status: [
+    ["backlog", "Backlog"],
+    ["todo", "Todo"],
+    ["progress", "In progress"],
+    ["review", "In review"],
+    ["done", "Done"],
+  ],
+  assignee: [
+    ["maya", "Maya Chen"],
+    ["sam", "Sam Ortiz"],
+    ["alex", "Alex Rivera"],
+    ["priya", "Priya Jain"],
+  ],
+  priority: [
+    ["urgent", "Urgent"],
+    ["high", "High"],
+    ["medium", "Medium"],
+    ["low", "Low"],
+  ],
+};
+
+function linearFilterFieldLabel(field: LinearFilterField): string {
+  if (field === "assignee") return "Assignee";
+  return field === "priority" ? "Priority" : "Status";
+}
+
+function linearFilterRuleLabel(field: LinearFilterField, value: string): string {
+  const label = linearFilterOptions[field].find(([candidate]) => candidate === value)?.[1] ?? value;
+  return `${linearFilterFieldLabel(field)} is ${label}`;
+}
+
+function linearFilterPath(path: readonly number[]): string {
+  return path.join(".");
+}
+
+function linearParseFilterPath(value: string | undefined): number[] | null {
+  if (value === "") return [];
+  if (!value || !/^\d+(?:\.\d+)*$/.test(value)) return null;
+  return value.split(".").map(Number);
+}
+
+function linearFilterNodeDescription(node: LinearFilterNode): string {
+  if (node.kind === "rule") return linearFilterRuleLabel(node.field, node.value);
+  if (node.children.length === 0) return "All issues";
+  const joiner = node.combinator === "and" ? " and " : " or ";
+  const description = node.children.map(linearFilterNodeDescription).join(joiner);
+  return node.children.length > 1 ? `(${description})` : description;
+}
+
+function linearFilterRuleCount(node: LinearFilterNode): number {
+  return node.kind === "rule"
+    ? 1
+    : node.children.reduce((count, child) => count + linearFilterRuleCount(child), 0);
+}
+
+function linearRenderFilterRule(
+  rule: Extract<LinearFilterNode, { kind: "rule" }>,
+  path: readonly number[],
+): string {
+  const encodedPath = linearFilterPath(path);
+  const fieldOptions = (["status", "assignee", "priority"] as const)
+    .map(
+      (field) =>
+        `<ui-option value="${field}"${field === rule.field ? " selected" : ""}>${linearFilterFieldLabel(field)}</ui-option>`,
+    )
+    .join("");
+  const valueOptions = linearFilterOptions[rule.field]
+    .map(
+      ([value, label]) =>
+        `<ui-option value="${value}"${value === rule.value ? " selected" : ""}>${label}</ui-option>`,
+    )
+    .join("");
+  return `<div class="example-linear-query-rule" data-linear-query-rule data-linear-query-path="${encodedPath}">
+    <ui-select data-linear-query-field data-linear-query-path="${encodedPath}" value="${linearEscape(rule.field)}" label="Filter field">${fieldOptions}</ui-select>
+    <ui-badge size="small">is</ui-badge>
+    <ui-select data-linear-query-value data-linear-query-path="${encodedPath}" value="${linearEscape(rule.value)}" label="${linearEscape(linearFilterFieldLabel(rule.field))} value">${valueOptions}</ui-select>
+    <ui-button type="button" size="small" variant="quiet" data-linear-query-remove data-linear-query-path="${encodedPath}" aria-label="Remove ${linearEscape(linearFilterRuleLabel(rule.field, rule.value))}"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
+  </div>`;
+}
+
+function linearRenderFilterGroup(
+  group: LinearFilterGroup,
+  path: readonly number[] = [],
+  depth = 0,
+): string {
+  const encodedPath = linearFilterPath(path);
+  const children = group.children
+    .map((child, index) => {
+      const childPath = [...path, index];
+      const content =
+        child.kind === "group"
+          ? linearRenderFilterGroup(child, childPath, depth + 1)
+          : linearRenderFilterRule(child, childPath);
+      if (index === 0) return content;
+      return `<span class="example-linear-query-connector" aria-hidden="true">${group.combinator.toLocaleUpperCase()}</span>${content}`;
+    })
+    .join("");
+  const empty =
+    group.children.length === 0
+      ? `<div class="example-linear-query-empty"><ui-icon name="action.search" label=""></ui-icon><span>No conditions yet. This view includes every issue.</span></div>`
+      : children;
+  const removeGroup =
+    path.length === 0
+      ? ""
+      : `<ui-button type="button" size="small" variant="quiet" data-linear-query-remove data-linear-query-path="${encodedPath}" aria-label="Remove nested filter group"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>`;
+  return `<section class="example-linear-query-group" data-linear-query-group data-linear-query-path="${encodedPath}" aria-label="${depth === 0 ? "Root" : "Nested"} filter group">
+    <header class="example-linear-query-group-header">
+      <span>${depth === 0 ? "Match" : "Nested group"}</span>
+      <ui-toggle-group data-linear-query-group-mode data-linear-query-path="${encodedPath}" mode="single" value="${group.combinator}" label="Group combination">
+        <ui-toggle value="and" size="small"${group.combinator === "and" ? " pressed" : ""}>All</ui-toggle>
+        <ui-toggle value="or" size="small"${group.combinator === "or" ? " pressed" : ""}>Any</ui-toggle>
+      </ui-toggle-group>
+      ${removeGroup}
+    </header>
+    <div class="example-linear-query-children">${empty}</div>
+    <footer class="example-linear-query-group-actions">
+      <ui-button type="button" size="small" variant="quiet" data-linear-query-add-rule data-linear-query-path="${encodedPath}">＋ Condition</ui-button>
+      <ui-button type="button" size="small" variant="quiet" data-linear-query-add-group data-linear-query-path="${encodedPath}"${depth >= 3 ? " disabled" : ""}>＋ Group</ui-button>
+    </footer>
+  </section>`;
+}
+
+function linearCollectFilterRules(
+  node: LinearFilterNode,
+  path: readonly number[] = [],
+): { path: number[]; label: string }[] {
+  if (node.kind === "rule")
+    return [{ path: [...path], label: linearFilterRuleLabel(node.field, node.value) }];
+  return node.children.flatMap((child, index) => linearCollectFilterRules(child, [...path, index]));
+}
+
+function linearRenderQueryControls(workspace: HTMLElement): void {
+  const state = linearState(workspace);
+  const signature = JSON.stringify(state.filters);
+  const builder = workspace.querySelector<HTMLElement>("[data-linear-query-builder]");
+  if (builder && builder.dataset.linearQuerySignature !== signature) {
+    builder.innerHTML = linearRenderFilterGroup(state.filters);
+    builder.dataset.linearQuerySignature = signature;
+  }
+  const chips = workspace.querySelector<HTMLElement>("[data-linear-filter-chips]");
+  if (chips && chips.dataset.linearQuerySignature !== signature) {
+    const rules = linearCollectFilterRules(state.filters);
+    chips.innerHTML = rules
+      .map(
+        ({ path, label }) =>
+          `<ui-chip value="${linearFilterPath(path)}">${linearEscape(label)}<ui-button slot="remove" size="small" variant="quiet" aria-label="Remove ${linearEscape(label)}"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button></ui-chip>`,
+      )
+      .join("");
+    chips.hidden = rules.length === 0;
+    chips.dataset.linearQuerySignature = signature;
+  }
+  const count = workspace.querySelector<HTMLElement>("[data-linear-filter-count]");
+  if (count) count.textContent = String(linearFilterRuleCount(state.filters));
+}
+
+function linearAnnounce(workspace: HTMLElement, message: string): void {
+  const output = workspace.querySelector<HTMLOutputElement>("[data-linear-announcer]");
+  if (output) output.value = message;
+}
+
+function linearSetQueryPanel(workspace: HTMLElement, open: boolean): void {
+  const panel = workspace.querySelector<MashMotionElement>("[data-linear-query-panel]");
+  const trigger = workspace.querySelector<HTMLElement>("#linear-filter-trigger");
+  if (!panel || !trigger) return;
+  trigger.setAttribute("aria-expanded", String(open));
+  panel.dataset.linearQueryOpen = String(open);
+  if (open) {
+    panel.hidden = false;
+    panel.state = "entering";
+    window.setTimeout(
+      () =>
+        workspace
+          .querySelector<HTMLElement>("[data-linear-query-field]")
+          ?.focus({ preventScroll: true }),
+      0,
+    );
+    return;
+  }
+  panel.state = "exiting";
+  window.setTimeout(() => {
+    if (panel.dataset.linearQueryOpen === "false") panel.hidden = true;
+  }, 180);
+  trigger.focus();
+}
+
+function linearPresetLabel(preset: LinearFilterPreset): string {
+  if (preset === "mine") return "My issues";
+  if (preset === "release-risk") return "Release risk";
+  if (preset === "custom") return "Custom view";
+  return "All issues";
+}
+
+function linearSyncFilterControls(workspace: HTMLElement): void {
+  const state = linearState(workspace);
+  workspace.dataset.linearView = state.view;
+  workspace.dataset.linearFilterPreset = state.preset;
+  workspace.dataset.linearFilterCombinator = state.filters.combinator;
+  workspace.dataset.linearDataState = state.dataState;
+  for (const search of workspace.querySelectorAll<MashValueElement>("[data-linear-search]"))
+    search.value = state.query;
+  const view = workspace.querySelector<MashValueElement>("[data-linear-view-toggle]");
+  if (view) view.value = state.view;
+  const preset = workspace.querySelector<HTMLElement>("[data-linear-view-preset-label]");
+  if (preset) preset.textContent = linearPresetLabel(state.preset);
+  const demoState = workspace.querySelector<HTMLElement>("[data-linear-demo-state-label]");
+  if (demoState)
+    demoState.textContent =
+      state.dataState === "loading" ? "Loading" : state.dataState === "error" ? "Error" : "Ready";
+  linearRenderQueryControls(workspace);
+  const stateOutput = workspace.querySelector<HTMLOutputElement>("[data-linear-view-state]");
+  if (stateOutput) {
+    const description = linearFilterNodeDescription(state.filters).replace(/^\((.*)\)$/u, "$1");
+    stateOutput.value = `${linearPresetLabel(state.preset)} · ${description}`;
+  }
 }
 
 function linearSyncSelection(workspace: HTMLElement): void {
@@ -1297,13 +1578,33 @@ function linearSyncHighlight(workspace: HTMLElement): void {
   for (const node of workspace.querySelectorAll<HTMLElement>(
     "[data-linear-list-row], [data-linear-board-card]",
   )) {
-    if (node.dataset.linearIssue === state.highlighted) node.dataset.linearHighlighted = "true";
-    else delete node.dataset.linearHighlighted;
+    node.tabIndex = -1;
+    if (node.dataset.linearIssue === state.highlighted) {
+      node.dataset.linearHighlighted = "true";
+      node.setAttribute("aria-current", "true");
+    } else {
+      delete node.dataset.linearHighlighted;
+      node.removeAttribute("aria-current");
+    }
   }
+}
+
+function linearFocusHighlighted(workspace: HTMLElement): void {
+  const state = linearState(workspace);
+  if (!state.highlighted) return;
+  const selector = state.view === "board" ? "[data-linear-board-card]" : "[data-linear-list-row]";
+  const target = [...workspace.querySelectorAll<HTMLElement>(selector)].find(
+    (node) => node.dataset.linearIssue === state.highlighted && !node.hidden,
+  );
+  target?.focus({ preventScroll: true });
+  target?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  const issue = linearIssueById(workspace, state.highlighted);
+  if (issue) linearAnnounce(workspace, `${issue.id}, ${issue.title}.`);
 }
 
 function linearSyncFilters(workspace: HTMLElement): void {
   const state = linearState(workspace);
+  linearSyncFilterControls(workspace);
   const visible = linearVisibleIssues(workspace);
   const visibleIds = new Set(visible.map((issue) => issue.id));
 
@@ -1315,9 +1616,15 @@ function linearSyncFilters(workspace: HTMLElement): void {
   const list = workspace.querySelector<HTMLElement>("[data-linear-list-view]");
   const board = workspace.querySelector<HTMLElement>("[data-linear-board-view]");
   const empty = workspace.querySelector<HTMLElement>("[data-linear-empty]");
-  if (list) list.hidden = state.view !== "list" || visible.length === 0;
-  if (board) board.hidden = state.view !== "board" || visible.length === 0;
-  if (empty) empty.hidden = visible.length > 0;
+  const loading = workspace.querySelector<HTMLElement>("[data-linear-loading]");
+  const error = workspace.querySelector<HTMLElement>("[data-linear-error]");
+  const ready = state.dataState === "ready";
+  workspace.setAttribute("aria-busy", String(state.dataState === "loading"));
+  if (list) list.hidden = !ready || state.view !== "list" || visible.length === 0;
+  if (board) board.hidden = !ready || state.view !== "board" || visible.length === 0;
+  if (empty) empty.hidden = !ready || visible.length > 0;
+  if (loading) loading.hidden = state.dataState !== "loading";
+  if (error) error.hidden = state.dataState !== "error";
 
   for (const output of workspace.querySelectorAll<HTMLOutputElement>("[data-linear-visible-count]"))
     output.textContent = `${visible.length} ${visible.length === 1 ? "issue" : "issues"}`;
@@ -1335,6 +1642,15 @@ function linearSyncFilters(workspace: HTMLElement): void {
   if (state.highlighted && !visibleIds.has(state.highlighted)) state.highlighted = null;
   linearSyncHighlight(workspace);
   linearSyncSelection(workspace);
+}
+
+function syncLinearWorkspaces(): void {
+  for (const workspace of document.querySelectorAll<HTMLElement>(
+    "[data-linear-workspace]:not([data-linear-initialized])",
+  )) {
+    workspace.dataset.linearInitialized = "true";
+    linearSyncFilters(workspace);
+  }
 }
 
 function linearToast(workspace: HTMLElement, message: string, tone = "positive"): void {
@@ -1534,7 +1850,7 @@ function linearCreateIssue(workspace: HTMLElement, action: HTMLElement): void {
   column?.insertAdjacentHTML(
     "beforeend",
     `<ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="${escapedTitle}" data-linear-board-card data-linear-issue="${id}" data-title="${escapedTitle}" data-area="Product" data-status="${status}" data-priority="medium" data-assignee="maya" data-initials="MC">
-      <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move ${id}"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">${id}</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
+      <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move ${id}"><ui-icon class="example-drag-grip" name="action.drag" label=""></ui-icon><span class="example-linear-key">${id}</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
       <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="${id}"><span class="sr-only">Select ${id}</span></ui-checkbox><ui-badge size="small">Product</ui-badge></div><ui-link slot="content" href="#${id.toLocaleLowerCase()}" data-linear-open-issue="${id}">${escapedTitle}</ui-link><div slot="footer" class="example-linear-card-footer"><span>New issue</span><ui-avatar size="small">MC</ui-avatar></div></ui-card>
     </ui-draggable>`,
   );
@@ -1542,14 +1858,21 @@ function linearCreateIssue(workspace: HTMLElement, action: HTMLElement): void {
   if (titleInput) titleInput.value = "";
   dialog.dismiss?.();
   state.query = "";
-  state.status = "all";
-  state.assignee = "all";
-  for (const search of workspace.querySelectorAll<MashValueElement>("[data-linear-search]"))
-    search.value = "";
+  state.filters = defaultLinearWorkspaceSnapshot(state.view).filters;
+  state.preset = "all";
   linearSyncFilters(workspace);
+  linearPersistState(workspace);
   linearOpenIssue(workspace, id);
   linearToast(workspace, `${id} created`);
 }
+
+document.addEventListener("mash-command", (event) => {
+  const workspace = linearWorkspaceFromEvent(event);
+  if (!workspace) return;
+  const detail = (event as CustomEvent<CatalogGestureCommandDetail>).detail;
+  if (detail.command !== "workspace.filters" || detail.phase !== "ended") return;
+  linearSetQueryPanel(workspace, true);
+});
 
 document.addEventListener("input", (event) => {
   const target = event
@@ -1572,44 +1895,92 @@ document.addEventListener("input", (event) => {
   }
   const state = linearState(workspace);
   state.query = target.value ?? "";
-  for (const search of workspace.querySelectorAll<MashValueElement>("[data-linear-search]"))
-    if (search !== target) search.value = state.query;
+  state.preset = "custom";
   linearSyncFilters(workspace);
+  linearPersistState(workspace);
 });
 
 document.addEventListener("ui-menu-select", (event) => {
   const workspace = linearWorkspaceFromEvent(event);
-  const menu = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-linear-filter]");
+  const menu = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+    "[data-linear-view-preset], [data-linear-demo-state]",
+  );
   if (!workspace || !menu) return;
   const value = (event as CustomEvent<{ value: string }>).detail.value;
   const state = linearState(workspace);
-  const kind = menu.dataset.linearFilter;
-  if (kind === "status") state.status = value;
-  if (kind === "assignee") state.assignee = value;
-  const label = menu.querySelector<HTMLElement>("[data-linear-filter-label]");
-  if (label) {
-    const prefix = kind === "status" ? "Status" : "Assignee";
-    const next =
-      value === "all"
-        ? "All"
-        : kind === "status"
-          ? (linearStatus[value as keyof typeof linearStatus]?.label ?? value)
-          : (linearAssignee[value as keyof typeof linearAssignee]?.label ?? value);
-    label.textContent = `${prefix} · ${next}`;
+  if (menu.matches("[data-linear-demo-state]")) {
+    if (value !== "ready" && value !== "loading" && value !== "error") return;
+    state.dataState = value;
+    linearAnnounce(
+      workspace,
+      value === "loading"
+        ? "Issue data is loading."
+        : value === "error"
+          ? "Issue data could not be refreshed."
+          : "Issue data is ready.",
+    );
+  } else if (menu.matches("[data-linear-view-preset]")) {
+    if (value !== "all" && value !== "mine" && value !== "release-risk") return;
+    const snapshot = linearPresetSnapshot(value, state.view);
+    state.filters = snapshot.filters;
+    state.preset = snapshot.preset;
+    state.query = snapshot.query;
   }
   linearSyncFilters(workspace);
+  if (!menu.matches("[data-linear-demo-state]")) linearPersistState(workspace);
 });
 
 document.addEventListener("ui-toggle-group-change", (event) => {
   const group = event.target as HTMLElement;
-  if (!group.matches("[data-linear-view-toggle]")) return;
+  if (
+    !group.matches(
+      "[data-linear-view-toggle], [data-linear-filter-mode], [data-linear-query-group-mode]",
+    )
+  )
+    return;
   const workspace = linearWorkspaceFromEvent(event);
   if (!workspace) return;
   const value = (event as CustomEvent<{ values: string[] }>).detail.values[0];
   const state = linearState(workspace);
-  state.view = value === "board" ? "board" : "list";
-  workspace.dataset.linearView = state.view;
+  if (group.matches("[data-linear-query-group-mode]")) {
+    const path = linearParseFilterPath(group.dataset.linearQueryPath);
+    if (!path) return;
+    state.filters = linearSetFilterGroupCombinator(
+      state.filters,
+      path,
+      value === "or" ? "or" : "and",
+    );
+    state.preset = "custom";
+    linearAnnounce(
+      workspace,
+      `Filter group now matches ${value === "or" ? "any" : "all"} conditions.`,
+    );
+  } else if (group.matches("[data-linear-filter-mode]")) {
+    state.filters = {
+      ...state.filters,
+      combinator: value === "or" ? "or" : "and",
+    };
+    state.preset = "custom";
+  } else {
+    state.view = value === "board" ? "board" : "list";
+  }
   linearSyncFilters(workspace);
+  linearPersistState(workspace);
+});
+
+document.addEventListener("ui-chip-remove", (event) => {
+  const chip = event.target as HTMLElement;
+  if (!chip.closest("[data-linear-filter-chips]")) return;
+  const workspace = linearWorkspaceFromEvent(event);
+  const path = linearParseFilterPath((event as CustomEvent<{ value: string }>).detail.value);
+  if (!workspace || !path || path.length === 0) return;
+  const state = linearState(workspace);
+  state.filters = linearRemoveFilterNode(state.filters, path);
+  state.preset = "custom";
+  linearSyncFilters(workspace);
+  linearPersistState(workspace);
+  linearAnnounce(workspace, "Filter condition removed.");
+  workspace.querySelector<HTMLElement>("#linear-filter-trigger")?.focus();
 });
 
 document.addEventListener("ui-checkbox-change", (event) => {
@@ -1633,6 +2004,31 @@ document.addEventListener("ui-checkbox-change", (event) => {
 
 document.addEventListener("ui-select-change", (event) => {
   const select = event.target as HTMLElement;
+  if (select.matches("[data-linear-query-field], [data-linear-query-value]")) {
+    const workspace = linearWorkspaceFromEvent(event);
+    const path = linearParseFilterPath(select.dataset.linearQueryPath);
+    if (!workspace || !path) return;
+    const state = linearState(workspace);
+    const rule = linearFilterNodeAtPath(state.filters, path);
+    if (!rule || rule.kind !== "rule") return;
+    const value = (event as CustomEvent<{ value: string }>).detail.value;
+    if (select.matches("[data-linear-query-field]")) {
+      if (value !== "status" && value !== "assignee" && value !== "priority") return;
+      state.filters = linearUpdateFilterRule(state.filters, path, {
+        field: value,
+        value: linearFilterDefaults[value],
+      });
+      linearAnnounce(workspace, `${linearFilterFieldLabel(value)} condition selected.`);
+    } else {
+      if (!linearFilterOptions[rule.field].some(([candidate]) => candidate === value)) return;
+      state.filters = linearUpdateFilterRule(state.filters, path, { value });
+      linearAnnounce(workspace, `${linearFilterRuleLabel(rule.field, value)} applied.`);
+    }
+    state.preset = "custom";
+    linearSyncFilters(workspace);
+    linearPersistState(workspace);
+    return;
+  }
   if (
     !select.matches(
       "[data-linear-detail-status], [data-linear-detail-priority], [data-linear-detail-assignee]",
@@ -1662,12 +2058,82 @@ document.addEventListener("click", (event) => {
       (node): node is HTMLElement =>
         node instanceof HTMLElement &&
         node.matches(
-          "[data-linear-open-issue], [data-linear-close-inspector], [data-linear-clear-selection], [data-linear-clear-filters], [data-linear-create-action], [data-linear-command]",
+          "[data-linear-open-issue], [data-linear-close-inspector], [data-linear-clear-selection], [data-linear-clear-filters], [data-linear-create-action], [data-linear-command], [data-linear-query-toggle], [data-linear-query-add-rule], [data-linear-query-add-group], [data-linear-query-remove], [data-linear-query-reset], [data-linear-query-done], [data-linear-retry]",
         ),
     );
   if (!action) return;
   const workspace = linearWorkspaceFromEvent(event);
   if (!workspace) return;
+  if (action.matches("[data-linear-query-toggle]")) {
+    const panel = workspace.querySelector<HTMLElement>("[data-linear-query-panel]");
+    linearSetQueryPanel(workspace, panel?.dataset.linearQueryOpen !== "true");
+    return;
+  }
+  if (action.matches("[data-linear-query-add-rule], [data-linear-query-add-group]")) {
+    const path = linearParseFilterPath(action.dataset.linearQueryPath);
+    if (!path) return;
+    const state = linearState(workspace);
+    const node = action.matches("[data-linear-query-add-group]")
+      ? linearGroup("and", [linearRule("status", linearFilterDefaults.status)])
+      : linearRule("status", linearFilterDefaults.status);
+    state.filters = linearAppendFilterNode(state.filters, path, node);
+    state.preset = "custom";
+    linearSyncFilters(workspace);
+    linearPersistState(workspace);
+    linearAnnounce(
+      workspace,
+      action.matches("[data-linear-query-add-group]")
+        ? "Nested filter group added."
+        : "Filter condition added.",
+    );
+    window.setTimeout(() => {
+      const controls = workspace.querySelectorAll<HTMLElement>("[data-linear-query-field]");
+      controls.item(controls.length - 1)?.focus({ preventScroll: true });
+    }, 0);
+    return;
+  }
+  if (action.matches("[data-linear-query-remove]")) {
+    const path = linearParseFilterPath(action.dataset.linearQueryPath);
+    if (!path || path.length === 0) return;
+    const state = linearState(workspace);
+    state.filters = linearRemoveFilterNode(state.filters, path);
+    state.preset = "custom";
+    linearSyncFilters(workspace);
+    linearPersistState(workspace);
+    linearAnnounce(workspace, "Filter condition removed.");
+    workspace.querySelector<HTMLElement>("[data-linear-query-add-rule]")?.focus();
+    return;
+  }
+  if (action.matches("[data-linear-query-reset]")) {
+    const state = linearState(workspace);
+    const preset = state.preset === "custom" ? "all" : state.preset;
+    const snapshot = linearPresetSnapshot(preset, state.view);
+    state.filters = snapshot.filters;
+    state.query = snapshot.query;
+    state.preset = snapshot.preset;
+    linearSyncFilters(workspace);
+    linearPersistState(workspace);
+    linearAnnounce(workspace, `${linearPresetLabel(state.preset)} restored.`);
+    return;
+  }
+  if (action.matches("[data-linear-query-done]")) {
+    linearSetQueryPanel(workspace, false);
+    return;
+  }
+  if (action.matches("[data-linear-retry]")) {
+    const state = linearState(workspace);
+    state.dataState = "loading";
+    linearSyncFilters(workspace);
+    linearAnnounce(workspace, "Retrying issue data refresh.");
+    window.setTimeout(() => {
+      if (!workspace.isConnected) return;
+      state.dataState = "ready";
+      linearSyncFilters(workspace);
+      linearAnnounce(workspace, "Issue data refreshed.");
+      linearToast(workspace, "Issue data refreshed");
+    }, 650);
+    return;
+  }
   if (action.matches("[data-linear-open-issue]")) {
     event.preventDefault();
     const id = action.dataset.linearOpenIssue;
@@ -1686,16 +2152,10 @@ document.addEventListener("click", (event) => {
   if (action.matches("[data-linear-clear-filters]")) {
     const state = linearState(workspace);
     state.query = "";
-    state.status = "all";
-    state.assignee = "all";
-    for (const search of workspace.querySelectorAll<MashValueElement>("[data-linear-search]"))
-      search.value = "";
-    for (const menu of workspace.querySelectorAll<HTMLElement>("[data-linear-filter]")) {
-      const label = menu.querySelector<HTMLElement>("[data-linear-filter-label]");
-      if (label)
-        label.textContent = `${menu.dataset.linearFilter === "status" ? "Status" : "Assignee"} · All`;
-    }
+    state.filters = defaultLinearWorkspaceSnapshot(state.view).filters;
+    state.preset = "all";
     linearSyncFilters(workspace);
+    linearPersistState(workspace);
     return;
   }
   if (action.matches("[data-linear-create-action]")) {
@@ -1733,6 +2193,14 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   if (event.defaultPrevented) return;
+  if (event.key === "Escape") {
+    const queryPanel = workspace.querySelector<HTMLElement>("[data-linear-query-panel]");
+    if (queryPanel?.dataset.linearQueryOpen === "true") {
+      event.preventDefault();
+      linearSetQueryPanel(workspace, false);
+      return;
+    }
+  }
   const editing = event
     .composedPath()
     .some(
@@ -1774,6 +2242,7 @@ document.addEventListener("keydown", (event) => {
         : (index + (key === "j" ? 1 : -1) + issues.length) % issues.length;
     state.highlighted = issues[next]!.id;
     linearSyncHighlight(workspace);
+    linearFocusHighlighted(workspace);
     return;
   }
   if (!state.highlighted) state.highlighted = issues[0]!.id;
@@ -1801,7 +2270,20 @@ interface CatalogDataTableSelectionDetail {
   selection: "none" | "row" | "column" | "cell";
 }
 
-type CatalogDataTable = HTMLElement & { selected: string };
+type CatalogDataTable = HTMLElement & {
+  cancelEdit?: () => boolean;
+  editing: string;
+  focusCell?: (rowIndex: number, columnIndex: number) => boolean;
+  selected: string;
+};
+
+interface CatalogDataTableEditDetail {
+  columnIndex: number;
+  form?: HTMLFormElement | null;
+  key: string;
+  reason: string;
+  rowIndex: number;
+}
 
 function dataTableCoordinateLabel(
   dataTable: HTMLElement,
@@ -1829,11 +2311,10 @@ function dataTableCoordinateLabel(
   return `${label(detail.range.anchor.rowIndex, detail.range.anchor.columnIndex)}–${focus}`;
 }
 
-document.addEventListener("ui-data-table-select", (event) => {
-  const dataTable = event.target as CatalogDataTable;
-  if (!dataTable.matches("[data-catalog-data-table]")) return;
-  const detail = (event as CustomEvent<CatalogDataTableSelectionDetail>).detail;
-  dataTable.selected = detail.key;
+function syncCatalogDataTableSelection(
+  dataTable: CatalogDataTable,
+  detail: CatalogDataTableSelectionDetail,
+): void {
   const coordinate = dataTableCoordinateLabel(dataTable, detail);
   const coordinateOutput = dataTable.querySelector<HTMLOutputElement>(
     "[data-catalog-data-table-coordinate]",
@@ -1849,6 +2330,18 @@ document.addEventListener("ui-data-table-select", (event) => {
   );
   const formula = dataTable.querySelector<MashValueElement>("[data-catalog-data-table-formula]");
   if (formula) formula.value = cell?.dataset.formula ?? cell?.textContent?.trim() ?? "";
+}
+
+document.addEventListener("ui-data-table-select", (event) => {
+  const dataTable = event.target as CatalogDataTable;
+  if (!dataTable.matches("[data-catalog-data-table]")) return;
+  const detail = (event as CustomEvent<CatalogDataTableSelectionDetail>).detail;
+  if (dataTable.editing && dataTable.editing !== detail.key) {
+    dataTable.cancelEdit?.();
+    dataTable.editing = "";
+  }
+  dataTable.selected = detail.key;
+  syncCatalogDataTableSelection(dataTable, detail);
 });
 
 document.addEventListener("ui-data-table-activate", (event) => {
@@ -1861,6 +2354,85 @@ document.addEventListener("ui-data-table-activate", (event) => {
   );
   const editor = cell?.querySelector<MashOverlayElement>("ui-popover");
   editor?.show?.();
+});
+
+document.addEventListener("ui-data-table-edit-request", (event) => {
+  const dataTable = event.target as CatalogDataTable;
+  if (!dataTable.matches("[data-catalog-data-table]")) return;
+  const editor = dataTable.querySelector<HTMLFormElement>("[data-catalog-data-table-editor]");
+  if (!editor) return;
+  const detail = (event as CustomEvent<CatalogDataTableEditDetail>).detail;
+  const cell = dataTable.querySelector<HTMLElement>(
+    `ui-table-row[row-index="${detail.rowIndex}"] ui-table-cell[column-index="${detail.columnIndex}"]`,
+  );
+  if (!cell) return;
+  dataTable.editing = detail.key;
+  dataTable.selected = detail.key;
+  const selectionDetail = {
+    ...detail,
+    extended: false,
+    range: { anchor: detail, focus: detail },
+    selection: "cell" as const,
+  } as CatalogDataTableSelectionDetail;
+  syncCatalogDataTableSelection(dataTable, selectionDetail);
+  const coordinate = editor.querySelector<HTMLElement>(
+    "[data-catalog-data-table-editor-coordinate]",
+  );
+  if (coordinate)
+    coordinate.textContent = `Editing ${dataTableCoordinateLabel(dataTable, selectionDetail)}`;
+  const value = editor.querySelector<MashNumericValueElement>(
+    "[data-catalog-data-table-editor-value]",
+  );
+  const formatter = cell.querySelector<HTMLElement>("ui-intl-formatter");
+  if (value) {
+    const nextValue = Number(
+      formatter?.getAttribute("value") ?? cell.dataset.formula?.replace(/^=/, "") ?? 0,
+    );
+    value.value = Number.isFinite(nextValue) ? nextValue : 0;
+  }
+  const formula = editor.querySelector<MashValueElement>(
+    "[data-catalog-data-table-editor-formula]",
+  );
+  if (formula) formula.value = cell.dataset.formula ?? "";
+  window.setTimeout(() => value?.focus(), 0);
+});
+
+document.addEventListener("ui-data-table-edit-commit", (event) => {
+  const dataTable = event.target as CatalogDataTable;
+  if (!dataTable.matches("[data-catalog-data-table]")) return;
+  const detail = (event as CustomEvent<CatalogDataTableEditDetail>).detail;
+  const editor =
+    detail.form ?? dataTable.querySelector<HTMLFormElement>("[data-catalog-data-table-editor]");
+  const numericValue = editor?.querySelector<MashNumericValueElement>(
+    "[data-catalog-data-table-editor-value]",
+  )?.value;
+  const value = numericValue === undefined ? undefined : String(numericValue);
+  const formula = editor?.querySelector<MashValueElement>(
+    "[data-catalog-data-table-editor-formula]",
+  )?.value;
+  const cell = dataTable.querySelector<HTMLElement>(
+    `ui-table-row[row-index="${detail.rowIndex}"] ui-table-cell[column-index="${detail.columnIndex}"]`,
+  );
+  if (cell && value !== undefined) {
+    cell.dataset.formula = formula?.trim() || `=${value}`;
+    const formatter = cell.querySelector<HTMLElement>("ui-intl-formatter");
+    if (formatter) formatter.setAttribute("value", value);
+    else cell.textContent = value;
+  }
+  dataTable.editing = "";
+  const output = dataTable.querySelector<HTMLOutputElement>("[data-catalog-data-table-selection]");
+  if (output) output.value = `${detail.key} committed`;
+  dataTable.focusCell?.(detail.rowIndex, detail.columnIndex);
+});
+
+document.addEventListener("ui-data-table-edit-cancel", (event) => {
+  const dataTable = event.target as CatalogDataTable;
+  if (!dataTable.matches("[data-catalog-data-table]")) return;
+  const detail = (event as CustomEvent<CatalogDataTableEditDetail>).detail;
+  dataTable.editing = "";
+  const output = dataTable.querySelector<HTMLOutputElement>("[data-catalog-data-table-selection]");
+  if (output) output.value = `${detail.key} edit cancelled`;
+  dataTable.focusCell?.(detail.rowIndex, detail.columnIndex);
 });
 
 document.addEventListener("ui-tree-select", (event) => {

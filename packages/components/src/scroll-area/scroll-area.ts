@@ -165,6 +165,7 @@ export class UIScrollArea extends LitElement {
   readonly #internals: ElementInternals;
   readonly #viewportId = `ui-scroll-area-viewport-${++scrollAreaId}`;
   #resizeObserver: ResizeObserver | undefined;
+  #syncFrame: number | undefined;
   #visible = false;
   #visibilityTimer: number | undefined;
   #activeUntil = 0;
@@ -190,10 +191,10 @@ export class UIScrollArea extends LitElement {
   protected override firstUpdated(): void {
     const viewport = this.#viewport;
     viewport.addEventListener("scroll", this.#onScroll, { passive: true });
-    this.#resizeObserver = new ResizeObserver(this.#syncScrollState);
+    this.#resizeObserver = new ResizeObserver(this.#queueScrollStateSync);
     this.#resizeObserver.observe(viewport);
     this.#resizeObserver.observe(viewport.firstElementChild!);
-    this.ownerDocument.defaultView?.requestAnimationFrame(this.#syncScrollState);
+    this.#queueScrollStateSync();
     this.#refreshVisibility();
   }
 
@@ -206,7 +207,7 @@ export class UIScrollArea extends LitElement {
       changed.has("snap")
     ) {
       this.#refreshVisibility();
-      this.#syncScrollState();
+      this.#queueScrollStateSync();
     }
   }
 
@@ -214,6 +215,9 @@ export class UIScrollArea extends LitElement {
     if (this.#visibilityTimer !== undefined) window.clearTimeout(this.#visibilityTimer);
     this.#resizeObserver?.disconnect();
     this.#resizeObserver = undefined;
+    const view = this.ownerDocument.defaultView;
+    if (this.#syncFrame !== undefined && view) view.cancelAnimationFrame(this.#syncFrame);
+    this.#syncFrame = undefined;
     super.disconnectedCallback();
   }
 
@@ -323,6 +327,19 @@ export class UIScrollArea extends LitElement {
     this.#setState("at-block-start", block <= epsilon);
     this.#setState("at-block-end", blockMax - block <= epsilon);
     this.#syncDetents();
+  };
+
+  #queueScrollStateSync = (): void => {
+    const view = this.ownerDocument.defaultView;
+    if (!view) {
+      this.#syncScrollState();
+      return;
+    }
+    if (this.#syncFrame !== undefined) return;
+    this.#syncFrame = view.requestAnimationFrame(() => {
+      this.#syncFrame = undefined;
+      this.#syncScrollState();
+    });
   };
 
   #detentControls(axis: ScrollAxis): HTMLElement[] {

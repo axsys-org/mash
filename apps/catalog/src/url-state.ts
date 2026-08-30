@@ -32,6 +32,7 @@ const ROUTE = "/components/";
  * controls-driven preview over the component's first `@example`.
  */
 const CONTROLS = "controls";
+const EXAMPLE_STATE_PREFIX = "state-";
 
 /** Reserved keys, so a component attribute called `theme` cannot collide. */
 const RESERVED = new Set(["theme", "vibrancy", "example", "slots"]);
@@ -81,6 +82,12 @@ export function stateFromUrl(url: URL, fallback: ComponentSchema): State {
     state.example = null;
   } else if (example && examplesFor(component).some((entry) => entry.name === example)) {
     state.example = example;
+  }
+
+  for (const [key, value] of params) {
+    if (!key.startsWith(EXAMPLE_STATE_PREFIX) || value.length > 4096) continue;
+    const name = key.slice(EXAMPLE_STATE_PREFIX.length);
+    if (/^[a-z][a-z0-9-]{0,31}$/.test(name)) state.exampleState[name] = value;
   }
 
   // `label` and the comma-separated `slots` list are the catalog's pre-slot
@@ -147,6 +154,12 @@ export function urlForState(state: State): string {
 
   if (state.example !== defaults.example) {
     params.set("example", state.example ?? CONTROLS);
+  }
+
+  for (const [name, value] of Object.entries(state.exampleState)) {
+    if (value && /^[a-z][a-z0-9-]{0,31}$/.test(name)) {
+      params.set(`${EXAMPLE_STATE_PREFIX}${name}`, value);
+    }
   }
 
   for (const slot of component.slots) {

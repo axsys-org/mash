@@ -6,7 +6,7 @@ import {
   UIAnchoredOverlay,
 } from "../internal/overlay.js";
 import { MenuCollectionController } from "../internal/menu-collection.js";
-import type { MenuDensity } from "../menu/menu.js";
+import type { MenuDensity, MenuSizing } from "../menu/menu.js";
 
 /**
  * A context-triggered command menu.
@@ -53,16 +53,21 @@ import type { MenuDensity } from "../menu/menu.js";
  * @mashnode material material popup
  * @mashnode actions actions popup
  * @mashnode close close popup
+ * @mashnode density density popup
+ * @mashnode sizing sizing popup
  * @mashrole slot default actions actions
  */
 export class UIContextMenu extends UIAnchoredOverlay {
   static override properties = {
     ...UIAnchoredOverlay.properties,
     density: { type: String, reflect: true },
+    sizing: { type: String, reflect: true },
   };
 
   /** Menu surface and row density. */
   declare density: MenuDensity;
+  /** Whether the popup fits content, holds its density width, or stretches within the catalogue bound. */
+  declare sizing: MenuSizing;
 
   protected readonly overlayRole = "menu";
   protected override readonly triggerAction = "contextmenu";
@@ -72,6 +77,7 @@ export class UIContextMenu extends UIAnchoredOverlay {
   constructor() {
     super();
     this.density = "regular";
+    this.sizing = "content";
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
   }
 

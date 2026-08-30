@@ -50,13 +50,17 @@ export class MenuCollectionController {
     if (!new Set(["ArrowDown", "ArrowUp", "Home", "End"]).has(event.key)) return false;
     const items = this.items();
     if (items.length === 0) return false;
-    const index = Math.max(0, items.indexOf(source as MenuCollectionItem));
+    const index = items.indexOf(source as MenuCollectionItem);
     const target =
       event.key === "Home"
         ? items[0]
         : event.key === "End"
           ? items.at(-1)
-          : items[(index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
+          : index === -1
+            ? event.key === "ArrowDown"
+              ? items[0]
+              : items.at(-1)
+            : items[(index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
     event.preventDefault();
     target?.focus();
     return true;

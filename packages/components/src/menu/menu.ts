@@ -10,6 +10,8 @@ import type { UIMenuItem } from "../menu-item/menu-item.js";
 
 /** The Apple-aligned row and surface density of a menu. */
 export type MenuDensity = "regular" | "compact" | "mini";
+/** How the menu resolves its inline measure between the catalogue's bounds. */
+export type MenuSizing = "content" | "fixed" | "stretch";
 
 /**
  * A triggerable menu of command items with Arrow-key navigation.
@@ -40,6 +42,10 @@ export type MenuDensity = "regular" | "compact" | "mini";
  * @csspart close - The authored close action realization.
  *
  * @cssstate open - Matches `:state(open)` while visible.
+ * @cssstate present - Matches while the popup is rendered, including exit motion.
+ * @cssstate entering - Matches while the popup is entering.
+ * @cssstate active - Matches after enter motion settles.
+ * @cssstate exiting - Matches while the popup is exiting.
  * @cssstate disabled - Matches `:state(disabled)` while the trigger is unavailable.
  * @cssstate nested - Matches when a menu item owns this menu as a submenu.
  *
@@ -58,13 +64,19 @@ export type MenuDensity = "regular" | "compact" | "mini";
  * @mashnode actions actions popup
  * @mashnode close close popup
  * @mashnode density density popup
+ * @mashnode sizing sizing popup
  * @mashnode nested nested popup
+ * @mashnode present present popup
+ * @mashnode entering entering popup
+ * @mashnode active active popup
+ * @mashnode exiting exiting popup
  * @mashrole slot default actions actions
  */
 export class UIMenu extends UIAnchoredOverlay {
   static override properties = {
     ...UIAnchoredOverlay.properties,
     density: { type: String, reflect: true },
+    sizing: { type: String, reflect: true },
     nested: { type: Boolean, reflect: true },
     submenuOpenDelay: { type: Number, attribute: "submenu-open-delay", reflect: true },
     submenuCloseDelay: { type: Number, attribute: "submenu-close-delay", reflect: true },
@@ -72,6 +84,8 @@ export class UIMenu extends UIAnchoredOverlay {
 
   /** Menu surface and row density. */
   declare density: MenuDensity;
+  /** Whether the popup fits content, holds its density width, or stretches within the catalogue bound. */
+  declare sizing: MenuSizing;
   /** Whether a parent menu item owns this menu as a submenu. */
   declare nested: boolean;
   /** Fine-pointer delay before a hovered submenu opens. */
@@ -83,10 +97,12 @@ export class UIMenu extends UIAnchoredOverlay {
 
   protected readonly overlayRole = "menu";
   protected override readonly authoredContentPart = "actions";
+  protected override readonly pointerOpenFocus = "popup";
 
   constructor() {
     super();
     this.density = "regular";
+    this.sizing = "content";
     this.nested = false;
     this.submenuOpenDelay = 80;
     this.submenuCloseDelay = 280;

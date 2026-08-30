@@ -399,6 +399,39 @@ describe("Base UI control families", () => {
     expect(menu.hasAttribute("open")).toBe(false);
   });
 
+  it("opens pointer menus without preselecting a command and preserves keyboard entry", async () => {
+    const menu = await fixture<UIMenu>(`
+      <ui-menu label="Actions">
+        <button slot="trigger">Actions</button>
+        <ui-menu-item value="open">Open project</ui-menu-item>
+        <ui-menu-item value="search">Search project</ui-menu-item>
+      </ui-menu>
+    `);
+    const trigger = menu.querySelector<HTMLButtonElement>("[slot=trigger]")!;
+    const [first] = [...menu.querySelectorAll<UIMenuItem>("ui-menu-item")];
+
+    trigger.focus();
+    trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, detail: 1 }));
+    await settled(menu.parentElement!);
+
+    const popup = inShadow<HTMLElement>(menu, "[part=popup]");
+    expect(menu.shadowRoot?.activeElement).toBe(popup);
+    expect(first?.shadowRoot?.activeElement).toBeNull();
+
+    popup.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
+    );
+    expect(first?.shadowRoot?.activeElement).toBe(inShadow(first!, "button"));
+
+    menu.dismiss();
+    await settled(menu.parentElement!);
+    trigger.focus();
+    trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, detail: 0 }));
+    await settled(menu.parentElement!);
+
+    expect(first?.shadowRoot?.activeElement).toBe(inShadow(first!, "button"));
+  });
+
   it("exposes semantic menu lanes and checked item roles", async () => {
     const item = await fixture<UIMenuItem>(`
       <ui-menu-item kind="checkbox" value="sidebar" checked>
@@ -423,6 +456,34 @@ describe("Base UI control families", () => {
     ]) {
       expect(inShadow(item, `[part~="${part}"]`)).toBeInstanceOf(HTMLElement);
     }
+  });
+
+  it("toggles checkbox items and keeps radio selection exclusive", async () => {
+    const menu = await fixture<HTMLElement>(`
+      <ui-menu label="View options" open>
+        <ui-menu-item kind="checkbox" value="sidebar">Show sidebar</ui-menu-item>
+        <ui-menu-item kind="radio" value="comfortable" checked>Comfortable</ui-menu-item>
+        <ui-menu-item kind="radio" value="compact">Compact</ui-menu-item>
+      </ui-menu>
+    `);
+    const [checkbox, comfortable, compact] = [...menu.querySelectorAll<UIMenuItem>("ui-menu-item")];
+    const selections: Array<{ value: string; checked: boolean }> = [];
+    menu.addEventListener("ui-menu-select", (event) => {
+      selections.push((event as CustomEvent<{ value: string; checked: boolean }>).detail);
+    });
+
+    inShadow<HTMLButtonElement>(checkbox!, "button").click();
+    await settled(menu.parentElement!);
+    expect(checkbox?.checked).toBe(true);
+    expect(selections.at(-1)).toMatchObject({ value: "sidebar", checked: true });
+
+    menu.setAttribute("open", "");
+    await settled(menu.parentElement!);
+    inShadow<HTMLButtonElement>(compact!, "button").click();
+    await settled(menu.parentElement!);
+    expect(comfortable?.checked).toBe(false);
+    expect(compact?.checked).toBe(true);
+    expect(selections.at(-1)).toMatchObject({ value: "compact", checked: true });
   });
 
   it("opens a nested menu from its branch and closes the full leaf after selection", async () => {

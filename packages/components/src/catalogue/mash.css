@@ -1229,6 +1229,32 @@
     }
   }
 
+  /* Menus are small, frequently repeated transient surfaces. They share the
+     overlay lifecycle but settle on the fast transient tier with a restrained
+     scale delta; dialogs and larger surfaces keep the deliberate surface tier. */
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu):state(entering)::part(popup) {
+    animation: mash-menu-enter var(--duration-transient) var(--easing-spring-snappy) both;
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu):state(exiting)::part(popup) {
+    animation: mash-menu-exit var(--duration-transient) var(--easing-control) both;
+    pointer-events: none;
+  }
+
+  @keyframes mash-menu-enter {
+    from {
+      opacity: var(--motion-opacity-hidden);
+      scale: var(--motion-scale-pressed);
+    }
+  }
+
+  @keyframes mash-menu-exit {
+    to {
+      opacity: var(--motion-opacity-hidden);
+      scale: var(--motion-scale-pressed);
+    }
+  }
+
   :where([data-mash-catalogue="mash"]) ui-dialog::part(backdrop),
   :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(backdrop),
   :where([data-mash-catalogue="mash"]) ui-drawer::part(backdrop) {
@@ -1746,9 +1772,15 @@
   :where([data-mash-catalogue="mash"]) ui-menu::part(popup),
   :where([data-mash-catalogue="mash"]) ui-context-menu::part(popup) {
     display: grid;
-    inline-size: min(var(--_mash-menu-inline-size), calc(100vw - var(--space-container-inline)));
-    min-inline-size: var(--layout-dimension-zero);
-    max-inline-size: none;
+    inline-size: var(--_mash-menu-inline-size);
+    min-inline-size: min(
+      var(--_mash-menu-min-inline-size),
+      calc(100vw - var(--space-container-inline))
+    );
+    max-inline-size: min(
+      var(--_mash-menu-max-inline-size),
+      calc(100vw - var(--space-container-inline))
+    );
     gap: var(--layout-dimension-zero);
     padding: calc(var(--space-control-block-small) + var(--border-hairline));
     border: 0;
@@ -1829,7 +1861,10 @@
   }
 
   :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu) {
-    --_mash-menu-inline-size: var(--layout-menu-inline-regular);
+    --_mash-menu-density-inline-size: var(--layout-menu-inline-regular);
+    --_mash-menu-inline-size: max-content;
+    --_mash-menu-min-inline-size: var(--layout-menu-inline-mini);
+    --_mash-menu-max-inline-size: var(--_mash-menu-density-inline-size);
     --_mash-menu-row-size: var(--layout-menu-row-regular);
     --_mash-menu-selection-lane: var(--layout-dimension-zero);
     --_mash-menu-prefix-lane: var(--layout-dimension-zero);
@@ -1853,13 +1888,25 @@
   }
 
   :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[density="compact"] {
-    --_mash-menu-inline-size: var(--layout-menu-inline-compact);
+    --_mash-menu-density-inline-size: var(--layout-menu-inline-compact);
     --_mash-menu-row-size: var(--layout-menu-row-compact);
   }
 
   :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[density="mini"] {
-    --_mash-menu-inline-size: var(--layout-menu-inline-mini);
+    --_mash-menu-density-inline-size: var(--layout-menu-inline-mini);
+    --_mash-menu-min-inline-size: var(--layout-menu-inline-mini);
     --_mash-menu-row-size: var(--layout-menu-row-mini);
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[sizing="fixed"] {
+    --_mash-menu-inline-size: var(--_mash-menu-density-inline-size);
+    --_mash-menu-min-inline-size: var(--_mash-menu-density-inline-size);
+    --_mash-menu-max-inline-size: var(--_mash-menu-density-inline-size);
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[sizing="stretch"] {
+    --_mash-menu-inline-size: calc(100vw - var(--space-container-inline));
+    --_mash-menu-max-inline-size: var(--layout-dimension-dialog);
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu[nested]::part(backdrop) {
@@ -1895,7 +1942,7 @@
     border: 0;
     border-radius: var(--radius-control);
     padding-block: var(--layout-dimension-zero);
-    padding-inline: calc(var(--space-control-gap) - var(--border-hairline));
+    padding-inline: var(--space-control-inline);
     background: transparent;
     color: var(--mash-material-label-primary, var(--color-text));
     font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
@@ -1904,11 +1951,21 @@
     cursor: default;
   }
 
-  :where([data-mash-catalogue="mash"]) ui-menu-item:not([disabled])::part(control):hover,
-  :where([data-mash-catalogue="mash"]) ui-menu-item:not([disabled])::part(control):focus-visible {
+  :where([data-mash-catalogue="mash"]) ui-menu-item:not([disabled])::part(control):hover {
     background: var(--color-menu-selection);
     color: var(--color-on-menu-selection);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item:not([disabled])::part(control):focus-visible {
+    background: var(--color-action-wash);
+    color: var(--mash-material-label-primary, var(--color-text));
+    box-shadow: inset 0 0 0 var(--border-hairline) var(--color-focus-ring);
     outline: none;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):state(checked)::part(selection) {
+    color: currentColor;
   }
 
   :where([data-mash-catalogue="mash"])
@@ -1919,6 +1976,21 @@
 
   :where([data-mash-catalogue="mash"]) ui-menu-item[tone="critical"]::part(control) {
     color: var(--color-critical);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item[tone="critical"]:not([disabled])::part(control):hover,
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item[tone="critical"]:not([disabled]):state(submenu-open)::part(control) {
+    background: var(--color-critical);
+    color: var(--color-on-critical);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item[tone="critical"]:not([disabled])::part(control):focus-visible {
+    background: color-mix(in srgb, var(--color-critical) 14%, transparent);
+    color: var(--color-critical);
+    box-shadow: inset 0 0 0 var(--border-hairline) var(--color-critical);
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu-item[disabled]::part(control) {
@@ -1935,6 +2007,178 @@
     block-size: 100%;
     place-items: center;
     white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label {
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label::part(root) {
+    display: grid;
+    grid-template-columns: auto minmax(var(--layout-dimension-zero), 1fr) auto;
+    align-items: center;
+    gap: var(--space-control-gap);
+    min-block-size: var(--layout-menu-row-mini);
+    padding-inline: var(--space-control-inline);
+    color: var(--mash-material-label-secondary, var(--color-text-muted));
+    font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-small-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label::part(label) {
+    min-inline-size: var(--layout-dimension-zero);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label:is(:not(:has([slot="prefix"])))::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-menu-label:is(:not(:has([slot="suffix"])))::part(suffix) {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset {
+    --_mash-typeset-family: var(--type-body-font-family);
+    --_mash-typeset-size: var(--type-body-font-size);
+    --_mash-typeset-weight: var(--type-body-font-weight);
+    --_mash-typeset-leading: var(--type-body-line-height);
+    --_mash-typeset-color: var(--mash-material-label-primary, var(--color-text));
+
+    display: inline;
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset::part(root),
+  :where([data-mash-catalogue="mash"]) ui-typeset::part(content) {
+    color: var(--_mash-typeset-color);
+    font: var(--_mash-typeset-weight) var(--_mash-typeset-size) / var(--_mash-typeset-leading)
+      var(--_mash-typeset-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="caption2"] {
+    --_mash-typeset-family: var(--type-caption2-font-family);
+    --_mash-typeset-size: var(--type-caption2-font-size);
+    --_mash-typeset-weight: var(--type-caption2-font-weight);
+    --_mash-typeset-leading: var(--type-caption2-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="caption1"] {
+    --_mash-typeset-family: var(--type-caption1-font-family);
+    --_mash-typeset-size: var(--type-caption1-font-size);
+    --_mash-typeset-weight: var(--type-caption1-font-weight);
+    --_mash-typeset-leading: var(--type-caption1-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="footnote"] {
+    --_mash-typeset-family: var(--type-footnote-font-family);
+    --_mash-typeset-size: var(--type-footnote-font-size);
+    --_mash-typeset-weight: var(--type-footnote-font-weight);
+    --_mash-typeset-leading: var(--type-footnote-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="subheadline"] {
+    --_mash-typeset-family: var(--type-subheadline-font-family);
+    --_mash-typeset-size: var(--type-subheadline-font-size);
+    --_mash-typeset-weight: var(--type-subheadline-font-weight);
+    --_mash-typeset-leading: var(--type-subheadline-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="callout"] {
+    --_mash-typeset-family: var(--type-callout-font-family);
+    --_mash-typeset-size: var(--type-callout-font-size);
+    --_mash-typeset-weight: var(--type-callout-font-weight);
+    --_mash-typeset-leading: var(--type-callout-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="headline"] {
+    --_mash-typeset-family: var(--type-headline-font-family);
+    --_mash-typeset-size: var(--type-headline-font-size);
+    --_mash-typeset-weight: var(--type-headline-font-weight);
+    --_mash-typeset-leading: var(--type-headline-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="title3"] {
+    --_mash-typeset-family: var(--type-title3-font-family);
+    --_mash-typeset-size: var(--type-title3-font-size);
+    --_mash-typeset-weight: var(--type-title3-font-weight);
+    --_mash-typeset-leading: var(--type-title3-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="title2"] {
+    --_mash-typeset-family: var(--type-title2-font-family);
+    --_mash-typeset-size: var(--type-title2-font-size);
+    --_mash-typeset-weight: var(--type-title2-font-weight);
+    --_mash-typeset-leading: var(--type-title2-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="title1"] {
+    --_mash-typeset-family: var(--type-title1-font-family);
+    --_mash-typeset-size: var(--type-title1-font-size);
+    --_mash-typeset-weight: var(--type-title1-font-weight);
+    --_mash-typeset-leading: var(--type-title1-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="large-title"] {
+    --_mash-typeset-family: var(--type-large-title-font-family);
+    --_mash-typeset-size: var(--type-large-title-font-size);
+    --_mash-typeset-weight: var(--type-large-title-font-weight);
+    --_mash-typeset-leading: var(--type-large-title-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="label"] {
+    --_mash-typeset-family: var(--type-label-font-family);
+    --_mash-typeset-size: var(--type-label-font-size);
+    --_mash-typeset-weight: var(--type-label-font-weight);
+    --_mash-typeset-leading: var(--type-label-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="label-small"] {
+    --_mash-typeset-family: var(--type-label-small-font-family);
+    --_mash-typeset-size: var(--type-label-small-font-size);
+    --_mash-typeset-weight: var(--type-label-small-font-weight);
+    --_mash-typeset-leading: var(--type-label-small-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="label-large"] {
+    --_mash-typeset-family: var(--type-label-large-font-family);
+    --_mash-typeset-size: var(--type-label-large-font-size);
+    --_mash-typeset-weight: var(--type-label-large-font-weight);
+    --_mash-typeset-leading: var(--type-label-large-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="heading"] {
+    --_mash-typeset-family: var(--type-heading-font-family);
+    --_mash-typeset-size: var(--type-heading-font-size);
+    --_mash-typeset-weight: var(--type-heading-font-weight);
+    --_mash-typeset-leading: var(--type-heading-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[preset="code"] {
+    --_mash-typeset-family: var(--type-code-font-family);
+    --_mash-typeset-size: var(--type-code-font-size);
+    --_mash-typeset-weight: var(--type-code-font-weight);
+    --_mash-typeset-leading: var(--type-code-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[tone="secondary"] {
+    --_mash-typeset-color: var(--mash-material-label-secondary, var(--color-text-muted));
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[tone="tertiary"] {
+    --_mash-typeset-color: var(--color-text-disabled);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[tone="disabled"] {
+    --_mash-typeset-color: var(--mash-material-label-disabled, var(--color-text-disabled));
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[tone="accent"] {
+    --_mash-typeset-color: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-typeset[tone="critical"] {
+    --_mash-typeset-color: var(--color-critical);
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu-item::part(selection) {
@@ -2045,7 +2289,10 @@
 
     display: block;
     block-size: calc(var(--space-control-block-small) + var(--space-control-gap));
-    margin-inline: calc(var(--space-control-gap) - var(--border-hairline));
+    margin-inline-start: calc(
+      var(--space-control-inline) + var(--_mash-menu-selection-lane) + var(--_mash-menu-prefix-lane)
+    );
+    margin-inline-end: var(--space-control-inline);
     padding-block: calc(var(--space-control-block-small) + var(--border-hairline));
   }
 
@@ -3411,7 +3658,8 @@
     cursor: not-allowed;
   }
   :where([data-mash-catalogue="mash"]) ui-input-group::part(root) {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto auto;
     align-items: center;
     min-inline-size: var(--layout-dimension-zero);
     overflow: clip;
@@ -3425,12 +3673,12 @@
     outline-offset: var(--border-focus-ring-offset);
   }
   :where([data-mash-catalogue="mash"]) ui-input-group::part(control) {
-    display: flex;
-    flex: 1 1 auto;
+    display: grid;
     min-inline-size: var(--layout-dimension-zero);
+    overflow: hidden;
   }
   :where([data-mash-catalogue="mash"]) ui-input-group > ui-input {
-    flex: 1 1 auto;
+    display: block;
     inline-size: 100%;
     min-inline-size: var(--layout-dimension-zero);
   }
@@ -3452,6 +3700,8 @@
     display: inline-flex;
     flex: none;
     align-items: center;
+    align-self: stretch;
+    padding-inline: var(--space-control-inline-small);
     color: var(--color-text-muted);
   }
   :where([data-mash-catalogue="mash"]) ui-input-group::part(prefix-separator),
@@ -3460,19 +3710,6 @@
     inline-size: var(--border-hairline);
     background: transparent;
   }
-  :where([data-mash-catalogue="mash"])
-    ui-input-group.example-input-group-divided::part(prefix-separator),
-  :where([data-mash-catalogue="mash"])
-    ui-input-group.example-input-group-divided::part(suffix-separator) {
-    background: var(--_mash-component-divider);
-  }
-  :where([data-mash-catalogue="mash"]) ui-input-group::part(prefix) {
-    margin-inline-start: var(--space-control-inline);
-  }
-  :where([data-mash-catalogue="mash"]) ui-input-group::part(suffix) {
-    margin-inline-end: var(--space-control-inline);
-  }
-
   :where([data-mash-catalogue="mash"]) ui-kbd::part(root) {
     display: inline-flex;
     align-items: center;

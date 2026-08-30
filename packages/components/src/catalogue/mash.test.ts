@@ -6,9 +6,11 @@ import "../input-group/register.js";
 import "../input/register.js";
 import "../kbd/register.js";
 import "../menu-item/register.js";
+import "../menu-label/register.js";
 import "../menu/register.js";
 import "../switch/register.js";
 import "../toggle/register.js";
+import "../typeset/register.js";
 import "./mash.css";
 
 describe("Mash catalogue", () => {
@@ -71,5 +73,76 @@ describe("Mash catalogue", () => {
     expect(getComputedStyle(keyRoot).borderTopWidth).toBe("0px");
     expect(getComputedStyle(keyRoot).backgroundColor).toBe("rgba(0, 0, 0, 0)");
     expect(getComputedStyle(keyRoot).boxShadow).toBe("none");
+  });
+
+  it("uses the snappy transient motion contract for menu surfaces", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const menu = await fixture<HTMLElement & { open: boolean; updateComplete: Promise<unknown> }>(`
+      <ui-menu label="Project commands">
+        <button slot="trigger">Project</button>
+        <ui-menu-item value="open">Open project</ui-menu-item>
+      </ui-menu>
+    `);
+
+    menu.open = true;
+    await menu.updateComplete;
+    const popup = inShadow<HTMLElement>(menu, '[part="popup"]');
+    const motion = getComputedStyle(popup);
+
+    expect(menu.matches(":state(entering)")).toBe(true);
+    expect(motion.animationName).toBe("mash-menu-enter");
+    expect(motion.animationDuration).toBe("0.12s");
+  });
+
+  it("separates initial keyboard focus from checked menu selection", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const menu = await fixture(`
+      <ui-menu label="View options" open>
+        <ui-menu-item value="sidebar">Show sidebar</ui-menu-item>
+        <ui-menu-item kind="checkbox" value="details" checked>Show details</ui-menu-item>
+      </ui-menu>
+    `);
+    const [focused, checked] = [...menu.querySelectorAll("ui-menu-item")];
+    const focusedControl = inShadow<HTMLButtonElement>(focused!, "button");
+    const checkedControl = inShadow<HTMLButtonElement>(checked!, "button");
+
+    focusedControl.focus();
+
+    expect(getComputedStyle(focusedControl).boxShadow).not.toBe("none");
+    expect(getComputedStyle(checkedControl).backgroundColor).toBe("rgba(0, 0, 0, 0)");
+    expect(getComputedStyle(focusedControl).backgroundColor).not.toBe(
+      getComputedStyle(checkedControl).backgroundColor,
+    );
+    expect(focused?.matches(":state(checked)")).toBe(false);
+    expect(checked?.matches(":state(checked)")).toBe(true);
+  });
+
+  it("uses declarable menu sizing and applies menu-label padding", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const menu = await fixture(`
+      <ui-menu label="Project commands" density="compact" sizing="fixed" open>
+        <ui-menu-label>Navigate</ui-menu-label>
+        <ui-menu-item value="open">Open project</ui-menu-item>
+      </ui-menu>
+    `);
+    const popup = inShadow<HTMLElement>(menu, '[part="popup"]');
+    const label = menu.querySelector("ui-menu-label")!;
+    const labelRoot = inShadow<HTMLElement>(label, '[part="root"]');
+
+    expect(getComputedStyle(popup).inlineSize).toBe("210px");
+    expect(getComputedStyle(popup).minInlineSize).toBe("210px");
+    expect(getComputedStyle(popup).maxInlineSize).toBe("210px");
+    expect(getComputedStyle(labelRoot).paddingInlineStart).toBe("12px");
+  });
+
+  it("pronounces typeset preset and tone tokens through parts", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const typeset = await fixture(
+      `<ui-typeset preset="title2" tone="accent">Interzone</ui-typeset>`,
+    );
+    const content = inShadow<HTMLElement>(typeset, '[part="content"]');
+
+    expect(getComputedStyle(content).fontSize).toBe("17px");
+    expect(getComputedStyle(content).color).not.toBe("rgba(0, 0, 0, 0)");
   });
 });

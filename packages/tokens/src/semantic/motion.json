@@ -6,6 +6,10 @@
       "$value": "{duration.reference.fast}",
       "$description": "State transitions on an interactive control: hover, press, focus."
     },
+    "transient": {
+      "$value": "{duration.reference.fast}",
+      "$description": "Small anchored surfaces that should appear immediately: menus, tooltips, and compact previews."
+    },
     "surface": {
       "$value": "{duration.reference.normal}",
       "$description": "Surfaces entering or leaving: popovers, dialogs, disclosure."

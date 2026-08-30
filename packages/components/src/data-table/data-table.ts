@@ -13,6 +13,7 @@ import {
 export type DataTableSelection = "none" | "row" | "column" | "cell";
 export type DataTableDensity = "compact" | "regular" | "spacious";
 export type DataTableInteractionReason = "keyboard" | "pointer" | "imperative";
+export type DataTableEditReason = DataTableInteractionReason | "submit" | "reset" | "escape";
 
 export interface DataTableCoordinate {
   columnIndex: number | null;
@@ -40,6 +41,14 @@ export interface DataTableActivationDetail extends DataTableCoordinate {
   reason: DataTableInteractionReason;
 }
 
+export interface DataTableEditDetail extends DataTableCoordinate {
+  reason: DataTableEditReason;
+}
+
+export interface DataTableEditCommitDetail extends DataTableEditDetail {
+  form: HTMLFormElement | null;
+}
+
 type SelectableTablePart = UITableCell | UITableHead | UITableRow;
 type ActiveDataTableSelection = Exclude<DataTableSelection, "none">;
 
@@ -56,11 +65,11 @@ interface ParsedDataTableSelection {
 /**
  * A controlled behavior and composition shell for authored Mash tables.
  *
- * `ui-data-table` does not own columns, row rendering, cell editors, menus,
- * chips, or virtualization. It coordinates a slotted `ui-table`, exposes
- * roving cell/row/column focus, and emits semantic selection and activation
- * requests. Applications remain free to compose any Mash component inside a
- * table cell or around the table shell.
+ * `ui-data-table` does not own columns, row rendering, editor types, menus,
+ * chips, data mutation, or virtualization. It coordinates a slotted `ui-table`,
+ * exposes roving cell/row/column focus, and emits semantic selection, activation,
+ * and edit-lifecycle requests. Applications remain free to compose any Mash
+ * component inside a table cell or the shared editor region.
  *
  * @tag ui-data-table
  * @summary Adds controlled selection and composition regions to an authored ui-table.
@@ -76,6 +85,7 @@ interface ParsedDataTableSelection {
  * @slot - One authored `ui-table`; ordinary light-DOM composition remains visible.
  * @slot empty - Empty-state content shown when `empty` is true.
  * @slot loading - Loading-state content shown while `loading` is true.
+ * @slot editor - One parent-authored editor, commonly a native form, for the controlled cell key.
  * @slot footer - Pagination, selection status, totals, or other trailing composition.
  *
  * @csspart root - The complete data-table composition boundary.
@@ -84,6 +94,7 @@ interface ParsedDataTableSelection {
  * @csspart table - The authored table binding.
  * @csspart empty - The authored empty-state binding.
  * @csspart loading - The authored loading-state binding.
+ * @csspart editor - The authored editor binding, visible while `editing` is non-empty.
  * @csspart footer - The authored footer binding.
  *
  * @cssstate empty - Matches while the parent reports an empty data source.
@@ -92,9 +103,13 @@ interface ParsedDataTableSelection {
  * @cssstate cell-selection - Matches while cell selection is active.
  * @cssstate row-selection - Matches while row selection is active.
  * @cssstate column-selection - Matches while column selection is active.
+ * @cssstate editing - Matches while the parent reports an active editor coordinate.
  *
  * @fires {CustomEvent<DataTableSelectionDetail>} ui-data-table-select - Requests a new controlled selection key.
  * @fires {CustomEvent<DataTableActivationDetail>} ui-data-table-activate - Requests editing or another primary action for a cell.
+ * @fires {CustomEvent<DataTableEditDetail>} ui-data-table-edit-request - Requests that the parent begin editing an authored editable cell.
+ * @fires {CustomEvent<DataTableEditCommitDetail>} ui-data-table-edit-commit - Reports submission of the authored editor without mutating parent data.
+ * @fires {CustomEvent<DataTableEditDetail>} ui-data-table-edit-cancel - Reports reset, Escape, or an imperative cancellation request.
  *
  * @mashnode root root
  * @mashnode toolbar toolbar root
@@ -102,18 +117,26 @@ interface ParsedDataTableSelection {
  * @mashnode table table viewport
  * @mashnode empty empty root
  * @mashnode loading loading root
+ * @mashnode editor editor root
  * @mashnode footer footer root
  * @mashnode selection selection root
  * @mashnode selected selected root
  * @mashnode select select root
  * @mashnode activate activate root
+ * @mashnode edit-request edit-request editor
+ * @mashnode edit-commit edit-commit editor
+ * @mashnode edit-cancel edit-cancel editor
  * @mashrole slot toolbar toolbar toolbar
  * @mashrole slot default table table
  * @mashrole slot empty empty empty
  * @mashrole slot loading loading loading
+ * @mashrole slot editor editor editor
  * @mashrole slot footer footer footer
  * @mashrole event ui-data-table-select select select
  * @mashrole event ui-data-table-activate activate activate
+ * @mashrole event ui-data-table-edit-request edit-request edit-request
+ * @mashrole event ui-data-table-edit-commit edit-commit edit-commit
+ * @mashrole event ui-data-table-edit-cancel edit-cancel edit-cancel
  */
 export class UIDataTable extends LitElement {
   static override properties = {
@@ -121,6 +144,13 @@ export class UIDataTable extends LitElement {
     selection: { type: String, reflect: true },
     density: { type: String, reflect: true },
     selected: { type: String, reflect: true },
+    editing: {
+      reflect: true,
+      converter: {
+        fromAttribute: (value: string | null): string => value ?? "",
+        toAttribute: (value: string): string | null => value || null,
+      },
+    },
     loading: { type: Boolean, reflect: true },
     empty: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
@@ -139,6 +169,8 @@ export class UIDataTable extends LitElement {
    * `column:` so the selected axis remains explicit.
    */
   declare selected: string;
+  /** Parent-owned editable cell identity in `row:column` form. */
+  declare editing: string;
   /** Reports that data is currently loading without replacing authored table content. */
   declare loading: boolean;
   /** Replaces the table viewport with the authored empty state. */
@@ -155,6 +187,7 @@ export class UIDataTable extends LitElement {
     this.selection = "cell";
     this.density = "regular";
     this.selected = "";
+    this.editing = "";
     this.loading = false;
     this.empty = false;
     this.disabled = false;
@@ -165,6 +198,8 @@ export class UIDataTable extends LitElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
+    this.addEventListener("submit", this.#onSubmit);
+    this.addEventListener("reset", this.#onReset);
     this.#collectionObserver.observe(this, {
       attributes: true,
       attributeFilter: ["row-index", "column-index"],
@@ -174,6 +209,8 @@ export class UIDataTable extends LitElement {
   }
 
   override disconnectedCallback(): void {
+    this.removeEventListener("submit", this.#onSubmit);
+    this.removeEventListener("reset", this.#onReset);
     this.#collectionObserver.disconnect();
     super.disconnectedCallback();
   }
@@ -189,6 +226,8 @@ export class UIDataTable extends LitElement {
     }
     if (this.selected) this.#internals.states.add("has-selection");
     else this.#internals.states.delete("has-selection");
+    if (this.editing) this.#internals.states.add("editing");
+    else this.#internals.states.delete("editing");
     const activeSelection = this.#currentSelection()?.selection ?? this.selection;
     for (const mode of ["cell", "row", "column"] as const) {
       const state = `${mode}-selection`;
@@ -198,6 +237,7 @@ export class UIDataTable extends LitElement {
     if (
       changed.has("selection") ||
       changed.has("selected") ||
+      changed.has("editing") ||
       changed.has("disabled") ||
       changed.has("empty")
     ) {
@@ -298,6 +338,10 @@ export class UIDataTable extends LitElement {
     const anchor = this.#coordinateFromKey(anchorKey ?? "", selection);
     const focus = this.#coordinateFromKey(focusKey ?? "", selection);
     return anchor && focus ? { selection, range: this.#rangeBetween(anchor, focus) } : undefined;
+  }
+
+  #editingCoordinate(): DataTableCoordinate | undefined {
+    return this.#coordinateFromKey(this.editing, "cell");
   }
 
   #contains(range: DataTableSelectionRange | undefined, coordinate: DataTableCoordinate): boolean {
@@ -402,6 +446,7 @@ export class UIDataTable extends LitElement {
         activeSelection === "column" && this.#contains(range, columnCoordinate);
       cell.selected = cellSelected || columnSelected;
       cell.active = activeSelection === "cell" && coordinate.key === range?.focus.key;
+      cell.toggleAttribute("data-editing", coordinate.key === this.editing);
     }
 
     const candidates = activeSelection ? this.#orderedCandidates(activeSelection) : [];
@@ -474,6 +519,66 @@ export class UIDataTable extends LitElement {
       originalEvent,
       source: this.#sourceForReason(reason),
     });
+    if (cell.editable) this.#emitEditRequest(cell, reason, originalEvent);
+  }
+
+  #emitEditRequest(
+    cell: UITableCellType,
+    reason: DataTableInteractionReason,
+    originalEvent?: Event,
+  ): void {
+    const detail: DataTableEditDetail = { ...this.#coordinate(cell, "cell"), reason };
+    this.dispatchEvent(
+      new CustomEvent<DataTableEditDetail>("ui-data-table-edit-request", {
+        bubbles: true,
+        composed: true,
+        detail,
+      }),
+    );
+    dispatchCommand(this, "editor.open", {
+      data: detail,
+      gesture: this.#gestureForReason(reason),
+      originalEvent,
+      source: this.#sourceForReason(reason),
+    });
+  }
+
+  #emitEditCommit(form: HTMLFormElement | null, reason: DataTableEditReason): boolean {
+    const coordinate = this.#editingCoordinate();
+    if (!coordinate || this.disabled) return false;
+    const detail: DataTableEditCommitDetail = { ...coordinate, form, reason };
+    this.dispatchEvent(
+      new CustomEvent<DataTableEditCommitDetail>("ui-data-table-edit-commit", {
+        bubbles: true,
+        composed: true,
+        detail,
+      }),
+    );
+    dispatchCommand(this, "editor.commit", {
+      data: { ...coordinate, reason },
+      gesture: "command",
+      source: "imperative",
+    });
+    return true;
+  }
+
+  #emitEditCancel(reason: DataTableEditReason): boolean {
+    const coordinate = this.#editingCoordinate();
+    if (!coordinate || this.disabled) return false;
+    const detail: DataTableEditDetail = { ...coordinate, reason };
+    this.dispatchEvent(
+      new CustomEvent<DataTableEditDetail>("ui-data-table-edit-cancel", {
+        bubbles: true,
+        composed: true,
+        detail,
+      }),
+    );
+    dispatchCommand(this, "editor.cancel", {
+      data: detail,
+      gesture: reason === "escape" ? "key" : "command",
+      source: reason === "escape" ? "keyboard" : "imperative",
+    });
+    return true;
   }
 
   #gestureForReason(reason: DataTableInteractionReason): GestureKind {
@@ -506,6 +611,14 @@ export class UIDataTable extends LitElement {
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
+    const fromEditor = event
+      .composedPath()
+      .some((node) => node instanceof HTMLElement && node.getAttribute("slot") === "editor");
+    if (fromEditor && event.key === "Escape") {
+      event.preventDefault();
+      this.#emitEditCancel("escape");
+      return;
+    }
     const candidate = this.#candidateFromPath(event.composedPath());
     if (!candidate) return;
     if (
@@ -574,6 +687,28 @@ export class UIDataTable extends LitElement {
     );
   };
 
+  #onSubmit = (event: Event): void => {
+    const form = event
+      .composedPath()
+      .find(
+        (node): node is HTMLFormElement =>
+          node instanceof HTMLFormElement && node.getAttribute("slot") === "editor",
+      );
+    if (!form) return;
+    event.preventDefault();
+    this.#emitEditCommit(form, "submit");
+  };
+
+  #onReset = (event: Event): void => {
+    const editor = event
+      .composedPath()
+      .find(
+        (node): node is HTMLElement =>
+          node instanceof HTMLElement && node.getAttribute("slot") === "editor",
+      );
+    if (editor) this.#emitEditCancel("reset");
+  };
+
   /** Requests a controlled selection by logical row/column index. */
   requestSelection(
     rowIndex: number | null,
@@ -605,6 +740,33 @@ export class UIDataTable extends LitElement {
     return true;
   }
 
+  /** Requests that the parent open its authored editor for an editable cell. */
+  requestEdit(
+    rowIndex: number,
+    columnIndex: number,
+    reason: DataTableInteractionReason = "imperative",
+  ): boolean {
+    const cell = this.#cells.find(
+      (candidate) =>
+        this.#rowIndex(candidate) === rowIndex &&
+        candidate.columnIndex === columnIndex &&
+        candidate.editable,
+    );
+    if (!cell || this.disabled) return false;
+    this.#emitEditRequest(cell, reason);
+    return true;
+  }
+
+  /** Reports a commit request for the controlled editor without changing `editing`. */
+  commitEdit(form: HTMLFormElement | null = null): boolean {
+    return this.#emitEditCommit(form, "imperative");
+  }
+
+  /** Reports a cancellation request for the controlled editor without changing `editing`. */
+  cancelEdit(): boolean {
+    return this.#emitEditCancel("imperative");
+  }
+
   protected override render(): TemplateResult {
     return html`
       <section
@@ -623,6 +785,7 @@ export class UIDataTable extends LitElement {
         <div part="loading" ?hidden=${!this.loading} aria-live="polite">
           <slot name="loading"></slot>
         </div>
+        <div part="editor" ?hidden=${!this.editing}><slot name="editor"></slot></div>
         <div part="footer"><slot name="footer"></slot></div>
       </section>
     `;
