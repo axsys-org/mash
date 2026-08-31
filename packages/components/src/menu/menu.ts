@@ -5,6 +5,7 @@ import {
   type OverlayOpenChangeDetail,
   UIAnchoredOverlay,
 } from "../internal/overlay.js";
+import { MenuCollectionController } from "../internal/menu-collection.js";
 import type { UIMenuItem } from "../menu-item/menu-item.js";
 
 /** The Apple-aligned row and surface density of a menu. */
@@ -65,12 +66,20 @@ export class UIMenu extends UIAnchoredOverlay {
     ...UIAnchoredOverlay.properties,
     density: { type: String, reflect: true },
     nested: { type: Boolean, reflect: true },
+    submenuOpenDelay: { type: Number, attribute: "submenu-open-delay", reflect: true },
+    submenuCloseDelay: { type: Number, attribute: "submenu-close-delay", reflect: true },
   };
 
   /** Menu surface and row density. */
   declare density: MenuDensity;
   /** Whether a parent menu item owns this menu as a submenu. */
   declare nested: boolean;
+  /** Fine-pointer delay before a hovered submenu opens. */
+  declare submenuOpenDelay: number;
+  /** Pointer-corridor grace period before a submenu closes. */
+  declare submenuCloseDelay: number;
+
+  readonly #collection = new MenuCollectionController(this);
 
   protected readonly overlayRole = "menu";
   protected override readonly authoredContentPart = "actions";
@@ -79,6 +88,8 @@ export class UIMenu extends UIAnchoredOverlay {
     super();
     this.density = "regular";
     this.nested = false;
+    this.submenuOpenDelay = 80;
+    this.submenuCloseDelay = 280;
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
     this.addEventListener("ui-menu-item-submenu-change", this.#onSubmenuChange);
     this.addEventListener("pointerover", this.#onPointerOver);
@@ -102,10 +113,6 @@ export class UIMenu extends UIAnchoredOverlay {
     return html`<span part="material" aria-hidden="true"></span>`;
   }
 
-  #items(): UIMenuItem[] {
-    return [...this.querySelectorAll<UIMenuItem>(":scope > ui-menu-item")];
-  }
-
   #parentItem(): UIMenuItem | null {
     return this.parentElement?.localName === "ui-menu-item"
       ? (this.parentElement as UIMenuItem)
@@ -124,45 +131,11 @@ export class UIMenu extends UIAnchoredOverlay {
   }
 
   protected override handleOverlayKeydown(event: KeyboardEvent): boolean {
-    const source = event
-      .composedPath()
-      .find(
-        (node): node is UIMenuItem =>
-          node instanceof HTMLElement && node.localName === "ui-menu-item",
-      );
-
-    if (event.key === "ArrowLeft" && this.nested) {
-      event.preventDefault();
-      event.stopPropagation();
-      this.requestOpenChange(false, "keyboard");
-      this.#parentItem()?.focus();
-      return true;
-    }
-    if (event.key === "ArrowRight" && source?.hasSubmenu) {
-      event.preventDefault();
-      event.stopPropagation();
-      source.showSubmenu(true);
-      return true;
-    }
-    if (
-      event.key !== "ArrowDown" &&
-      event.key !== "ArrowUp" &&
-      event.key !== "Home" &&
-      event.key !== "End"
-    )
-      return false;
-    const items = this.#items();
-    if (items.length === 0) return false;
-    const index = Math.max(0, items.indexOf(source as UIMenuItem));
-    const target =
-      event.key === "Home"
-        ? items[0]
-        : event.key === "End"
-          ? items.at(-1)
-          : items[(index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
-    event.preventDefault();
-    target?.focus();
-    return true;
+    return this.#collection.handleKeydown(event, {
+      nested: this.nested,
+      parentItem: () => this.#parentItem(),
+      dismissNested: () => this.requestOpenChange(false, "keyboard"),
+    });
   }
 
   #onItemSelect = (event: Event): void => {
@@ -185,22 +158,13 @@ export class UIMenu extends UIAnchoredOverlay {
     const item = event.target as UIMenuItem;
     const { open } = (event as CustomEvent<{ open: boolean }>).detail;
     if (!open || item.parentElement !== this) return;
-    for (const sibling of this.#items()) {
-      if (sibling !== item && sibling.submenuOpen) sibling.dismissSubmenu();
-    }
+    this.#collection.dismissSiblingSubmenus(item);
   };
 
   #onPointerOver = (event: PointerEvent): void => {
-    const item = event
-      .composedPath()
-      .find(
-        (node): node is UIMenuItem =>
-          node instanceof HTMLElement && node.localName === "ui-menu-item",
-      );
+    const item = this.#collection.itemFromEvent(event) as UIMenuItem | undefined;
     if (!item || item.parentElement !== this || item.hasSubmenu) return;
-    for (const sibling of this.#items()) {
-      if (sibling !== item && sibling.submenuOpen) sibling.dismissSubmenu();
-    }
+    this.#collection.dismissSiblingSubmenus(item);
   };
 
   protected override render(): TemplateResult {

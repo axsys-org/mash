@@ -5,7 +5,7 @@ import {
   type OverlayOpenChangeDetail,
   UIAnchoredOverlay,
 } from "../internal/overlay.js";
-import type { UIMenuItem } from "../menu-item/menu-item.js";
+import { MenuCollectionController } from "../internal/menu-collection.js";
 import type { MenuDensity } from "../menu/menu.js";
 
 /**
@@ -67,6 +67,7 @@ export class UIContextMenu extends UIAnchoredOverlay {
   protected readonly overlayRole = "menu";
   protected override readonly triggerAction = "contextmenu";
   protected override readonly authoredContentPart = "actions";
+  readonly #collection = new MenuCollectionController(this);
 
   constructor() {
     super();
@@ -105,42 +106,8 @@ export class UIContextMenu extends UIAnchoredOverlay {
     this.requestOpenChange(false, "select");
   };
 
-  #items(): UIMenuItem[] {
-    return [...this.querySelectorAll<UIMenuItem>(":scope > ui-menu-item")];
-  }
-
   protected override handleOverlayKeydown(event: KeyboardEvent): boolean {
-    const source = event
-      .composedPath()
-      .find(
-        (node): node is UIMenuItem =>
-          node instanceof HTMLElement && node.localName === "ui-menu-item",
-      );
-    if (event.key === "ArrowRight" && source?.hasSubmenu) {
-      event.preventDefault();
-      source.showSubmenu(true);
-      return true;
-    }
-    if (
-      event.key !== "ArrowDown" &&
-      event.key !== "ArrowUp" &&
-      event.key !== "Home" &&
-      event.key !== "End"
-    ) {
-      return false;
-    }
-    const items = this.#items();
-    if (items.length === 0) return false;
-    const index = Math.max(0, items.indexOf(source as UIMenuItem));
-    const target =
-      event.key === "Home"
-        ? items[0]
-        : event.key === "End"
-          ? items.at(-1)
-          : items[(index + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
-    event.preventDefault();
-    target?.focus();
-    return true;
+    return this.#collection.handleKeydown(event);
   }
 
   protected override render(): TemplateResult {
