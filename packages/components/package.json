@@ -604,6 +604,10 @@
       "types": "./dist/icon/icon.d.ts",
       "import": "./dist/icon/icon.js"
     },
+    "./icon/carbon": {
+      "types": "./dist/icon/carbon.d.ts",
+      "import": "./dist/icon/carbon.js"
+    },
     "./icon/register": {
       "types": "./dist/icon/register.d.ts",
       "import": "./dist/icon/register.js"

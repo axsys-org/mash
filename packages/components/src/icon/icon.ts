@@ -2,41 +2,19 @@ import { LitElement, html, nothing, type TemplateResult } from "lit";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 
 import { baseStyles } from "../internal/base-styles.js";
-import { carbonIcons } from "./carbon-icons.generated.js";
+import {
+  hasIcon,
+  iconNames,
+  iconSource,
+  registerIcon,
+  unregisterIcon,
+  type IconSize,
+  type IconSource,
+} from "./icon-registry.js";
 
-export type IconName = keyof typeof carbonIcons;
-export type IconSize = "small" | "medium" | "large";
-export type IconSource = string | Readonly<Partial<Record<16 | 20 | 24, string>>>;
-
-const customIcons = new Map<string, IconSource>();
-const sizeInPixels: Record<IconSize, 16 | 20 | 24> = { small: 16, medium: 20, large: 24 };
-
-/** Registers trusted SVG markup behind a semantic name. User-authored strings must never be passed here. */
-export function registerIcon(name: string, source: IconSource): void {
-  customIcons.set(name, source);
-}
-
-/** Removes an application-provided icon without affecting Mash's Carbon defaults. */
-export function unregisterIcon(name: string): boolean {
-  return customIcons.delete(name);
-}
-
-/** Reports whether a semantic name can currently be realized. */
-export function hasIcon(name: string): boolean {
-  return customIcons.has(name) || name in carbonIcons;
-}
-
-/** The immutable names bundled with Mash's curated Carbon realization. */
-export const iconNames = Object.freeze(Object.keys(carbonIcons) as IconName[]);
-
-function sourceFor(name: string, size: IconSize): string | undefined {
-  const source = customIcons.get(name) ?? carbonIcons[name as IconName];
-  if (typeof source === "string") return source;
-  if (!source) return undefined;
-
-  const pixels = sizeInPixels[size];
-  return source[pixels] ?? source[20] ?? source[16] ?? source[24];
-}
+export type IconName = string;
+export { hasIcon, iconNames, registerIcon, unregisterIcon };
+export type { IconSize, IconSource };
 
 /**
  * Realizes a semantic icon name through Mash's current glyph source.
@@ -104,7 +82,7 @@ export class UIIcon extends LitElement {
   static override styles = baseStyles;
 
   protected override render(): TemplateResult {
-    const source = sourceFor(this.name, this.size);
+    const source = iconSource(this.name, this.size);
     const labelled = this.label.trim().length > 0;
 
     return html`
