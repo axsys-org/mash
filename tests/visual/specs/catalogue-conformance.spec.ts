@@ -85,6 +85,7 @@ for (const tag of tags) {
 }
 
 const compactSurfaces = [
+  "sh-tree",
   "sh-triptych",
   "ui-color-picker",
   "ui-dialog",

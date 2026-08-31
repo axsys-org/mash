@@ -111,6 +111,7 @@ const families: ComponentFamily[] = [
       "sh-myth",
       "sh-pail",
       "sh-slot",
+      "sh-tree",
       "sh-triptych",
       "shrine-confirm",
     ],

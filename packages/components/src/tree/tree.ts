@@ -203,6 +203,8 @@ export class UITree extends LitElement {
           node instanceof HTMLElement && node.localName === "ui-tree-item",
       );
     if (!item) return;
+    const control = item.shadowRoot?.querySelector<HTMLElement>("[part='control']");
+    if (!control || !event.composedPath().includes(control)) return;
 
     const items = this.#visibleItems();
     const index = items.indexOf(item);

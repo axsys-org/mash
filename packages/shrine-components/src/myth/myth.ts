@@ -2,6 +2,9 @@ import { LitElement, html, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
+/** The visual pronunciation of a Shrine record. */
+export type ShrineMythVariant = "record" | "preview";
+
 /**
  * A record header with composable Shrine limbs.
  *
@@ -31,6 +34,8 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot kind - Rich record-kind content. Overrides the `kind` attribute.
  * @slot actions - Actions associated with the record.
  *
+ * @attr variant - `record` is the full record surface; `preview` is a compact leaf for transient overlays and menus.
+ *
  * @csspart root - The card surface containing the record.
  * @csspart card-header - The card header containing record identity.
  * @csspart identity - The region containing title and path.
@@ -42,17 +47,22 @@ import { baseStyles } from "../internal/base-styles.js";
  * @csspart kind - The UI badge that carries the record kind.
  * @csspart kind-content - The badge content realization.
  * @csspart card-actions - The card action wrapper.
+ * @csspart card-footer - The preview footer wrapper used by compact actions.
  * @csspart actions - The record action region.
  * @csspart card-content - The card's primary content region.
  * @csspart limbs - The composed limb region.
  */
 export class ShrineMyth extends LitElement {
   static override properties = {
+    variant: { type: String, reflect: true },
     kind: { type: String, reflect: true },
     title: { type: String, reflect: true },
     path: { type: String, reflect: true },
     _filledSlots: { state: true },
   };
+
+  /** Visual pronunciation; record identity and limb semantics do not change. */
+  declare variant: ShrineMythVariant;
 
   /** The record's stable kind, rendered with the shared UI badge. */
   declare kind: string;
@@ -64,6 +74,7 @@ export class ShrineMyth extends LitElement {
 
   constructor() {
     super();
+    this.variant = "record";
     this.kind = "";
     this.title = "";
     this.path = "";
@@ -85,7 +96,7 @@ export class ShrineMyth extends LitElement {
       <ui-card
         part="root"
         elevation="flat"
-        exportparts="header:card-header,identity:identity,title:card-title,description:card-description,value:card-value,actions:card-actions,content:card-content"
+        exportparts="header:card-header,identity:identity,title:card-title,description:card-description,value:card-value,actions:card-actions,content:card-content,footer:card-footer"
       >
         <h2
           slot="title"
@@ -112,7 +123,11 @@ export class ShrineMyth extends LitElement {
         >
           <slot name="kind" @slotchange=${this.#onSlotChange}>${this.kind}</slot>
         </ui-badge>
-        <div slot="actions" part="actions" ?hidden=${!this._filledSlots.has("actions")}>
+        <div
+          slot=${this.variant === "preview" ? "footer" : "actions"}
+          part="actions"
+          ?hidden=${!this._filledSlots.has("actions")}
+        >
           <slot name="actions" @slotchange=${this.#onSlotChange}></slot>
         </div>
         <div slot="content" part="limbs" class="limbs">

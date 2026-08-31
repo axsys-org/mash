@@ -1382,6 +1382,18 @@
     background: transparent;
   }
 
+  /* A preview is non-modal: its viewport-sized positioning boundary must not
+     become an invisible global hit target. Only the card itself participates
+     in pointer interaction, so neighboring rows remain hoverable while the
+     preview is open. */
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(backdrop) {
+    pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(popup) {
+    pointer-events: auto;
+  }
+
   :where([data-mash-catalogue="mash"]) ui-tooltip::part(popup) {
     border-radius: var(--radius-control);
     padding: var(--space-control-block) var(--space-control-inline);

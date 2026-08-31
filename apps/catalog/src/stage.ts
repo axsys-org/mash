@@ -770,6 +770,263 @@ document.addEventListener("ui-tree-item-select", (event) => {
   }
 });
 
+type ShrinePathPreview = HTMLElement & {
+  anchorElement?: HTMLElement | null;
+  label?: string;
+  open?: boolean;
+  openDelay?: number;
+  closeDelay?: number;
+  show?: (reason?: string) => void;
+  dismiss?: (reason?: string) => void;
+};
+
+type ShrinePathMyth = HTMLElement & {
+  kind?: string;
+  path?: string;
+};
+
+interface ShrinePathPreviewState {
+  anchor: HTMLElement | null;
+  pointerWithin: boolean;
+  focusWithin: boolean;
+  openTimer?: number;
+  closeTimer?: number;
+}
+
+const shrinePathPreviewStates = new WeakMap<ShrinePathPreview, ShrinePathPreviewState>();
+
+function shrinePathPreviewState(preview: ShrinePathPreview): ShrinePathPreviewState {
+  const existing = shrinePathPreviewStates.get(preview);
+  if (existing) return existing;
+  const state: ShrinePathPreviewState = {
+    anchor: null,
+    pointerWithin: false,
+    focusWithin: false,
+  };
+  shrinePathPreviewStates.set(preview, state);
+  preview.addEventListener("pointerover", () => {
+    state.pointerWithin = true;
+    clearShrinePathPreviewTimer(state, "close");
+  });
+  preview.addEventListener("pointerout", (event) => {
+    if (relatedTargetIsWithin(preview, event.relatedTarget)) return;
+    state.pointerWithin = false;
+    if (!state.focusWithin && !preview.matches(":focus-within")) closeShrinePathPreview(preview);
+  });
+  preview.addEventListener("focusin", () => {
+    state.focusWithin = true;
+    clearShrinePathPreviewTimer(state, "close");
+  });
+  preview.addEventListener("focusout", (event) => {
+    if (relatedTargetIsWithin(preview, event.relatedTarget)) return;
+    state.focusWithin = false;
+    queueMicrotask(() => {
+      if (!state.pointerWithin && !preview.matches(":focus-within"))
+        closeShrinePathPreview(preview);
+    });
+  });
+  return state;
+}
+
+function clearShrinePathPreviewTimer(state: ShrinePathPreviewState, kind: "open" | "close"): void {
+  const key = kind === "open" ? "openTimer" : "closeTimer";
+  if (state[key] !== undefined) window.clearTimeout(state[key]);
+  state[key] = undefined;
+}
+
+function shrinePathFromEvent(event: Event): HTMLElement | null {
+  const direct = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement &&
+        node.localName === "ui-path" &&
+        Boolean(node.closest("[data-shrine-path-preview-stage]")),
+    );
+  if (direct) return direct;
+  const item = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement &&
+        node.localName === "ui-tree-item" &&
+        Boolean(node.closest("[data-shrine-path-preview-stage]")),
+    );
+  return item?.querySelector<HTMLElement>(":scope > ui-path[slot='label']") ?? null;
+}
+
+function shrinePreviewForPath(path: HTMLElement): ShrinePathPreview | null {
+  return (
+    path
+      .closest<HTMLElement>("[data-shrine-path-preview-stage]")
+      ?.querySelector<ShrinePathPreview>("ui-preview-card[data-shrine-path-preview]") ?? null
+  );
+}
+
+function updateShrinePathPreview(preview: ShrinePathPreview, path: HTMLElement): void {
+  const item = path.closest<HTMLElement>("ui-tree-item");
+  if (!item) return;
+  const identity = item.getAttribute("value") || item.getAttribute("path") || "path-node";
+  const address = item.getAttribute("path") || identity;
+  const title = item.getAttribute("title") || path.textContent?.trim() || identity;
+  const children = item.querySelectorAll(":scope > ui-tree-item[slot='children']").length;
+  const lane = item.dataset.shrineLane ?? "0";
+  const overlay = /overlay/i.test(identity) || /\/overlays?\//i.test(address);
+  const current = item.hasAttribute("current");
+  const relation = overlay
+    ? "x→x overlay"
+    : current
+      ? "current"
+      : children > 0
+        ? "branch"
+        : "witness";
+  const kind = children > 0 || item.getAttribute("kind") === "folder" ? "Branch" : "Path node";
+
+  // Hover intent belongs to the authored path label, but geometry belongs to
+  // the complete row. Anchoring to the label's text width would place the card
+  // over sibling rows instead of beside the tree pane.
+  preview.anchorElement = item.shadowRoot?.querySelector<HTMLElement>("[part='control']") ?? item;
+  preview.dataset.shrinePreviewValue = identity;
+  preview.label = `${title} path preview`;
+  const myth = preview.querySelector<ShrinePathMyth>("[data-shrine-preview-myth]");
+  if (myth) {
+    myth.title = title;
+    myth.path = address;
+    myth.kind = kind;
+  }
+  for (const target of preview.querySelectorAll<HTMLElement>("[data-shrine-preview-value]"))
+    target.setAttribute("text", identity);
+  for (const target of preview.querySelectorAll<HTMLElement>("[data-shrine-preview-lane]"))
+    target.setAttribute("text", lane);
+  for (const target of preview.querySelectorAll<HTMLElement>("[data-shrine-preview-children]"))
+    target.setAttribute("text", String(children));
+  for (const target of preview.querySelectorAll<HTMLElement>("[data-shrine-preview-relation]")) {
+    target.textContent = relation;
+    target.setAttribute("tone", overlay ? "warning" : current ? "positive" : "neutral");
+  }
+  for (const target of preview.querySelectorAll<HTMLElement>("[data-shrine-preview-open]"))
+    target.setAttribute("href", `#${encodeURIComponent(identity)}`);
+  for (const target of preview.querySelectorAll<HTMLElement>("[data-shrine-preview-reveal]"))
+    target.setAttribute("href", `#${encodeURIComponent(identity)}-reveal`);
+}
+
+function openShrinePathPreview(path: HTMLElement): void {
+  const preview = shrinePreviewForPath(path);
+  if (!preview) return;
+  const stage = path.closest<HTMLElement>("[data-shrine-path-preview-stage]");
+  for (const item of stage?.querySelectorAll<HTMLElement>("ui-tree-item") ?? [])
+    item.removeAttribute("data-shrine-preview-active");
+  path.closest<HTMLElement>("ui-tree-item")?.setAttribute("data-shrine-preview-active", "");
+  const state = shrinePathPreviewState(preview);
+  clearShrinePathPreviewTimer(state, "close");
+  if (state.anchor === path && (preview.open || state.openTimer !== undefined)) return;
+  clearShrinePathPreviewTimer(state, "open");
+  state.anchor = path;
+  updateShrinePathPreview(preview, path);
+  state.openTimer = window.setTimeout(
+    () => {
+      state.openTimer = undefined;
+      preview.show?.("hover");
+    },
+    Math.max(0, preview.openDelay ?? 140),
+  );
+}
+
+function closeShrinePathPreview(preview: ShrinePathPreview): void {
+  const state = shrinePathPreviewState(preview);
+  clearShrinePathPreviewTimer(state, "open");
+  clearShrinePathPreviewTimer(state, "close");
+  state.closeTimer = window.setTimeout(
+    () => {
+      state.closeTimer = undefined;
+      state.anchor
+        ?.closest<HTMLElement>("ui-tree-item")
+        ?.removeAttribute("data-shrine-preview-active");
+      state.anchor = null;
+      preview.dismiss?.("hover");
+    },
+    Math.max(0, preview.closeDelay ?? 320),
+  );
+}
+
+function relatedTargetIsWithin(preview: ShrinePathPreview, target: EventTarget | null): boolean {
+  return (
+    target instanceof Node &&
+    (preview.contains(target) || Boolean(preview.shadowRoot?.contains(target)))
+  );
+}
+
+document.addEventListener("focusin", (event) => {
+  const path = shrinePathFromEvent(event);
+  if (path) openShrinePathPreview(path);
+});
+
+document.addEventListener("focusout", (event) => {
+  const path = shrinePathFromEvent(event);
+  const targetPreview = path ? shrinePreviewForPath(path) : null;
+  if (!targetPreview) return;
+  const relatedTarget = event.relatedTarget;
+  queueMicrotask(() => {
+    if (
+      relatedTargetIsWithin(targetPreview, relatedTarget) ||
+      targetPreview.matches(":focus-within")
+    )
+      return;
+    closeShrinePathPreview(targetPreview);
+  });
+});
+
+// A context menu is an authored overlay over a path projection, not tree
+// state. The recipe records the right-clicked path identity on the shared menu
+// while leaving selection and disclosure on the existing ui-tree contract.
+document.addEventListener("contextmenu", (event) => {
+  const path = event.composedPath();
+  const menu = path.find(
+    (node): node is HTMLElement & { label?: string; dismiss?: (reason?: string) => void } =>
+      node instanceof HTMLElement &&
+      node.localName === "ui-context-menu" &&
+      node.dataset.shrineTreeContext !== undefined,
+  );
+  if (!menu) return;
+  const item = path.find(
+    (
+      node,
+    ): node is HTMLElement & {
+      identity?: string;
+      path?: string;
+      title?: string;
+      selected?: boolean;
+    } => node instanceof HTMLElement && node.localName === "ui-tree-item",
+  );
+  if (!item) {
+    queueMicrotask(() => menu.dismiss?.("cancel"));
+    return;
+  }
+
+  const hoverPreview = menu
+    .closest<HTMLElement>("[data-shrine-path-preview-stage]")
+    ?.querySelector<ShrinePathPreview>("ui-preview-card[data-shrine-path-preview]");
+  if (hoverPreview) {
+    clearShrinePathPreviewTimer(shrinePathPreviewState(hoverPreview), "open");
+    hoverPreview.dismiss?.("contextmenu");
+  }
+
+  const tree = item.closest("ui-tree");
+  for (const candidate of tree?.querySelectorAll<HTMLElement>("ui-tree-item") ?? []) {
+    (candidate as HTMLElement & { selected?: boolean }).selected = candidate === item;
+  }
+  const identity = item.identity || item.getAttribute("value") || "path node";
+  const shrinePath = item.path || item.getAttribute("path") || identity;
+  menu.dataset.shrineContextValue = identity;
+  menu.label = `${identity} path actions`;
+  for (const label of menu.querySelectorAll<HTMLElement>("[data-shrine-context-title]")) {
+    label.textContent = item.title || identity;
+  }
+  for (const label of menu.querySelectorAll<HTMLElement>("[data-shrine-context-path]")) {
+    label.textContent = shrinePath;
+  }
+});
+
 // Pagination is controlled for the same reason as Tree: the primitive emits a
 // request and this catalogue example visibly accepts it on the owner's behalf.
 document.addEventListener("ui-page-change", (event) => {
@@ -1069,6 +1326,28 @@ function updateGesturePreview(
   }
 }
 
+function updateShrineGesturePreview(
+  demo: HTMLElement,
+  target: HTMLElement,
+  detail: CatalogGestureCommandDetail,
+): void {
+  if (
+    !demo.hasAttribute("data-shrine-path-preview-stage") ||
+    detail.command !== "preview.shrine-path"
+  ) {
+    return;
+  }
+  const preview = shrinePreviewForPath(target);
+  if (!preview) return;
+  if (detail.phase === "began") {
+    openShrinePathPreview(target);
+    return;
+  }
+  if (detail.phase === "ended" || detail.phase === "cancelled") {
+    closeShrinePathPreview(preview);
+  }
+}
+
 document.addEventListener("mash-command", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
@@ -1083,6 +1362,7 @@ document.addEventListener("mash-command", (event) => {
   updateGestureSelection(demo, target, detail, output, state);
   updateGestureScrubber(demo, target, detail);
   updateGesturePreview(demo, target, detail);
+  updateShrineGesturePreview(demo, target, detail);
 
   if (detail.command === "workspace.inspect" && detail.phase === "ended") {
     target.toggleAttribute("data-gesture-selected");
