@@ -36,7 +36,7 @@ export type TreeItemKind = "file" | "folder";
  *
  * @csspart root - The item's row container.
  * @csspart control - The selectable tree-item control.
- * @csspart disclosure - The stable leading branch-state cell inside the row control.
+ * @csspart disclosure - The leading branch-state cell; recipes collapse it for leaves.
  * @csspart icon - The wrapper around the `icon` slot.
  * @csspart label - The title, path fallback, or default-slot label.
  * @csspart meta - The optional secondary `meta` slot.
@@ -47,6 +47,7 @@ export type TreeItemKind = "file" | "folder";
  * @cssstate current - Matches `:state(current)` when this is the current location.
  * @cssstate selected - Matches `:state(selected)` when parent state selects this item.
  * @cssstate disabled - Matches `:state(disabled)` while activation is unavailable.
+ * @cssstate branch - Matches `:state(branch)` when the item can reveal children.
  *
  * @fires {CustomEvent<{ expanded: boolean }>} ui-tree-item-toggle - Requests a new expansion state.
  * @fires {CustomEvent<void>} ui-tree-item-select - Emitted when the row is activated.
@@ -149,6 +150,8 @@ export class UITreeItem extends LitElement {
       if (this[state]) this.#internals.states.add(state);
       else this.#internals.states.delete(state);
     }
+    if (this.branch) this.#internals.states.add("branch");
+    else this.#internals.states.delete("branch");
   }
 
   /** Whether this item may reveal a child group. */

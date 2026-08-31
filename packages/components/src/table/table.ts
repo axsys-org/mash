@@ -39,9 +39,11 @@ import { baseStyles } from "../internal/base-styles.js";
  *
  * @slot caption - The table caption.
  * @slot - Row groups belonging to the table.
- * @csspart root - The semantic table root.
+ * @csspart root - Compatibility alias for the semantic table surface.
+ * @csspart table - The semantic table surface.
  * @csspart caption - The authored caption binding.
- * @csspart children - The authored row-group binding.
+ * @csspart children - Compatibility alias for the authored row-group collection.
+ * @csspart rowgroups - The authored header and body row-group collection.
  *
  * @mashnode root table
  * @mashnode caption title root
@@ -50,10 +52,12 @@ import { baseStyles } from "../internal/base-styles.js";
  * @mashnode column-count column-count root
  * @mashnode label label root
  * @mashrole part root table root
+ * @mashrole part table table root
  * @mashrole slot caption title caption
  * @mashrole part caption title caption
  * @mashrole slot default children children
  * @mashrole part children children children
+ * @mashrole part rowgroups children children
  */
 export class UITable extends LitElement {
   static override properties = {
@@ -81,14 +85,14 @@ export class UITable extends LitElement {
   protected override render(): TemplateResult {
     return html`
       <div
-        part="root"
+        part="root table"
         role="table"
         aria-label=${this.label || nothing}
         aria-rowcount=${this.rowCount > 0 ? this.rowCount : nothing}
         aria-colcount=${this.columnCount > 0 ? this.columnCount : nothing}
       >
         <slot name="caption" part="caption"></slot>
-        <slot part="children"></slot>
+        <slot part="children rowgroups"></slot>
       </div>
     `;
   }
@@ -101,8 +105,8 @@ abstract class UITableRowGroup extends LitElement {
 
   protected override render(): TemplateResult {
     return html`
-      <div part=${`root ${this.groupPart}`} role="rowgroup">
-        <slot part="children"></slot>
+      <div part=${`root rowgroup ${this.groupPart}`} role="rowgroup">
+        <slot part="children rows"></slot>
       </div>
     `;
   }
@@ -114,15 +118,19 @@ abstract class UITableRowGroup extends LitElement {
  * @tag ui-table-header
  * @summary Groups table header rows.
  * @slot - Header rows.
- * @csspart root - The semantic row-group root.
+ * @csspart root - Compatibility alias for the semantic header row group.
+ * @csspart rowgroup - The semantic row-group container shared by header and body.
  * @csspart header - The header-group realization.
- * @csspart children - The authored rows binding.
+ * @csspart children - Compatibility alias for the authored row collection.
+ * @csspart rows - The authored header-row collection.
  * @mashnode root header
  * @mashnode children children root
  * @mashrole part root header root
+ * @mashrole part rowgroup header root
  * @mashrole part header header root
  * @mashrole slot default children children
  * @mashrole part children children children
+ * @mashrole part rows children children
  */
 export class UITableHeader extends UITableRowGroup {
   protected groupPart = "header" as const;
@@ -134,15 +142,19 @@ export class UITableHeader extends UITableRowGroup {
  * @tag ui-table-body
  * @summary Groups table data rows.
  * @slot - Data rows.
- * @csspart root - The semantic row-group root.
+ * @csspart root - Compatibility alias for the semantic body row group.
+ * @csspart rowgroup - The semantic row-group container shared by header and body.
  * @csspart body - The body-group realization.
- * @csspart children - The authored rows binding.
+ * @csspart children - Compatibility alias for the authored row collection.
+ * @csspart rows - The authored data-row collection.
  * @mashnode root group
  * @mashnode children children root
  * @mashrole part root group root
+ * @mashrole part rowgroup group root
  * @mashrole part body group root
  * @mashrole slot default children children
  * @mashrole part children children children
+ * @mashrole part rows children children
  */
 export class UITableBody extends UITableRowGroup {
   protected groupPart = "body" as const;
@@ -154,14 +166,18 @@ export class UITableBody extends UITableRowGroup {
  * @tag ui-table-row
  * @summary Groups cells at one logical row index.
  * @slot - Header or data cells.
- * @csspart root - The semantic row root.
- * @csspart children - The authored cells binding.
+ * @csspart root - Compatibility alias for the semantic row.
+ * @csspart row - The semantic row container.
+ * @csspart children - Compatibility alias for the authored cell collection.
+ * @csspart cells - The authored header- or data-cell collection.
  * @mashnode root row
  * @mashnode children children root
  * @mashnode row-index row-index root
  * @mashrole part root row root
+ * @mashrole part row row root
  * @mashrole slot default children children
  * @mashrole part children children children
+ * @mashrole part cells children children
  */
 export class UITableRow extends LitElement {
   static override properties = {
@@ -180,8 +196,8 @@ export class UITableRow extends LitElement {
 
   protected override render(): TemplateResult {
     return html`
-      <div part="root" role="row" aria-rowindex=${this.rowIndex > 0 ? this.rowIndex : nothing}>
-        <slot part="children"></slot>
+      <div part="root row" role="row" aria-rowindex=${this.rowIndex > 0 ? this.rowIndex : nothing}>
+        <slot part="children cells"></slot>
       </div>
     `;
   }
@@ -196,7 +212,7 @@ abstract class UITableCellBase extends LitElement {
   declare columnIndex: number;
 
   protected abstract cellRole: "columnheader" | "cell";
-  protected abstract cellPart: "head" | "cell";
+  protected abstract cellParts: string;
 
   constructor() {
     super();
@@ -208,7 +224,7 @@ abstract class UITableCellBase extends LitElement {
   protected override render(): TemplateResult {
     return html`
       <div
-        part=${`root ${this.cellPart}`}
+        part=${`root ${this.cellParts}`}
         role=${this.cellRole}
         aria-colindex=${this.columnIndex > 0 ? this.columnIndex : nothing}
       >
@@ -224,20 +240,22 @@ abstract class UITableCellBase extends LitElement {
  * @tag ui-table-head
  * @summary Labels one table column.
  * @slot - Header content.
- * @csspart root - The semantic column-header root.
- * @csspart head - The column-header realization.
+ * @csspart root - Compatibility alias for the semantic column header.
+ * @csspart head - Compatibility alias for the column-header realization.
+ * @csspart column-header - The semantic column-header cell.
  * @csspart content - The authored header content binding.
  * @mashnode root header
  * @mashnode content content root
  * @mashnode column-index column-index root
  * @mashrole part root header root
  * @mashrole part head header root
+ * @mashrole part column-header header root
  * @mashrole slot default content content
  * @mashrole part content content content
  */
 export class UITableHead extends UITableCellBase {
   protected cellRole = "columnheader" as const;
-  protected cellPart = "head" as const;
+  protected cellParts = "head column-header";
 }
 
 /**
@@ -246,7 +264,7 @@ export class UITableHead extends UITableCellBase {
  * @tag ui-table-cell
  * @summary Realizes one value at a row and column position.
  * @slot - Cell content.
- * @csspart root - The semantic data-cell root.
+ * @csspart root - Compatibility alias for the semantic data cell.
  * @csspart cell - The data-cell realization.
  * @csspart content - The authored cell content binding.
  * @mashnode root cell
@@ -258,7 +276,7 @@ export class UITableHead extends UITableCellBase {
  */
 export class UITableCell extends UITableCellBase {
   protected cellRole = "cell" as const;
-  protected cellPart = "cell" as const;
+  protected cellParts = "cell";
 }
 
 /**
@@ -267,11 +285,13 @@ export class UITableCell extends UITableCellBase {
  * @tag ui-table-caption
  * @summary Names or describes a table.
  * @slot - Caption content.
- * @csspart root - The caption realization.
+ * @csspart root - Compatibility alias for the semantic caption.
+ * @csspart caption - The semantic caption container.
  * @csspart title - The authored title binding.
  * @mashnode root title
  * @mashnode title title root
  * @mashrole part root title root
+ * @mashrole part caption title root
  * @mashrole slot default title title
  * @mashrole part title title title
  */
@@ -279,6 +299,6 @@ export class UITableCaption extends LitElement {
   static override styles = baseStyles;
 
   protected override render(): TemplateResult {
-    return html`<div part="root"><slot part="title"></slot></div>`;
+    return html`<div part="root caption"><slot part="title"></slot></div>`;
   }
 }

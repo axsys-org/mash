@@ -12,6 +12,7 @@ import {
   type ComponentSchema,
   type Described,
 } from "./schema.js";
+import { applyStageLayout, applyStageUtilityRecipes, stageClassName } from "./utility-recipes.js";
 
 export interface State {
   tagName: string;
@@ -85,7 +86,7 @@ export function buildPreview(doc: Document, component: ComponentSchema, state: S
 
     const fill = doc.createElement("span");
     fill.slot = slot.name;
-    fill.className = "slot-fill";
+    fill.className = stageClassName("slot-fill");
     fill.textContent = content;
     node.append(fill);
   }
@@ -219,10 +220,11 @@ function provenanceRow(cssVar: string, theme: string): HTMLElement {
     el(
       "ol",
       { class: "provenance-chain" },
-      ...steps.map((step) =>
+      ...steps.map((step, index) =>
         el(
           "li",
-          {},
+          { class: "provenance-step" },
+          index > 0 ? el("span", { class: "provenance-arrow", text: "→" }) : null,
           el("span", { class: `layer layer-${step.layer}`, text: step.layer }),
           el("code", { text: step.id }),
         ),
@@ -241,21 +243,21 @@ function describedList(title: string, items: Described[], emptyNote: string): HT
     return el(
       "section",
       { class: "api-block api-block-empty" },
-      el("h3", { text: title }),
-      el("p", { class: "note", text: emptyNote }),
+      el("h3", { class: "api-heading", text: title }),
+      el("p", { class: "note api-empty-note", text: emptyNote }),
     );
   }
 
   return el(
     "section",
     { class: "api-block" },
-    el("h3", { text: title }),
+    el("h3", { class: "api-heading", text: title }),
     el(
       "dl",
-      {},
+      { class: "api-list" },
       ...items.flatMap((item) => [
-        el("dt", {}, el("code", { text: item.name || "(default)" })),
-        el("dd", { text: item.description ?? "" }),
+        el("dt", { class: "api-term" }, el("code", { text: item.name || "(default)" })),
+        el("dd", { class: "api-description", text: item.description ?? "" }),
       ]),
     ),
   );
@@ -265,20 +267,20 @@ function attributeTable(component: ComponentSchema): HTMLElement {
   return el(
     "section",
     { class: "api-block" },
-    el("h3", { text: "Attributes" }),
+    el("h3", { class: "api-heading", text: "Attributes" }),
     el(
       "table",
-      {},
+      { class: "api-table" },
       el(
         "thead",
         {},
         el(
           "tr",
           {},
-          el("th", { text: "Name" }),
-          el("th", { text: "Type" }),
-          el("th", { text: "Default" }),
-          el("th", { text: "Description" }),
+          el("th", { class: "api-cell api-th", text: "Name" }),
+          el("th", { class: "api-cell api-th", text: "Type" }),
+          el("th", { class: "api-cell api-th", text: "Default" }),
+          el("th", { class: "api-cell api-th", text: "Description" }),
         ),
       ),
       el(
@@ -288,10 +290,14 @@ function attributeTable(component: ComponentSchema): HTMLElement {
           el(
             "tr",
             {},
-            el("td", {}, el("code", { text: attribute.name })),
-            el("td", {}, el("code", { class: "type", text: attribute.type?.text ?? "" })),
-            el("td", {}, el("code", { text: attribute.default ?? "" })),
-            el("td", { text: attribute.description ?? "" }),
+            el("td", { class: "api-cell" }, el("code", { text: attribute.name })),
+            el(
+              "td",
+              { class: "api-cell" },
+              el("code", { class: "type", text: attribute.type?.text ?? "" }),
+            ),
+            el("td", { class: "api-cell" }, el("code", { text: attribute.default ?? "" })),
+            el("td", { class: "api-cell", text: attribute.description ?? "" }),
           ),
         ),
       ),
@@ -440,6 +446,7 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
   } else {
     doc.body.replaceChildren(buildPreview(doc, component, state));
   }
+  applyStageUtilityRecipes(doc.body);
 
   const nodes = [...doc.querySelectorAll(component.tagName)];
   const node = nodes[0];
@@ -460,7 +467,9 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
   // declared, so it needs no per-component configuration.
   const fills = node.getBoundingClientRect().height >= doc.documentElement.clientHeight - 96;
   const anchored = component.attributes.some((attribute) => attribute.name === "placement");
-  doc.documentElement.dataset.layout = anchored ? "anchor" : fills ? "fill" : "center";
+  const layout = example?.stageLayout ?? (anchored ? "anchor" : fills ? "fill" : "center");
+  doc.documentElement.dataset.layout = layout;
+  applyStageLayout(doc, layout);
 
   const used = tokensUsedBy(nodes);
   current.tokenList.replaceChildren(
@@ -537,7 +546,7 @@ function aboveStage(
     el(
       "section",
       { class: "panel" },
-      el("h3", { text: "Controls" }),
+      el("h3", { class: "panel-heading", text: "Controls" }),
       el(
         "div",
         { class: "controls" },
@@ -657,7 +666,7 @@ function belowStage(
     el(
       "section",
       { class: "panel" },
-      el("h3", { text: "Usage" }),
+      el("h3", { class: "panel-heading", text: "Usage" }),
       el("pre", { class: "code" }, el("code", { text: markupFor(component, state) })),
       el(
         "pre",
@@ -685,7 +694,7 @@ function belowStage(
     el(
       "section",
       { class: "panel" },
-      el("h3", { text: "API" }),
+      el("h3", { class: "panel-heading", text: "API" }),
       el("p", { class: "note", text: "Read from custom-elements.json." }),
       attributeTable(component),
       describedList("Slots", component.slots, "No slots."),
@@ -702,7 +711,7 @@ function belowStage(
     el(
       "section",
       { class: "panel" },
-      el("h3", { text: "Tokens used" }),
+      el("h3", { class: "panel-heading", text: "Tokens used" }),
       el("p", {
         class: "note",
         text: "Extracted from active catalogue rules, then traced through tokens.json to the primitive that holds the value.",
@@ -737,8 +746,9 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
       el(
         "div",
         { class: "masthead-text" },
-        el("h1", { text: "mash" }),
+        el("h1", { class: "masthead-title", text: "mash" }),
         el("p", {
+          class: "masthead-subtitle",
           text: "Design system catalog — everything below is read from generated schemas.",
         }),
       ),
@@ -752,7 +762,7 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
       el(
         "nav",
         { class: "sidebar" },
-        el("h2", { text: "Components" }),
+        el("h2", { class: "sidebar-heading", text: "Components" }),
         ...familiesFor(components).map((family) =>
           el(
             "section",
@@ -761,7 +771,7 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
             el("p", { class: "family-description", text: family.description }),
             el(
               "ul",
-              {},
+              { class: "sidebar-list" },
               ...family.components.map((entry) =>
                 el(
                   "li",

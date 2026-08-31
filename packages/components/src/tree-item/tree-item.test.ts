@@ -21,6 +21,7 @@ describe("ui-tree-item", () => {
     const disclosure = inShadow<HTMLElement>(item, '[part="disclosure"]');
     expect(disclosure.dataset.branch).toBe("false");
     expect(control.contains(disclosure)).toBe(true);
+    expect(item.matches(":state(branch)")).toBe(false);
   });
 
   it("keeps its documented parts available for a path title", async () => {
@@ -110,6 +111,7 @@ describe("ui-tree-item", () => {
     control.click();
 
     expect(control.contains(disclosure)).toBe(true);
+    expect(item.matches(":state(branch)")).toBe(true);
     expect(selections).toBe(1);
     expect(requests).toEqual([true]);
     expect(item.expanded).toBe(false);
@@ -144,6 +146,7 @@ describe("ui-tree-item", () => {
     const disclosure = inShadow<HTMLElement>(item, '[part="disclosure"]');
 
     expect(item.branch).toBe(true);
+    expect(item.matches(":state(branch)")).toBe(true);
     expect(disclosure.dataset.branch).toBe("true");
     expect(disclosure.hidden).toBe(false);
     expect(

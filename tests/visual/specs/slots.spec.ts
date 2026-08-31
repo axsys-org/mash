@@ -120,6 +120,84 @@ test.describe("catalog slot composition", () => {
     expect(geometry.nestedBorder).toBe("0px");
   });
 
+  test("keeps link variants semantic, composable, and context-aware", async ({ page }) => {
+    await page.goto("/components/ui-link?theme=dark&example=Variants+and+states");
+    const preview = page.frameLocator("iframe.stage-frame");
+
+    await expect(preview.locator('ui-link[variant="inline"]')).toHaveCount(1);
+    await expect(preview.locator('ui-link[variant="quiet"]')).toHaveCount(2);
+    await expect(preview.locator("ui-link[current]")).toHaveCount(1);
+    await expect(preview.locator("ui-link[disabled]")).toHaveCount(1);
+
+    const variantContract = await preview.locator(".example-link-matrix").evaluate((matrix) => {
+      const inline = matrix.querySelector<HTMLElement>('ui-link[variant="inline"]')!;
+      const quiet = matrix.querySelector<HTMLElement>('ui-link[variant="quiet"]:not([current])')!;
+      const current = matrix.querySelector<HTMLElement>("ui-link[current]")!;
+      const standalone = matrix.querySelector<HTMLElement>(
+        'ui-link[variant="standalone"]:not([disabled])',
+      )!;
+      const paragraph = inline.closest("p")!;
+      const control = (node: HTMLElement) =>
+        node.shadowRoot!.querySelector<HTMLElement>('[part="control"]')!;
+      const quietStyle = getComputedStyle(control(quiet));
+      const currentStyle = getComputedStyle(control(current));
+      return {
+        inlineFont: getComputedStyle(control(inline)).font,
+        paragraphFont: getComputedStyle(paragraph).font,
+        standaloneDecoration: getComputedStyle(control(standalone)).textDecorationLine,
+        quietDecoration: quietStyle.textDecorationLine,
+        quietHeight: control(quiet).getBoundingClientRect().height,
+        quietColor: quietStyle.color,
+        currentColor: currentStyle.color,
+        currentBackground: currentStyle.backgroundColor,
+        ariaCurrent: control(current).getAttribute("aria-current"),
+      };
+    });
+
+    expect(variantContract.inlineFont).toBe(variantContract.paragraphFont);
+    expect(variantContract.standaloneDecoration).toBe("none");
+    expect(variantContract.quietDecoration).toBe("none");
+    expect(variantContract.quietHeight).toBeGreaterThanOrEqual(32);
+    expect(variantContract.currentColor).not.toBe(variantContract.quietColor);
+    expect(variantContract.currentBackground).not.toBe("rgba(0, 0, 0, 0)");
+    expect(variantContract.ariaCurrent).toBe("page");
+
+    await page.goto("/components/ui-link?theme=dark&example=Prefix+and+suffix+content");
+    const contentLinks = preview.locator("ui-link");
+    await expect(contentLinks).toHaveCount(4);
+    await expect(contentLinks.last()).toHaveText("Billing migration");
+
+    const anatomy = await contentLinks.evaluateAll((links) =>
+      links.map((link) => ({
+        prefixHidden: link.shadowRoot!.querySelector<HTMLElement>('[part="prefix"]')!.hidden,
+        suffixHidden: link.shadowRoot!.querySelector<HTMLElement>('[part="suffix"]')!.hidden,
+      })),
+    );
+    expect(anatomy).toEqual([
+      { prefixHidden: false, suffixHidden: true },
+      { prefixHidden: true, suffixHidden: false },
+      { prefixHidden: false, suffixHidden: false },
+      { prefixHidden: true, suffixHidden: true },
+    ]);
+
+    await page.goto("/components/ui-link?theme=dark&example=Workspace+navigation");
+    const navigation = preview.locator(".example-link-navigation");
+    const navigationLinks = preview.locator(".example-link-navigation > ui-link");
+    await expect(navigationLinks).toHaveCount(4);
+    const navigationWidth = await navigation.evaluate((node) => node.getBoundingClientRect().width);
+    const navigationGeometry = await navigationLinks.evaluateAll((links) =>
+      links.map((link) => {
+        const control = link.shadowRoot!.querySelector<HTMLElement>('[part="control"]')!;
+        const box = control.getBoundingClientRect();
+        return { width: box.width, height: box.height };
+      }),
+    );
+    expect(navigationWidth).toBeGreaterThanOrEqual(260);
+    expect(navigationWidth).toBeLessThanOrEqual(320);
+    expect(navigationGeometry.every(({ height }) => height >= 32)).toBe(true);
+    expect(new Set(navigationGeometry.map(({ width }) => Math.round(width))).size).toBe(1);
+  });
+
   test("keeps tree rows aligned and controlled pagination live", async ({ page }) => {
     await page.goto("/components/ui-tree?theme=dark");
     const preview = page.frameLocator("iframe.stage-frame");
@@ -128,15 +206,27 @@ test.describe("catalog slot composition", () => {
         const host = item.getBoundingClientRect();
         const control = item.shadowRoot!.querySelector<HTMLElement>('[part="control"]')!;
         const disclosure = item.shadowRoot!.querySelector<HTMLElement>('[part="disclosure"]')!;
+        const label = item.shadowRoot!.querySelector<HTMLElement>('[part="label"]')!;
         return {
           control: Math.round(control.getBoundingClientRect().left - host.left),
           disclosure: disclosure.dataset.branch,
+          disclosureDisplay: getComputedStyle(disclosure).display,
+          labelOffset: Math.round(
+            label.getBoundingClientRect().left - control.getBoundingClientRect().left,
+          ),
         };
       }),
     );
 
     expect(new Set(offsets.map(({ control }) => control)).size).toBe(1);
-    expect(offsets.some(({ disclosure }) => disclosure === "false")).toBe(true);
+    const branches = offsets.filter(({ disclosure }) => disclosure === "true");
+    const leaves = offsets.filter(({ disclosure }) => disclosure === "false");
+    expect(branches.length).toBeGreaterThan(0);
+    expect(leaves.length).toBeGreaterThan(0);
+    expect(leaves.every(({ disclosureDisplay }) => disclosureDisplay === "none")).toBe(true);
+    expect(Math.min(...leaves.map(({ labelOffset }) => labelOffset))).toBeLessThan(
+      Math.min(...branches.map(({ labelOffset }) => labelOffset)),
+    );
 
     const projects = preview.locator('ui-tree-item[title="Projects"]');
     const billing = preview.locator('ui-tree-item[title="Billing migration"]');
@@ -195,7 +285,88 @@ test.describe("catalog slot composition", () => {
     await expect(preview.locator("ui-menu[open] ui-menu-item").first()).toBeVisible();
 
     await page.goto("/components/ui-table-cell");
-    await expect(preview.locator("ui-table ui-table-cell").first()).toBeVisible();
+    const table = preview.locator("ui-table");
+    await expect(table.locator('[part~="table"]')).toHaveCSS("display", "table");
+    await expect(preview.locator("ui-table-header").locator('[part~="rowgroup"]')).toHaveCSS(
+      "display",
+      "table-header-group",
+    );
+    await expect(preview.locator("ui-table-body").locator('[part~="rowgroup"]')).toHaveCSS(
+      "display",
+      "table-row-group",
+    );
+    await expect(preview.locator("ui-table-row").first().locator('[part~="row"]')).toHaveCSS(
+      "display",
+      "table-row",
+    );
+    await expect(
+      preview.locator("ui-table-head").first().locator('[part~="column-header"]'),
+    ).toHaveCSS("display", "table-cell");
+    await expect(preview.locator("ui-table-cell").first().locator('[part~="cell"]')).toHaveCSS(
+      "display",
+      "table-cell",
+    );
+    await expect(preview.locator("ui-table-caption")).toHaveCSS("display", "table-caption");
+    await expect(preview.locator("ui-table-caption").locator('[part~="caption"]')).toHaveCSS(
+      "display",
+      "block",
+    );
+    await expect(preview.getByRole("table", { name: "Project status" })).toBeVisible();
+    await expect(preview.getByRole("columnheader")).toHaveCount(3);
+    await expect(preview.getByRole("cell")).toHaveCount(9);
+    await expect(
+      preview.locator("ui-table-body ui-table-row").first().locator('[part~="row"]'),
+    ).not.toHaveCSS("box-shadow", "none");
+
+    await page.goto("/components/ui-table?example=Single+row");
+    await expect(preview.getByRole("table", { name: "Current project" })).toBeVisible();
+    await expect(preview.locator("ui-table-body ui-table-row")).toHaveCount(1);
+    await expect(preview.getByRole("columnheader")).toHaveCount(3);
+    await expect(preview.getByRole("cell")).toHaveCount(3);
+    await expect(
+      preview.locator("ui-table-body ui-table-cell").first().locator('[part~="cell"]'),
+    ).toHaveCSS("border-bottom-width", "0px");
+    const singleRowGeometry = await preview.locator("ui-table").evaluate((node) => ({
+      hostWidth: node.getBoundingClientRect().width,
+      viewportWidth: node.ownerDocument.documentElement.clientWidth,
+    }));
+    expect(singleRowGeometry.hostWidth / singleRowGeometry.viewportWidth).toBeGreaterThan(0.9);
+    await expect(
+      preview.locator("ui-table-head").first().locator('[part~="column-header"]'),
+    ).not.toHaveCSS("border-top-left-radius", "0px");
+    await expect(
+      preview.locator("ui-table-head").last().locator('[part~="column-header"]'),
+    ).not.toHaveCSS("border-top-right-radius", "0px");
+
+    await page.goto("/components/ui-table?example=Project+health");
+    await expect(preview.getByRole("table", { name: "Project health" })).toBeVisible();
+    await expect(preview.locator("html")).toHaveAttribute("data-layout", "start");
+    await expect(preview.locator("ui-avatar")).toHaveCount(3);
+    await expect(preview.locator("ui-badge")).toHaveCount(3);
+    await expect(preview.locator("ui-progress")).toHaveCount(3);
+    const healthRows = await preview.locator("ui-table").evaluate((node) => {
+      const caption = node
+        .querySelector("ui-table-caption")!
+        .shadowRoot!.querySelector<HTMLElement>('[part~="caption"]')!;
+      const header = node
+        .querySelector("ui-table-head")!
+        .shadowRoot!.querySelector<HTMLElement>('[part~="column-header"]')!;
+      return {
+        captionBottom: caption.getBoundingClientRect().bottom,
+        headerTop: header.getBoundingClientRect().top,
+      };
+    });
+    expect(healthRows.headerTop).toBeGreaterThanOrEqual(healthRows.captionBottom - 1);
+
+    await page.goto("/components/ui-table?example=Usage+report");
+    await expect(
+      preview.getByRole("table", { name: "Workspace usage for the last 30 days" }),
+    ).toBeVisible();
+    await expect(preview.locator("ui-intl-formatter")).toHaveCount(9);
+
+    await page.goto("/components/ui-table?example=Empty+and+loading");
+    await expect(preview.getByRole("table")).toHaveCount(2);
+    await expect(preview.locator('ui-table[aria-busy="true"] ui-spinner')).toBeVisible();
 
     await page.goto("/components/sh-limb");
     await expect(preview.locator("sh-myth sh-limb").first()).toBeVisible();

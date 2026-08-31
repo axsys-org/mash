@@ -23,6 +23,7 @@ const CONSUMER_ROOTS = [
   "packages/shrine-components/src/catalogue",
   "apps/catalog/src",
 ];
+const CATALOG_SYSTEM_ENTRY = "apps/catalog/src/system.css";
 
 async function filesUnder(directory, extension) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -83,6 +84,25 @@ async function main() {
   ).flat();
   const unresolved = [];
   let references = 0;
+
+  const catalogueStyles = cssFiles
+    .map((filePath) => path.relative(ROOT, filePath))
+    .filter((filePath) => filePath.startsWith("apps/catalog/src/"));
+  for (const filePath of catalogueStyles) {
+    if (filePath !== CATALOG_SYSTEM_ENTRY) {
+      unresolved.push(
+        `${filePath} is application styling; compose semantic utilities in utility-recipes.ts instead`,
+      );
+    }
+  }
+
+  const catalogueEntry = await readFile(path.join(ROOT, CATALOG_SYSTEM_ENTRY), "utf8");
+  const authoredBlocks = catalogueEntry.replaceAll(/\/\*[\s\S]*?\*\//g, "").match(/[{}]/g) ?? [];
+  if (authoredBlocks.length > 0) {
+    unresolved.push(
+      `${CATALOG_SYSTEM_ENTRY} must remain an import-only Tailwind entrypoint with no authored rule blocks`,
+    );
+  }
 
   for (const filePath of cssFiles) {
     const source = await readFile(filePath, "utf8");
