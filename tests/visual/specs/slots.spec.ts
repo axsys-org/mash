@@ -76,8 +76,12 @@ test.describe("catalog slot composition", () => {
     const group = preview.locator("ui-input-group");
     const input = group.locator('ui-input[slot="control"]');
 
-    await expect(group.locator('[slot="prefix"]')).toHaveText("⌕");
-    await expect(group.locator('[slot="suffix"]')).toHaveText("⌘ K");
+    await expect(group.locator('ui-icon[slot="prefix"]')).toHaveAttribute("name", "action.search");
+    await expect(group.locator('ui-kbd[slot="suffix"]')).toHaveAttribute(
+      "command",
+      "workspace.search",
+    );
+    await expect(group.locator('ui-kbd[slot="suffix"]')).toHaveAttribute("shortcut", "Primary+K");
     await expect(input).toHaveAttribute("label", "Search projects");
 
     const composition = await group.evaluate((node) => {
@@ -95,9 +99,23 @@ test.describe("catalog slot composition", () => {
     });
 
     expect(composition).toEqual({
-      prefix: ["span"],
+      prefix: ["ui-icon"],
       control: ["ui-input"],
       suffix: ["ui-kbd"],
+    });
+
+    expect(
+      await group.evaluate((node) => ({
+        prefix: node.matches(":state(has-prefix)"),
+        suffix: node.matches(":state(has-suffix)"),
+        parts: [...node.shadowRoot!.querySelectorAll("[part]")].map((part) =>
+          part.getAttribute("part"),
+        ),
+      })),
+    ).toEqual({
+      prefix: true,
+      suffix: true,
+      parts: ["root", "prefix", "prefix-separator", "control", "suffix-separator", "suffix"],
     });
 
     const geometry = await group.evaluate((node) => {

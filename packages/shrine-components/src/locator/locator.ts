@@ -3,30 +3,33 @@ import { LitElement, html, type TemplateResult } from "lit";
 import { baseStyles } from "../internal/base-styles.js";
 
 /**
- * TODO: what this component is for, and when to reach for it.
+ * A Shrine-owned locator lane for a namespace path or another authored
+ * navigation realization.
+ *
+ * The locator deliberately owns no path syntax or navigation behavior. It
+ * gives Shrine compositions one stable semantic boundary while `ui-path`, a
+ * breadcrumb, or a product-specific locator remains replaceable authored
+ * content.
  *
  * @tag sh-locator
- * @summary TODO: one line describing what it does.
+ * @summary Hosts the replaceable locator for a Shrine composition.
  *
- * @slot - TODO: describe the default slot.
- * @csspart root - The outermost element.
+ * @example Namespace path
+ * <sh-locator><ui-path path="/interzone/projects/billing-migration"></ui-path></sh-locator>
+ *
+ * @slot - A path, breadcrumb, or other authored locator.
+ * @csspart root - The semantic locator boundary.
+ * @csspart content - The authored locator binding.
+ * @mashnode root locator
+ * @mashnode content content root
+ * @mashrole part root locator root
+ * @mashrole slot default content content
+ * @mashrole part content content content
  */
 export class ShrineLocator extends LitElement {
-  // Reactive properties go here, as a plain object — this system uses no
-  // decorators. Declare the matching fields with `declare` and assign their
-  // defaults in a constructor. Every attribute needs a JSDoc description, or
-  // the manifest build fails.
-  //
-  // static override properties = {
-  //   tone: { type: String, reflect: true },
-  // };
-  //
-  // /** TODO: describe this attribute. */
-  // declare tone: ShrineLocatorTone;
-
   static override styles = baseStyles;
 
   protected override render(): TemplateResult {
-    return html`<div part="root"><slot></slot></div>`;
+    return html`<div part="root"><slot part="content"></slot></div>`;
   }
 }

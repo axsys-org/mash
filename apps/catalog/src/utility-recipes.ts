@@ -72,6 +72,7 @@ const catalogRecipes: UtilityRecipes = {
     "m-0 grid grid-cols-[minmax(var(--layout-dimension-compact),auto)_1fr] gap-y-control-gap gap-x-container-gap",
   "api-term": "type-code",
   "api-description": "m-0 type-label-small",
+  "api-variant": "ms-control-gap inline-block text-text-muted type-code",
   "token-list": "m-0 grid list-none gap-inline p-0",
   provenance: "rounded-control border border-border px-container-gap py-inline",
   "provenance-head": "flex flex-wrap items-center gap-control-gap",

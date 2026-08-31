@@ -17,9 +17,11 @@ describe("ui-input-group", () => {
     expect(group).toBeInstanceOf(UIInputGroup);
     expect(
       [...shadow(group).querySelectorAll("[part]")].map((node) => node.getAttribute("part")),
-    ).toEqual(["root", "prefix", "control", "suffix"]);
+    ).toEqual(["root", "prefix", "prefix-separator", "control", "suffix-separator", "suffix"]);
     expect(
       shadow(group).querySelector<HTMLSlotElement>('slot[name="control"]')?.assignedElements(),
     ).toHaveLength(1);
+    expect(group.matches(":state(has-prefix)")).toBe(true);
+    expect(group.matches(":state(has-suffix)")).toBe(true);
   });
 });

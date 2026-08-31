@@ -86,7 +86,7 @@ const curated: Record<string, CatalogExample[]> = {
           <ui-card>
             <div slot="header" class="example-card-heading">
               <span><strong>Inspect billing migration</strong><span class="example-support">Press the surface or use the same keyboard command.</span></span>
-              <ui-kbd command="workspace.inspect" shortcut="Primary+K">⌘/Ctrl K</ui-kbd>
+              <ui-kbd command="workspace.inspect" shortcut="Primary+K"></ui-kbd>
             </div>
             <p slot="content">Pointer and keyboard recognizers produce one parent-owned semantic intent.</p>
           </ui-card>
@@ -111,7 +111,7 @@ const curated: Record<string, CatalogExample[]> = {
           <div id="gesture-arena-surface" class="example-gesture-arena" tabindex="0" data-catalog-gesture-drag>
             <ui-icon name="action.drag" label="Gesture arena"></ui-icon>
             <div><strong>Project card gesture arena</strong><span>Press selects · hold previews · drag moves · wheel scrubs</span></div>
-            <ui-kbd command="canvas.select" shortcut="Enter">↩</ui-kbd>
+            <ui-kbd command="canvas.select" shortcut="Enter"></ui-kbd>
           </div>
           <div class="example-gesture-status">
             <ui-badge data-catalog-gesture-state>possible</ui-badge>
@@ -140,13 +140,13 @@ const curated: Record<string, CatalogExample[]> = {
           </div>
           <div class="example-gesture-command-list">
             <ui-button id="gesture-command-search" type="button" variant="quiet" data-gesture-command-label="Search projects">
-              <ui-icon name="action.search" label=""></ui-icon><span>Search projects</span><ui-kbd command="workspace.search" shortcut="Primary+K">⌘/CTRL K</ui-kbd>
+              <ui-icon name="action.search" label=""></ui-icon><span>Search projects</span><ui-kbd command="workspace.search" shortcut="Primary+K"></ui-kbd>
             </ui-button>
             <ui-button id="gesture-command-palette" type="button" variant="quiet" data-gesture-command-label="Open command palette">
-              <ui-icon name="object.terminal" label=""></ui-icon><span>Command palette</span><ui-kbd command="workspace.palette" shortcut="Primary+Shift+P">⇧ ⌘/CTRL P</ui-kbd>
+              <ui-icon name="object.terminal" label=""></ui-icon><span>Command palette</span><ui-kbd command="workspace.palette" shortcut="Primary+Shift+P"></ui-kbd>
             </ui-button>
             <ui-button id="gesture-command-dismiss" type="button" variant="quiet" data-gesture-command-label="Dismiss current layer">
-              <ui-icon name="action.dismiss" label=""></ui-icon><span>Dismiss layer</span><ui-kbd command="workspace.dismiss" shortcut="Escape">ESC</ui-kbd>
+              <ui-icon name="action.dismiss" label=""></ui-icon><span>Dismiss layer</span><ui-kbd command="workspace.dismiss" shortcut="Escape"></ui-kbd>
             </ui-button>
           </div>
           <div class="example-gesture-status">
@@ -324,7 +324,7 @@ const curated: Record<string, CatalogExample[]> = {
             <ui-separator slot="overlay" orientation="horizontal">
               <span slot="prefix" aria-hidden="true">●</span>
             </ui-separator>
-            <ui-kbd slot="indicator">⌘ ⇧ P</ui-kbd>
+            <ui-kbd slot="indicator" command="workspace.palette" shortcut="Primary+Shift+P"></ui-kbd>
           </ui-motion>
           <p class="example-support">Underlay, content, overlay, and indicator are independent motion lanes.</p>
         </section>`,
@@ -340,11 +340,11 @@ const curated: Record<string, CatalogExample[]> = {
       "Shortcut vocabulary",
       `
         <div class="catalog-example example-shortcut-list">
-          <span><ui-icon name="action.search"></ui-icon>Command search <span><ui-kbd>⌘</ui-kbd><ui-kbd>K</ui-kbd></span></span>
-          <span><ui-icon name="navigation.up"></ui-icon>Move issue <span><ui-kbd>⌥</ui-kbd><ui-kbd>⇧</ui-kbd><ui-kbd>↑</ui-kbd></span></span>
-          <span><ui-icon name="action.dismiss"></ui-icon>Dismiss <span><ui-kbd>⎋</ui-kbd></span></span>
-          <span><ui-icon name="action.delete"></ui-icon>Delete backward <span><ui-kbd>⌫</ui-kbd></span></span>
-          <span><ui-icon name="action.confirm"></ui-icon>Commit <span><ui-kbd>⌘</ui-kbd><ui-kbd>↩</ui-kbd></span></span>
+          <span><ui-icon name="action.search" label=""></ui-icon>Command search <ui-kbd command="workspace.search" shortcut="Primary+K"></ui-kbd></span>
+          <span><ui-icon name="navigation.up" label=""></ui-icon>Move issue <ui-kbd command="issue.move-up" shortcut="Alt+Shift+ArrowUp"></ui-kbd></span>
+          <span><ui-icon name="action.dismiss" label=""></ui-icon>Dismiss <ui-kbd command="overlay.dismiss" shortcut="Escape"></ui-kbd></span>
+          <span><ui-icon name="action.delete" label=""></ui-icon>Delete backward <ui-kbd command="edit.delete-backward" shortcut="Backspace"></ui-kbd></span>
+          <span><ui-icon name="action.confirm" label=""></ui-icon>Commit <ui-kbd command="change.commit" shortcut="Primary+Enter"></ui-kbd></span>
         </div>`,
       {
         compositionOnly: true,
@@ -591,7 +591,7 @@ const curated: Record<string, CatalogExample[]> = {
             </ui-link>
             <ui-link href="#keyboard-shortcuts">
               Keyboard shortcuts
-              <ui-kbd slot="suffix">⌘ K</ui-kbd>
+              <ui-kbd slot="suffix" command="workspace.search" shortcut="Primary+K"></ui-kbd>
             </ui-link>
             <ui-link variant="quiet" href="#notifications">
               <span slot="prefix" aria-hidden="true">◌</span>
@@ -927,7 +927,7 @@ const curated: Record<string, CatalogExample[]> = {
             </ui-navigation-menu>
 
             <ui-dialog class="example-linear-new-issue" data-linear-create-dialog label="Create issue">
-              <ui-button slot="trigger" type="button">＋ New issue <ui-kbd>C</ui-kbd></ui-button>
+              <ui-button slot="trigger" type="button">＋ New issue <ui-kbd command="issue.create" shortcut="C"></ui-kbd></ui-button>
               <h2 slot="title">Create issue</h2>
               <p slot="description">Add an issue to the Product team backlog.</p>
               <div class="example-stack">
@@ -973,10 +973,10 @@ const curated: Record<string, CatalogExample[]> = {
                   <p slot="description">Search or run an action on the active issue selection.</p>
                   <ui-input data-linear-command-search type="search" label="Search commands" placeholder="Type a command…"></ui-input>
                   <div class="example-linear-command-list" role="list" aria-label="Commands">
-                    <ui-button type="button" variant="quiet" data-linear-command="status-progress"><span>◒</span><span>Set status: In progress</span><ui-kbd>1</ui-kbd></ui-button>
-                    <ui-button type="button" variant="quiet" data-linear-command="status-done"><span>✓</span><span>Mark as done</span><ui-kbd>2</ui-kbd></ui-button>
-                    <ui-button type="button" variant="quiet" data-linear-command="priority-high"><span>↑</span><span>Set priority: High</span><ui-kbd>3</ui-kbd></ui-button>
-                    <ui-button type="button" variant="quiet" data-linear-command="assign-maya"><span>●</span><span>Assign to Maya</span><ui-kbd>4</ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="status-progress"><span>◒</span><span>Set status: In progress</span><ui-kbd command="issue.status-progress" shortcut="1"></ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="status-done"><span>✓</span><span>Mark as done</span><ui-kbd command="issue.status-done" shortcut="2"></ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="priority-high"><span>↑</span><span>Set priority: High</span><ui-kbd command="issue.priority-high" shortcut="3"></ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="assign-maya"><span>●</span><span>Assign to Maya</span><ui-kbd command="issue.assign-maya" shortcut="4"></ui-kbd></ui-button>
                     <ui-button type="button" variant="quiet" data-linear-command="copy-link"><span>↗</span><span>Copy issue link</span></ui-button>
                   </div>
                 </ui-dialog>
@@ -1042,7 +1042,7 @@ const curated: Record<string, CatalogExample[]> = {
 
                 <div class="example-linear-list-heading">
                   <div><strong>Active cycle</strong><ui-badge size="small" data-linear-group-count>5</ui-badge></div>
-                  <span>Cycle 42 · Aug 17–30 · <ui-kbd>J</ui-kbd> <ui-kbd>K</ui-kbd> to navigate</span>
+                  <span>Cycle 42 · Aug 17–30 · <ui-kbd command="issue.next" shortcut="J"></ui-kbd> <ui-kbd command="issue.previous" shortcut="K"></ui-kbd> to navigate</span>
                 </div>
 
                 <ui-toolbar class="example-linear-selection-toolbar" data-linear-selection-toolbar hidden label="Selected issue actions">
@@ -1817,13 +1817,35 @@ const curated: Record<string, CatalogExample[]> = {
       "Search with affordances",
       `
         <ui-field class="catalog-example example-field" label="Search projects" description="Search by name, owner, or namespace.">
-          <ui-input-group slot="control">
-            <span slot="prefix" aria-hidden="true">⌕</span>
+          <ui-input-group id="catalog-project-search" class="example-input-group-divided" slot="control">
+            <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
             <ui-input slot="control" type="search" label="Search projects" placeholder="Billing migration"></ui-input>
-            <ui-kbd slot="suffix">⌘ K</ui-kbd>
+            <ui-kbd slot="suffix" command="workspace.search" shortcut="Primary+K"></ui-kbd>
           </ui-input-group>
+          <ui-gesture-binding for="catalog-project-search" gesture="key" shortcut="Primary+K" command="workspace.search" prevent-default="recognized"></ui-gesture-binding>
         </ui-field>`,
       { compositionOnly: true },
+    ),
+    example(
+      "Tailwind anatomy overrides",
+      `
+        <ui-field class="catalog-example example-field" label="Namespace filter" description="The recipe remains the default; generated part, slot, and state variants provide the application override seam.">
+          <ui-input-group
+            class="part-root:border-action part-root:bg-surface-raised part-prefix:px-control-inline-small part-suffix:px-control-inline-small slot-prefix:text-action state-has-prefix:part-prefix:bg-action-subtle"
+            slot="control"
+          >
+            <ui-icon slot="prefix" name="object.folder" label=""></ui-icon>
+            <ui-input slot="control" type="search" label="Filter namespace" value="/interzone/projects"></ui-input>
+            <ui-button slot="suffix" size="small" variant="quiet" aria-label="Clear namespace filter">
+              <ui-icon name="action.dismiss" label=""></ui-icon>
+            </ui-button>
+          </ui-input-group>
+        </ui-field>`,
+      {
+        compositionOnly: true,
+        description:
+          "The Custom Elements Manifest generates Tailwind variants for every public part, named slot, and custom state, so applications can extend the active recipe without private selectors.",
+      },
     ),
   ],
   "ui-editor": [
@@ -2416,22 +2438,22 @@ const curated: Record<string, CatalogExample[]> = {
           <ui-menu label="Edit commands" open>
             <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="regular" slot="trigger" tone="neutral" variant="quiet">
               Edit
-              <span slot="suffix" aria-hidden="true">⌄</span>
+              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
             </ui-button>
             <ui-menu-item value="undo">
               <span slot="prefix" aria-hidden="true">↶</span>
               Undo
-              <span slot="shortcut">⌘Z</span>
+              <ui-kbd slot="shortcut" command="edit.undo" shortcut="Primary+Z"></ui-kbd>
             </ui-menu-item>
             <ui-menu-item value="redo">
               <span slot="prefix" aria-hidden="true">↷</span>
               Redo
-              <span slot="shortcut">⇧⌘Z</span>
+              <ui-kbd slot="shortcut" command="edit.redo" shortcut="Primary+Shift+Z"></ui-kbd>
             </ui-menu-item>
             <ui-separator></ui-separator>
-            <ui-menu-item value="paste">Paste<span slot="shortcut">⌘V</span></ui-menu-item>
-            <ui-menu-item value="paste-style">Paste and Match Style<span slot="shortcut">⌥⇧⌘V</span></ui-menu-item>
-            <ui-menu-item value="delete" tone="critical">Delete<span slot="shortcut">⌫</span></ui-menu-item>
+            <ui-menu-item value="paste">Paste<ui-kbd slot="shortcut" command="edit.paste" shortcut="Primary+V"></ui-kbd></ui-menu-item>
+            <ui-menu-item value="paste-style">Paste and Match Style<ui-kbd slot="shortcut" command="edit.paste-style" shortcut="Alt+Shift+Primary+V"></ui-kbd></ui-menu-item>
+            <ui-menu-item value="delete" tone="critical">Delete<ui-kbd slot="shortcut" command="edit.delete-backward" shortcut="Backspace"></ui-kbd></ui-menu-item>
           </ui-menu>
         </div>`,
       {
@@ -2447,7 +2469,7 @@ const curated: Record<string, CatalogExample[]> = {
           <ui-menu label="Sort projects" density="compact" open>
             <ui-button class="example-menu-trigger" data-menu-trigger="popup" data-menu-size="small" slot="trigger" tone="neutral" variant="quiet">
               Updated
-              <span slot="suffix" aria-hidden="true">↕</span>
+              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
             </ui-button>
             <ui-menu-item kind="radio" value="name">Name</ui-menu-item>
             <ui-menu-item kind="radio" value="updated" checked>Updated</ui-menu-item>
@@ -2469,12 +2491,13 @@ const curated: Record<string, CatalogExample[]> = {
           <ui-menu label="Project commands" density="compact" open>
             <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="small" slot="trigger" tone="neutral" variant="quiet">
               Project
-              <span slot="suffix" aria-hidden="true">⌄</span>
+              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
             </ui-button>
             <span class="example-menu-header" role="presentation">Navigate</span>
-            <ui-menu-item value="open">Open project<span slot="shortcut">⌘O</span></ui-menu-item>
+            <ui-menu-item value="open">Open project<ui-kbd slot="shortcut" command="project.open" shortcut="Primary+O"></ui-kbd></ui-menu-item>
             <ui-menu-item value="recent">
               Recent projects
+              <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
               <ui-menu slot="submenu" label="Recent projects" density="compact" open>
                 <ui-menu-item value="billing">Billing migration</ui-menu-item>
                 <ui-menu-item value="invoice">Invoice reconciliation</ui-menu-item>
@@ -2483,10 +2506,11 @@ const curated: Record<string, CatalogExample[]> = {
             </ui-menu-item>
             <ui-menu-item value="find">
               Find
-              <span slot="shortcut">⌘F</span>
+              <ui-kbd slot="shortcut" command="project.find" shortcut="Primary+F"></ui-kbd>
+              <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
               <ui-menu slot="submenu" label="Find" density="compact">
-                <ui-menu-item value="find-next">Find Next<span slot="shortcut">⌘G</span></ui-menu-item>
-                <ui-menu-item value="find-previous">Find Previous<span slot="shortcut">⇧⌘G</span></ui-menu-item>
+                <ui-menu-item value="find-next">Find Next<ui-kbd slot="shortcut" command="project.find-next" shortcut="Primary+G"></ui-kbd></ui-menu-item>
+                <ui-menu-item value="find-previous">Find Previous<ui-kbd slot="shortcut" command="project.find-previous" shortcut="Primary+Shift+G"></ui-kbd></ui-menu-item>
               </ui-menu>
             </ui-menu-item>
           </ui-menu>
@@ -2504,7 +2528,7 @@ const curated: Record<string, CatalogExample[]> = {
           <ui-menu label="Compact history" density="mini" open>
             <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="mini" slot="trigger" tone="neutral" variant="quiet">
               History
-              <span slot="suffix" aria-hidden="true">⌄</span>
+              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
             </ui-button>
             <ui-menu-item value="billing">Billing migration and invoice reconciliation</ui-menu-item>
             <ui-menu-item value="archive">Legacy ledger verification and archive import</ui-menu-item>
@@ -2527,10 +2551,11 @@ const curated: Record<string, CatalogExample[]> = {
             <strong>Billing migration</strong>
             <p>Right-click this project row for actions.</p>
           </ui-card>
-          <ui-menu-item value="open"><span slot="prefix" aria-hidden="true">↗</span>Open project</ui-menu-item>
-          <ui-menu-item value="copy-path">Copy project path<span slot="shortcut">⇧⌘C</span></ui-menu-item>
+          <ui-menu-item value="open"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Open project</ui-menu-item>
+          <ui-menu-item value="copy-path">Copy project path<ui-kbd slot="shortcut" command="project.copy-path" shortcut="Primary+Shift+C"></ui-kbd></ui-menu-item>
           <ui-menu-item value="share">
             Share
+            <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
             <ui-menu slot="submenu" label="Share project" density="compact">
               <ui-menu-item value="copy-link">Copy link</ui-menu-item>
               <ui-menu-item value="email">Email</ui-menu-item>
@@ -2994,7 +3019,7 @@ const curated: Record<string, CatalogExample[]> = {
       "Alphabetical target index",
       `
         <ui-card class="catalog-example example-scroll-alpha-card">
-          <div slot="header" class="example-card-heading"><strong>Namespace index</strong><ui-kbd>⌘ K</ui-kbd></div>
+          <div slot="header" class="example-card-heading"><strong>Namespace index</strong><ui-kbd command="workspace.search" shortcut="Primary+K"></ui-kbd></div>
           <ui-scroll-area slot="content" class="example-scroll-alpha" label="Alphabetical namespace index" size="large" gutter="stable" mode="always" snap="proximity">
             <div class="example-scroll-alpha-list">${alphabetSections}</div>
             ${alphabetDetents}
@@ -3069,13 +3094,13 @@ const curated: Record<string, CatalogExample[]> = {
           <span slot="description">Move into the card to reveal its compact rail.</span>
           <ui-scroll-area slot="content" class="example-scroll-menu" label="Recent command history" size="medium" mode="hover" snap="proximity">
             <ui-menu class="example-scroll-command-menu" label="Recent commands">
-              <ui-menu-item data-scroll-id="command-open" data-scroll-snap>Open project<ui-kbd slot="shortcut">⌘ O</ui-kbd></ui-menu-item>
-              <ui-menu-item data-scroll-id="command-search" data-scroll-snap>Search namespace<ui-kbd slot="shortcut">⌘ F</ui-kbd></ui-menu-item>
-              <ui-menu-item data-scroll-id="command-move" data-scroll-snap>Move record<ui-kbd slot="shortcut">⌥ M</ui-kbd></ui-menu-item>
-              <ui-menu-item data-scroll-id="command-archive" data-scroll-snap>Archive project<ui-kbd slot="shortcut">⌘ ⌫</ui-kbd></ui-menu-item>
-              <ui-menu-item data-scroll-id="command-restore" data-scroll-snap>Restore snapshot<ui-kbd slot="shortcut">⇧ ⌘ R</ui-kbd></ui-menu-item>
-              <ui-menu-item data-scroll-id="command-export" data-scroll-snap>Export selection<ui-kbd slot="shortcut">⇧ ⌘ E</ui-kbd></ui-menu-item>
-              <ui-menu-item data-scroll-id="command-close" data-scroll-snap>Close workspace<ui-kbd slot="shortcut">⌘ W</ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-open" data-scroll-snap>Open project<ui-kbd slot="shortcut" command="project.open" shortcut="Primary+O"></ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-search" data-scroll-snap>Search namespace<ui-kbd slot="shortcut" command="workspace.search" shortcut="Primary+F"></ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-move" data-scroll-snap>Move record<ui-kbd slot="shortcut" command="record.move" shortcut="Alt+M"></ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-archive" data-scroll-snap>Archive project<ui-kbd slot="shortcut" command="project.archive" shortcut="Primary+Backspace"></ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-restore" data-scroll-snap>Restore snapshot<ui-kbd slot="shortcut" command="snapshot.restore" shortcut="Primary+Shift+R"></ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-export" data-scroll-snap>Export selection<ui-kbd slot="shortcut" command="selection.export" shortcut="Primary+Shift+E"></ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-close" data-scroll-snap>Close workspace<ui-kbd slot="shortcut" command="workspace.close" shortcut="Primary+W"></ui-kbd></ui-menu-item>
             </ui-menu>
             <button type="button" class="example-scroll-detent example-scroll-menu-detent" slot="block-detents" data-scroll-target="command-archive" data-scroll-behavior="smooth" aria-label="Jump to archive command"></button>
           </ui-scroll-area>

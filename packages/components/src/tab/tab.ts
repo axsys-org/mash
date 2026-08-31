@@ -12,6 +12,12 @@ import { baseStyles } from "../internal/base-styles.js";
  * @tag ui-tab
  * @summary A selectable tab within a tablist.
  *
+ * @example Selected project tab
+ * <ui-tabs value="billing">
+ *   <ui-tab value="billing" selected>Billing migration</ui-tab>
+ *   <ui-tab-panel value="billing" selected>Project overview</ui-tab-panel>
+ * </ui-tabs>
+ *
  * @slot - Visible tab label.
  *
  * @csspart control - The native button carrying the tab role.

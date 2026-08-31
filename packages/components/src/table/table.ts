@@ -124,6 +124,8 @@ abstract class UITableRowGroup extends LitElement {
  *
  * @tag ui-table-header
  * @summary Groups table header rows.
+ * @example Project headings
+ * <ui-table-header><ui-table-row><ui-table-head>Project</ui-table-head><ui-table-head>Status</ui-table-head></ui-table-row></ui-table-header>
  * @slot - Header rows.
  * @csspart root - Compatibility alias for the semantic header row group.
  * @csspart rowgroup - The semantic row-group container shared by header and body.
@@ -148,6 +150,8 @@ export class UITableHeader extends UITableRowGroup {
  *
  * @tag ui-table-body
  * @summary Groups table data rows.
+ * @example Project rows
+ * <ui-table-body><ui-table-row><ui-table-cell>Billing migration</ui-table-cell><ui-table-cell>Active</ui-table-cell></ui-table-row></ui-table-body>
  * @slot - Data rows.
  * @csspart root - Compatibility alias for the semantic body row group.
  * @csspart rowgroup - The semantic row-group container shared by header and body.
@@ -172,6 +176,8 @@ export class UITableBody extends UITableRowGroup {
  *
  * @tag ui-table-row
  * @summary Groups cells at one logical row index.
+ * @example One project row
+ * <ui-table-row row-index="1"><ui-table-cell column-index="1">Billing migration</ui-table-cell><ui-table-cell column-index="2">Active</ui-table-cell></ui-table-row>
  * @slot - Header or data cells.
  * @csspart root - Compatibility alias for the semantic row.
  * @csspart row - The semantic row container.
@@ -289,6 +295,8 @@ abstract class UITableCellBase extends LitElement {
  *
  * @tag ui-table-head
  * @summary Labels one table column.
+ * @example Sortable project heading
+ * <ui-table-head column-index="1" sort="ascending">Project</ui-table-head>
  * @slot - Header content.
  * @csspart root - Compatibility alias for the semantic column header.
  * @csspart head - Compatibility alias for the column-header realization.
@@ -339,6 +347,8 @@ export class UITableHead extends UITableCellBase {
  *
  * @tag ui-table-cell
  * @summary Realizes one value at a row and column position.
+ * @example Composed status cell
+ * <ui-table-cell column-index="2"><ui-badge tone="positive">Active</ui-badge></ui-table-cell>
  * @slot - Cell content.
  * @csspart root - Compatibility alias for the semantic data cell.
  * @csspart cell - The data-cell realization.
@@ -369,6 +379,8 @@ export class UITableCell extends UITableCellBase {
  *
  * @tag ui-table-caption
  * @summary Names or describes a table.
+ * @example Project table caption
+ * <ui-table-caption>Interzone projects</ui-table-caption>
  * @slot - Caption content.
  * @csspart root - Compatibility alias for the semantic caption.
  * @csspart caption - The semantic caption container.

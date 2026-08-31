@@ -18,6 +18,7 @@
   "sideEffects": [
     "./dist/**/register.js",
     "./dist/register.js",
+    "./dist/tailwind.css",
     "./src/catalogue/mash.css"
   ],
   "exports": {
@@ -30,6 +31,7 @@
       "import": "./dist/register.js"
     },
     "./catalogue/mash.css": "./src/catalogue/mash.css",
+    "./tailwind.css": "./dist/tailwind.css",
     "./confirm": {
       "types": "./dist/confirm/confirm.d.ts",
       "import": "./dist/confirm/confirm.js"
@@ -92,7 +94,8 @@
   "scripts": {
     "build": "pnpm run build:js && pnpm run build:manifest",
     "build:js": "tsc -p tsconfig.build.json",
-    "build:manifest": "cem analyze --config custom-elements-manifest.config.mjs",
+    "build:manifest": "cem analyze --config custom-elements-manifest.config.mjs && pnpm run build:tailwind",
+    "build:tailwind": "node ../../scripts/build-tailwind-components.mjs",
     "check:types": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -1,19 +1,22 @@
 # Tailwind v4 with Mash tokens
 
-`@mash/tokens/tailwind.css` is the optional application-styling layer for work that does not need
-a component: page layout, one-off grouping, light surface treatment, and small motion fragments.
-It does not style Mash component internals, and Tailwind is not a second token authority.
+`@mash/tokens/tailwind.css` is the optional application-styling layer for page layout, one-off
+grouping, light surface treatment, and small motion fragments. Generated `@mash/ui/tailwind.css`
+and `@mash/shrine/tailwind.css` adapters extend those same utilities across public component
+anatomy. Tailwind is never a second token or component-contract authority.
 
 ## Setup
 
 Import Tailwind's utility compiler first, then the Mash adapter:
 
 ```css
-@layer theme, base, components, utilities;
+@layer theme, base, mash.catalogue, components, utilities;
 
 @import "tailwindcss/preflight.css" layer(base); /* optional */
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "@mash/tokens/tailwind.css";
+@import "@mash/ui/tailwind.css";
+@import "@mash/shrine/tailwind.css"; /* when using sh-* components */
 ```
 
 The adapter imports the complete Mash token cascade. Light is the default; `data-theme="dark"`
@@ -23,6 +26,36 @@ The adapter deliberately omits Tailwind's default theme. Preflight is optional n
 than a design-value source; the Mash catalogue opts into it in both its shell and preview document.
 Mash remains the only source of colors, spacing, radii, typography, blur, and motion values;
 Tailwind contributes normalization, its utility compiler, and static layout vocabulary.
+
+`mash.catalogue` is ordered before application components and utilities so an imported recipe is
+a default pronunciation rather than a specificity trap. Applications can override public anatomy
+without `!important` or private shadow-root selectors.
+
+## Component anatomy variants
+
+The component adapters are generated from the checked-in Custom Elements Manifests. Public names
+therefore have one source of truth:
+
+- `@csspart prefix` generates `part-prefix:*`, targeting `&::part(prefix)`.
+- `@slot prefix` generates `slot-prefix:*`, targeting a direct authored `[slot="prefix"]`.
+- `@cssstate has-prefix` generates `state-has-prefix:*`, targeting `&:state(has-prefix)`.
+
+Variants compose with all token-backed utilities and with one another:
+
+```html
+<ui-input-group
+  class="part-root:border-action part-prefix:px-control-inline-small
+    slot-prefix:text-action state-has-prefix:part-prefix:bg-action-subtle"
+>
+  <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
+  <ui-input slot="control" label="Search"></ui-input>
+</ui-input-group>
+```
+
+Use a slot variant when styling the authored node itself. Use a part variant when styling the
+renderer-owned wrapper or anatomy. Use a state variant for behavior that the component owns.
+Slots remain content, parts remain rendered anatomy, and state never becomes a presentational
+attribute merely to satisfy a selector.
 
 ## Token-backed utilities
 
@@ -172,7 +205,9 @@ tokens are also available through Tailwind's individual `backdrop-blur-progressi
 
 Use this layer for layout and lightweight visual treatment. If something needs behavior,
 accessibility semantics, state ownership, or reusable anatomy, it belongs in `@mash/ui` instead.
-Component-specific styling remains in the opt-in Mash catalogue recipe.
+Reusable component defaults remain in the opt-in Mash catalogue recipe. Application-specific
+extensions may use the generated anatomy variants, while new behavior, semantics, or state still
+belongs in `@mash/ui` rather than in a utility class.
 
 The catalogue itself demonstrates the split without parallel application stylesheets:
 

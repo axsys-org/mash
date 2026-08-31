@@ -1,8 +1,15 @@
+import { normalizeGestureKey, type GestureModifier } from "../internal/gesture-shortcut.js";
+
+export {
+  parseGestureModifiers,
+  parseGestureShortcut,
+  type GestureModifier,
+} from "../internal/gesture-shortcut.js";
+
 export type GestureKind = "command" | "press" | "long-press" | "drag" | "hover" | "wheel" | "key";
 export type GesturePhase = "possible" | "began" | "changed" | "ended" | "cancelled" | "failed";
 export type GestureSource = "imperative" | "pointer" | "touch" | "pen" | "keyboard" | "wheel";
 export type GestureAxis = "x" | "y" | "both";
-export type GestureModifier = "Alt" | "Control" | "Meta" | "Shift" | "Primary";
 export type GesturePreventDefault = "never" | "recognized" | "always";
 
 export interface GesturePoint {
@@ -129,36 +136,6 @@ interface WheelSession {
 const controllerRegistry = new WeakMap<HTMLElement, GestureController>();
 let generatedBindingId = 0;
 
-const modifierAliases = new Map<string, GestureModifier>([
-  ["alt", "Alt"],
-  ["option", "Alt"],
-  ["⌥", "Alt"],
-  ["control", "Control"],
-  ["ctrl", "Control"],
-  ["⌃", "Control"],
-  ["meta", "Meta"],
-  ["command", "Meta"],
-  ["cmd", "Meta"],
-  ["⌘", "Meta"],
-  ["shift", "Shift"],
-  ["⇧", "Shift"],
-  ["primary", "Primary"],
-  ["mod", "Primary"],
-]);
-
-const keyAliases = new Map<string, string>([
-  ["esc", "Escape"],
-  ["escape", "Escape"],
-  ["return", "Enter"],
-  ["enter", "Enter"],
-  ["space", " "],
-  ["spacebar", " "],
-  ["left", "ArrowLeft"],
-  ["right", "ArrowRight"],
-  ["up", "ArrowUp"],
-  ["down", "ArrowDown"],
-]);
-
 const emptyModifiers = (): GestureModifiers => ({
   alt: false,
   control: false,
@@ -180,12 +157,6 @@ const subtract = (left: GesturePoint, right: GesturePoint): GesturePoint => ({
 });
 
 const distance = (point: GesturePoint): number => Math.hypot(point.x, point.y);
-
-const normalizedKey = (value: string): string => {
-  const alias = keyAliases.get(value.toLowerCase());
-  if (alias !== undefined) return alias;
-  return value.length === 1 ? value.toLowerCase() : value;
-};
 
 const primaryModifier = (target: HTMLElement): "Meta" | "Control" => {
   const platform = target.ownerDocument.defaultView?.navigator.platform ?? "";
@@ -268,37 +239,6 @@ function canPrevent(event: Event): boolean {
 
 function prevent(event: Event): void {
   if (canPrevent(event)) event.preventDefault();
-}
-
-export function parseGestureModifiers(value: string): GestureModifier[] {
-  const result: GestureModifier[] = [];
-  for (const token of value.split(/[+,\s]+/).filter(Boolean)) {
-    const modifier = modifierAliases.get(token.toLowerCase());
-    if (modifier && !result.includes(modifier)) result.push(modifier);
-  }
-  return result;
-}
-
-export function parseGestureShortcut(
-  value: string,
-): Pick<GestureDescriptor, "key" | "code" | "modifiers"> {
-  const tokens = value
-    .split("+")
-    .map((token) => token.trim())
-    .filter(Boolean);
-  const modifiers: GestureModifier[] = [];
-  let key: string | undefined;
-  let code: string | undefined;
-  for (const token of tokens) {
-    const modifier = modifierAliases.get(token.toLowerCase());
-    if (modifier) {
-      if (!modifiers.includes(modifier)) modifiers.push(modifier);
-      continue;
-    }
-    if (token.toLowerCase().startsWith("code:")) code = token.slice("code:".length);
-    else key = normalizedKey(token);
-  }
-  return { key, code, modifiers };
 }
 
 export function formatAriaShortcut(
@@ -714,7 +654,7 @@ export class GestureController {
   #keyMatches(binding: NormalizedGestureBinding, event: KeyboardEvent): boolean {
     const { key, code } = binding.gesture;
     if (!key && !code) return false;
-    const keyMatches = !key || normalizedKey(event.key) === normalizedKey(key);
+    const keyMatches = !key || normalizeGestureKey(event.key) === normalizeGestureKey(key);
     const codeMatches = !code || event.code === code;
     return keyMatches && codeMatches;
   }
