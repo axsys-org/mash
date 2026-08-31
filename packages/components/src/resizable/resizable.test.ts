@@ -20,6 +20,10 @@ describe("ui-resizable", () => {
     expect(inShadow(handle, `[role="separator"]`).getAttribute("aria-orientation")).toBe(
       "vertical",
     );
+    expect(inShadow(handle, `[role="separator"]`).getAttribute("aria-controls")).toBe(
+      group.querySelector("ui-resizable-panel")?.id,
+    );
+    expect(inShadow(handle, `[role="separator"]`).getAttribute("aria-valuemin")).toBe("80");
   });
 
   it("supports keyboard resizing and reports ordered sizes", async () => {
@@ -46,6 +50,26 @@ describe("ui-resizable", () => {
     expect(second?.size).toBe(180);
     expect(onChange).toHaveBeenCalled();
     expect(handle.matches(":state(resizing)")).toBe(false);
+    expect(inShadow(handle, `[role="separator"]`).getAttribute("aria-valuenow")).toBe("220");
+  });
+
+  it("exposes a CSS fallback grip and semantic boundary states", async () => {
+    const group = await fixture<UIResizable>(`
+      <ui-resizable>
+        <ui-resizable-panel size="100" min="100">One</ui-resizable-panel>
+        <ui-resizable-handle></ui-resizable-handle>
+        <ui-resizable-panel size="200" min="100">Two</ui-resizable-panel>
+      </ui-resizable>
+    `);
+    const handle = group.querySelector<UIResizableHandle>("ui-resizable-handle")!;
+
+    expect(inShadow(handle, `[part="grip"]`)).toBeTruthy();
+    expect(handle.matches(":state(at-min)")).toBe(true);
+
+    group.resizePanel(0, 200);
+    await settled(group);
+    expect(handle.matches(":state(at-min)")).toBe(false);
+    expect(handle.matches(":state(at-max)")).toBe(true);
   });
 
   it("supports programmatic resize, reset, and panel visibility state", async () => {
@@ -75,5 +99,28 @@ describe("ui-resizable", () => {
     await settled(group);
     expect(second?.hidden).toBe(true);
     expect(second?.matches(":state(visible)")).toBe(false);
+  });
+
+  it("removes orphaned handles and restores flexible sizing", async () => {
+    const group = await fixture<UIResizable>(`
+      <ui-resizable>
+        <ui-resizable-panel size="180" min="100">One</ui-resizable-panel>
+        <ui-resizable-handle></ui-resizable-handle>
+        <ui-resizable-panel min="100">Two</ui-resizable-panel>
+      </ui-resizable>
+    `);
+    const first = group.querySelector<UIResizablePanel>("ui-resizable-panel")!;
+    const handle = group.querySelector<UIResizableHandle>("ui-resizable-handle")!;
+
+    first.visible = false;
+    await settled(group);
+    expect(handle.hidden).toBe(true);
+
+    first.visible = true;
+    first.size = 0;
+    await settled(group);
+    expect(handle.hidden).toBe(false);
+    expect(first.style.flexBasis).toBe("");
+    expect(first.style.inlineSize).toBe("");
   });
 });

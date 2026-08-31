@@ -1,0 +1,25 @@
+{
+  "effect": {
+    "$type": "number",
+    "reference": {
+      "$description": "Raw unitless effect values. Consumers use semantic effect roles rather than these primitives.",
+      "material": {
+        "$description": "Unitless material rendering ingredients. These tune the backdrop and do not stand in for semantic foreground vibrancy.",
+        "backdropSaturation": {
+          "reduced": {
+            "$value": 1,
+            "$description": "No backdrop chroma amplification when transparency or contrast preferences request a quieter surface."
+          },
+          "standard": {
+            "$value": 1.2,
+            "$description": "Gentle backdrop chroma recovery after blur softens the content beneath a material."
+          },
+          "enhanced": {
+            "$value": 1.5,
+            "$description": "Explicitly stronger backdrop chroma for decorative material contexts with verified contrast."
+          }
+        }
+      }
+    }
+  }
+}

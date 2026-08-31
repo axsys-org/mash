@@ -16,6 +16,49 @@
     "$type": "cubicBezier",
     "$description": "Theme-independent easing semantics.",
     "control": { "$value": "{easing.reference.standard}" },
-    "surface": { "$value": "{easing.reference.emphasized}" }
+    "surface": { "$value": "{easing.reference.emphasized}" },
+    "springGentle": {
+      "$value": "{easing.reference.emphasized}",
+      "$description": "A restrained spring-like curve for spatial settling without overshoot."
+    },
+    "springSnappy": {
+      "$value": "{easing.reference.standard}",
+      "$description": "A short spring-like response for controls and small indicators."
+    }
+  },
+
+  "motion": {
+    "$description": "Renderer-neutral spatial and optical motion semantics.",
+    "distance": {
+      "$type": "dimension",
+      "short": { "$value": "{motionDistance.reference.short}" },
+      "medium": { "$value": "{motionDistance.reference.medium}" },
+      "long": { "$value": "{motionDistance.reference.long}" }
+    },
+    "scale": {
+      "$type": "number",
+      "rest": { "$value": "{motionScale.reference.rest}" },
+      "enter": { "$value": "{motionScale.reference.contracted}" },
+      "pressed": { "$value": "{motionScale.reference.pressed}" },
+      "emphasized": { "$value": "{motionScale.reference.expanded}" }
+    },
+    "blur": {
+      "$type": "dimension",
+      "none": { "$value": "{motionBlur.reference.none}" },
+      "subtle": { "$value": "{motionBlur.reference.subtle}" },
+      "emphasized": { "$value": "{motionBlur.reference.emphasized}" }
+    },
+    "opacity": {
+      "$type": "number",
+      "hidden": { "$value": "{motionOpacity.reference.hidden}" },
+      "muted": { "$value": "{motionOpacity.reference.muted}" },
+      "visible": { "$value": "{motionOpacity.reference.visible}" }
+    },
+    "rotation": {
+      "$type": "number",
+      "none": { "$value": "{motionRotation.reference.none}" },
+      "quarter": { "$value": "{motionRotation.reference.quarter}" },
+      "full": { "$value": "{motionRotation.reference.full}" }
+    }
   }
 }

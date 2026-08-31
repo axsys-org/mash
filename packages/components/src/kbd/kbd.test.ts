@@ -16,4 +16,15 @@ describe("ui-kbd", () => {
     const content = inShadow<HTMLSlotElement>(key, "slot");
     expect(content.assignedNodes().map((node) => node.textContent?.trim())).toContain("⌘ K");
   });
+
+  it("advertises command metadata without owning shortcut execution", async () => {
+    const key = await fixture<UIKbd>(
+      `<ui-kbd command="workspace.search" shortcut="Primary+K">⌘ K</ui-kbd>`,
+    );
+    const surface = inShadow<HTMLElement>(key, '[part="root"]');
+
+    expect(surface.dataset.command).toBe("workspace.search");
+    expect(surface.dataset.shortcut).toBe("Primary+K");
+    expect(key.getAttribute("aria-keyshortcuts")).toBeNull();
+  });
 });

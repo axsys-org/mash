@@ -8,6 +8,34 @@
  * to smuggle a second visual system into its shadow root.
  */
 @layer mash.catalogue {
+  /* Shrine patterns inherit the same internal structural roles as ui-* recipes.
+     The ui catalogue defines their opaque defaults and material utilities can
+     replace them for the complete composed subtree. */
+  :where([data-mash-catalogue="mash"]),
+  :where([data-mash-catalogue="mash"]) [data-theme] {
+    --_mash-component-surface: var(--color-surface);
+    --_mash-component-surface-raised: var(--color-surface-raised);
+    --_mash-component-surface-sunken: var(--color-surface-sunken);
+    --_mash-component-inverse-label: var(--color-surface);
+    --_mash-component-boundary: var(--color-border);
+    --_mash-component-boundary-strong: var(--color-border-strong);
+    --_mash-component-divider: var(--color-separator-opaque);
+    --_mash-component-shadow: var(--color-shadow);
+  }
+
+  /* Shrine patterns participate in the same material compositor through their
+     exported semantic text leaves; action controls and badge fills stay normal. */
+  :where([data-mash-catalogue="mash"]) sh-locator::part(root),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(title),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(path),
+  :where([data-mash-catalogue="mash"]) sh-slot::part(root),
+  :where([data-mash-catalogue="mash"]) sh-pail::part(root),
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(title),
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(description),
+  :where([data-mash-catalogue="mash"]) shrine-confirm::part(message) {
+    mix-blend-mode: var(--mash-material-compositor, normal);
+  }
+
   :where([data-mash-catalogue="mash"]) sh-locator {
     display: block;
   }
@@ -16,8 +44,8 @@
     display: block;
     min-block-size: calc(var(--space-control-block) + var(--space-control-block));
     padding: var(--space-control-block) var(--space-control-inline);
-    border-block-end: var(--border-hairline) solid var(--color-border);
-    background: var(--color-surface-sunken);
+    border-block-end: var(--border-hairline) solid var(--_mash-component-divider);
+    background: var(--_mash-component-surface-sunken);
     color: var(--color-text-muted);
     font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
       var(--type-code-font-family);
@@ -47,8 +75,8 @@
     min-inline-size: var(--layout-dimension-zero);
     min-block-size: var(--layout-dimension-zero);
     overflow: hidden;
-    border-inline-end: var(--border-hairline) solid var(--color-border);
-    background: var(--color-surface-sunken);
+    border-inline-end: var(--border-hairline) solid var(--_mash-component-divider);
+    background: var(--_mash-component-surface-sunken);
   }
 
   :where([data-mash-catalogue="mash"]) sh-triptych::part(main),
@@ -61,8 +89,8 @@
   }
 
   :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector) {
-    border-inline-start: var(--border-hairline) solid var(--color-border);
-    background: var(--color-surface-sunken);
+    border-inline-start: var(--border-hairline) solid var(--_mash-component-divider);
+    background: var(--_mash-component-surface-sunken);
   }
 
   :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar-body),
@@ -93,12 +121,12 @@
   :where([data-mash-catalogue="mash"]) sh-triptych::part(locator),
   :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector-locator) {
     min-block-size: calc(var(--space-control-block) + var(--space-control-block));
-    border-block-end: var(--border-hairline) solid var(--color-border);
+    border-block-end: var(--border-hairline) solid var(--_mash-component-divider);
   }
 
   :where([data-mash-catalogue="mash"]) sh-triptych::part(navigate) {
     min-block-size: calc(var(--space-container-block) + var(--space-control-block));
-    border-block-start: var(--border-hairline) solid var(--color-border);
+    border-block-start: var(--border-hairline) solid var(--_mash-component-divider);
   }
 
   @media (max-width: 52rem) {
@@ -114,12 +142,12 @@
 
     :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar) {
       border-inline-end: 0;
-      border-block-end: var(--border-hairline) solid var(--color-border);
+      border-block-end: var(--border-hairline) solid var(--_mash-component-divider);
     }
 
     :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector) {
       border-inline-start: 0;
-      border-block-start: var(--border-hairline) solid var(--color-border);
+      border-block-start: var(--border-hairline) solid var(--_mash-component-divider);
     }
   }
 
@@ -130,9 +158,9 @@
 
   :where([data-mash-catalogue="mash"]) sh-myth::part(root) {
     display: block;
-    border: var(--border-hairline) solid var(--color-border);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
     border-radius: var(--radius-container);
-    background: var(--color-surface);
+    background: var(--_mash-component-surface);
     color: var(--color-text);
     font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
       var(--type-body-font-family);
@@ -249,13 +277,13 @@
 
   :where([data-mash-catalogue="mash"]) shrine-confirm::part(card) {
     display: block;
-    border: var(--border-hairline) solid var(--color-border);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
     border-radius: var(--radius-container);
-    background: var(--color-surface-raised);
+    background: var(--_mash-component-surface-raised);
     color: var(--color-text);
     box-shadow:
-      0 1px 2px var(--color-shadow),
-      0 4px 12px var(--color-shadow);
+      0 1px 2px var(--_mash-component-shadow),
+      0 4px 12px var(--_mash-component-shadow);
     font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
       var(--type-body-font-family);
   }
@@ -267,7 +295,7 @@
   }
 
   :where([data-mash-catalogue="mash"]) shrine-confirm::part(card-footer) {
-    border-block-start: var(--border-hairline) solid var(--color-border);
+    border-block-start: var(--border-hairline) solid var(--_mash-component-divider);
   }
 
   :where([data-mash-catalogue="mash"]) shrine-confirm::part(title) {

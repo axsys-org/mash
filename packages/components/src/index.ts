@@ -41,9 +41,39 @@ export { UIChip } from "./chip/chip.js";
 export { UIField } from "./field/field.js";
 export { UIFieldset } from "./fieldset/fieldset.js";
 export { UIForm } from "./form/form.js";
+export {
+  bindGesture,
+  dispatchCommand,
+  formatAriaShortcut,
+  GestureController,
+  modifiersFromEvent,
+  parseGestureModifiers,
+  parseGestureShortcut,
+} from "./gesture/gesture.js";
+export type {
+  DispatchCommandOptions,
+  GestureAxis,
+  GestureBinding,
+  GestureBindingHandle,
+  GestureContext,
+  GestureDescriptor,
+  GestureKind,
+  GestureModifier,
+  GestureModifiers,
+  GesturePhase,
+  GesturePoint,
+  GesturePreventDefault,
+  GestureSource,
+  GestureStateDetail,
+  GestureValue,
+  MashCommandDetail,
+} from "./gesture/gesture.js";
+export { UIGestureBinding } from "./gesture-binding/gesture-binding.js";
 export { UIInput } from "./input/input.js";
 export type { InputSize, InputType } from "./input/input.js";
 export { UIInputGroup } from "./input-group/input-group.js";
+export { UIIcon, hasIcon, iconNames, registerIcon, unregisterIcon } from "./icon/icon.js";
+export type { IconName, IconSize, IconSource } from "./icon/icon.js";
 export { UIImage } from "./image/image.js";
 export type {
   ImageDecoding,
@@ -64,10 +94,27 @@ export { UIKbd } from "./kbd/kbd.js";
 export { UIDialog } from "./dialog/dialog.js";
 export { UIDrawer } from "./drawer/drawer.js";
 export { UIDatePicker } from "./date-picker/date-picker.js";
+export { UIDataTable } from "./data-table/data-table.js";
+export type {
+  DataTableActivationDetail,
+  DataTableCoordinate,
+  DataTableDensity,
+  DataTableInteractionReason,
+  DataTableSelection,
+  DataTableSelectionDetail,
+  DataTableSelectionRange,
+} from "./data-table/data-table.js";
 export { UIEditor } from "./editor/editor.js";
 export type { EditorSelectionDetail } from "./editor/editor.js";
 export type { DrawerSide } from "./drawer/drawer.js";
 export { UIMeter } from "./meter/meter.js";
+export { UIMotion } from "./motion/motion.js";
+export type {
+  MotionEventDetail,
+  MotionRecipe,
+  MotionState,
+  MotionTarget,
+} from "./motion/motion.js";
 export { UIMenu } from "./menu/menu.js";
 export { UIMenuItem } from "./menu-item/menu-item.js";
 export { UIMenubar } from "./menubar/menubar.js";
@@ -90,6 +137,15 @@ export type { RadioGroupOrientation } from "./radio-group/radio-group.js";
 export { UIResizable, UIResizableHandle, UIResizablePanel } from "./resizable/resizable.js";
 export type { ResizableOrientation, ResizeDetail } from "./resizable/resizable.js";
 export { UIScrollArea } from "./scroll-area/scroll-area.js";
+export type {
+  ScrollAxis,
+  ScrollbarGutter,
+  ScrollbarMode,
+  ScrollbarSize,
+  ScrollSnapMode,
+  ScrollTargetAlignment,
+  ScrollToTargetOptions,
+} from "./scroll-area/scroll-area.js";
 export { UISelect } from "./select/select.js";
 export { UISeparator } from "./separator/separator.js";
 export type { SeparatorOrientation } from "./separator/separator.js";
@@ -109,6 +165,7 @@ export {
   UITableHeader,
   UITableRow,
 } from "./table/table.js";
+export type { TableHeaderScope, TableSortDirection } from "./table/table.js";
 export { UITextarea } from "./textarea/textarea.js";
 export { UIToggle } from "./toggle/toggle.js";
 export { UIToggleGroup } from "./toggle-group/toggle-group.js";
@@ -126,3 +183,6 @@ export { UITreeItem } from "./tree-item/tree-item.js";
 export type { TreeItemKind, TreeItemSize } from "./tree-item/tree-item.js";
 export { UIVirtualItem, UIVirtualList } from "./virtual-list/virtual-list.js";
 export type { VirtualListAlignment, VirtualListOrientation } from "./virtual-list/virtual-list.js";
+export * from "./drag/drag.js";
+export { UIDraggable } from "./draggable/draggable.js";
+export type { DraggableContainment } from "./draggable/draggable.js";

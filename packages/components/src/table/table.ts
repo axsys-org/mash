@@ -2,6 +2,9 @@ import { LitElement, html, nothing, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
+export type TableSortDirection = "none" | "ascending" | "descending";
+export type TableHeaderScope = "column" | "row" | "none";
+
 /**
  * An unstyled semantic table root.
  *
@@ -44,13 +47,13 @@ import { baseStyles } from "../internal/base-styles.js";
  * @csspart caption - The authored caption binding.
  * @csspart children - Compatibility alias for the authored row-group collection.
  * @csspart rowgroups - The authored header and body row-group collection.
- *
  * @mashnode root table
  * @mashnode caption title root
  * @mashnode children children root
  * @mashnode row-count row-count root
  * @mashnode column-count column-count root
  * @mashnode label label root
+ * @mashnode interactive interactive root
  * @mashrole part root table root
  * @mashrole part table table root
  * @mashrole slot caption title caption
@@ -64,6 +67,7 @@ export class UITable extends LitElement {
     rowCount: { type: Number, attribute: "row-count", reflect: true },
     columnCount: { type: Number, attribute: "column-count", reflect: true },
     label: { type: String, reflect: true },
+    interactive: { type: Boolean, reflect: true },
   };
 
   /** Total logical row count, including virtualized rows not currently rendered. */
@@ -72,12 +76,15 @@ export class UITable extends LitElement {
   declare columnCount: number;
   /** Accessible name for the table. */
   declare label: string;
+  /** Uses ARIA grid semantics when an owning data-table supplies cell navigation. */
+  declare interactive: boolean;
 
   constructor() {
     super();
     this.rowCount = 0;
     this.columnCount = 0;
     this.label = "";
+    this.interactive = false;
   }
 
   static override styles = baseStyles;
@@ -86,7 +93,7 @@ export class UITable extends LitElement {
     return html`
       <div
         part="root table"
-        role="table"
+        role=${this.interactive ? "grid" : "table"}
         aria-label=${this.label || nothing}
         aria-rowcount=${this.rowCount > 0 ? this.rowCount : nothing}
         aria-colcount=${this.columnCount > 0 ? this.columnCount : nothing}
@@ -173,6 +180,7 @@ export class UITableBody extends UITableRowGroup {
  * @mashnode root row
  * @mashnode children children root
  * @mashnode row-index row-index root
+ * @mashnode selected selected root
  * @mashrole part root row root
  * @mashrole part row row root
  * @mashrole slot default children children
@@ -182,21 +190,35 @@ export class UITableBody extends UITableRowGroup {
 export class UITableRow extends LitElement {
   static override properties = {
     rowIndex: { type: Number, attribute: "row-index", reflect: true },
+    selected: { type: Boolean, reflect: true },
   };
 
   /** One-based accessibility index in the complete logical table. */
   declare rowIndex: number;
+  /** Parent-controlled row selection state. */
+  declare selected: boolean;
 
   constructor() {
     super();
     this.rowIndex = 0;
+    this.selected = false;
   }
 
   static override styles = baseStyles;
 
+  override focus(options?: FocusOptions): void {
+    this.shadowRoot?.querySelector<HTMLElement>('[part~="row"]')?.focus(options);
+  }
+
   protected override render(): TemplateResult {
     return html`
-      <div part="root row" role="row" aria-rowindex=${this.rowIndex > 0 ? this.rowIndex : nothing}>
+      <div
+        part="root row"
+        role="row"
+        tabindex="-1"
+        aria-rowindex=${this.rowIndex > 0 ? this.rowIndex : nothing}
+        aria-selected=${this.selected ? "true" : nothing}
+      >
         <slot part="children cells"></slot>
       </div>
     `;
@@ -206,27 +228,55 @@ export class UITableRow extends LitElement {
 abstract class UITableCellBase extends LitElement {
   static override properties = {
     columnIndex: { type: Number, attribute: "column-index", reflect: true },
+    interactive: { type: Boolean, reflect: true },
+    selected: { type: Boolean, reflect: true },
+    active: { type: Boolean, reflect: true },
+    editable: { type: Boolean, reflect: true },
+    sort: { type: String, reflect: true },
   };
 
   /** One-based accessibility index in the complete logical table. */
   declare columnIndex: number;
+  /** Uses gridcell semantics when an owning data-table supplies navigation. */
+  declare interactive: boolean;
+  /** Parent-controlled selection state. */
+  declare selected: boolean;
+  /** Parent-controlled active-cell state. */
+  declare active: boolean;
+  /** Announces that the authored cell content may be edited. */
+  declare editable: boolean;
+  /** Sort state for column headers; ignored by ordinary data cells. */
+  declare sort: TableSortDirection;
 
-  protected abstract cellRole: "columnheader" | "cell";
-  protected abstract cellParts: string;
+  protected abstract get cellRole(): "columnheader" | "rowheader" | "cell";
+  protected abstract get cellParts(): string;
 
   constructor() {
     super();
     this.columnIndex = 0;
+    this.interactive = false;
+    this.selected = false;
+    this.active = false;
+    this.editable = false;
+    this.sort = "none";
   }
 
   static override styles = baseStyles;
+
+  override focus(options?: FocusOptions): void {
+    this.shadowRoot?.querySelector<HTMLElement>('[part~="root"]')?.focus(options);
+  }
 
   protected override render(): TemplateResult {
     return html`
       <div
         part=${`root ${this.cellParts}`}
-        role=${this.cellRole}
+        role=${this.interactive && this.cellRole === "cell" ? "gridcell" : this.cellRole}
+        tabindex="-1"
         aria-colindex=${this.columnIndex > 0 ? this.columnIndex : nothing}
+        aria-selected=${this.selected ? "true" : nothing}
+        aria-readonly=${this.interactive ? (this.editable ? "false" : "true") : nothing}
+        aria-sort=${this.cellRole === "columnheader" && this.sort !== "none" ? this.sort : nothing}
       >
         <slot part="content"></slot>
       </div>
@@ -243,19 +293,45 @@ abstract class UITableCellBase extends LitElement {
  * @csspart root - Compatibility alias for the semantic column header.
  * @csspart head - Compatibility alias for the column-header realization.
  * @csspart column-header - The semantic column-header cell.
+ * @csspart row-header - The semantic row-header cell when `scope="row"`.
  * @csspart content - The authored header content binding.
  * @mashnode root header
  * @mashnode content content root
  * @mashnode column-index column-index root
+ * @mashnode interactive interactive root
+ * @mashnode selected selected root
+ * @mashnode active active root
+ * @mashnode editable editable root
+ * @mashnode sort sort root
+ * @mashnode scope scope root
  * @mashrole part root header root
  * @mashrole part head header root
  * @mashrole part column-header header root
+ * @mashrole part row-header header root
  * @mashrole slot default content content
  * @mashrole part content content content
  */
 export class UITableHead extends UITableCellBase {
-  protected cellRole = "columnheader" as const;
-  protected cellParts = "head column-header";
+  static override properties = {
+    ...UITableCellBase.properties,
+    scope: { type: String, reflect: true },
+  };
+
+  /** Selectable axis represented by this header; `none` is useful for a grid corner. */
+  declare scope: TableHeaderScope;
+
+  constructor() {
+    super();
+    this.scope = "column";
+  }
+
+  protected get cellRole(): "columnheader" | "rowheader" {
+    return this.scope === "row" ? "rowheader" : "columnheader";
+  }
+
+  protected get cellParts(): string {
+    return this.scope === "row" ? "head row-header" : "head column-header";
+  }
 }
 
 /**
@@ -270,13 +346,22 @@ export class UITableHead extends UITableCellBase {
  * @mashnode root cell
  * @mashnode content content root
  * @mashnode column-index column-index root
+ * @mashnode interactive interactive root
+ * @mashnode selected selected root
+ * @mashnode active active root
+ * @mashnode editable editable root
  * @mashrole part root cell root
  * @mashrole slot default content content
  * @mashrole part content content content
  */
 export class UITableCell extends UITableCellBase {
-  protected cellRole = "cell" as const;
-  protected cellParts = "cell";
+  protected get cellRole(): "cell" {
+    return "cell";
+  }
+
+  protected get cellParts(): string {
+    return "cell";
+  }
 }
 
 /**

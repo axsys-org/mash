@@ -24,4 +24,10 @@ export const baseStyles = css`
   :host([hidden]) {
     display: none !important;
   }
+
+  /* Author-level part recipes can otherwise outrank the browser's weak
+     hidden default and accidentally reveal an empty semantic lane. */
+  [hidden] {
+    display: none !important;
+  }
 `;

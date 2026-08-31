@@ -5,6 +5,8 @@ import { fixture, inShadow, settled } from "./test-support/fixture.js";
 import type { UIAccordionItem } from "./accordion-item/accordion-item.js";
 import type { UICombobox } from "./combobox/combobox.js";
 import type { OverlayOpenChangeDetail } from "./internal/overlay.js";
+import type { UIMenuItem } from "./menu-item/menu-item.js";
+import type { UIMenu } from "./menu/menu.js";
 import type { UINumberField } from "./number-field/number-field.js";
 import type { UIOption } from "./option/option.js";
 import type { UIOtpField } from "./otp-field/otp-field.js";
@@ -395,6 +397,97 @@ describe("Base UI control families", () => {
 
     expect(selections).toEqual(["archive"]);
     expect(menu.hasAttribute("open")).toBe(false);
+  });
+
+  it("exposes semantic menu lanes and checked item roles", async () => {
+    const item = await fixture<UIMenuItem>(`
+      <ui-menu-item kind="checkbox" value="sidebar" checked>
+        Show sidebar
+        <span slot="prefix">□</span>
+        <span slot="shortcut">⌘S</span>
+      </ui-menu-item>
+    `);
+    const control = inShadow<HTMLButtonElement>(item, "[part~=control]");
+
+    expect(control.getAttribute("role")).toBe("menuitemcheckbox");
+    expect(control.getAttribute("aria-checked")).toBe("true");
+    for (const part of [
+      "selection",
+      "prefix",
+      "label",
+      "label-viewport",
+      "label-content",
+      "shortcut",
+      "chevron",
+      "safe-triangle",
+    ]) {
+      expect(inShadow(item, `[part~="${part}"]`)).toBeInstanceOf(HTMLElement);
+    }
+  });
+
+  it("opens a nested menu from its branch and closes the full leaf after selection", async () => {
+    const menu = await fixture<UIMenu>(`
+      <ui-menu label="Actions" open>
+        <button slot="trigger">Actions</button>
+        <ui-menu-item value="share">
+          Share
+          <ui-menu slot="submenu" label="Share with">
+            <ui-menu-item value="email">Email</ui-menu-item>
+          </ui-menu>
+        </ui-menu-item>
+      </ui-menu>
+    `);
+    const branch = menu.querySelector<UIMenuItem>(":scope > ui-menu-item")!;
+    const submenu = branch.querySelector<UIMenu>(":scope > ui-menu")!;
+    const selections: string[] = [];
+    menu.addEventListener("ui-menu-select", (event) => {
+      selections.push((event as CustomEvent<{ value: string }>).detail.value);
+    });
+
+    expect(inShadow(menu, '[part~="material"]')).toBeInstanceOf(HTMLElement);
+    expect(branch.shadowRoot?.activeElement).toBeNull();
+
+    inShadow<HTMLButtonElement>(branch, "button").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, composed: true }),
+    );
+    await settled(menu.parentElement!);
+
+    expect(submenu.open).toBe(true);
+    expect(submenu.nested).toBe(true);
+    expect(submenu.anchorElement).toBe(inShadow(branch, "button"));
+    expect(inShadow(branch, "button").getAttribute("aria-expanded")).toBe("true");
+
+    const leaf = submenu.querySelector<UIMenuItem>("ui-menu-item")!;
+    expect(leaf.shadowRoot?.activeElement).toBe(inShadow(leaf, "button"));
+    inShadow<HTMLButtonElement>(leaf, "button").click();
+    await settled(menu.parentElement!);
+
+    expect(selections).toEqual(["email"]);
+    expect(submenu.open).toBe(false);
+    expect(menu.open).toBe(false);
+  });
+
+  it("opens pointer-owned submenus without adding a second focused row", async () => {
+    const menu = await fixture<UIMenu>(`
+      <ui-menu label="Actions" open>
+        <button slot="trigger">Actions</button>
+        <ui-menu-item value="share">
+          Share
+          <ui-menu slot="submenu" label="Share with">
+            <ui-menu-item value="email">Email</ui-menu-item>
+          </ui-menu>
+        </ui-menu-item>
+      </ui-menu>
+    `);
+    const branch = menu.querySelector<UIMenuItem>(":scope > ui-menu-item")!;
+    const submenu = branch.querySelector<UIMenu>(":scope > ui-menu")!;
+    const leaf = submenu.querySelector<UIMenuItem>("ui-menu-item")!;
+
+    branch.showSubmenu(false);
+    await settled(menu.parentElement!);
+
+    expect(submenu.open).toBe(true);
+    expect(leaf.shadowRoot?.activeElement).toBeNull();
   });
 
   it("selects listbox options and filters editable combobox suggestions", async () => {

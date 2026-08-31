@@ -23,6 +23,53 @@ const example = (
   options: Pick<CatalogExample, "compositionOnly" | "description" | "stageLayout"> = {},
 ): CatalogExample => ({ name, code: code.trim(), ...options });
 
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const alphabetSections = alphabet
+  .map(
+    (letter, index) => `
+      <section class="example-scroll-alpha-section" data-scroll-id="letter-${letter.toLowerCase()}" data-scroll-snap>
+        <strong>${letter}</strong>
+        <span>${["Archive", "Billing", "Contract", "Dependency", "Environment"][index % 5]} ${index + 1}</span>
+        <span>${["Owner", "Project", "Record", "Status", "Workspace"][(index + 2) % 5]}</span>
+      </section>`,
+  )
+  .join("");
+const alphabetDetents = alphabet
+  .map(
+    (letter) =>
+      `<button type="button" class="example-scroll-detent example-scroll-letter" slot="block-detents" data-scroll-target="letter-${letter.toLowerCase()}" data-scroll-behavior="smooth" aria-label="Scroll to ${letter}">${letter}</button>`,
+  )
+  .join("");
+const readingSections = Array.from(
+  { length: 16 },
+  (_, index) => `
+    <section class="example-scroll-reading-section" data-scroll-id="reading-${index + 1}" data-scroll-snap>
+      <span class="example-eyebrow">Section ${String(index + 1).padStart(2, "0")}</span>
+      <h3>${["Namespace contracts", "Motion ownership", "Renderer boundaries", "Semantic events"][index % 4]}</h3>
+      <p>Keep authored content independent from its scrollbar realization. The rail reports position and intent while the native viewport retains focus, touch, wheel, and keyboard behavior.</p>
+      <pre><code>scroll target-${index + 1} / detent-${String(index + 1).padStart(2, "0")}</code></pre>
+    </section>`,
+).join("");
+const readingDetents = Array.from({ length: 32 }, (_, index) => {
+  const percentage = (index / 31) * 100;
+  const major = index % 4 === 0;
+  return `<span class="example-scroll-detent example-scroll-reading-detent${major ? " example-scroll-reading-detent-major" : ""}" slot="block-detents" data-scroll-detent="${percentage.toFixed(3)}" aria-hidden="true"></span>`;
+}).join("");
+const scrollCanvasRows = Array.from({ length: 12 }, (_rowValue, rowIndex) => {
+  const row = rowIndex + 1;
+  const cards = Array.from({ length: 8 }, (_columnValue, columnIndex) => {
+    const column = columnIndex + 1;
+    const columnTarget = row === 1 ? ` data-scroll-id="column-${column}"` : "";
+    return `<ui-card class="example-scroll-canvas-card"${columnTarget}>
+      <strong slot="title">${String.fromCharCode(64 + column)}${row}</strong>
+      <span slot="description">Namespace cell</span>
+      <ui-badge slot="value">${row * column}</ui-badge>
+      <span slot="content">Renderer-neutral content at row ${row}, column ${column}.</span>
+    </ui-card>`;
+  }).join("");
+  return `<section class="example-scroll-canvas-row" data-scroll-id="row-${row}">${cards}</section>`;
+}).join("");
+
 /**
  * Compositions that demonstrate a component in a real UI relationship.
  *
@@ -31,6 +78,463 @@ const example = (
  * is documentation for the system, not a new public API on either primitive.
  */
 const curated: Record<string, CatalogExample[]> = {
+  "ui-gesture-binding": [
+    example(
+      "Command convergence",
+      `
+        <section id="gesture-command-surface" class="catalog-example example-gesture-command" tabindex="0" data-catalog-gesture-demo>
+          <ui-card>
+            <div slot="header" class="example-card-heading">
+              <span><strong>Inspect billing migration</strong><span class="example-support">Press the surface or use the same keyboard command.</span></span>
+              <ui-kbd command="workspace.inspect" shortcut="Primary+K">⌘/Ctrl K</ui-kbd>
+            </div>
+            <p slot="content">Pointer and keyboard recognizers produce one parent-owned semantic intent.</p>
+          </ui-card>
+          <div class="example-gesture-status">
+            <ui-badge data-catalog-gesture-state>idle</ui-badge>
+            <output data-catalog-gesture-output>Waiting for workspace.inspect</output>
+          </div>
+          <ui-gesture-binding for="gesture-command-surface" gesture="press" command="workspace.inspect" group="invoke"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-command-surface" gesture="key" shortcut="Primary+K" command="workspace.inspect" group="invoke" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-command-surface" gesture="hover" command="workspace.preview" group="presence" simultaneous></ui-gesture-binding>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Press, hover, and a portable Primary+K chord remain distinct recognizers while semantic commands provide the shared integration boundary. ui-kbd only advertises the binding.",
+      },
+    ),
+    example(
+      "Gesture arena",
+      `
+        <section class="catalog-example example-gesture-arena-shell" data-catalog-gesture-demo>
+          <div id="gesture-arena-surface" class="example-gesture-arena" tabindex="0" data-catalog-gesture-drag>
+            <ui-icon name="action.drag" label="Gesture arena"></ui-icon>
+            <div><strong>Project card gesture arena</strong><span>Press selects · hold previews · drag moves · wheel scrubs</span></div>
+            <ui-kbd command="canvas.select" shortcut="Enter">↩</ui-kbd>
+          </div>
+          <div class="example-gesture-status">
+            <ui-badge data-catalog-gesture-state>possible</ui-badge>
+            <output data-catalog-gesture-output>Move far enough for drag to defeat press.</output>
+          </div>
+          <ui-gesture-binding id="arena-press" for="gesture-arena-surface" gesture="press" command="canvas.select" group="canvas" threshold="8"></ui-gesture-binding>
+          <ui-gesture-binding id="arena-preview" for="gesture-arena-surface" gesture="long-press" command="canvas.preview" group="canvas" priority="5" delay="550"></ui-gesture-binding>
+          <ui-gesture-binding id="arena-drag" for="gesture-arena-surface" gesture="drag" command="canvas.move" group="canvas" priority="10" threshold="6" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-arena-surface" gesture="wheel" command="canvas.scrub" group="scroll" axis="y" simultaneous prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-arena-surface" gesture="key" shortcut="Enter" command="canvas.select" group="canvas" prevent-default="recognized"></ui-gesture-binding>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "One target hosts competing discrete and continuous recognizers. Priority, threshold, group, and simultaneous policies decide which semantic command wins without teaching the primitive what a project card means.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Shortcut command map",
+      `
+        <section id="gesture-shortcut-surface" class="catalog-example example-gesture-shortcuts" tabindex="0" data-catalog-gesture-demo>
+          <div class="example-gesture-heading">
+            <span><strong>Workspace commands</strong><span class="example-support">Focus this panel, then invoke any command by pointer or keyboard.</span></span>
+            <ui-badge data-catalog-gesture-state>focused target</ui-badge>
+          </div>
+          <div class="example-gesture-command-list">
+            <ui-button id="gesture-command-search" type="button" variant="quiet" data-gesture-command-label="Search projects">
+              <ui-icon name="action.search" label=""></ui-icon><span>Search projects</span><ui-kbd command="workspace.search" shortcut="Primary+K">⌘/CTRL K</ui-kbd>
+            </ui-button>
+            <ui-button id="gesture-command-palette" type="button" variant="quiet" data-gesture-command-label="Open command palette">
+              <ui-icon name="object.terminal" label=""></ui-icon><span>Command palette</span><ui-kbd command="workspace.palette" shortcut="Primary+Shift+P">⇧ ⌘/CTRL P</ui-kbd>
+            </ui-button>
+            <ui-button id="gesture-command-dismiss" type="button" variant="quiet" data-gesture-command-label="Dismiss current layer">
+              <ui-icon name="action.dismiss" label=""></ui-icon><span>Dismiss layer</span><ui-kbd command="workspace.dismiss" shortcut="Escape">ESC</ui-kbd>
+            </ui-button>
+          </div>
+          <div class="example-gesture-status">
+            <ui-badge>command</ui-badge>
+            <output data-catalog-gesture-output>Waiting for a workspace command.</output>
+          </div>
+          <ui-gesture-binding for="gesture-command-search" gesture="press" command="workspace.search" group="search"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-shortcut-surface" gesture="key" shortcut="Primary+K" command="workspace.search" group="search" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-command-palette" gesture="press" command="workspace.palette" group="palette"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-shortcut-surface" gesture="key" shortcut="Primary+Shift+P" command="workspace.palette" group="palette" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-command-dismiss" gesture="press" command="workspace.dismiss" group="dismiss"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-shortcut-surface" gesture="key" shortcut="Escape" command="workspace.dismiss" group="dismiss" prevent-default="recognized"></ui-gesture-binding>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "One focusable command scope owns several keyboard bindings while the visible buttons retain their normal pointer path. ui-kbd describes the contract without executing it.",
+      },
+    ),
+    example(
+      "Modifier range selection",
+      `
+        <section class="catalog-example example-gesture-selection" data-catalog-gesture-demo data-gesture-selection-demo>
+          <div class="example-gesture-heading">
+            <span><strong>Issue range</strong><span class="example-support">Select an anchor, then Shift-click another issue to extend the range.</span></span>
+            <ui-kbd>SHIFT + CLICK</ui-kbd>
+          </div>
+          <div class="example-gesture-selection-list" role="listbox" aria-label="Issues" aria-multiselectable="true">
+            <ui-button id="gesture-select-0" type="button" variant="quiet" role="option" aria-selected="false" data-gesture-selection-key="MAS-142"><ui-badge size="small">MAS-142</ui-badge><span>Preserve filter state</span></ui-button>
+            <ui-button id="gesture-select-1" type="button" variant="quiet" role="option" aria-selected="false" data-gesture-selection-key="MAS-138"><ui-badge size="small">MAS-138</ui-badge><span>Keyboard navigation</span></ui-button>
+            <ui-button id="gesture-select-2" type="button" variant="quiet" role="option" aria-selected="false" data-gesture-selection-key="MAS-133"><ui-badge size="small">MAS-133</ui-badge><span>Cycle progress</span></ui-button>
+            <ui-button id="gesture-select-3" type="button" variant="quiet" role="option" aria-selected="false" data-gesture-selection-key="MAS-129"><ui-badge size="small">MAS-129</ui-badge><span>Project permissions</span></ui-button>
+          </div>
+          <div class="example-gesture-status"><ui-badge data-catalog-gesture-state>idle</ui-badge><output data-catalog-gesture-output>Select an issue.</output></div>
+          ${[0, 1, 2, 3]
+            .map(
+              (index) => `
+                <ui-gesture-binding for="gesture-select-${index}" gesture="press" command="selection.set" group="selection-${index}"></ui-gesture-binding>
+                <ui-gesture-binding for="gesture-select-${index}" gesture="press" modifiers="Shift" command="selection.extend" group="selection-${index}" priority="1"></ui-gesture-binding>`,
+            )
+            .join("")}
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Exact modifier chords turn ordinary pointer input into distinct semantic commands. The parent example, not the recognizer, owns the anchor and selected range.",
+      },
+    ),
+    example(
+      "Continuous timeline scrub",
+      `
+        <section class="catalog-example example-gesture-scrubber" data-catalog-gesture-demo data-gesture-scrubber data-gesture-value="46">
+          <div class="example-gesture-heading">
+            <span><strong>Timeline position</strong><span class="example-support">Drag the track, use the wheel, press the step buttons, or use arrow keys.</span></span>
+            <output data-gesture-value-output>46%</output>
+          </div>
+          <div id="gesture-scrub-track" class="example-gesture-scrub-track" tabindex="0">
+            <ui-progress value="46" label="Timeline position 46 percent" data-gesture-progress></ui-progress>
+            <span class="example-gesture-scrub-thumb" aria-hidden="true"></span>
+          </div>
+          <ui-toolbar aria-label="Timeline controls">
+            <ui-button id="gesture-step-back" type="button" size="small" variant="secondary" aria-label="Step backward">−</ui-button>
+            <div class="example-gesture-status"><ui-badge data-catalog-gesture-state>idle</ui-badge><output data-catalog-gesture-output>Ready to scrub.</output></div>
+            <ui-button id="gesture-step-forward" type="button" size="small" variant="secondary" aria-label="Step forward">+</ui-button>
+          </ui-toolbar>
+          <ui-gesture-binding for="gesture-scrub-track" gesture="drag" axis="x" threshold="2" command="timeline.scrub" group="timeline" priority="10" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-scrub-track" gesture="wheel" axis="both" command="timeline.scrub" group="timeline-wheel" simultaneous prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-scrub-track" gesture="key" shortcut="ArrowLeft" command="timeline.step-back" group="timeline-key" prevent-default="recognized" repeat></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-scrub-track" gesture="key" shortcut="ArrowRight" command="timeline.step-forward" group="timeline-key" prevent-default="recognized" repeat></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-step-back" gesture="press" command="timeline.step-back" group="timeline-step-back"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-step-forward" gesture="press" command="timeline.step-forward" group="timeline-step-forward"></ui-gesture-binding>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Drag, wheel, keyboard, and buttons converge on a controlled timeline value. The gesture layer reports input deltas; the example owns clamping, progress, and presentation.",
+      },
+    ),
+    example(
+      "Transient hover preview",
+      `
+        <section class="catalog-example example-gesture-preview" data-catalog-gesture-demo data-gesture-preview-demo>
+          <div class="example-gesture-preview-list" aria-label="Projects">
+            <ui-button id="gesture-preview-billing" type="button" variant="quiet" data-gesture-preview-title="Billing migration" data-gesture-preview-copy="Payment infrastructure moves to the new ledger on Friday."><ui-badge size="small" tone="positive">Active</ui-badge><span>Billing migration</span></ui-button>
+            <ui-button id="gesture-preview-invoice" type="button" variant="quiet" data-gesture-preview-title="Invoice reconciliation" data-gesture-preview-copy="Three accounting exceptions still need an owner."><ui-badge size="small" tone="warning">Review</ui-badge><span>Invoice reconciliation</span></ui-button>
+            <ui-button id="gesture-preview-archive" type="button" variant="quiet" data-gesture-preview-title="Archive import" data-gesture-preview-copy="Historical records are paused while retention rules are verified."><ui-badge size="small">Paused</ui-badge><span>Archive import</span></ui-button>
+          </div>
+          <ui-card class="example-gesture-preview-card" data-gesture-preview-card>
+            <strong slot="title" data-gesture-preview-card-title>Hover a project</strong>
+            <span slot="description" data-gesture-preview-card-copy>Transient preview state appears here.</span>
+          </ui-card>
+          <div class="example-gesture-status"><ui-badge data-catalog-gesture-state>idle</ui-badge><output data-catalog-gesture-output>Waiting for hover intent.</output></div>
+          <ui-gesture-binding for="gesture-preview-billing" gesture="hover" command="preview.project" group="preview"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-preview-invoice" gesture="hover" command="preview.project" group="preview"></ui-gesture-binding>
+          <ui-gesture-binding for="gesture-preview-archive" gesture="hover" command="preview.project" group="preview"></ui-gesture-binding>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Hover emits a began/ended lifecycle instead of mutating a popover. The parent decides what preview surface to populate and how to clear transient state.",
+      },
+    ),
+  ],
+  "ui-icon": [
+    example(
+      "Semantic Carbon vocabulary",
+      `
+        <div class="catalog-example example-icon-library">
+          <span><ui-icon name="action.search" label="Search"></ui-icon>Search</span>
+          <span><ui-icon name="action.settings" label="Settings"></ui-icon>Settings</span>
+          <span><ui-icon name="object.folder" label="Folder"></ui-icon>Folder</span>
+          <span><ui-icon name="object.terminal" label="Terminal"></ui-icon>Terminal</span>
+          <span><ui-icon name="status.warning" label="Warning"></ui-icon>Warning</span>
+          <span><ui-icon name="action.drag" label="Drag"></ui-icon>Drag</span>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Mash exposes semantic names while a generated, curated Carbon registry supplies the current glyph realization.",
+      },
+    ),
+    example(
+      "Replaceable layers",
+      `
+        <div class="catalog-example example-icon-library">
+          <ui-icon name="object.folder" size="large" label="Billing folder with warning">
+            <ui-icon slot="badge" name="status.warning" size="small"></ui-icon>
+          </ui-icon>
+          <ui-icon name="action.search" size="large" label="Custom search state">
+            <span slot="secondary" class="example-icon-state-dot" aria-hidden="true"></span>
+          </ui-icon>
+          <ui-icon name="product.unknown" size="large" label="Authored fallback">
+            <span slot="fallback" aria-hidden="true">◇</span>
+          </ui-icon>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Primary, secondary, badge, and fallback lanes keep application anatomy independent from Carbon.",
+      },
+    ),
+  ],
+  "ui-motion": [
+    example(
+      "Arbitrary component lifecycle",
+      `
+        <section class="catalog-example example-motion-demo" data-catalog-motion-demo>
+          <ui-motion class="example-motion-scene" motion="slide-inline" state="idle" target="content" data-catalog-motion>
+            <ui-card title="Billing migration" description="Any authored component can move.">
+              <p slot="content">Motion owns the lifecycle; the card remains unaware of it.</p>
+            </ui-card>
+            <ui-badge slot="indicator" tone="positive">Live</ui-badge>
+          </ui-motion>
+          <ui-toolbar label="Motion lifecycle controls">
+            <ui-button size="small" variant="secondary" data-catalog-motion-state="entering">Enter</ui-button>
+            <ui-button size="small" variant="secondary" data-catalog-motion-state="active">Active</ui-button>
+            <ui-button size="small" variant="secondary" data-catalog-motion-state="exiting">Exit</ui-button>
+            <ui-button size="small" variant="quiet" data-catalog-motion-state="idle">Reset</ui-button>
+          </ui-toolbar>
+          <output data-catalog-motion-output>Idle</output>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "A renderer-neutral state and event contract coordinates an ordinary card without adding animation attributes to ui-card.",
+      },
+    ),
+    example(
+      "Layered drop anatomy",
+      `
+        <section class="catalog-example example-motion-drop" data-catalog-motion-demo>
+          <ui-motion class="example-motion-scene" motion="pulse" state="loading" target="overlay" data-catalog-motion>
+            <ui-card title="Invoice reconciliation" description="Drop a view before this row"></ui-card>
+            <span slot="underlay" class="example-motion-wash"></span>
+            <ui-separator slot="overlay" orientation="horizontal">
+              <span slot="prefix" aria-hidden="true">●</span>
+            </ui-separator>
+            <ui-kbd slot="indicator">⌘ ⇧ P</ui-kbd>
+          </ui-motion>
+          <p class="example-support">Underlay, content, overlay, and indicator are independent motion lanes.</p>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "The same scene primitive can realize drag feedback, overlays, progress, or any other layered composition.",
+      },
+    ),
+  ],
+  "ui-kbd": [
+    example(
+      "Shortcut vocabulary",
+      `
+        <div class="catalog-example example-shortcut-list">
+          <span><ui-icon name="action.search"></ui-icon>Command search <span><ui-kbd>⌘</ui-kbd><ui-kbd>K</ui-kbd></span></span>
+          <span><ui-icon name="navigation.up"></ui-icon>Move issue <span><ui-kbd>⌥</ui-kbd><ui-kbd>⇧</ui-kbd><ui-kbd>↑</ui-kbd></span></span>
+          <span><ui-icon name="action.dismiss"></ui-icon>Dismiss <span><ui-kbd>⎋</ui-kbd></span></span>
+          <span><ui-icon name="action.delete"></ui-icon>Delete backward <span><ui-kbd>⌫</ui-kbd></span></span>
+          <span><ui-icon name="action.confirm"></ui-icon>Commit <span><ui-kbd>⌘</ui-kbd><ui-kbd>↩</ui-kbd></span></span>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Keyboard modifiers remain portable Unicode text; Carbon supplies only the surrounding action vocabulary.",
+      },
+    ),
+  ],
+  "ui-draggable": [
+    example(
+      "Movable project card",
+      `
+        <div class="catalog-example example-drag-boundary" data-catalog-drag-boundary>
+          <ui-draggable snap-step="16" containment="parent">
+            <ui-toolbar slot="handle" class="example-drag-titlebar" label="Move project card">
+              <ui-badge>Drag project</ui-badge>
+              <span>Billing migration</span>
+            </ui-toolbar>
+            <ui-card title="Billing migration" description="Interzone project" elevation="raised">
+              <p slot="content">Replace the legacy invoice flow before the next billing cycle.</p>
+            </ui-card>
+          </ui-draggable>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "A dedicated toolbar handle moves a real card; parent containment and grid snapping remain ui-draggable concerns.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Constrained axes",
+      `
+        <div class="catalog-example example-drag-boundary" data-catalog-drag-boundary>
+          <ui-draggable axis="x" containment="parent" snap-step="24">
+            <ui-badge slot="handle">Horizontal only</ui-badge>
+            <ui-card title="Timeline handle">Movement remains on the inline axis.</ui-card>
+          </ui-draggable>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The same primitive narrows movement without inventing an axis-specific wrapper.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Resizable workspace window",
+      `
+        <div class="catalog-example example-window-stage" data-catalog-drag-boundary>
+          <ui-draggable
+            class="example-drag-window"
+            containment="parent"
+            aria-label="Floating billing workspace"
+          >
+            <ui-toolbar slot="handle" class="example-window-titlebar" label="Move billing workspace">
+              <span class="example-window-traffic" aria-hidden="true">● ● ●</span>
+              <strong>Billing migration</strong>
+              <ui-badge size="small">workspace</ui-badge>
+            </ui-toolbar>
+            <ui-resizable class="example-window-panes" orientation="horizontal" label="Window panels">
+              <ui-resizable-panel size="176" min="128" max="240">
+                <ui-tree label="Billing workspace">
+                  <ui-tree-item kind="folder" title="Project" expanded>
+                    <ui-tree-item slot="children" kind="file" title="Overview" selected></ui-tree-item>
+                    <ui-tree-item slot="children" kind="file" title="Invoices"></ui-tree-item>
+                    <ui-tree-item slot="children" kind="file" title="Activity"></ui-tree-item>
+                  </ui-tree-item>
+                </ui-tree>
+              </ui-resizable-panel>
+              <ui-resizable-handle label="Resize window sidebar"></ui-resizable-handle>
+              <ui-resizable-panel min="176">
+                <ui-card title="Invoice reconciliation" description="Updated 8 minutes ago">
+                  <p slot="content">Drag the title bar, resize the outer window, or move its internal panel separator.</p>
+                </ui-card>
+              </ui-resizable-panel>
+            </ui-resizable>
+          </ui-draggable>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "ui-draggable owns window movement, native CSS owns the outer resize affordance, and ui-resizable owns the internal panel split.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Kanban board",
+      `
+        <section class="catalog-example example-kanban-board" data-catalog-kanban-workspace>
+          <header class="example-kanban-heading">
+            <div>
+              <span class="example-eyebrow">Interzone</span>
+              <h2>Billing launch</h2>
+            </div>
+            <ui-badge size="small">6 issues</ui-badge>
+          </header>
+          <div class="example-kanban-columns" data-catalog-drag-boundary>
+            <section class="example-kanban-column" data-catalog-kanban-column="backlog">
+              <header class="example-kanban-column-heading">
+                <strong>Backlog</strong>
+                <ui-badge size="small">2</ui-badge>
+              </header>
+              <div class="example-kanban-list" data-catalog-kanban-list>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Audit invoice states" data-catalog-kanban-id="axi-72">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Audit invoice states">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-72</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Audit invoice states" description="Billing migration">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="MC" size="small"></ui-avatar><span>Maya · Medium</span></div>
+                  </ui-card>
+                </ui-draggable>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Archive legacy receipts" data-catalog-kanban-id="axi-74">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Archive legacy receipts">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-74</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Archive legacy receipts" description="Records">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="AR" size="small"></ui-avatar><span>Alex · Low</span></div>
+                  </ui-card>
+                </ui-draggable>
+              </div>
+            </section>
+            <section class="example-kanban-column" data-catalog-kanban-column="progress">
+              <header class="example-kanban-column-heading">
+                <strong>In progress</strong>
+                <ui-badge size="small">2</ui-badge>
+              </header>
+              <div class="example-kanban-list" data-catalog-kanban-list>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Reconcile tax totals" data-catalog-kanban-id="axi-68">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Reconcile tax totals">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-68</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Reconcile tax totals" description="Operations">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="SO" size="small"></ui-avatar><span>Sam · High</span></div>
+                  </ui-card>
+                </ui-draggable>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Wire activity events" data-catalog-kanban-id="axi-70">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Wire activity events">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-70</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Wire activity events" description="Notifications">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="JB" size="small"></ui-avatar><span>Jo · Medium</span></div>
+                  </ui-card>
+                </ui-draggable>
+              </div>
+            </section>
+            <section class="example-kanban-column" data-catalog-kanban-column="review">
+              <header class="example-kanban-column-heading">
+                <strong>Review</strong>
+                <ui-badge size="small">2</ui-badge>
+              </header>
+              <div class="example-kanban-list" data-catalog-kanban-list>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Verify billing exports" data-catalog-kanban-id="axi-64">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Verify billing exports">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-64</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Verify billing exports" description="Finance">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="MC" size="small"></ui-avatar><span>Maya · High</span></div>
+                  </ui-card>
+                </ui-draggable>
+                <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card" data-catalog-drag-source="kanban-card" data-catalog-label="Polish empty states" data-catalog-kanban-id="axi-66">
+                  <ui-toolbar slot="handle" class="example-kanban-card-handle" label="Move Polish empty states">
+                    <span class="example-drag-grip" aria-hidden="true">⠿</span>
+                    <ui-badge size="small">AXI-66</ui-badge>
+                  </ui-toolbar>
+                  <ui-card title="Polish empty states" description="Catalogue">
+                    <div slot="content" class="example-kanban-card-meta"><ui-avatar fallback="AR" size="small"></ui-avatar><span>Alex · Low</span></div>
+                  </ui-card>
+                </ui-draggable>
+              </div>
+            </section>
+          </div>
+          <ui-separator class="example-drop-indicator" data-catalog-drop-indicator orientation="horizontal" hidden>
+            <span slot="prefix" class="example-drop-indicator-circle" aria-hidden="true"></span>
+          </ui-separator>
+          <output class="example-support" data-catalog-kanban-status aria-live="polite">Drag a card between columns or anywhere along a column detent.</output>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Cards move and reorder across semantic columns with detent targeting, a prefixed ui-separator insertion preview, ambiguous-drop cancellation, and no Kanban behavior baked into ui-draggable.",
+        stageLayout: "fill",
+      },
+    ),
+  ],
   "ui-link": [
     example(
       "Variants and states",
@@ -161,6 +665,78 @@ const curated: Record<string, CatalogExample[]> = {
         compositionOnly: true,
         description:
           "Long inline destinations wrap with prose while standalone and quiet actions remain distinct inside a real card.",
+        stageLayout: "start",
+      },
+    ),
+  ],
+  "ui-path": [
+    example(
+      "Breadcrumb navigation",
+      `
+        <div class="catalog-example example-path-showcase">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Namespace</span>
+            <h2>Every ancestor remains reachable</h2>
+            <p>The terminal title can stay human-readable while each preceding segment resolves to its cumulative path.</p>
+          </header>
+          <ui-path
+            class="example-path-narrow"
+            variant="breadcrumb"
+            path="/interzone/projects/billing-migration/invoice-reconciliation"
+            aria-label="Project namespace"
+          >
+            <span slot="title">Invoice reconciliation</span>
+          </ui-path>
+          <p class="example-support">The current segment is preserved at the inline end; clipped ancestors remain discoverable through the progressive edge treatment.</p>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Breadcrumb is a ui-path variant, not a second component. Ancestors use cumulative native destinations and the terminal segment owns aria-current.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Preview overflow",
+      `
+        <div class="catalog-example example-path-showcase">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Overflow contract</span>
+            <h2>Meaning decides which edge survives</h2>
+            <p>Pretty titles preserve their beginning; raw paths preserve the terminal namespace.</p>
+          </header>
+          <div class="example-path-case">
+            <span>pretty title · inline start</span>
+            <ui-path
+              class="example-path-narrow"
+              path="/interzone/projects/billing-migration/invoice-reconciliation"
+            >
+              <span slot="title">Invoice reconciliation requirements for international billing</span>
+            </ui-path>
+          </div>
+          <div class="example-path-case">
+            <span>raw path · inline end</span>
+            <ui-path
+              class="example-path-narrow"
+              path="/interzone/projects/billing-migration/invoice-reconciliation"
+            ></ui-path>
+          </div>
+          <div class="example-path-case">
+            <span>compact current location</span>
+            <ui-path
+              class="example-path-narrow"
+              size="small"
+              current
+              path="/interzone/projects/billing-migration/invoice-reconciliation"
+            >
+              <span slot="title">Invoice reconciliation requirements</span>
+            </ui-path>
+          </div>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The component emits logical overflow states; the Mash catalogue recipe applies the shared mask and progressive blur tokens.",
         stageLayout: "start",
       },
     ),
@@ -310,6 +886,355 @@ const curated: Record<string, CatalogExample[]> = {
       },
     ),
     example(
+      "Issue tracker workspace",
+      `
+        <div class="catalog-example example-linear-workspace" data-linear-workspace data-linear-view="list" data-inspector-open="false">
+          <aside class="example-linear-sidebar">
+            <ui-navigation-menu class="example-linear-navigation" label="Axiomatic workspace">
+              <div class="example-linear-identity">
+                <ui-avatar size="small">AX</ui-avatar>
+                <span class="example-linear-identity-copy">
+                  <strong>Axiomatic</strong>
+                  <span>Product workspace</span>
+                </span>
+                <ui-button type="button" size="small" variant="quiet" aria-label="Switch workspace">⌄</ui-button>
+              </div>
+
+              <ui-input class="example-linear-search" data-linear-search type="search" size="small" label="Search issues" placeholder="Search issues…"></ui-input>
+
+              <div class="example-linear-nav-list">
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#inbox"><span slot="prefix" aria-hidden="true">◫</span>Inbox<ui-badge slot="suffix" size="small">4</ui-badge></ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#my-issues"><span slot="prefix" aria-hidden="true">◉</span>My issues</ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#issues" current><span slot="prefix" aria-hidden="true">◇</span>Issues<ui-badge slot="suffix" size="small">24</ui-badge></ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#cycles"><span slot="prefix" aria-hidden="true">↻</span>Cycles</ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#projects"><span slot="prefix" aria-hidden="true">▣</span>Projects</ui-link>
+              </div>
+
+              <ui-separator></ui-separator>
+
+              <div class="example-linear-nav-section">
+                <div class="example-linear-nav-heading"><strong>Teams</strong><ui-button type="button" size="small" variant="quiet" aria-label="Add team">＋</ui-button></div>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#product"><span slot="prefix" class="example-linear-team-mark" aria-hidden="true">P</span>Product</ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#engineering"><span slot="prefix" class="example-linear-team-mark" aria-hidden="true">E</span>Engineering</ui-link>
+                <ui-link class="example-linear-nav-link" variant="quiet" href="#design"><span slot="prefix" class="example-linear-team-mark" aria-hidden="true">D</span>Design</ui-link>
+              </div>
+
+              <div class="example-linear-cycle">
+                <div class="example-linear-cycle-copy"><span>Cycle 42</span><span>64%</span></div>
+                <ui-progress value="64" label="Cycle 42 is 64 percent complete"></ui-progress>
+                <span>9 days remaining</span>
+              </div>
+            </ui-navigation-menu>
+
+            <ui-dialog class="example-linear-new-issue" data-linear-create-dialog label="Create issue">
+              <ui-button slot="trigger" type="button">＋ New issue <ui-kbd>C</ui-kbd></ui-button>
+              <h2 slot="title">Create issue</h2>
+              <p slot="description">Add an issue to the Product team backlog.</p>
+              <div class="example-stack">
+                <ui-field label="Title"><ui-input slot="control" data-linear-create-title name="title" placeholder="Issue title"></ui-input></ui-field>
+                <ui-field label="Status">
+                  <ui-select slot="control" data-linear-create-status name="status" value="backlog" label="Issue status">
+                    <ui-option value="backlog">Backlog</ui-option>
+                    <ui-option value="todo">Todo</ui-option>
+                    <ui-option value="progress">In progress</ui-option>
+                  </ui-select>
+                </ui-field>
+              </div>
+              <div slot="close" class="example-actions">
+                <ui-button variant="secondary">Cancel</ui-button>
+                <ui-button data-linear-create-action>Create issue</ui-button>
+              </div>
+            </ui-dialog>
+          </aside>
+
+          <main class="example-linear-shell">
+            <header class="example-linear-topbar">
+              <div class="example-linear-breadcrumb">
+                <ui-drawer class="example-linear-mobile-navigation" side="start" label="Workspace navigation">
+                  <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Open workspace navigation">☰</ui-button>
+                  <h2 slot="title">Axiomatic</h2>
+                  <p slot="description">Product workspace</p>
+                  <nav class="example-linear-mobile-nav" aria-label="Workspace">
+                    <ui-link class="example-linear-nav-link" variant="quiet" href="#inbox"><span slot="prefix" aria-hidden="true">◫</span>Inbox<ui-badge slot="suffix" size="small">4</ui-badge></ui-link>
+                    <ui-link class="example-linear-nav-link" variant="quiet" href="#my-issues"><span slot="prefix" aria-hidden="true">◉</span>My issues</ui-link>
+                    <ui-link class="example-linear-nav-link" variant="quiet" href="#issues" current><span slot="prefix" aria-hidden="true">◇</span>Issues<ui-badge slot="suffix" size="small">24</ui-badge></ui-link>
+                    <ui-link class="example-linear-nav-link" variant="quiet" href="#cycles"><span slot="prefix" aria-hidden="true">↻</span>Cycles</ui-link>
+                    <ui-link class="example-linear-nav-link" variant="quiet" href="#projects"><span slot="prefix" aria-hidden="true">▣</span>Projects</ui-link>
+                  </nav>
+                </ui-drawer>
+                <ui-button type="button" size="small" variant="quiet">Product</ui-button>
+                <span aria-hidden="true">/</span>
+                <strong>All issues</strong>
+              </div>
+              <div class="example-linear-top-actions">
+                <ui-dialog class="example-linear-command" data-linear-command-dialog label="Command menu">
+                  <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Open command menu">⌘ K</ui-button>
+                  <h2 slot="title">Command menu</h2>
+                  <p slot="description">Search or run an action on the active issue selection.</p>
+                  <ui-input data-linear-command-search type="search" label="Search commands" placeholder="Type a command…"></ui-input>
+                  <div class="example-linear-command-list" role="list" aria-label="Commands">
+                    <ui-button type="button" variant="quiet" data-linear-command="status-progress"><span>◒</span><span>Set status: In progress</span><ui-kbd>1</ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="status-done"><span>✓</span><span>Mark as done</span><ui-kbd>2</ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="priority-high"><span>↑</span><span>Set priority: High</span><ui-kbd>3</ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="assign-maya"><span>●</span><span>Assign to Maya</span><ui-kbd>4</ui-kbd></ui-button>
+                    <ui-button type="button" variant="quiet" data-linear-command="copy-link"><span>↗</span><span>Copy issue link</span></ui-button>
+                  </div>
+                </ui-dialog>
+                <ui-avatar size="small">MC</ui-avatar>
+              </div>
+            </header>
+
+            <div class="example-linear-content-grid">
+            <ui-scroll-area class="example-linear-scroll" label="Product issues workspace" mode="hover">
+              <section slot="content" class="example-linear-main" tabindex="-1">
+                <div class="example-linear-page-heading">
+                  <div class="example-linear-heading-copy">
+                    <span class="example-linear-eyebrow">Product · Issues</span>
+                    <h2>All issues</h2>
+                    <p>Track product work across the current cycle and backlog.</p>
+                  </div>
+                  <div class="example-linear-heading-actions">
+                    <ui-toggle-group data-linear-view-toggle mode="single" value="list" label="Issue view">
+                      <ui-toggle value="list" pressed>List</ui-toggle>
+                      <ui-toggle value="board">Board</ui-toggle>
+                    </ui-toggle-group>
+                    <ui-dialog data-linear-create-dialog label="Create issue">
+                      <ui-button slot="trigger" type="button">New issue</ui-button>
+                      <h2 slot="title">Create issue</h2>
+                      <p slot="description">Capture the work now; refine the details later.</p>
+                      <div class="example-stack">
+                        <ui-field label="Title"><ui-input slot="control" data-linear-create-title name="quick-title" placeholder="Issue title"></ui-input></ui-field>
+                        <ui-field label="Status">
+                          <ui-select slot="control" data-linear-create-status value="backlog" label="Issue status">
+                            <ui-option value="backlog">Backlog</ui-option>
+                            <ui-option value="todo">Todo</ui-option>
+                            <ui-option value="progress">In progress</ui-option>
+                          </ui-select>
+                        </ui-field>
+                      </div>
+                      <div slot="close" class="example-actions"><ui-button variant="secondary">Cancel</ui-button><ui-button data-linear-create-action>Create</ui-button></div>
+                    </ui-dialog>
+                  </div>
+                </div>
+
+                <ui-toolbar class="example-linear-filters" label="Issue filters">
+                  <ui-input class="example-linear-filter-search" data-linear-search type="search" size="small" label="Filter issues" placeholder="Filter issues…"></ui-input>
+                  <ui-menu data-linear-filter="status" label="Status filter">
+                    <ui-button slot="trigger" data-linear-filter-label type="button" size="small" variant="secondary">Status · All</ui-button>
+                    <ui-menu-item value="all">All statuses</ui-menu-item>
+                    <ui-menu-item value="backlog">Backlog</ui-menu-item>
+                    <ui-menu-item value="todo">Todo</ui-menu-item>
+                    <ui-menu-item value="progress">In progress</ui-menu-item>
+                    <ui-menu-item value="review">In review</ui-menu-item>
+                    <ui-menu-item value="done">Done</ui-menu-item>
+                  </ui-menu>
+                  <ui-menu data-linear-filter="assignee" label="Assignee filter">
+                    <ui-button slot="trigger" data-linear-filter-label type="button" size="small" variant="secondary">Assignee · All</ui-button>
+                    <ui-menu-item value="all">All assignees</ui-menu-item>
+                    <ui-menu-item value="maya">Maya Chen</ui-menu-item>
+                    <ui-menu-item value="sam">Sam Ortiz</ui-menu-item>
+                    <ui-menu-item value="alex">Alex Rivera</ui-menu-item>
+                    <ui-menu-item value="priya">Priya Jain</ui-menu-item>
+                  </ui-menu>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-clear-filters>Clear</ui-button>
+                  <output class="example-linear-result-count" data-linear-visible-count aria-live="polite">5 issues</output>
+                </ui-toolbar>
+
+                <div class="example-linear-list-heading">
+                  <div><strong>Active cycle</strong><ui-badge size="small" data-linear-group-count>5</ui-badge></div>
+                  <span>Cycle 42 · Aug 17–30 · <ui-kbd>J</ui-kbd> <ui-kbd>K</ui-kbd> to navigate</span>
+                </div>
+
+                <ui-toolbar class="example-linear-selection-toolbar" data-linear-selection-toolbar hidden label="Selected issue actions">
+                  <strong><span data-linear-selection-count>0</span> selected</strong>
+                  <ui-separator orientation="vertical"></ui-separator>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-command="status-done">✓ Mark done</ui-button>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-command="status-progress">◒ In progress</ui-button>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-command="assign-maya">● Assign Maya</ui-button>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-clear-selection aria-label="Clear selection">×</ui-button>
+                </ui-toolbar>
+
+                <div data-linear-list-view>
+
+                <ui-table class="example-linear-table" label="Product issues" row-count="6" column-count="6">
+                  <ui-table-header>
+                    <ui-table-row row-index="1">
+                      <ui-table-head column-index="1"><ui-checkbox data-linear-select-all><span class="sr-only">Select all visible issues</span></ui-checkbox></ui-table-head>
+                      <ui-table-head column-index="2">Key</ui-table-head>
+                      <ui-table-head column-index="3">Issue</ui-table-head>
+                      <ui-table-head column-index="4">Status</ui-table-head>
+                      <ui-table-head column-index="5">Priority</ui-table-head>
+                      <ui-table-head column-index="6">Assignee</ui-table-head>
+                    </ui-table-row>
+                  </ui-table-header>
+                  <ui-table-body>
+                    <ui-table-row row-index="2" data-linear-list-row data-linear-issue="MAS-142" data-title="Preserve filter state in shared views" data-area="Views" data-status="progress" data-priority="high" data-assignee="maya" data-initials="MC">
+                      <ui-table-cell column-index="1"><ui-checkbox data-linear-select data-linear-issue="MAS-142"><span class="sr-only">Select MAS-142</span></ui-checkbox></ui-table-cell>
+                      <ui-table-cell column-index="2"><span class="example-linear-key">MAS-142</span></ui-table-cell>
+                      <ui-table-cell column-index="3"><span class="example-linear-issue"><ui-link href="#mas-142" data-linear-open-issue="MAS-142">Preserve filter state in shared views</ui-link><span>Views</span></span></ui-table-cell>
+                      <ui-table-cell column-index="4"><ui-badge size="small" tone="positive">In progress</ui-badge></ui-table-cell>
+                      <ui-table-cell column-index="5"><span class="example-linear-priority" data-priority="high"><span aria-hidden="true">↑</span> High</span></ui-table-cell>
+                      <ui-table-cell column-index="6"><span class="example-linear-assignee"><ui-avatar size="small">MC</ui-avatar><span>Maya</span></span></ui-table-cell>
+                    </ui-table-row>
+                    <ui-table-row row-index="3" data-linear-list-row data-linear-issue="MAS-138" data-title="Ship keyboard navigation for issue lists" data-area="Accessibility" data-status="review" data-priority="urgent" data-assignee="sam" data-initials="SO">
+                      <ui-table-cell column-index="1"><ui-checkbox data-linear-select data-linear-issue="MAS-138"><span class="sr-only">Select MAS-138</span></ui-checkbox></ui-table-cell>
+                      <ui-table-cell column-index="2"><span class="example-linear-key">MAS-138</span></ui-table-cell>
+                      <ui-table-cell column-index="3"><span class="example-linear-issue"><ui-link href="#mas-138" data-linear-open-issue="MAS-138">Ship keyboard navigation for issue lists</ui-link><span>Accessibility</span></span></ui-table-cell>
+                      <ui-table-cell column-index="4"><ui-badge size="small" tone="warning">In review</ui-badge></ui-table-cell>
+                      <ui-table-cell column-index="5"><span class="example-linear-priority" data-priority="urgent"><span aria-hidden="true">!</span> Urgent</span></ui-table-cell>
+                      <ui-table-cell column-index="6"><span class="example-linear-assignee"><ui-avatar size="small">SO</ui-avatar><span>Sam</span></span></ui-table-cell>
+                    </ui-table-row>
+                    <ui-table-row row-index="4" data-linear-list-row data-linear-issue="MAS-133" data-title="Add cycle progress to team overview" data-area="Cycles" data-status="todo" data-priority="medium" data-assignee="alex" data-initials="AR">
+                      <ui-table-cell column-index="1"><ui-checkbox data-linear-select data-linear-issue="MAS-133"><span class="sr-only">Select MAS-133</span></ui-checkbox></ui-table-cell>
+                      <ui-table-cell column-index="2"><span class="example-linear-key">MAS-133</span></ui-table-cell>
+                      <ui-table-cell column-index="3"><span class="example-linear-issue"><ui-link href="#mas-133" data-linear-open-issue="MAS-133">Add cycle progress to team overview</ui-link><span>Cycles</span></span></ui-table-cell>
+                      <ui-table-cell column-index="4"><ui-badge size="small">Todo</ui-badge></ui-table-cell>
+                      <ui-table-cell column-index="5"><span class="example-linear-priority"><span aria-hidden="true">→</span> Medium</span></ui-table-cell>
+                      <ui-table-cell column-index="6"><span class="example-linear-assignee"><ui-avatar size="small">AR</ui-avatar><span>Alex</span></span></ui-table-cell>
+                    </ui-table-row>
+                    <ui-table-row row-index="5" data-linear-list-row data-linear-issue="MAS-129" data-title="Clarify archived project permissions" data-area="Projects" data-status="backlog" data-priority="low" data-assignee="priya" data-initials="PJ">
+                      <ui-table-cell column-index="1"><ui-checkbox data-linear-select data-linear-issue="MAS-129"><span class="sr-only">Select MAS-129</span></ui-checkbox></ui-table-cell>
+                      <ui-table-cell column-index="2"><span class="example-linear-key">MAS-129</span></ui-table-cell>
+                      <ui-table-cell column-index="3"><span class="example-linear-issue"><ui-link href="#mas-129" data-linear-open-issue="MAS-129">Clarify archived project permissions</ui-link><span>Projects</span></span></ui-table-cell>
+                      <ui-table-cell column-index="4"><ui-badge size="small">Backlog</ui-badge></ui-table-cell>
+                      <ui-table-cell column-index="5"><span class="example-linear-priority"><span aria-hidden="true">↓</span> Low</span></ui-table-cell>
+                      <ui-table-cell column-index="6"><span class="example-linear-assignee"><ui-avatar size="small">PJ</ui-avatar><span>Priya</span></span></ui-table-cell>
+                    </ui-table-row>
+                    <ui-table-row row-index="6" data-linear-list-row data-linear-issue="MAS-121" data-title="Normalize compact density tokens" data-area="Foundations" data-status="done" data-priority="medium" data-assignee="maya" data-initials="MC">
+                      <ui-table-cell column-index="1"><ui-checkbox data-linear-select data-linear-issue="MAS-121"><span class="sr-only">Select MAS-121</span></ui-checkbox></ui-table-cell>
+                      <ui-table-cell column-index="2"><span class="example-linear-key">MAS-121</span></ui-table-cell>
+                      <ui-table-cell column-index="3"><span class="example-linear-issue"><ui-link href="#mas-121" data-linear-open-issue="MAS-121">Normalize compact density tokens</ui-link><span>Foundations</span></span></ui-table-cell>
+                      <ui-table-cell column-index="4"><ui-badge size="small" tone="positive">Done</ui-badge></ui-table-cell>
+                      <ui-table-cell column-index="5"><span class="example-linear-priority"><span aria-hidden="true">→</span> Medium</span></ui-table-cell>
+                      <ui-table-cell column-index="6"><span class="example-linear-assignee"><ui-avatar size="small">MC</ui-avatar><span>Maya</span></span></ui-table-cell>
+                    </ui-table-row>
+                  </ui-table-body>
+                </ui-table>
+                </div>
+
+                <div class="example-linear-empty" data-linear-empty hidden>
+                  <ui-badge size="small">0 results</ui-badge>
+                  <strong>No issues match this view</strong>
+                  <span>Clear the filters or try a broader search.</span>
+                  <ui-button type="button" size="small" variant="secondary" data-linear-clear-filters>Clear filters</ui-button>
+                </div>
+
+                <div class="example-linear-board" data-linear-board-view data-linear-kanban-workspace hidden>
+                  <section class="example-linear-board-column" data-linear-board-column="progress" data-catalog-kanban-column="progress">
+                    <header><span><span class="example-linear-status-dot" data-status="progress"></span><strong data-catalog-kanban-column-label>In progress</strong></span><ui-badge size="small" data-linear-board-count>2</ui-badge></header>
+                    <div class="example-linear-card-list" data-catalog-kanban-list>
+                      <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Preserve filter state in shared views" data-linear-board-card data-linear-issue="MAS-142" data-title="Preserve filter state in shared views" data-area="Views" data-status="progress" data-priority="high" data-assignee="maya" data-initials="MC">
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-142"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-142</span><span class="example-linear-priority" data-priority="high">↑ High</span></ui-toolbar>
+                        <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-142"><span class="sr-only">Select MAS-142</span></ui-checkbox><ui-badge size="small">Views</ui-badge></div><ui-link slot="content" href="#mas-142" data-linear-open-issue="MAS-142">Preserve filter state in shared views</ui-link><div slot="footer" class="example-linear-card-footer"><span>Cycle 42</span><ui-avatar size="small">MC</ui-avatar></div></ui-card>
+                      </ui-draggable>
+                      <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Ship keyboard navigation for issue lists" data-linear-board-card data-linear-issue="MAS-138" data-title="Ship keyboard navigation for issue lists" data-area="Accessibility" data-status="review" data-priority="urgent" data-assignee="sam" data-initials="SO">
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-138"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-138</span><span class="example-linear-priority" data-priority="urgent">! Urgent</span></ui-toolbar>
+                        <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-138"><span class="sr-only">Select MAS-138</span></ui-checkbox><ui-badge size="small">Accessibility</ui-badge></div><ui-link slot="content" href="#mas-138" data-linear-open-issue="MAS-138">Ship keyboard navigation for issue lists</ui-link><div slot="footer" class="example-linear-card-footer"><span>Cycle 42</span><ui-avatar size="small">SO</ui-avatar></div></ui-card>
+                      </ui-draggable>
+                    </div>
+                  </section>
+                  <section class="example-linear-board-column" data-linear-board-column="planned" data-catalog-kanban-column="planned">
+                    <header><span><span class="example-linear-status-dot" data-status="planned"></span><strong data-catalog-kanban-column-label>Planned</strong></span><ui-badge size="small" data-linear-board-count>2</ui-badge></header>
+                    <div class="example-linear-card-list" data-catalog-kanban-list>
+                      <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Add cycle progress to team overview" data-linear-board-card data-linear-issue="MAS-133" data-title="Add cycle progress to team overview" data-area="Cycles" data-status="todo" data-priority="medium" data-assignee="alex" data-initials="AR">
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-133"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-133</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
+                        <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-133"><span class="sr-only">Select MAS-133</span></ui-checkbox><ui-badge size="small">Cycles</ui-badge></div><ui-link slot="content" href="#mas-133" data-linear-open-issue="MAS-133">Add cycle progress to team overview</ui-link><div slot="footer" class="example-linear-card-footer"><span>Backlog</span><ui-avatar size="small">AR</ui-avatar></div></ui-card>
+                      </ui-draggable>
+                      <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Clarify archived project permissions" data-linear-board-card data-linear-issue="MAS-129" data-title="Clarify archived project permissions" data-area="Projects" data-status="backlog" data-priority="low" data-assignee="priya" data-initials="PJ">
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-129"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-129</span><span class="example-linear-priority">↓ Low</span></ui-toolbar>
+                        <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-129"><span class="sr-only">Select MAS-129</span></ui-checkbox><ui-badge size="small">Projects</ui-badge></div><ui-link slot="content" href="#mas-129" data-linear-open-issue="MAS-129">Clarify archived project permissions</ui-link><div slot="footer" class="example-linear-card-footer"><span>Backlog</span><ui-avatar size="small">PJ</ui-avatar></div></ui-card>
+                      </ui-draggable>
+                    </div>
+                  </section>
+                  <section class="example-linear-board-column" data-linear-board-column="done" data-catalog-kanban-column="done">
+                    <header><span><span class="example-linear-status-dot" data-status="done"></span><strong data-catalog-kanban-column-label>Done</strong></span><ui-badge size="small" data-linear-board-count>1</ui-badge></header>
+                    <div class="example-linear-card-list" data-catalog-kanban-list>
+                      <ui-draggable tabindex="-1" containment="viewport" class="example-kanban-card example-linear-board-card" data-catalog-drag-source="kanban-card" data-catalog-label="Normalize compact density tokens" data-linear-board-card data-linear-issue="MAS-121" data-title="Normalize compact density tokens" data-area="Foundations" data-status="done" data-priority="medium" data-assignee="maya" data-initials="MC">
+                        <ui-toolbar slot="handle" class="example-linear-card-drag-handle" label="Move MAS-121"><span class="example-drag-grip" aria-hidden="true">⠿</span><span class="example-linear-key">MAS-121</span><span class="example-linear-priority">→ Medium</span></ui-toolbar>
+                        <ui-card><div slot="header" class="example-linear-card-heading"><ui-checkbox data-linear-select data-linear-issue="MAS-121"><span class="sr-only">Select MAS-121</span></ui-checkbox><ui-badge size="small">Foundations</ui-badge></div><ui-link slot="content" href="#mas-121" data-linear-open-issue="MAS-121">Normalize compact density tokens</ui-link><div slot="footer" class="example-linear-card-footer"><span>Completed</span><ui-avatar size="small">MC</ui-avatar></div></ui-card>
+                      </ui-draggable>
+                    </div>
+                  </section>
+                  <output class="example-linear-board-status" data-catalog-kanban-status aria-live="polite">Drag an issue by its handle to reorder it or change status.</output>
+                  <ui-separator class="example-drop-indicator" data-catalog-drop-indicator orientation="horizontal" hidden><span slot="prefix" class="example-drop-indicator-circle" aria-hidden="true"></span></ui-separator>
+                </div>
+              </section>
+            </ui-scroll-area>
+
+            <aside class="example-linear-inspector" data-linear-inspector hidden aria-label="Issue details">
+              <header class="example-linear-inspector-header">
+                <span class="example-linear-key" data-linear-inspector-key>MAS-142</span>
+                <div>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-command="copy-link" aria-label="Copy issue link">↗</ui-button>
+                  <ui-button type="button" size="small" variant="quiet" data-linear-close-inspector aria-label="Close issue details">×</ui-button>
+                </div>
+              </header>
+              <div class="example-linear-inspector-body">
+                <div class="example-linear-inspector-title">
+                  <ui-badge size="small" data-linear-inspector-status tone="positive">In progress</ui-badge>
+                  <h2 data-linear-inspector-title>Preserve filter state in shared views</h2>
+                  <p>Keep filtered issue views durable across refreshes, shared links, and workspace navigation.</p>
+                </div>
+
+                <ui-card class="example-linear-diff-card">
+                  <div slot="header" class="example-linear-diff-heading"><span>◫</span><strong>Diffs</strong><ui-badge size="small" tone="positive">＋248 −31</ui-badge></div>
+                  <ui-link slot="content" href="#pull-218">mash#218 · shared-view persistence</ui-link>
+                  <span slot="footer">Checks passing · updated 12m ago</span>
+                </ui-card>
+
+                <div class="example-linear-properties">
+                  <ui-field label="Status">
+                    <ui-select slot="control" data-linear-detail-status value="progress" label="Issue status">
+                      <ui-option value="backlog">Backlog</ui-option><ui-option value="todo">Todo</ui-option><ui-option value="progress">In progress</ui-option><ui-option value="review">In review</ui-option><ui-option value="done">Done</ui-option>
+                    </ui-select>
+                  </ui-field>
+                  <ui-field label="Priority">
+                    <ui-select slot="control" data-linear-detail-priority value="high" label="Issue priority">
+                      <ui-option value="low">Low</ui-option><ui-option value="medium">Medium</ui-option><ui-option value="high">High</ui-option><ui-option value="urgent">Urgent</ui-option>
+                    </ui-select>
+                  </ui-field>
+                  <ui-field label="Assignee">
+                    <ui-select slot="control" data-linear-detail-assignee value="maya" label="Issue assignee">
+                      <ui-option value="maya">Maya Chen</ui-option><ui-option value="sam">Sam Ortiz</ui-option><ui-option value="alex">Alex Rivera</ui-option><ui-option value="priya">Priya Jain</ui-option>
+                    </ui-select>
+                  </ui-field>
+                </div>
+
+                <ui-collapsible class="example-linear-subissues" open>
+                  <span slot="trigger">Sub-issues <ui-badge size="small">2 / 3</ui-badge></span>
+                  <div class="example-linear-subissue-list">
+                    <ui-checkbox checked>Persist text and property filters</ui-checkbox>
+                    <ui-checkbox checked>Serialize grouped display options</ui-checkbox>
+                    <ui-checkbox>Restore focused issue after navigation</ui-checkbox>
+                  </div>
+                </ui-collapsible>
+
+                <ui-tabs class="example-linear-activity" value="activity" label="Issue context">
+                  <ui-tab slot="tab" value="activity">Activity</ui-tab>
+                  <ui-tab slot="tab" value="relations">Relations</ui-tab>
+                  <ui-tab-panel slot="panel" value="activity">
+                    <ol class="example-linear-activity-list">
+                      <li><ui-avatar size="small">SO</ui-avatar><span><strong>Sam</strong> moved this to In progress<small>28 minutes ago</small></span></li>
+                      <li><ui-avatar size="small">MC</ui-avatar><span><strong>Maya</strong> linked mash#218<small>12 minutes ago</small></span></li>
+                    </ol>
+                    <ui-field label="Add a comment"><ui-textarea slot="control" rows="3" placeholder="Leave an update…"></ui-textarea></ui-field>
+                  </ui-tab-panel>
+                  <ui-tab-panel slot="panel" value="relations"><div class="example-linear-relation"><ui-badge size="small">Blocks</ui-badge><ui-link href="#mas-151">MAS-151 Release saved views</ui-link></div></ui-tab-panel>
+                </ui-tabs>
+              </div>
+            </aside>
+            </div>
+          </main>
+          <ui-toast-stack class="example-linear-toasts" data-linear-toasts placement="bottom-end" limit="3" label="Workspace updates"></ui-toast-stack>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "A controlled issue-tracking system with shared list and board data, live filtering, keyboard navigation, bulk actions, creation, command routing, and integrated detail inspection—composed entirely from Mash primitives.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
       "Usage report",
       `
         <ui-table label="Workspace usage for the last 30 days" row-count="4" column-count="4">
@@ -386,8 +1311,293 @@ const curated: Record<string, CatalogExample[]> = {
         stageLayout: "start",
       },
     ),
+    example(
+      "Embedded component cells",
+      `
+        <ui-table class="example-table-components" label="Composable project settings" row-count="4" column-count="4">
+          <ui-table-caption slot="caption">Composable project settings</ui-table-caption>
+          <ui-table-header>
+            <ui-table-row row-index="1">
+              <ui-table-head column-index="1">Project</ui-table-head>
+              <ui-table-head column-index="2">Labels</ui-table-head>
+              <ui-table-head column-index="3">Automation</ui-table-head>
+              <ui-table-head column-index="4">Budget</ui-table-head>
+            </ui-table-row>
+          </ui-table-header>
+          <ui-table-body>
+            <ui-table-row row-index="2">
+              <ui-table-cell column-index="1"><ui-link href="#billing">Billing migration</ui-link></ui-table-cell>
+              <ui-table-cell column-index="2"><span class="example-table-chip-list"><ui-chip value="finance" readonly>Finance</ui-chip><ui-chip value="migration" readonly>Migration</ui-chip></span></ui-table-cell>
+              <ui-table-cell column-index="3"><ui-switch checked label="Billing automation"></ui-switch></ui-table-cell>
+              <ui-table-cell column-index="4">
+                <ui-popover label="Edit billing budget" placement="bottom-start">
+                  <ui-button slot="trigger" size="small" variant="quiet">$48,000</ui-button>
+                  <strong slot="title">Billing budget</strong>
+                  <span slot="description">Update the project allocation.</span>
+                  <ui-field label="Budget"><ui-number-field slot="control" value="48000" min="0" step="1000" label="Billing budget"></ui-number-field></ui-field>
+                  <ui-button slot="close" size="small">Apply</ui-button>
+                </ui-popover>
+              </ui-table-cell>
+            </ui-table-row>
+            <ui-table-row row-index="3">
+              <ui-table-cell column-index="1"><ui-link href="#reconciliation">Invoice reconciliation</ui-link></ui-table-cell>
+              <ui-table-cell column-index="2"><span class="example-table-chip-list"><ui-chip value="operations" readonly>Operations</ui-chip><ui-chip value="review" readonly>Review</ui-chip></span></ui-table-cell>
+              <ui-table-cell column-index="3"><ui-switch label="Reconciliation automation"></ui-switch></ui-table-cell>
+              <ui-table-cell column-index="4"><ui-intl-formatter kind="currency" value="32500" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
+            </ui-table-row>
+            <ui-table-row row-index="4">
+              <ui-table-cell column-index="1"><ui-link href="#archive">Archive import</ui-link></ui-table-cell>
+              <ui-table-cell column-index="2"><span class="example-table-chip-list"><ui-chip value="records" readonly>Records</ui-chip></span></ui-table-cell>
+              <ui-table-cell column-index="3"><ui-switch checked label="Archive automation"></ui-switch></ui-table-cell>
+              <ui-table-cell column-index="4"><ui-intl-formatter kind="currency" value="18750" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
+            </ui-table-row>
+          </ui-table-body>
+        </ui-table>`,
+      {
+        compositionOnly: true,
+        description:
+          "The base table already accepts Chips, Switches, formatters, and an anchored insertion form without adding cell-renderer callbacks.",
+        stageLayout: "start",
+      },
+    ),
+  ],
+  "ui-data-table": [
+    example(
+      "Composable workbook",
+      `
+        <ui-data-table class="catalog-example example-workbook" data-catalog-data-table data-catalog-workbook label="Project planning workbook" selection="cell" selected="3:3" density="compact">
+          <div slot="toolbar" class="example-workbook-toolbar">
+            <ui-toolbar label="Workbook tools">
+              <ui-button type="button" size="small" variant="quiet" aria-label="Undo">↶</ui-button>
+              <ui-button type="button" size="small" variant="quiet" aria-label="Redo">↷</ui-button>
+              <ui-separator orientation="vertical"></ui-separator>
+              <ui-toggle size="small">B</ui-toggle>
+              <ui-toggle size="small">I</ui-toggle>
+              <ui-toggle size="small">%</ui-toggle>
+            </ui-toolbar>
+            <output class="example-workbook-name-box" data-catalog-data-table-coordinate>B2</output>
+            <ui-input-group class="example-workbook-formula">
+              <span slot="prefix" aria-hidden="true">ƒx</span>
+              <ui-input slot="control" data-catalog-data-table-formula label="Formula" value="=OWNER(&quot;Sam Ortiz&quot;)"></ui-input>
+            </ui-input-group>
+          </div>
+          <ui-table label="Project planning workbook" row-count="5" column-count="6">
+            <ui-table-header>
+              <ui-table-row row-index="1">
+                <ui-table-head scope="none" column-index="1"><span class="example-workbook-corner" aria-hidden="true"></span></ui-table-head>
+                <ui-table-head column-index="2" sort="ascending">A · Project</ui-table-head>
+                <ui-table-head column-index="3">B · Owner</ui-table-head>
+                <ui-table-head column-index="4">C · Status</ui-table-head>
+                <ui-table-head column-index="5">D · Budget</ui-table-head>
+                <ui-table-head column-index="6">E · Due</ui-table-head>
+              </ui-table-row>
+            </ui-table-header>
+            <ui-table-body>
+              <ui-table-row row-index="2">
+                <ui-table-head scope="row" column-index="1">1</ui-table-head>
+                <ui-table-cell column-index="2" data-formula="=PROJECT(AXI-36)"><ui-link href="#axi-36">Billing migration</ui-link></ui-table-cell>
+                <ui-table-cell column-index="3" data-formula="=OWNER(&quot;Maya Chen&quot;)"><span class="example-table-entity"><ui-avatar size="small">MC</ui-avatar><span>Maya Chen</span></span></ui-table-cell>
+                <ui-table-cell column-index="4" data-formula="=STATUS(&quot;Active&quot;)"><ui-chip value="active" readonly>Active</ui-chip></ui-table-cell>
+                <ui-table-cell column-index="5" editable data-formula="=SUM(42000,6000)">
+                  <ui-popover label="Edit Billing migration budget" placement="bottom-start">
+                    <ui-button slot="trigger" size="small" variant="quiet">$48,000</ui-button>
+                    <strong slot="title">Cell D1 · Budget</strong>
+                    <span slot="description">Insert a numeric value or formula.</span>
+                    <div class="example-workbook-cell-form">
+                      <ui-field label="Value"><ui-number-field slot="control" value="48000" min="0" step="1000" label="Budget value"></ui-number-field></ui-field>
+                      <ui-field label="Formula"><ui-input slot="control" value="=SUM(42000,6000)" label="Budget formula"></ui-input></ui-field>
+                    </div>
+                    <div slot="actions" class="example-actions"><ui-button size="small" variant="secondary">Cancel</ui-button><ui-button size="small">Apply</ui-button></div>
+                  </ui-popover>
+                </ui-table-cell>
+                <ui-table-cell column-index="6" data-formula="=DATE(2026,9,12)"><ui-intl-formatter kind="date" value="2026-09-12" locale="en-US"></ui-intl-formatter></ui-table-cell>
+              </ui-table-row>
+              <ui-table-row row-index="3">
+                <ui-table-head scope="row" column-index="1">2</ui-table-head>
+                <ui-table-cell column-index="2" data-formula="=PROJECT(AXI-41)"><ui-link href="#axi-41">Invoice reconciliation</ui-link></ui-table-cell>
+                <ui-table-cell column-index="3" data-formula="=OWNER(&quot;Sam Ortiz&quot;)"><span class="example-table-entity"><ui-avatar size="small">SO</ui-avatar><span>Sam Ortiz</span></span></ui-table-cell>
+                <ui-table-cell column-index="4" data-formula="=STATUS(&quot;Review&quot;)"><ui-chip value="review" readonly>Review</ui-chip></ui-table-cell>
+                <ui-table-cell column-index="5" editable data-formula="=32500"><ui-intl-formatter kind="currency" value="32500" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
+                <ui-table-cell column-index="6" data-formula="=DATE(2026,9,18)"><ui-intl-formatter kind="date" value="2026-09-18" locale="en-US"></ui-intl-formatter></ui-table-cell>
+              </ui-table-row>
+              <ui-table-row row-index="4">
+                <ui-table-head scope="row" column-index="1">3</ui-table-head>
+                <ui-table-cell column-index="2" data-formula="=PROJECT(AXI-48)"><ui-link href="#axi-48">Archive import</ui-link></ui-table-cell>
+                <ui-table-cell column-index="3" data-formula="=OWNER(&quot;Alex Rivera&quot;)"><span class="example-table-entity"><ui-avatar size="small">AR</ui-avatar><span>Alex Rivera</span></span></ui-table-cell>
+                <ui-table-cell column-index="4" data-formula="=STATUS(&quot;Blocked&quot;)"><ui-chip value="blocked" readonly>Blocked</ui-chip></ui-table-cell>
+                <ui-table-cell column-index="5" editable data-formula="=18750"><ui-intl-formatter kind="currency" value="18750" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
+                <ui-table-cell column-index="6" data-formula="=DATE(2026,10,2)"><ui-intl-formatter kind="date" value="2026-10-02" locale="en-US"></ui-intl-formatter></ui-table-cell>
+              </ui-table-row>
+              <ui-table-row row-index="5">
+                <ui-table-head scope="row" column-index="1">4</ui-table-head>
+                <ui-table-cell column-index="2" data-formula="=PROJECT(AXI-59)"><ui-link href="#axi-59">Token utilities</ui-link></ui-table-cell>
+                <ui-table-cell column-index="3" data-formula="=OWNER(&quot;Priya Jain&quot;)"><span class="example-table-entity"><ui-avatar size="small">PJ</ui-avatar><span>Priya Jain</span></span></ui-table-cell>
+                <ui-table-cell column-index="4" data-formula="=STATUS(&quot;On track&quot;)"><ui-chip value="on-track" readonly>On track</ui-chip></ui-table-cell>
+                <ui-table-cell column-index="5" editable data-formula="=22000"><ui-intl-formatter kind="currency" value="22000" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
+                <ui-table-cell column-index="6" data-formula="=DATE(2026,10,8)"><ui-intl-formatter kind="date" value="2026-10-08" locale="en-US"></ui-intl-formatter></ui-table-cell>
+              </ui-table-row>
+            </ui-table-body>
+          </ui-table>
+          <div slot="loading" class="example-data-table-loading"><ui-spinner size="small" label="Refreshing workbook"></ui-spinner>Refreshing</div>
+          <div slot="footer" class="example-data-table-footer">
+            <output data-catalog-data-table-selection>Cell B2 selected</output>
+            <ui-pagination current-page="1" total-pages="4" visible-pages="3" label="Workbook pages"></ui-pagination>
+          </div>
+        </ui-data-table>`,
+      {
+        compositionOnly: true,
+        description:
+          "A Sheets-like surface assembled from ordinary Mash anatomy: toolbar, formula input, links, avatars, chips, formatters, a popover cell editor, pagination, selectable row and column titles, and controlled Shift-click or Shift-arrow ranges.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Selection modes",
+      `
+        <div class="catalog-example example-data-table-modes">
+          <ui-card>
+            <strong slot="title">Rows</strong><span slot="description">Parent-owned record selection</span>
+            <ui-data-table slot="content" data-catalog-data-table label="Row selection" selection="row" selected="2" density="compact">
+              <ui-table label="Row selection" row-count="4" column-count="2">
+                <ui-table-header><ui-table-row row-index="1"><ui-table-head column-index="1">Project</ui-table-head><ui-table-head column-index="2">State</ui-table-head></ui-table-row></ui-table-header>
+                <ui-table-body>
+                  <ui-table-row row-index="2"><ui-table-cell column-index="1">Billing</ui-table-cell><ui-table-cell column-index="2"><ui-badge tone="positive">Active</ui-badge></ui-table-cell></ui-table-row>
+                  <ui-table-row row-index="3"><ui-table-cell column-index="1">Reconciliation</ui-table-cell><ui-table-cell column-index="2"><ui-badge tone="warning">Review</ui-badge></ui-table-cell></ui-table-row>
+                  <ui-table-row row-index="4"><ui-table-cell column-index="1">Archive</ui-table-cell><ui-table-cell column-index="2"><ui-badge tone="critical">Blocked</ui-badge></ui-table-cell></ui-table-row>
+                </ui-table-body>
+              </ui-table>
+            </ui-data-table>
+          </ui-card>
+          <ui-card>
+            <strong slot="title">Columns</strong><span slot="description">Header and cell-band selection</span>
+            <ui-data-table slot="content" data-catalog-data-table label="Column selection" selection="column" selected="2" density="compact">
+              <ui-table label="Column selection" row-count="4" column-count="3">
+                <ui-table-header><ui-table-row row-index="1"><ui-table-head column-index="1">Q1</ui-table-head><ui-table-head column-index="2">Q2</ui-table-head><ui-table-head column-index="3">Q3</ui-table-head></ui-table-row></ui-table-header>
+                <ui-table-body>
+                  <ui-table-row row-index="2"><ui-table-cell column-index="1">18</ui-table-cell><ui-table-cell column-index="2">24</ui-table-cell><ui-table-cell column-index="3">31</ui-table-cell></ui-table-row>
+                  <ui-table-row row-index="3"><ui-table-cell column-index="1">22</ui-table-cell><ui-table-cell column-index="2">29</ui-table-cell><ui-table-cell column-index="3">36</ui-table-cell></ui-table-row>
+                  <ui-table-row row-index="4"><ui-table-cell column-index="1">27</ui-table-cell><ui-table-cell column-index="2">34</ui-table-cell><ui-table-cell column-index="3">41</ui-table-cell></ui-table-row>
+                </ui-table-body>
+              </ui-table>
+            </ui-data-table>
+          </ui-card>
+          <ui-card>
+            <strong slot="title">Cells</strong><span slot="description">Arrow keys move; Shift extends a range</span>
+            <ui-data-table slot="content" data-catalog-data-table label="Cell selection" selection="cell" selected="3:2" density="compact">
+              <ui-table label="Cell selection" row-count="4" column-count="3">
+                <ui-table-header><ui-table-row row-index="1"><ui-table-head column-index="1">A</ui-table-head><ui-table-head column-index="2">B</ui-table-head><ui-table-head column-index="3">C</ui-table-head></ui-table-row></ui-table-header>
+                <ui-table-body>
+                  <ui-table-row row-index="2"><ui-table-cell column-index="1">A1</ui-table-cell><ui-table-cell column-index="2">B1</ui-table-cell><ui-table-cell column-index="3">C1</ui-table-cell></ui-table-row>
+                  <ui-table-row row-index="3"><ui-table-cell column-index="1">A2</ui-table-cell><ui-table-cell column-index="2" editable>B2</ui-table-cell><ui-table-cell column-index="3">C2</ui-table-cell></ui-table-row>
+                  <ui-table-row row-index="4"><ui-table-cell column-index="1">A3</ui-table-cell><ui-table-cell column-index="2">B3</ui-table-cell><ui-table-cell column-index="3">C3</ui-table-cell></ui-table-row>
+                </ui-table-body>
+              </ui-table>
+            </ui-data-table>
+          </ui-card>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Selection is one controlled contract with Shift-click and Shift-arrow ranges across row, column, and cell granularities.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Namespace tree explorer",
+      `
+        <ui-resizable class="catalog-example example-data-explorer" label="Namespace and record explorer">
+          <ui-resizable-panel size="276" min="208" max="384">
+            <section class="example-data-explorer-tree" data-catalog-data-explorer>
+              <header><strong>Namespaces</strong><ui-button size="small" variant="quiet" aria-label="Add namespace">＋</ui-button></header>
+              <ui-scroll-area label="Namespace tree" mode="hover">
+                <ui-tree label="Interzone data namespaces" selection-follows-focus>
+                  <ui-tree-item value="projects" kind="folder" expanded selected><span slot="label">Projects</span><ui-badge slot="meta">4</ui-badge>
+                    <ui-tree-item slot="children" value="billing" kind="file"><span slot="label">Billing migration</span></ui-tree-item>
+                    <ui-tree-item slot="children" value="reconciliation" kind="file"><span slot="label">Invoice reconciliation</span></ui-tree-item>
+                  </ui-tree-item>
+                  <ui-tree-item value="records" kind="folder" expanded><span slot="label">Records</span><ui-badge slot="meta">3</ui-badge>
+                    <ui-tree-item slot="children" value="archive" kind="file"><span slot="label">Archive import</span></ui-tree-item>
+                    <ui-tree-item slot="children" value="audit" kind="file"><span slot="label">Audit exports</span></ui-tree-item>
+                  </ui-tree-item>
+                  <ui-tree-item value="tokens" kind="folder"><span slot="label">Tokens</span><ui-badge slot="meta">484</ui-badge></ui-tree-item>
+                </ui-tree>
+              </ui-scroll-area>
+            </section>
+          </ui-resizable-panel>
+          <ui-resizable-handle label="Resize namespace tree"><ui-separator orientation="vertical"><span slot="prefix" class="example-resize-detent"></span></ui-separator></ui-resizable-handle>
+          <ui-resizable-panel min="360">
+            <ui-data-table class="example-data-explorer-table" data-catalog-data-table label="Projects namespace records" selection="row" selected="2" density="regular">
+              <ui-toolbar slot="toolbar" label="Namespace records tools"><strong data-catalog-data-explorer-title>Projects</strong><ui-button size="small" variant="secondary">Filter</ui-button><ui-button size="small">New record</ui-button></ui-toolbar>
+              <ui-table label="Projects namespace records" row-count="4" column-count="4">
+                <ui-table-header><ui-table-row row-index="1"><ui-table-head column-index="1">Record</ui-table-head><ui-table-head column-index="2">Kind</ui-table-head><ui-table-head column-index="3">State</ui-table-head><ui-table-head column-index="4">Updated</ui-table-head></ui-table-row></ui-table-header>
+                <ui-table-body>
+                  <ui-table-row row-index="2"><ui-table-cell column-index="1"><ui-path size="small" path="/projects/billing-migration"><span slot="title">Billing migration</span></ui-path></ui-table-cell><ui-table-cell column-index="2"><ui-chip readonly>Project</ui-chip></ui-table-cell><ui-table-cell column-index="3"><ui-badge tone="positive">Active</ui-badge></ui-table-cell><ui-table-cell column-index="4">12m ago</ui-table-cell></ui-table-row>
+                  <ui-table-row row-index="3"><ui-table-cell column-index="1"><ui-path size="small" path="/projects/invoice-reconciliation"><span slot="title">Invoice reconciliation</span></ui-path></ui-table-cell><ui-table-cell column-index="2"><ui-chip readonly>Project</ui-chip></ui-table-cell><ui-table-cell column-index="3"><ui-badge tone="warning">Review</ui-badge></ui-table-cell><ui-table-cell column-index="4">1h ago</ui-table-cell></ui-table-row>
+                  <ui-table-row row-index="4"><ui-table-cell column-index="1"><ui-path size="small" path="/projects/archive-import"><span slot="title">Archive import</span></ui-path></ui-table-cell><ui-table-cell column-index="2"><ui-chip readonly>Record</ui-chip></ui-table-cell><ui-table-cell column-index="3"><ui-badge tone="critical">Blocked</ui-badge></ui-table-cell><ui-table-cell column-index="4">Yesterday</ui-table-cell></ui-table-row>
+                </ui-table-body>
+              </ui-table>
+              <div slot="footer" class="example-data-table-footer"><output data-catalog-data-table-selection>Row 2 selected</output><span>3 visible records</span></div>
+            </ui-data-table>
+          </ui-resizable-panel>
+        </ui-resizable>`,
+      {
+        compositionOnly: true,
+        description:
+          "Tree navigation and tabular records remain peer primitives inside Resizable; neither hierarchy nor record workflow leaks into ui-data-table.",
+        stageLayout: "fill",
+      },
+    ),
   ],
   "ui-card": [
+    example(
+      "Background materials",
+      `
+        <div class="catalog-example example-material-stage">
+          <div class="example-material-grid">
+            <section class="example-material material-ultra-thin">
+              <ui-card>
+                <strong slot="title">Ultra thin</strong>
+                <span slot="description">Minimal tint</span>
+                <p slot="content" class="vibrant-label-primary">Edge chrome that should preserve almost all of its surrounding context.</p>
+              </ui-card>
+            </section>
+            <section class="example-material material-thin">
+              <ui-card>
+                <strong slot="title">Thin</strong>
+                <span slot="description">Compact chrome</span>
+                <p slot="content" class="vibrant-label-primary">Bars, edge treatments, and controls that retain their context.</p>
+              </ui-card>
+            </section>
+            <section class="example-material material-regular">
+              <ui-card>
+                <strong slot="title">Regular</strong>
+                <span slot="description">Default separation</span>
+                <p slot="content" class="vibrant-label-primary">Panels and floating controls over active content.</p>
+              </ui-card>
+            </section>
+            <section class="example-material material-thick">
+              <ui-card>
+                <strong slot="title">Thick</strong>
+                <span slot="description">Content-bearing overlay</span>
+                <p slot="content" class="vibrant-label-primary">Sheets and focused surfaces that need stronger isolation.</p>
+              </ui-card>
+            </section>
+            <section class="example-material material-ultra-thick">
+              <ui-card>
+                <strong slot="title">Ultra thick</strong>
+                <span slot="description">Maximum separation</span>
+                <p slot="content" class="vibrant-label-primary">Dense overlays where content clarity outweighs background continuity.</p>
+              </ui-card>
+            </section>
+          </div>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Five semantic material roles share one backdrop blur and vary tint contribution. Exported title and description parts composite automatically; authored body copy opts into the same semantic label utility.",
+        stageLayout: "start",
+      },
+    ),
     example(
       "Project card",
       `
@@ -810,6 +2020,53 @@ const curated: Record<string, CatalogExample[]> = {
       { compositionOnly: true },
     ),
     example(
+      "Rearrange selected owners",
+      `
+        <div class="catalog-example example-chip-workspace">
+          <ui-field label="Project owners" description="Drag the grip on a selected owner to change precedence.">
+            <ui-combobox slot="control" name="owners" label="Project owners" multiple values='["maya", "sam", "alex", "jo"]'>
+              <span slot="chips" class="example-chip-sort" role="list" data-catalog-drag-boundary>
+                <ui-chip value="maya" data-catalog-label="Maya" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
+                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Maya Chen">⠿</span>
+                  Maya Chen
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Maya">×</ui-button>
+                </ui-chip>
+                <ui-chip value="sam" data-catalog-label="Sam" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
+                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Sam Okafor">⠿</span>
+                  Sam Okafor
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Sam">×</ui-button>
+                </ui-chip>
+                <ui-chip value="alex" data-catalog-label="Alex" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
+                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Alex Rivera">⠿</span>
+                  Alex Rivera
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Alex">×</ui-button>
+                </ui-chip>
+                <ui-chip value="jo" data-catalog-label="Jo" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
+                  <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Jo Bell">⠿</span>
+                  Jo Bell
+                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Jo">×</ui-button>
+                </ui-chip>
+              </span>
+              <span slot="icon" aria-hidden="true">⌕</span>
+              <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
+              <ui-option-group label="People">
+                <ui-option value="maya">Maya Chen<span slot="indicator">✓</span></ui-option>
+                <ui-option value="sam">Sam Okafor<span slot="indicator">✓</span></ui-option>
+                <ui-option value="alex">Alex Rivera<span slot="indicator">✓</span></ui-option>
+                <ui-option value="jo">Jo Bell<span slot="indicator">✓</span></ui-option>
+              </ui-option-group>
+            </ui-combobox>
+          </ui-field>
+          <output class="example-drag-status" data-catalog-chip-status>Owner precedence: Maya, Sam, Alex, Jo</output>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The chips remain Combobox-owned values; a catalogue consumer uses the headless drag controller to reorder their authored DOM sequence.",
+        stageLayout: "start",
+      },
+    ),
+    example(
       "Grid suggestions",
       `
         <ui-field class="catalog-example example-field" label="Assignee matrix" description="Arrow keys preserve row and column position.">
@@ -928,6 +2185,81 @@ const curated: Record<string, CatalogExample[]> = {
           </ui-tab-panel>
         </ui-tabs>`,
       { compositionOnly: true },
+    ),
+    example(
+      "Move views between tabs and tree",
+      `
+        <div class="catalog-example example-tab-workspace" data-catalog-drag-boundary>
+          <aside class="example-tab-sidebar">
+            <strong>Interzone</strong>
+            <ui-tree label="Workspace views">
+              <ui-tree-item
+                class="example-tab-drop"
+                kind="folder"
+                path="/interzone/pinned"
+                title="Pinned views"
+                expanded
+                data-catalog-tab-drop
+              >
+                <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+                <ui-tree-item
+                  slot="children"
+                  kind="file"
+                  value="pinned-timeline"
+                  path="/interzone/pinned/timeline"
+                  data-catalog-label="Timeline"
+                  data-catalog-tab-value="timeline"
+                  data-catalog-drag-source="tree-tab"
+                  data-catalog-drag-free
+                >
+                  <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+                  <span slot="label">Timeline</span>
+                  <ui-button slot="actions" variant="quiet" size="small" data-catalog-drag-handle aria-label="Move Timeline to the tab bar">⠿</ui-button>
+                </ui-tree-item>
+              </ui-tree-item>
+            </ui-tree>
+            <p class="example-support">Transfer or reorder views along either detent. Press Escape to cancel.</p>
+          </aside>
+          <main class="example-tab-main">
+            <ui-tabs class="example-tabbar-drop" value="overview" label="Project views" data-catalog-tabbar-drop>
+              <ui-tab slot="tab" value="overview" data-catalog-label="Overview" data-catalog-drag-source="tab" data-catalog-drag-free>
+                <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Overview tab">⠿</span>Overview
+              </ui-tab>
+              <ui-tab slot="tab" value="invoices" data-catalog-label="Invoices" data-catalog-drag-source="tab" data-catalog-drag-free>
+                <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Invoices tab">⠿</span>Invoices
+              </ui-tab>
+              <ui-tab slot="tab" value="activity" data-catalog-label="Activity" data-catalog-drag-source="tab" data-catalog-drag-free>
+                <span class="example-drag-grip" data-catalog-drag-handle aria-label="Move Activity tab">⠿</span>Activity
+              </ui-tab>
+              <ui-tab-panel slot="panel" value="overview">
+                <ui-card title="Billing migration" description="Project overview">
+                  <p slot="content">Three project views can be promoted into the persistent sidebar tree.</p>
+                </ui-card>
+              </ui-tab-panel>
+              <ui-tab-panel slot="panel" value="invoices">
+                <ui-card title="Invoices"><p slot="content">Invoice reconciliation queue.</p></ui-card>
+              </ui-tab-panel>
+              <ui-tab-panel slot="panel" value="activity">
+                <ui-card title="Activity"><p slot="content">Recent project changes.</p></ui-card>
+              </ui-tab-panel>
+            </ui-tabs>
+            <div hidden data-catalog-tab-cache>
+              <ui-tab-panel slot="panel" value="timeline">
+                <ui-card title="Timeline" description="Restored from pinned views"><p slot="content">Milestones and project decisions retain their panel state while pinned in the tree.</p></ui-card>
+              </ui-tab-panel>
+            </div>
+            <output class="example-drag-status" data-catalog-tab-status>Move a view in either direction.</output>
+          </main>
+          <ui-separator class="example-drop-indicator" data-catalog-drop-indicator hidden aria-hidden="true">
+            <span slot="prefix" class="example-drop-indicator-circle"></span>
+          </ui-separator>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Tabs and tree items keep their own contracts; the surrounding workspace transfers or reorders the same view, preserves its panel while pinned, and cancels ambiguous drops.",
+        stageLayout: "fill",
+      },
     ),
   ],
   "ui-toggle": [
@@ -1078,17 +2410,112 @@ const curated: Record<string, CatalogExample[]> = {
   ],
   "ui-menu": [
     example(
-      "Project actions",
+      "Pull-down commands",
       `
-        <div class="catalog-example example-stack">
-          <ui-menu label="Project actions">
-            <ui-button slot="trigger" variant="secondary">Actions</ui-button>
-            <ui-menu-item value="rename">Rename project</ui-menu-item>
-            <ui-menu-item value="duplicate">Duplicate project</ui-menu-item>
-            <ui-menu-item value="archive" tone="critical">Archive project</ui-menu-item>
+        <div class="catalog-example example-menu-stage">
+          <ui-menu label="Edit commands" open>
+            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="regular" slot="trigger" tone="neutral" variant="quiet">
+              Edit
+              <span slot="suffix" aria-hidden="true">⌄</span>
+            </ui-button>
+            <ui-menu-item value="undo">
+              <span slot="prefix" aria-hidden="true">↶</span>
+              Undo
+              <span slot="shortcut">⌘Z</span>
+            </ui-menu-item>
+            <ui-menu-item value="redo">
+              <span slot="prefix" aria-hidden="true">↷</span>
+              Redo
+              <span slot="shortcut">⇧⌘Z</span>
+            </ui-menu-item>
+            <ui-separator></ui-separator>
+            <ui-menu-item value="paste">Paste<span slot="shortcut">⌘V</span></ui-menu-item>
+            <ui-menu-item value="paste-style">Paste and Match Style<span slot="shortcut">⌥⇧⌘V</span></ui-menu-item>
+            <ui-menu-item value="delete" tone="critical">Delete<span slot="shortcut">⌫</span></ui-menu-item>
           </ui-menu>
         </div>`,
-      { compositionOnly: true },
+      {
+        compositionOnly: true,
+        description:
+          "A regular 250px pull-down menu with fixed symbol and shortcut lanes, 24px rows, separators, and destructive tone.",
+      },
+    ),
+    example(
+      "Pop-up selection",
+      `
+        <div class="catalog-example example-menu-stage">
+          <ui-menu label="Sort projects" density="compact" open>
+            <ui-button class="example-menu-trigger" data-menu-trigger="popup" data-menu-size="small" slot="trigger" tone="neutral" variant="quiet">
+              Updated
+              <span slot="suffix" aria-hidden="true">↕</span>
+            </ui-button>
+            <ui-menu-item kind="radio" value="name">Name</ui-menu-item>
+            <ui-menu-item kind="radio" value="updated" checked>Updated</ui-menu-item>
+            <ui-menu-item kind="radio" value="created">Created</ui-menu-item>
+            <ui-separator></ui-separator>
+            <ui-menu-item kind="checkbox" value="descending" checked>Descending</ui-menu-item>
+          </ui-menu>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "A pop-up button reports the selected value while the menu uses checkbox and radio semantics with one shared selection lane.",
+      },
+    ),
+    example(
+      "Nested compact leafing",
+      `
+        <div class="catalog-example example-menu-stage">
+          <ui-menu label="Project commands" density="compact" open>
+            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="small" slot="trigger" tone="neutral" variant="quiet">
+              Project
+              <span slot="suffix" aria-hidden="true">⌄</span>
+            </ui-button>
+            <span class="example-menu-header" role="presentation">Navigate</span>
+            <ui-menu-item value="open">Open project<span slot="shortcut">⌘O</span></ui-menu-item>
+            <ui-menu-item value="recent">
+              Recent projects
+              <ui-menu slot="submenu" label="Recent projects" density="compact" open>
+                <ui-menu-item value="billing">Billing migration</ui-menu-item>
+                <ui-menu-item value="invoice">Invoice reconciliation</ui-menu-item>
+                <ui-menu-item value="archive">Legacy ledger verification and archive import</ui-menu-item>
+              </ui-menu>
+            </ui-menu-item>
+            <ui-menu-item value="find">
+              Find
+              <span slot="shortcut">⌘F</span>
+              <ui-menu slot="submenu" label="Find" density="compact">
+                <ui-menu-item value="find-next">Find Next<span slot="shortcut">⌘G</span></ui-menu-item>
+                <ui-menu-item value="find-previous">Find Previous<span slot="shortcut">⇧⌘G</span></ui-menu-item>
+              </ui-menu>
+            </ui-menu-item>
+          </ui-menu>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Nested menus use an anchored child menu, Right/Left/Escape keyboard traversal, and a pointer-safe triangle for diagonal movement into the active branch.",
+      },
+    ),
+    example(
+      "Mini overflow",
+      `
+        <div class="catalog-example example-menu-stage">
+          <ui-menu label="Compact history" density="mini" open>
+            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="mini" slot="trigger" tone="neutral" variant="quiet">
+              History
+              <span slot="suffix" aria-hidden="true">⌄</span>
+            </ui-button>
+            <ui-menu-item value="billing">Billing migration and invoice reconciliation</ui-menu-item>
+            <ui-menu-item value="archive">Legacy ledger verification and archive import</ui-menu-item>
+            <ui-menu-item value="restore" disabled>Restore unavailable workspace snapshot</ui-menu-item>
+          </ui-menu>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The 190px mini tier keeps trailing lanes fixed and applies the shared progressive overflow mask only to the label viewport.",
+      },
     ),
   ],
   "ui-context-menu": [
@@ -1100,8 +2527,16 @@ const curated: Record<string, CatalogExample[]> = {
             <strong>Billing migration</strong>
             <p>Right-click this project row for actions.</p>
           </ui-card>
-          <ui-menu-item value="open">Open project</ui-menu-item>
-          <ui-menu-item value="copy-path">Copy project path</ui-menu-item>
+          <ui-menu-item value="open"><span slot="prefix" aria-hidden="true">↗</span>Open project</ui-menu-item>
+          <ui-menu-item value="copy-path">Copy project path<span slot="shortcut">⇧⌘C</span></ui-menu-item>
+          <ui-menu-item value="share">
+            Share
+            <ui-menu slot="submenu" label="Share project" density="compact">
+              <ui-menu-item value="copy-link">Copy link</ui-menu-item>
+              <ui-menu-item value="email">Email</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+          <ui-separator></ui-separator>
           <ui-menu-item value="archive" tone="critical">Archive project</ui-menu-item>
         </ui-context-menu>`,
       { compositionOnly: true },
@@ -1254,6 +2689,212 @@ const curated: Record<string, CatalogExample[]> = {
       { compositionOnly: true },
     ),
   ],
+  "ui-resizable": [
+    example(
+      "Handle treatments",
+      `
+        <section class="catalog-example example-resizable-showcase">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Interactive separators</span>
+            <h2>One behavior, replaceable pronunciation</h2>
+            <p>The full gutter remains the hit target. Hover, keyboard focus, and active dragging strengthen only the visual indicator.</p>
+          </header>
+          <div class="example-resizable-case">
+            <span class="example-resizable-label">Quiet fallback</span>
+            <ui-resizable class="example-resizable-split" label="Quiet fallback panels">
+              <ui-resizable-panel size="176" min="112" max="248"><div class="example-resizable-pane">Navigator</div></ui-resizable-panel>
+              <ui-resizable-handle label="Resize quiet fallback panels"></ui-resizable-handle>
+              <ui-resizable-panel min="160"><div class="example-resizable-pane example-resizable-pane-muted">Canvas</div></ui-resizable-panel>
+            </ui-resizable>
+          </div>
+          <div class="example-resizable-case">
+            <span class="example-resizable-label">Authored separator</span>
+            <ui-resizable class="example-resizable-split" label="Authored separator panels">
+              <ui-resizable-panel size="208" min="112" max="280"><div class="example-resizable-pane">Inspector</div></ui-resizable-panel>
+              <ui-resizable-handle label="Resize authored separator panels">
+                <ui-separator orientation="vertical" aria-hidden="true"></ui-separator>
+              </ui-resizable-handle>
+              <ui-resizable-panel min="160"><div class="example-resizable-pane example-resizable-pane-muted">Preview</div></ui-resizable-panel>
+            </ui-resizable>
+          </div>
+          <div class="example-resizable-case">
+            <span class="example-resizable-label">Persistent rail and detent</span>
+            <ui-resizable class="example-resizable-split" label="Rail handle panels">
+              <ui-resizable-panel size="144" min="112" max="240"><div class="example-resizable-pane">Layers</div></ui-resizable-panel>
+              <ui-resizable-handle class="example-resize-handle-rail" label="Resize rail handle panels">
+                <ui-separator class="example-resize-detent-rule" orientation="vertical" aria-hidden="true">
+                  <span slot="prefix" class="example-resize-detent"></span>
+                </ui-separator>
+              </ui-resizable-handle>
+              <ui-resizable-panel min="160"><div class="example-resizable-pane example-resizable-pane-muted">Properties</div></ui-resizable-panel>
+            </ui-resizable>
+          </div>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "The primitive exposes behavior, focus, range, and boundary state; the catalogue styles either its fallback grip or authored ui-separator content.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Nested workspace",
+      `
+        <ui-resizable class="catalog-example example-resizable-workspace" orientation="horizontal" label="Workspace columns">
+          <ui-resizable-panel size="176" min="128" max="256">
+            <div class="example-resizable-pane">
+              <span class="example-eyebrow">Navigator</span>
+              <ui-tree label="Project files">
+                <ui-tree-item kind="folder" title="Billing migration" expanded>
+                  <ui-tree-item slot="children" kind="file" title="Overview" selected></ui-tree-item>
+                  <ui-tree-item slot="children" kind="file" title="Invoices"></ui-tree-item>
+                  <ui-tree-item slot="children" kind="file" title="Activity"></ui-tree-item>
+                </ui-tree-item>
+              </ui-tree>
+            </div>
+          </ui-resizable-panel>
+          <ui-resizable-handle label="Resize project navigator">
+            <ui-separator orientation="vertical" aria-hidden="true"></ui-separator>
+          </ui-resizable-handle>
+          <ui-resizable-panel min="240">
+            <ui-resizable class="example-resizable-nested" orientation="vertical" label="Editor and output rows">
+              <ui-resizable-panel size="208" min="128" max="288">
+                <ui-editor language="html" label="Project source" value="&lt;sh-myth title=&quot;Billing migration&quot;&gt;&lt;/sh-myth&gt;"></ui-editor>
+              </ui-resizable-panel>
+              <ui-resizable-handle label="Resize editor output">
+                <ui-separator orientation="horizontal" aria-hidden="true"></ui-separator>
+              </ui-resizable-handle>
+              <ui-resizable-panel min="88">
+                <div class="example-resizable-pane example-resizable-pane-muted">
+                  <span class="example-eyebrow">Output</span>
+                  <strong>Preview ready</strong>
+                </div>
+              </ui-resizable-panel>
+            </ui-resizable>
+          </ui-resizable-panel>
+        </ui-resizable>`,
+      {
+        compositionOnly: true,
+        description:
+          "Horizontal and vertical groups compose without adding a layout wrapper; each handle controls only its two adjacent panels.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Nested panel constraints",
+      `
+        <section class="catalog-example example-resizable-demo example-resizable-demo-fill">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Nested panels</span>
+            <h2>Independent constraints on both axes</h2>
+            <p>The upper row owns a three-column split while the outer group independently sizes top, center, and bottom regions.</p>
+          </header>
+          <ui-resizable class="example-resizable-complex" orientation="vertical" label="Nested panel rows">
+            <ui-resizable-panel size="176" min="120" max="240">
+              <ui-resizable class="example-resizable-nested" orientation="horizontal" label="Nested panel columns">
+                <ui-resizable-panel size="152" min="120" max="300"><div class="example-resizable-pane"><strong>Left</strong><span>120–300px</span></div></ui-resizable-panel>
+                <ui-resizable-handle label="Resize left column"><ui-separator orientation="vertical" aria-hidden="true"></ui-separator></ui-resizable-handle>
+                <ui-resizable-panel min="180"><div class="example-resizable-pane example-resizable-pane-muted"><strong>Center</strong><span>grows</span></div></ui-resizable-panel>
+                <ui-resizable-handle label="Resize right column"><ui-separator orientation="vertical" aria-hidden="true"></ui-separator></ui-resizable-handle>
+                <ui-resizable-panel size="184" min="128" max="280"><div class="example-resizable-pane"><strong>Right</strong><span>128–280px</span></div></ui-resizable-panel>
+              </ui-resizable>
+            </ui-resizable-panel>
+            <ui-resizable-handle label="Resize upper row"><ui-separator orientation="horizontal" aria-hidden="true"></ui-separator></ui-resizable-handle>
+            <ui-resizable-panel min="128"><div class="example-resizable-pane example-resizable-pane-muted"><strong>Center workspace</strong><span>flexible remainder</span></div></ui-resizable-panel>
+            <ui-resizable-handle label="Resize output row"><ui-separator orientation="horizontal" aria-hidden="true"></ui-separator></ui-resizable-handle>
+            <ui-resizable-panel size="104" min="80" max="160"><div class="example-resizable-pane"><strong>Output</strong><span>80–160px</span></div></ui-resizable-panel>
+          </ui-resizable>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "A dense constraint proof: two handles on each axis, two flexible regions, and distinct min/max ranges remain independently operable.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Growing neighbor",
+      `
+        <section class="catalog-example example-resizable-demo">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Growing panel</span>
+            <h2>A flexible neighbor absorbs the remainder</h2>
+            <p>The constrained navigator transfers space to a content panel without requiring a separate grow prop.</p>
+          </header>
+          <ui-resizable class="example-resizable-stage" label="Growing panel example">
+            <ui-resizable-panel size="184" min="120" max="300"><div class="example-resizable-pane"><strong>Navigator</strong><span>120–300px</span></div></ui-resizable-panel>
+            <ui-resizable-handle label="Resize navigator"><ui-separator orientation="vertical" aria-hidden="true"></ui-separator></ui-resizable-handle>
+            <ui-resizable-panel min="180"><div class="example-resizable-pane example-resizable-pane-muted"><strong>Content</strong><span>flexible remainder</span></div></ui-resizable-panel>
+          </ui-resizable>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Omitting an authored size keeps a panel flexible; its constrained neighbor remains directly resizeable.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Visibility and flex behavior",
+      `
+        <section class="catalog-example example-resizable-demo" data-catalog-resizable-demo="visibility">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Flex behavior</span>
+            <h2>Visibility and sizing can change at runtime</h2>
+            <p>Orphaned handles disappear automatically, and returning a panel to size zero restores flexible growth.</p>
+          </header>
+          <ui-toolbar class="example-resizable-actions" label="Panel controls">
+            <ui-button size="small" variant="secondary" data-catalog-resizable-visibility="0">Hide navigator</ui-button>
+            <ui-button size="small" variant="secondary" data-catalog-resizable-flex="0">Make navigator flexible</ui-button>
+          </ui-toolbar>
+          <ui-resizable class="example-resizable-stage" label="Visibility and flex panels" data-catalog-resizable-group>
+            <ui-resizable-panel size="168" min="112" max="280"><div class="example-resizable-pane"><strong>Navigator</strong><span>fixed at 168px</span></div></ui-resizable-panel>
+            <ui-resizable-handle label="Resize navigator"><ui-separator orientation="vertical" aria-hidden="true"></ui-separator></ui-resizable-handle>
+            <ui-resizable-panel min="180"><div class="example-resizable-pane example-resizable-pane-muted"><strong>Canvas</strong><span>grows</span></div></ui-resizable-panel>
+            <ui-resizable-handle label="Resize inspector"><ui-separator orientation="vertical" aria-hidden="true"></ui-separator></ui-resizable-handle>
+            <ui-resizable-panel size="184" min="128" max="300"><div class="example-resizable-pane"><strong>Inspector</strong><span>fixed at 184px</span></div></ui-resizable-panel>
+          </ui-resizable>
+          <output class="example-resizable-output" data-catalog-resizable-output>Navigator fixed · 3 panels visible</output>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "The catalogue owns the controls; ui-resizable continues to own adjacency, constraints, and the resulting handle state.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Programmatic sizing",
+      `
+        <section class="catalog-example example-resizable-demo" data-catalog-resizable-demo="programmatic">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Programmatic resize</span>
+            <h2>Actions use the same constraint resolver as dragging</h2>
+            <p>Compact and reset actions call the group API; emitted sizes update the status output below.</p>
+          </header>
+          <ui-toolbar class="example-resizable-actions" label="Programmatic panel sizing">
+            <ui-button size="small" variant="secondary" data-catalog-resizable-size="0:112">Compact navigator</ui-button>
+            <ui-button size="small" variant="quiet" data-catalog-resizable-reset="0">Reset navigator</ui-button>
+            <ui-button size="small" variant="secondary" data-catalog-resizable-size="2:128">Compact inspector</ui-button>
+            <ui-button size="small" variant="quiet" data-catalog-resizable-reset="2">Reset inspector</ui-button>
+          </ui-toolbar>
+          <ui-resizable class="example-resizable-stage" label="Programmatically sized panels" data-catalog-resizable-group>
+            <ui-resizable-panel size="192" min="112" max="320"><div class="example-resizable-pane"><strong>Navigator</strong><span>192px default</span></div></ui-resizable-panel>
+            <ui-resizable-handle label="Resize navigator"><ui-separator orientation="vertical" aria-hidden="true"></ui-separator></ui-resizable-handle>
+            <ui-resizable-panel min="180"><div class="example-resizable-pane example-resizable-pane-muted"><strong>Workspace</strong><span>grows</span></div></ui-resizable-panel>
+            <ui-resizable-handle label="Resize inspector"><ui-separator orientation="vertical" aria-hidden="true"></ui-separator></ui-resizable-handle>
+            <ui-resizable-panel size="208" min="128" max="320"><div class="example-resizable-pane"><strong>Inspector</strong><span>208px default</span></div></ui-resizable-panel>
+          </ui-resizable>
+          <output class="example-resizable-output" data-catalog-resizable-output>Navigator 192px · Workspace flexible · Inspector 208px</output>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "resizePanel and resetPanel are demonstrated as consumer-owned actions rather than additional visual component variants.",
+        stageLayout: "start",
+      },
+    ),
+  ],
   "ui-slider": [
     example(
       "Ticks and live value anatomy",
@@ -1283,6 +2924,196 @@ const curated: Record<string, CatalogExample[]> = {
     ),
   ],
   "ui-scroll-area": [
+    example(
+      "No-gutter part recipes",
+      `
+        <div class="catalog-example example-scroll-no-gutter-grid">
+          <ui-card>
+            <strong slot="title">Edge overlay</strong>
+            <span slot="description">Rail hugs the viewport edge.</span>
+            <ui-scroll-area slot="content" class="example-scroll-no-gutter example-scroll-no-gutter-edge" label="Edge overlay scrollbar" gutter="none" size="medium" mode="always">
+              <div class="example-scroll-no-gutter-content">${Array.from({ length: 12 }, (_, index) => `<span>Namespace record ${String(index + 1).padStart(2, "0")}</span>`).join("")}</div>
+            </ui-scroll-area>
+          </ui-card>
+          <ui-card>
+            <strong slot="title">Inset capsule</strong>
+            <span slot="description">The same parts move inward.</span>
+            <ui-scroll-area slot="content" class="example-scroll-no-gutter example-scroll-no-gutter-inset" label="Inset capsule scrollbar" gutter="none" size="large" mode="always">
+              <div class="example-scroll-no-gutter-content">${Array.from({ length: 12 }, (_, index) => `<span>Project checkpoint ${String(index + 1).padStart(2, "0")}</span>`).join("")}</div>
+            </ui-scroll-area>
+          </ui-card>
+          <ui-card>
+            <strong slot="title">Trackless</strong>
+            <span slot="description">Only the semantic thumb remains.</span>
+            <ui-scroll-area slot="content" class="example-scroll-no-gutter example-scroll-no-gutter-trackless" label="Trackless scrollbar" gutter="none" size="compact" mode="always">
+              <div class="example-scroll-no-gutter-content">${Array.from({ length: 12 }, (_, index) => `<span>Renderer event ${String(index + 1).padStart(2, "0")}</span>`).join("")}</div>
+            </ui-scroll-area>
+          </ui-card>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "No gutter leaves the native viewport full-width. CSS parts independently control edge placement, inset, track, thumb, and material treatment.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Semantic sizes and reserved gutters",
+      `
+        <div class="catalog-example example-scroll-size-grid">
+          <ui-card>
+            <strong slot="title">Compact</strong>
+            <span slot="description">Dense data rail</span>
+            <ui-scroll-area slot="content" class="example-scroll-size-sample" label="Compact scrollbar" size="compact" gutter="stable" mode="always">
+              <div class="example-scroll-size-content">${Array.from({ length: 8 }, (_, index) => `<span>Compact row ${index + 1}</span>`).join("")}</div>
+            </ui-scroll-area>
+          </ui-card>
+          <ui-card>
+            <strong slot="title">Medium</strong>
+            <span slot="description">Default workspace rail</span>
+            <ui-scroll-area slot="content" class="example-scroll-size-sample" label="Medium scrollbar" size="medium" gutter="stable" mode="always">
+              <div class="example-scroll-size-content">${Array.from({ length: 8 }, (_, index) => `<span>Medium row ${index + 1}</span>`).join("")}</div>
+            </ui-scroll-area>
+          </ui-card>
+          <ui-card>
+            <strong slot="title">Large</strong>
+            <span slot="description">Prominent touch rail</span>
+            <ui-scroll-area slot="content" class="example-scroll-size-sample" label="Large scrollbar" size="large" gutter="stable" mode="always">
+              <div class="example-scroll-size-content">${Array.from({ length: 8 }, (_, index) => `<span>Large row ${index + 1}</span>`).join("")}</div>
+            </ui-scroll-area>
+          </ui-card>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The gutter reserves layout space while visible track width remains independent from its pointer hit area.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Alphabetical target index",
+      `
+        <ui-card class="catalog-example example-scroll-alpha-card">
+          <div slot="header" class="example-card-heading"><strong>Namespace index</strong><ui-kbd>⌘ K</ui-kbd></div>
+          <ui-scroll-area slot="content" class="example-scroll-alpha" label="Alphabetical namespace index" size="large" gutter="stable" mode="always" snap="proximity">
+            <div class="example-scroll-alpha-list">${alphabetSections}</div>
+            ${alphabetDetents}
+          </ui-scroll-area>
+        </ui-card>`,
+      {
+        compositionOnly: true,
+        description:
+          "Authored A–Z buttons occupy the detent slot and resolve semantic data-scroll-id targets without replacing native scrolling.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Detented reading rail",
+      `
+        <div class="catalog-example example-scroll-reader">
+          <ui-scroll-area class="example-scroll-reading" label="Motion system notes" size="large" gutter="stable" mode="always" snap="proximity" data-detents-only>
+            <article class="example-scroll-reading-copy">${readingSections}</article>
+            ${readingDetents}
+            <span class="example-scroll-preview-anchor" slot="block-detents" style="--ui-scroll-detent-position: 56%">
+              <button type="button" class="example-scroll-reading-current" data-scroll-target="reading-9" data-scroll-align="center" data-scroll-behavior="smooth" aria-label="Jump to renderer boundaries"></button>
+              <ui-card class="example-scroll-preview-card">
+                <strong slot="title">Renderer boundaries</strong>
+                <span slot="description">Section 09 · current vicinity</span>
+                <p slot="content">Native scrolling underneath, authored semantic rail above.</p>
+              </ui-card>
+            </span>
+          </ui-scroll-area>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Dense passive marks map the document while one keyboard-reachable detent reveals a real card preview on hover or focus.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Breadcrumb section rail",
+      `
+        <section class="catalog-example example-scroll-breadcrumb" data-catalog-scroll-breadcrumb>
+          <header class="example-scroll-breadcrumb-header">
+            <ui-path variant="breadcrumb" path="/interzone/foundations/scrolling/overview" aria-label="Documentation section">
+              <span slot="title" data-catalog-scroll-breadcrumb-title>Overview</span>
+            </ui-path>
+            <ui-badge data-catalog-scroll-target-output>overview</ui-badge>
+          </header>
+          <ui-scroll-area class="example-scroll-breadcrumb-area" label="Scrolling documentation" size="large" gutter="stable" mode="always" snap="mandatory" data-catalog-scroll-targets>
+            <div class="example-scroll-snap-pages">
+              <section data-scroll-id="overview" data-scroll-snap><span class="example-eyebrow">01</span><h3>Overview</h3><p>The native viewport remains the behavioral source of truth.</p></section>
+              <section data-scroll-id="anatomy" data-scroll-snap><span class="example-eyebrow">02</span><h3>Anatomy</h3><p>Viewport, track, thumb, detents, and corner remain separately styleable.</p></section>
+              <section data-scroll-id="states" data-scroll-snap><span class="example-eyebrow">03</span><h3>States</h3><p>Idle, active, hovered, focused, and dragging are observable states.</p></section>
+              <section data-scroll-id="targets" data-scroll-snap><span class="example-eyebrow">04</span><h3>Targets</h3><p>Semantic identifiers survive changes to layout and renderer anatomy.</p></section>
+            </div>
+            <button type="button" class="example-scroll-detent example-scroll-chapter-detent" slot="block-detents" data-scroll-target="overview" data-scroll-behavior="smooth" aria-label="Overview"><span>1</span></button>
+            <button type="button" class="example-scroll-detent example-scroll-chapter-detent" slot="block-detents" data-scroll-target="anatomy" data-scroll-behavior="smooth" aria-label="Anatomy"><span>2</span></button>
+            <button type="button" class="example-scroll-detent example-scroll-chapter-detent" slot="block-detents" data-scroll-target="states" data-scroll-behavior="smooth" aria-label="States"><span>3</span></button>
+            <button type="button" class="example-scroll-detent example-scroll-chapter-detent" slot="block-detents" data-scroll-target="targets" data-scroll-behavior="smooth" aria-label="Targets"><span>4</span></button>
+          </ui-scroll-area>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "The rail updates an ordinary ui-path composition; neither component needs product-specific breadcrumb-scroll coupling.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
+      "Hover-revealed menu card",
+      `
+        <ui-card class="catalog-example example-scroll-menu-card">
+          <strong slot="title">Recent commands</strong>
+          <span slot="description">Move into the card to reveal its compact rail.</span>
+          <ui-scroll-area slot="content" class="example-scroll-menu" label="Recent command history" size="medium" mode="hover" snap="proximity">
+            <ui-menu class="example-scroll-command-menu" label="Recent commands">
+              <ui-menu-item data-scroll-id="command-open" data-scroll-snap>Open project<ui-kbd slot="shortcut">⌘ O</ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-search" data-scroll-snap>Search namespace<ui-kbd slot="shortcut">⌘ F</ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-move" data-scroll-snap>Move record<ui-kbd slot="shortcut">⌥ M</ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-archive" data-scroll-snap>Archive project<ui-kbd slot="shortcut">⌘ ⌫</ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-restore" data-scroll-snap>Restore snapshot<ui-kbd slot="shortcut">⇧ ⌘ R</ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-export" data-scroll-snap>Export selection<ui-kbd slot="shortcut">⇧ ⌘ E</ui-kbd></ui-menu-item>
+              <ui-menu-item data-scroll-id="command-close" data-scroll-snap>Close workspace<ui-kbd slot="shortcut">⌘ W</ui-kbd></ui-menu-item>
+            </ui-menu>
+            <button type="button" class="example-scroll-detent example-scroll-menu-detent" slot="block-detents" data-scroll-target="command-archive" data-scroll-behavior="smooth" aria-label="Jump to archive command"></button>
+          </ui-scroll-area>
+        </ui-card>`,
+      {
+        compositionOnly: true,
+        description:
+          "Hover mode removes the rail from view at rest but retains native wheel, touch, and keyboard scrolling over the whole card.",
+      },
+    ),
+    example(
+      "Bidirectional edge mask",
+      `
+        <section class="catalog-example example-scroll-bidirectional">
+          <header class="example-scroll-bidirectional-header">
+            <div><span class="example-eyebrow">Shared viewport part</span><strong>Namespace canvas</strong></div>
+            <ui-path size="small" path="/interzone/scrolling/row-1/column-1"><span slot="title">A1</span></ui-path>
+          </header>
+          <ui-scroll-area class="example-scroll-bidirectional-area example-scroll-edge-mask" label="Bidirectional namespace canvas" size="medium" gutter="stable" mode="always">
+            <div class="example-scroll-canvas">${scrollCanvasRows}</div>
+            <button type="button" class="example-scroll-detent example-scroll-canvas-block-detent" slot="block-detents" data-scroll-target="row-1" aria-label="Scroll to row 1"></button>
+            <button type="button" class="example-scroll-detent example-scroll-canvas-block-detent" slot="block-detents" data-scroll-target="row-4" aria-label="Scroll to row 4"></button>
+            <button type="button" class="example-scroll-detent example-scroll-canvas-block-detent" slot="block-detents" data-scroll-target="row-8" aria-label="Scroll to row 8"></button>
+            <button type="button" class="example-scroll-detent example-scroll-canvas-block-detent" slot="block-detents" data-scroll-target="row-12" aria-label="Scroll to row 12"></button>
+            <button type="button" class="example-scroll-inline-detent" slot="inline-detents" data-scroll-target="column-1" aria-label="Scroll to column A"></button>
+            <button type="button" class="example-scroll-inline-detent" slot="inline-detents" data-scroll-target="column-3" aria-label="Scroll to column C"></button>
+            <button type="button" class="example-scroll-inline-detent" slot="inline-detents" data-scroll-target="column-6" aria-label="Scroll to column F"></button>
+            <button type="button" class="example-scroll-inline-detent" slot="inline-detents" data-scroll-target="column-8" aria-label="Scroll to column H"></button>
+            <ui-icon slot="corner" name="action.drag" label="Bidirectional scroll corner"></ui-icon>
+          </ui-scroll-area>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Both axes use the same viewport CSS part and intersecting semantic edge-mask recipe; only their logical state and detent lanes differ.",
+        stageLayout: "fill",
+      },
+    ),
     example(
       "Activity log",
       `
@@ -1364,26 +3195,134 @@ const curated: Record<string, CatalogExample[]> = {
       "Project hierarchy",
       `
           <ui-tree class="catalog-example" label="Interzone project hierarchy">
-            <ui-tree-item kind="folder" path="/interzone" title="Interzone" expanded>
+            <ui-tree-item kind="folder" path="/interzone" expanded>
+            <span slot="label">Interzone</span>
             <span slot="icon" class="example-tree-glyph" data-kind="workspace" aria-hidden="true"></span>
             <ui-badge slot="meta">workspace</ui-badge>
-            <ui-tree-item slot="children" kind="folder" path="/interzone/projects" title="Projects" expanded>
+            <ui-tree-item slot="children" kind="folder" path="/interzone/projects" expanded>
+              <span slot="label">Projects</span>
               <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
               <span slot="meta">2 records</span>
-              <ui-tree-item slot="children" kind="file" path="/interzone/projects/billing-migration" title="Billing migration" selected>
+              <ui-tree-item slot="children" kind="file" path="/interzone/projects/billing-migration" selected>
+                <span slot="label">Billing migration</span>
                 <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
                 <ui-badge slot="meta" tone="positive">active</ui-badge>
               </ui-tree-item>
-              <ui-tree-item slot="children" kind="file" path="/interzone/projects/invoice-reconciliation" title="Invoice reconciliation" current>
+              <ui-tree-item slot="children" kind="file" path="/interzone/projects/invoice-reconciliation" current>
+                <span slot="label">Invoice reconciliation</span>
                 <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
               </ui-tree-item>
             </ui-tree-item>
-            <ui-tree-item slot="children" kind="folder" path="/interzone/archive" title="Archive">
+            <ui-tree-item slot="children" kind="folder" path="/interzone/archive">
+              <span slot="label">Archive</span>
               <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
             </ui-tree-item>
           </ui-tree-item>
         </ui-tree>`,
       { compositionOnly: true },
+    ),
+    example(
+      "Constrained namespace labels",
+      `
+        <ui-tree class="catalog-example example-tree-narrow" label="Long namespace labels">
+          <ui-tree-item kind="folder" path="/interzone/projects" expanded>
+            <span slot="label">Interzone project namespace</span>
+            <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+            <ui-tree-item
+              slot="children"
+              kind="file"
+              path="/interzone/projects/billing-migration/invoice-reconciliation"
+              selected
+            >
+              <span slot="label">Invoice reconciliation requirements for international billing</span>
+              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            </ui-tree-item>
+            <ui-tree-item
+              slot="children"
+              kind="file"
+              path="/interzone/projects/archive-import/legacy-ledger-verification"
+            >
+              <span slot="label">Legacy ledger verification and archive import</span>
+              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+            </ui-tree-item>
+          </ui-tree-item>
+        </ui-tree>`,
+      {
+        compositionOnly: true,
+        description:
+          "Tree labels consume the same logical overflow states and progressive blur anatomy as ui-path without nesting navigation inside the tree-item button.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Reorder with handles",
+      `
+        <div class="catalog-example example-drag-tree-workspace">
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Controlled order</span>
+            <h2>Tree rows keep their tree semantics</h2>
+            <p>The actions slot supplies a dedicated grip; the owning example commits the new sibling order.</p>
+          </header>
+          <ui-tree class="example-drag-tree" label="Project priority" data-catalog-drag-boundary>
+            <ui-tree-item value="billing" kind="file" title="Billing migration" data-catalog-drag-source="tree-item" data-catalog-drag-axis="y">
+              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+              <ui-badge slot="meta" tone="critical">P0</ui-badge>
+              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Billing migration">⠿</ui-button>
+            </ui-tree-item>
+            <ui-tree-item value="invoices" kind="file" title="Invoice reconciliation" data-catalog-drag-source="tree-item" data-catalog-drag-axis="y">
+              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+              <ui-badge slot="meta" tone="warning">P1</ui-badge>
+              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Invoice reconciliation">⠿</ui-button>
+            </ui-tree-item>
+            <ui-tree-item value="archive" kind="file" title="Archive import" data-catalog-drag-source="tree-item" data-catalog-drag-axis="y">
+              <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+              <ui-badge slot="meta">P2</ui-badge>
+              <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Archive import">⠿</ui-button>
+            </ui-tree-item>
+          </ui-tree>
+          <output class="example-drag-status" data-catalog-tree-status>Priority: Billing migration, Invoice reconciliation, Archive import</output>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The headless controller attaches directly to each ui-tree-item, preserving the tree's authored hierarchy and actions-slot anatomy.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Nest into leaves",
+      `
+        <div class="catalog-example example-tree-leaf-workspace" data-catalog-tree-leaf-workspace>
+          <header class="example-link-heading">
+            <span class="example-eyebrow">Leaf promotion</span>
+            <h2>Drop a row into another leaf</h2>
+            <p>The nearest valid leaf becomes a branch; dropping outside the tree cancels without changing the hierarchy.</p>
+          </header>
+          <ui-tree class="example-drag-tree" label="Migration work" data-catalog-tree-leaf-zone>
+            <ui-tree-item kind="folder" title="Migration work" expanded>
+              <span slot="icon" class="example-tree-glyph" data-kind="folder" aria-hidden="true"></span>
+              <ui-tree-item slot="children" value="billing" kind="file" title="Billing migration" data-catalog-label="Billing migration" data-catalog-drag-source="tree-leaf" data-catalog-drag-free data-catalog-tree-leaf-drop>
+                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Billing migration">⠿</ui-button>
+              </ui-tree-item>
+              <ui-tree-item slot="children" value="invoices" kind="file" title="Invoice reconciliation" data-catalog-label="Invoice reconciliation" data-catalog-drag-source="tree-leaf" data-catalog-drag-free data-catalog-tree-leaf-drop>
+                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Invoice reconciliation">⠿</ui-button>
+              </ui-tree-item>
+              <ui-tree-item slot="children" value="archive" kind="file" title="Archive import" data-catalog-label="Archive import" data-catalog-drag-source="tree-leaf" data-catalog-drag-free data-catalog-tree-leaf-drop>
+                <span slot="icon" class="example-tree-glyph" data-kind="file" aria-hidden="true"></span>
+                <ui-button slot="actions" class="example-drag-handle" data-catalog-drag-handle type="button" size="small" variant="quiet" aria-label="Move Archive import">⠿</ui-button>
+              </ui-tree-item>
+            </ui-tree-item>
+          </ui-tree>
+          <output class="example-drag-status" data-catalog-tree-leaf-status>Drag a row onto a leaf to nest it.</output>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The tree stays a controlled semantic hierarchy; the owning example validates the target, promotes a leaf to a branch, and cancels invalid drops.",
+        stageLayout: "start",
+      },
     ),
   ],
   "ui-toast": [
@@ -1458,7 +3397,7 @@ const curated: Record<string, CatalogExample[]> = {
             <ui-link href="#members">Members</ui-link>
           </ui-navigation-menu>
           <ui-button slot="navigate" variant="secondary">New project</ui-button>
-          <ui-path slot="locator" path="/interzone/projects/billing-migration" title="Billing migration"></ui-path>
+          <ui-path slot="locator" path="/interzone/projects/billing-migration"><span slot="title">Billing migration</span></ui-path>
           <ui-card slot="content" elevation="raised">
             <strong slot="title">Billing migration</strong>
             <span slot="description">Application content remains independent of sidebar layout.</span>

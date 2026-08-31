@@ -87,4 +87,51 @@ describe("ui-table", () => {
     expect(inShadow(cell, `[part~="cell"]`)).toBeTruthy();
     expect(inShadow(cell, `[part~="content"]`)).toBeTruthy();
   });
+
+  it("supports parent-controlled grid, selection, editability, and sorting semantics", async () => {
+    const table = await fixture<UITable>(`
+      <ui-table interactive>
+        <ui-table-header>
+          <ui-table-row row-index="1">
+            <ui-table-head column-index="1" sort="ascending" selected>Project</ui-table-head>
+          </ui-table-row>
+        </ui-table-header>
+        <ui-table-body>
+          <ui-table-row row-index="2" selected>
+            <ui-table-cell column-index="1" interactive selected active editable>Billing migration</ui-table-cell>
+          </ui-table-row>
+        </ui-table-body>
+      </ui-table>
+    `);
+    const row = table.querySelector<UITableRow>("ui-table-row[row-index='2']")!;
+    const head = table.querySelector<UITableHead>("ui-table-head")!;
+    const cell = table.querySelector<UITableCell>("ui-table-cell")!;
+
+    expect(inShadow(table, '[role="grid"]')).toBeTruthy();
+    expect(inShadow(row, '[role="row"]').getAttribute("aria-selected")).toBe("true");
+    expect(inShadow(head, '[role="columnheader"]').getAttribute("aria-sort")).toBe("ascending");
+    expect(inShadow(cell, '[role="gridcell"]').getAttribute("aria-selected")).toBe("true");
+    expect(inShadow(cell, '[role="gridcell"]').getAttribute("aria-readonly")).toBe("false");
+  });
+
+  it("allows authored headers to identify row, column, or corner scope", async () => {
+    const table = await fixture<UITable>(`
+      <ui-table>
+        <ui-table-body>
+          <ui-table-row row-index="2">
+            <ui-table-head scope="row" column-index="1">1</ui-table-head>
+            <ui-table-head scope="column" column-index="2">Status</ui-table-head>
+            <ui-table-head scope="none" column-index="3"></ui-table-head>
+          </ui-table-row>
+        </ui-table-body>
+      </ui-table>
+    `);
+    const [row, column, corner] = [...table.querySelectorAll<UITableHead>("ui-table-head")];
+
+    expect(inShadow(row!, '[role="rowheader"]')).toBeTruthy();
+    expect(inShadow(row!, '[part~="row-header"]')).toBeTruthy();
+    expect(inShadow(column!, '[role="columnheader"]')).toBeTruthy();
+    expect(inShadow(column!, '[part~="column-header"]')).toBeTruthy();
+    expect(corner!.scope).toBe("none");
+  });
 });

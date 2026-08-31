@@ -234,6 +234,10 @@ Definition modules are side-effect free, which is what lets a bundler drop unuse
 against the emitted code — including transitively, since the `register.js` barrel registers
 elements without containing a `define` call of its own.
 
+Headless pointer movement follows the same rule. `@mash/ui/drag` exposes typed containment,
+snapping, auto-scroll, and positioning without registering an element or touching the document at
+import time; `<ui-draggable>` is the optional markup adapter. See [docs/drag.md](docs/drag.md).
+
 ### The manifest is a build artifact
 
 `custom-elements.json` is treated like compiled output, not documentation. The analyzer config adds

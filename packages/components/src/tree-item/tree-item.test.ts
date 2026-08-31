@@ -42,6 +42,8 @@ describe("ui-tree-item", () => {
         "disclosure",
         "icon",
         "label",
+        "label-viewport",
+        "label-content",
         "meta",
         "actions",
         "children",

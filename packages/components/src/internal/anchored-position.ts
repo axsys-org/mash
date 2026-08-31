@@ -186,6 +186,19 @@ export class AnchoredPositionController {
     positioner.style.display = "block";
     positioner.style.insetInlineStart = `${Math.round(resolved.left)}px`;
     positioner.style.insetBlockStart = `${Math.round(resolved.top)}px`;
+    // A backdrop-filter or transform on an ancestor establishes a containing
+    // block for fixed descendants. Nested material menus therefore need one
+    // measured correction to retain viewport coordinates without portalling
+    // their semantic DOM out of the owning menu item.
+    const actual = positioner.getBoundingClientRect();
+    const deltaX = resolved.left - actual.left;
+    const deltaY = resolved.top - actual.top;
+    if (Math.abs(deltaX) > 0.5) {
+      positioner.style.insetInlineStart = `${Math.round(resolved.left + deltaX)}px`;
+    }
+    if (Math.abs(deltaY) > 0.5) {
+      positioner.style.insetBlockStart = `${Math.round(resolved.top + deltaY)}px`;
+    }
     positioner.dataset.side = resolved.placement;
     positioner.dataset.align = config.align;
   }

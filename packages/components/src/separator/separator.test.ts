@@ -25,4 +25,14 @@ describe("ui-separator", () => {
     expect(separator.getAttribute("orientation")).toBe("vertical");
     expect(inShadow(separator, '[part="root"]').getAttribute("aria-orientation")).toBe("vertical");
   });
+
+  it("binds an authored prefix marker without changing separator semantics", async () => {
+    const separator = await fixture<UISeparator>(`
+      <ui-separator><span slot="prefix">marker</span></ui-separator>
+    `);
+    const prefix = inShadow<HTMLSlotElement>(separator, 'slot[name="prefix"]');
+
+    expect(prefix.assignedElements()).toHaveLength(1);
+    expect(inShadow(separator, '[part="root"]').getAttribute("role")).toBe("separator");
+  });
 });
