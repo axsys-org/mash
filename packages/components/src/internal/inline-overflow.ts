@@ -15,6 +15,52 @@ const emptyState = (): InlineOverflowState => ({
   end: false,
 });
 
+type ResizeCallback = () => void;
+
+interface ResizeObservationPool {
+  observer: ResizeObserver;
+  callbacks: Map<Element, Set<ResizeCallback>>;
+}
+
+const resizePools = new WeakMap<Window, ResizeObservationPool>();
+
+function observeResize(element: Element, callback: ResizeCallback): () => void {
+  const view = element.ownerDocument.defaultView;
+  const ResizeObserverClass = view?.ResizeObserver ?? globalThis.ResizeObserver;
+  if (!view || !ResizeObserverClass) return () => undefined;
+  let pool = resizePools.get(view);
+  if (!pool) {
+    const callbacks = new Map<Element, Set<ResizeCallback>>();
+    const observer = new ResizeObserverClass((entries) => {
+      for (const entry of entries) {
+        for (const notify of callbacks.get(entry.target) ?? []) notify();
+      }
+    });
+    pool = { observer, callbacks };
+    resizePools.set(view, pool);
+  }
+  let callbacks = pool.callbacks.get(element);
+  if (!callbacks) {
+    callbacks = new Set();
+    pool.callbacks.set(element, callbacks);
+    pool.observer.observe(element);
+  }
+  callbacks.add(callback);
+
+  return () => {
+    const activePool = resizePools.get(view);
+    const active = activePool?.callbacks.get(element);
+    if (!activePool || !active) return;
+    active.delete(callback);
+    if (active.size > 0) return;
+    activePool.callbacks.delete(element);
+    activePool.observer.unobserve(element);
+    if (activePool.callbacks.size > 0) return;
+    activePool.observer.disconnect();
+    resizePools.delete(view);
+  };
+}
+
 /**
  * Keeps logical inline-overflow state in sync without prescribing presentation.
  *
@@ -25,7 +71,9 @@ export class InlineOverflowController {
   readonly #host: OverflowHost;
   readonly #internals: ElementInternals;
   #viewport?: HTMLElement;
-  #observer?: ResizeObserver;
+  #content?: Element;
+  #stopViewportObservation?: () => void;
+  #stopContentObservation?: () => void;
   #frame?: number;
   #pendingAlignment?: "start" | "end";
 
@@ -41,18 +89,18 @@ export class InlineOverflowController {
     this.disconnect();
     this.#viewport = viewport;
     viewport.addEventListener("scroll", this.sync, { passive: true });
-    if (typeof ResizeObserver !== "undefined") {
-      this.#observer = new ResizeObserver(() => this.queue());
-      this.#observer.observe(viewport);
-      if (viewport.firstElementChild) this.#observer.observe(viewport.firstElementChild);
-    }
+    this.#stopViewportObservation = observeResize(viewport, this.queue);
+    this.#syncContentObservation();
     this.queue();
   }
 
   disconnect(): void {
     this.#viewport?.removeEventListener("scroll", this.sync);
-    this.#observer?.disconnect();
-    this.#observer = undefined;
+    this.#stopViewportObservation?.();
+    this.#stopContentObservation?.();
+    this.#stopViewportObservation = undefined;
+    this.#stopContentObservation = undefined;
+    this.#content = undefined;
     const view = this.#host.ownerDocument.defaultView;
     if (this.#frame !== undefined && view) view.cancelAnimationFrame(this.#frame);
     this.#frame = undefined;
@@ -62,6 +110,7 @@ export class InlineOverflowController {
   /** Re-measures after rendering and optionally preserves a logical edge. */
   queue = (alignment?: "start" | "end"): void => {
     if (alignment) this.#pendingAlignment = alignment;
+    this.#syncContentObservation();
     const view = this.#host.ownerDocument.defaultView;
     if (!this.#viewport || this.#frame !== undefined) return;
     if (!view) {
@@ -111,5 +160,13 @@ export class InlineOverflowController {
   #setState(name: string, active: boolean): void {
     if (active) this.#internals.states.add(name);
     else this.#internals.states.delete(name);
+  }
+
+  #syncContentObservation(): void {
+    const content = this.#viewport?.firstElementChild ?? undefined;
+    if (content === this.#content) return;
+    this.#stopContentObservation?.();
+    this.#content = content;
+    this.#stopContentObservation = content ? observeResize(content, this.queue) : undefined;
   }
 }
