@@ -138,6 +138,115 @@
             "colorSpace": "oklch",
             "components": [0.3892, 0.0912, 251.18]
           }
+        },
+        "vibrantLight": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0.470588, 0.941176]
+          },
+          "$description": "Vibrant action blue for light material environments. The web renderer pairs it with multiply compositing."
+        },
+        "vibrantDark": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.039216, 0.6, 1]
+          },
+          "$description": "Vibrant action blue for dark material environments. The web renderer pairs it with plus-lighter compositing."
+        },
+        "menuSelection": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0.533333, 1]
+          },
+          "$description": "Apple menu selection blue (#0088ff), shared by light and dark floating menus."
+        },
+        "500Alpha08": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.247059, 0.6, 0.94902],
+            "alpha": 0.08
+          }
+        },
+        "500Alpha14": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.247059, 0.6, 0.94902],
+            "alpha": 0.14
+          }
+        },
+        "500Alpha20": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.247059, 0.6, 0.94902],
+            "alpha": 0.2
+          }
+        },
+        "500Alpha28": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.247059, 0.6, 0.94902],
+            "alpha": 0.28
+          }
+        },
+        "500Alpha45": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.247059, 0.6, 0.94902],
+            "alpha": 0.45
+          }
+        },
+        "400Alpha08": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.388235, 0.690196, 1],
+            "alpha": 0.08
+          }
+        },
+        "400Alpha14": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.388235, 0.690196, 1],
+            "alpha": 0.14
+          }
+        },
+        "400Alpha20": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.388235, 0.690196, 1],
+            "alpha": 0.2
+          }
+        },
+        "400Alpha28": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.388235, 0.690196, 1],
+            "alpha": 0.28
+          }
+        },
+        "400Alpha45": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.388235, 0.690196, 1],
+            "alpha": 0.45
+          }
+        }
+      },
+
+      "positiveTint": {
+        "$description": "Translucent positive-tone primitives used by semantic provenance and status fills.",
+        "light": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.145098, 0.596078, 0.301961],
+            "alpha": 0.14
+          }
+        },
+        "dark": {
+          "$value": {
+            "colorSpace": "oklch",
+            "components": [0.76, 0.16, 150],
+            "alpha": 0.14
+          }
         }
       },
 
@@ -246,6 +355,14 @@
           },
           "$description": "Paper's soft elevation shadow color used by cards and material recipes."
         },
+        "backgroundMaterial": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.13
+          },
+          "$description": "A 13% black shadow contribution for floating background-material surfaces."
+        },
         "overlay": {
           "$value": {
             "colorSpace": "srgb",
@@ -253,6 +370,414 @@
             "alpha": 0.2
           },
           "$description": "Paper's overlay shadow color used by material recipes."
+        }
+      },
+
+      "material": {
+        "$description": "Paper-aligned translucent material tints. All five thicknesses share one 15px backdrop blur; thickness changes the tint contribution rather than the blur geometry.",
+        "highlight": {
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [1, 1, 1],
+            "alpha": 0.13
+          },
+          "$description": "A 13% white highlight layer intended for renderer-isolated color-dodge treatment on material backgrounds."
+        },
+        "light": {
+          "ultraThin": {
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0.964706, 0.964706, 0.964706],
+              "alpha": 0.36
+            }
+          },
+          "thin": {
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0.964706, 0.964706, 0.964706],
+              "alpha": 0.48
+            }
+          },
+          "regular": {
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0.964706, 0.964706, 0.964706],
+              "alpha": 0.6
+            }
+          },
+          "thick": {
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0.964706, 0.964706, 0.964706],
+              "alpha": 0.72
+            }
+          },
+          "ultraThick": {
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0.964706, 0.964706, 0.964706],
+              "alpha": 0.84
+            }
+          }
+        },
+        "dark": {
+          "ultraThin": {
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0, 0, 0],
+              "alpha": 0.1
+            }
+          },
+          "thin": {
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0, 0, 0],
+              "alpha": 0.2
+            }
+          },
+          "regular": {
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0, 0, 0],
+              "alpha": 0.29
+            }
+          },
+          "thick": {
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0, 0, 0],
+              "alpha": 0.4
+            }
+          },
+          "ultraThick": {
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0, 0, 0],
+              "alpha": 0.5
+            }
+          }
+        }
+      },
+
+      "label": {
+        "$description": "Opaque and vibrant semantic label ingredients. Opaque values use alpha; vibrant values are renderer-composited over material backgrounds.",
+        "light": {
+          "opaque": {
+            "primary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.85
+              }
+            },
+            "secondary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.5
+              }
+            },
+            "tertiary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.25
+              }
+            },
+            "quaternary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.1
+              }
+            },
+            "quinary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.05
+              }
+            },
+            "seximal": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.03
+              }
+            }
+          },
+          "vibrant": {
+            "primary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.101961, 0.101961, 0.101961]
+              }
+            },
+            "secondary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.447059, 0.447059, 0.447059]
+              }
+            },
+            "tertiary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.74902, 0.74902, 0.74902]
+              }
+            },
+            "quaternary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.85098, 0.85098, 0.85098]
+              }
+            },
+            "quinary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.901961, 0.901961, 0.901961]
+              }
+            }
+          }
+        },
+        "dark": {
+          "opaque": {
+            "primary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.85
+              }
+            },
+            "secondary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.55
+              }
+            },
+            "tertiary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.25
+              }
+            },
+            "quaternary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.1
+              }
+            },
+            "quinary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.05
+              }
+            },
+            "seximal": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.03
+              }
+            }
+          },
+          "vibrant": {
+            "primary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.960784, 0.960784, 0.960784]
+              }
+            },
+            "secondary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.541176, 0.541176, 0.541176]
+              }
+            },
+            "tertiary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.25098, 0.25098, 0.25098]
+              }
+            },
+            "quaternary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.14902, 0.14902, 0.14902]
+              }
+            },
+            "quinary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.066667, 0.066667, 0.066667]
+              }
+            }
+          }
+        }
+      },
+
+      "fill": {
+        "$description": "Five-level neutral fill ingredients. Vibrant overlays are combined with blend-mode instructions by the renderer rather than encoded as token strings.",
+        "light": {
+          "opaque": {
+            "controlPressed": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.15
+              },
+              "$description": "Pressed neutral control fill from the Apple button reference."
+            },
+            "primary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.1
+              }
+            },
+            "secondary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.08
+              }
+            },
+            "tertiary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.05
+              }
+            },
+            "quaternary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.03
+              }
+            },
+            "quinary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0, 0, 0],
+                "alpha": 0.02
+              }
+            }
+          },
+          "vibrant": {
+            "primary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.85098, 0.85098, 0.85098]
+              }
+            },
+            "secondary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.85098, 0.85098, 0.85098]
+              }
+            },
+            "tertiary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.94902, 0.94902, 0.94902]
+              }
+            },
+            "quaternary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.968627, 0.968627, 0.968627]
+              }
+            },
+            "quinary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.984314, 0.984314, 0.984314]
+              }
+            }
+          }
+        },
+        "dark": {
+          "opaque": {
+            "controlPressed": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.15
+              },
+              "$description": "Pressed neutral control fill for dark appearance."
+            },
+            "primary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.1
+              }
+            },
+            "secondary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.08
+              }
+            },
+            "tertiary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.05
+              }
+            },
+            "quaternary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.03
+              }
+            },
+            "quinary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [1, 1, 1],
+                "alpha": 0.02
+              }
+            }
+          },
+          "vibrant": {
+            "primary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.141176, 0.141176, 0.141176]
+              }
+            },
+            "secondary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.078431, 0.078431, 0.078431]
+              }
+            },
+            "tertiary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.05098, 0.05098, 0.05098]
+              }
+            },
+            "quaternary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.035294, 0.035294, 0.035294]
+              }
+            },
+            "quinary": {
+              "$value": {
+                "colorSpace": "srgb",
+                "components": [0.027451, 0.027451, 0.027451]
+              }
+            }
+          }
         }
       },
 

@@ -274,6 +274,8 @@ export class UIVirtualList extends LitElement {
  *
  * @tag ui-virtual-item
  * @summary Carries one item's stable content, index, size, and visibility state.
+ * @example Project activity item
+ * <ui-virtual-list label="Project activity"><ui-virtual-item size="48">Billing migration updated</ui-virtual-item></ui-virtual-list>
  * @slot - Item content.
  * @csspart root - The visible item realization.
  * @csspart content - The authored item content binding.

@@ -1,6 +1,7 @@
 import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { InlineOverflowController } from "../internal/inline-overflow.js";
 
 /** The physical scale a recipe may apply to a tree item. */
 export type TreeItemSize = "small" | "medium";
@@ -21,8 +22,11 @@ export type TreeItemKind = "file" | "folder";
  *
  * @example Shrine hierarchy
  * <ui-tree label="Shrine namespaces">
- *   <ui-tree-item kind="folder" path="/shrine" title="Shrine" expanded>
- *     <ui-tree-item slot="children" kind="file" path="/shrine/axiomatic" title="Axiomatic"></ui-tree-item>
+ *   <ui-tree-item kind="folder" path="/shrine" expanded>
+ *     <span slot="label">Shrine</span>
+ *     <ui-tree-item slot="children" kind="file" path="/shrine/axiomatic">
+ *       <span slot="label">Axiomatic</span>
+ *     </ui-tree-item>
  *   </ui-tree-item>
  * </ui-tree>
  *
@@ -39,6 +43,8 @@ export type TreeItemKind = "file" | "folder";
  * @csspart disclosure - The leading branch-state cell; recipes collapse it for leaves.
  * @csspart icon - The wrapper around the `icon` slot.
  * @csspart label - The title, path fallback, or default-slot label.
+ * @csspart label-viewport - The logical inline-overflow viewport around the label.
+ * @csspart label-content - The authored or fallback label contents.
  * @csspart meta - The optional secondary `meta` slot.
  * @csspart actions - The wrapper around the `actions` slot.
  * @csspart children - The nested child group.
@@ -48,6 +54,9 @@ export type TreeItemKind = "file" | "folder";
  * @cssstate selected - Matches `:state(selected)` when parent state selects this item.
  * @cssstate disabled - Matches `:state(disabled)` while activation is unavailable.
  * @cssstate branch - Matches `:state(branch)` when the item can reveal children.
+ * @cssstate overflowing - Matches `:state(overflowing)` when the label is clipped.
+ * @cssstate overflow-start - Matches `:state(overflow-start)` when label content continues before the viewport.
+ * @cssstate overflow-end - Matches `:state(overflow-end)` when label content continues after the viewport.
  *
  * @fires {CustomEvent<{ expanded: boolean }>} ui-tree-item-toggle - Requests a new expansion state.
  * @fires {CustomEvent<void>} ui-tree-item-select - Emitted when the row is activated.
@@ -63,6 +72,11 @@ export type TreeItemKind = "file" | "folder";
  * @mashnode disclosure disclosure root
  * @mashnode control control root
  * @mashnode label label control
+ * @mashnode label-viewport viewport label
+ * @mashnode label-content content label-viewport
+ * @mashnode overflow overflow label
+ * @mashnode overflow-start overflow-start overflow
+ * @mashnode overflow-end overflow-end overflow
  * @mashnode path path label
  * @mashnode icon icon control
  * @mashnode meta meta control
@@ -124,6 +138,7 @@ export class UITreeItem extends LitElement {
   declare private _hasChildren: boolean;
 
   readonly #internals: ElementInternals;
+  readonly #overflow: InlineOverflowController;
 
   constructor() {
     super();
@@ -140,9 +155,22 @@ export class UITreeItem extends LitElement {
     this.size = "medium";
     this._hasChildren = false;
     this.#internals = this.attachInternals();
+    this.#overflow = new InlineOverflowController(this, this.#internals);
   }
 
   static override styles = baseStyles;
+
+  protected override firstUpdated(): void {
+    this.#connectOverflow();
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    if (!this.hasUpdated) return;
+    void this.updateComplete.then(() => {
+      if (this.isConnected) this.#connectOverflow();
+    });
+  }
 
   protected override updated(changed: PropertyValues<this>): void {
     for (const state of ["expanded", "current", "selected", "disabled"] as const) {
@@ -152,6 +180,21 @@ export class UITreeItem extends LitElement {
     }
     if (this.branch) this.#internals.states.add("branch");
     else this.#internals.states.delete("branch");
+    if (changed.has("title") || changed.has("path")) this.#overflow.queue("start");
+  }
+
+  override disconnectedCallback(): void {
+    this.#overflow.disconnect();
+    super.disconnectedCallback();
+  }
+
+  get #labelViewport(): HTMLElement {
+    return this.renderRoot.querySelector<HTMLElement>('[part="label-viewport"]')!;
+  }
+
+  #connectOverflow(): void {
+    this.#overflow.connect(this.#labelViewport);
+    this.#overflow.queue("start");
   }
 
   /** Whether this item may reveal a child group. */
@@ -263,10 +306,20 @@ export class UITreeItem extends LitElement {
     // genuinely label-only items.
     return html`
       <span part="label">
-        <slot name="label">${label || html`<slot></slot>`}</slot>
+        <span part="label-viewport">
+          <span part="label-content">
+            <slot name="label" @slotchange=${this.#onLabelChange}
+              >${label || html`<slot @slotchange=${this.#onLabelChange}></slot>`}</slot
+            >
+          </span>
+        </span>
       </span>
     `;
   }
+
+  #onLabelChange = (): void => {
+    this.#overflow.queue("start");
+  };
 
   protected override render(): TemplateResult {
     const childrenVisible = this.branch && this.expanded;

@@ -150,11 +150,13 @@ so semantic aliases resolve and provenance stays inspectable, but they never bec
 theme values or utilities. Importing the adapter is the explicit opt-in to the semantic names.
 
 ```css
-@layer theme, base, components, utilities;
+@layer theme, base, mash.catalogue, components, utilities;
 
 @import "tailwindcss/preflight.css" layer(base); /* optional normalization */
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "@mash/tokens/tailwind.css";
+@import "@mash/ui/tailwind.css"; /* generated part, slot, and state variants */
+@import "@mash/shrine/tailwind.css"; /* optional Shrine anatomy */
 ```
 
 The adapter intentionally omits Tailwind's default theme. Preflight is an application choice: the
@@ -162,7 +164,10 @@ catalogue opts into it instead of carrying a parallel reset stylesheet. Mash rem
 design-value source; Tailwind contributes normalization, its utility compiler, and static layout
 vocabulary.
 
-See [docs/tailwind.md](docs/tailwind.md) for the utility contract and the component boundary.
+The component adapters are generated from each package's Custom Elements Manifest. A declaration
+of `part="prefix"`, `slot="prefix"`, or `:state(has-prefix)` therefore yields the Tailwind variants
+`part-prefix:*`, `slot-prefix:*`, and `state-has-prefix:*` without maintaining a second anatomy
+list. See [docs/tailwind.md](docs/tailwind.md) for the utility contract and component boundary.
 
 ### Paper synchronization
 
@@ -199,7 +204,8 @@ publishes a same-named part, so authored content and the region that presents it
 share one vocabulary. Composed components forward the parts of nested
 primitives when consumers need to style through the outer shadow boundary.
 `pnpm run check:parts` rejects missing slot parts, stale catalogue selectors,
-and recipe selectors that target undeclared parts.
+recipe selectors that target undeclared parts, and missing generated Tailwind
+variants for any public part, named slot, or custom state.
 
 Variant axes are semantic and orthogonal. `ui-button` has `variant` (emphasis), `size` (scale) and
 `tone` (meaning); they compose freely, so a quiet critical button needs no special case. That works
@@ -233,6 +239,10 @@ Definition modules are side-effect free, which is what lets a bundler drop unuse
 `sideEffects` names only the registration modules, and `pnpm run check:exports` verifies that claim
 against the emitted code — including transitively, since the `register.js` barrel registers
 elements without containing a `define` call of its own.
+
+Headless pointer movement follows the same rule. `@mash/ui/drag` exposes typed containment,
+snapping, auto-scroll, and positioning without registering an element or touching the document at
+import time; `<ui-draggable>` is the optional markup adapter. See [docs/drag.md](docs/drag.md).
 
 ### The manifest is a build artifact
 

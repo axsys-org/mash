@@ -6,6 +6,30 @@
       "0": { "$value": { "value": 0, "unit": "rem" } },
       "glyph": { "$value": { "value": 1, "unit": "rem" } },
       "control": { "$value": { "value": 2.5, "unit": "rem" } },
+      "menuInlineRegular": {
+        "$value": { "value": 15.625, "unit": "rem" },
+        "$description": "250px menu surface from the Apple regular menu reference."
+      },
+      "menuInlineCompact": {
+        "$value": { "value": 13.125, "unit": "rem" },
+        "$description": "210px menu surface from the Apple compact menu reference."
+      },
+      "menuInlineMini": {
+        "$value": { "value": 11.875, "unit": "rem" },
+        "$description": "190px menu surface from the Apple mini menu reference."
+      },
+      "menuRowRegular": {
+        "$value": { "value": 1.5, "unit": "rem" },
+        "$description": "24px regular command row."
+      },
+      "menuRowCompact": {
+        "$value": { "value": 1.375, "unit": "rem" },
+        "$description": "22px compact command row."
+      },
+      "menuRowMini": {
+        "$value": { "value": 1.1875, "unit": "rem" },
+        "$description": "19px mini command row."
+      },
       "compact": { "$value": { "value": 8, "unit": "rem" } },
       "panel": { "$value": { "value": 16, "unit": "rem" } },
       "dialog": { "$value": { "value": 34, "unit": "rem" } },

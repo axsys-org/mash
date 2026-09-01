@@ -35,6 +35,15 @@
         "$value": "{dimension.reference.record}",
         "$description": "A broad structured record surface's maximum inline measure."
       }
+    },
+    "menu": {
+      "$description": "Apple-aligned menu bounds. Density changes row rhythm and the default maximum label measure while a menu may fit content, hold a fixed tier, or stretch within explicit bounds.",
+      "inlineRegular": { "$value": "{dimension.reference.menuInlineRegular}" },
+      "inlineCompact": { "$value": "{dimension.reference.menuInlineCompact}" },
+      "inlineMini": { "$value": "{dimension.reference.menuInlineMini}" },
+      "rowRegular": { "$value": "{dimension.reference.menuRowRegular}" },
+      "rowCompact": { "$value": "{dimension.reference.menuRowCompact}" },
+      "rowMini": { "$value": "{dimension.reference.menuRowMini}" }
     }
   }
 }

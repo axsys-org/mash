@@ -219,6 +219,36 @@ describe("overlay authored-slot realizations", () => {
     expect(reasons.at(-1)).toBe("outside");
   });
 
+  it("keeps an inert overlay present until its exit motion settles", async () => {
+    const dialog = await fixture<
+      HTMLElement & { open: boolean; updateComplete: Promise<unknown> }
+    >(`
+      <ui-dialog label="Motion policy" open>
+        <button slot="trigger">Open</button>
+        <span>Body</span>
+      </ui-dialog>
+    `);
+    const popup = inShadow<HTMLElement>(dialog, '[part="popup"]');
+    const backdrop = inShadow<HTMLElement>(dialog, '[part="backdrop"]');
+    const exit = popup.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1_000 });
+
+    dialog.open = false;
+    await dialog.updateComplete;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    expect(backdrop.hidden).toBe(false);
+    expect(backdrop.inert).toBe(true);
+    expect(dialog.matches(":state(exiting)")).toBe(true);
+
+    exit.finish();
+    await exit.finished;
+    await Promise.resolve();
+    await dialog.updateComplete;
+
+    expect(backdrop.hidden).toBe(true);
+    expect(dialog.matches(":state(present)")).toBe(false);
+  });
+
   it("keeps the pinned GPUI hover-card open and close delays configurable", async () => {
     const preview = await fixture<HTMLElement & { open: boolean }>(`
       <ui-preview-card label="Delayed preview" open-delay="5" close-delay="5">
@@ -242,5 +272,29 @@ describe("overlay authored-slot realizations", () => {
     expect(preview.open).toBe(true);
     await new Promise((resolve) => window.setTimeout(resolve, 10));
     expect(preview.open).toBe(false);
+  });
+
+  it("leaves a manually anchored preview under its external interaction owner", async () => {
+    const preview = await fixture<
+      HTMLElement & { open: boolean; show: (reason?: string) => void }
+    >(`
+      <ui-preview-card label="External preview" trigger="manual" close-delay="5">
+        <a href="#open">Open path</a>
+      </ui-preview-card>
+    `);
+
+    preview.show("hover");
+    await settled(preview);
+    preview.dispatchEvent(
+      new PointerEvent("pointerout", {
+        bubbles: true,
+        composed: true,
+        relatedTarget: document.body,
+      }),
+    );
+    await new Promise((resolve) => window.setTimeout(resolve, 10));
+
+    expect(preview.open).toBe(true);
+    expect(preview.getAttribute("trigger")).toBe("manual");
   });
 });

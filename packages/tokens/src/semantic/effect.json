@@ -1,0 +1,23 @@
+{
+  "effect": {
+    "$type": "number",
+    "$description": "Theme-independent visual effect roles composed by application and catalogue recipes.",
+    "material": {
+      "$description": "Backdrop-only material tuning. Semantic foreground and fill vibrancy are separate colour ingredients selected by the renderer.",
+      "backdropSaturation": {
+        "reduced": {
+          "$value": "{effect.reference.material.backdropSaturation.reduced}",
+          "$description": "No backdrop chroma amplification in reduced-transparency, increased-contrast, and forced-colour environments."
+        },
+        "standard": {
+          "$value": "{effect.reference.material.backdropSaturation.standard}",
+          "$description": "Default backdrop chroma recovery."
+        },
+        "enhanced": {
+          "$value": "{effect.reference.material.backdropSaturation.enhanced}",
+          "$description": "Explicit stronger backdrop chroma for decorative material contexts with verified contrast."
+        }
+      }
+    }
+  }
+}

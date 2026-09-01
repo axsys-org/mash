@@ -33,6 +33,13 @@ export interface TreeRevealDetail {
  * @tag ui-tree
  * @summary Groups expandable Shrine tree items into an accessible hierarchy.
  *
+ * @example Project namespace
+ * <ui-tree label="Project namespace">
+ *   <ui-tree-item value="projects" kind="folder" title="Projects" expanded>
+ *     <ui-tree-item slot="children" value="billing" kind="file" title="Billing migration"></ui-tree-item>
+ *   </ui-tree-item>
+ * </ui-tree>
+ *
  * @slot - Tree items.
  * @csspart root - The semantic tree container.
  * @csspart children - The authored tree-item collection.
@@ -196,6 +203,8 @@ export class UITree extends LitElement {
           node instanceof HTMLElement && node.localName === "ui-tree-item",
       );
     if (!item) return;
+    const control = item.shadowRoot?.querySelector<HTMLElement>("[part='control']");
+    if (!control || !event.composedPath().includes(control)) return;
 
     const items = this.#visibleItems();
     const index = items.indexOf(item);

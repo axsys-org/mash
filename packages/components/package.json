@@ -18,6 +18,7 @@
   "sideEffects": [
     "./dist/**/register.js",
     "./dist/register.js",
+    "./dist/tailwind.css",
     "./src/catalogue/mash.css"
   ],
   "exports": {
@@ -62,6 +63,7 @@
       "import": "./dist/badge/register.js"
     },
     "./catalogue/mash.css": "./src/catalogue/mash.css",
+    "./tailwind.css": "./dist/tailwind.css",
     "./checkbox": {
       "types": "./dist/checkbox/checkbox.d.ts",
       "import": "./dist/checkbox/checkbox.js"
@@ -109,6 +111,18 @@
     "./form/register": {
       "types": "./dist/form/register.d.ts",
       "import": "./dist/form/register.js"
+    },
+    "./gesture": {
+      "types": "./dist/gesture/gesture.d.ts",
+      "import": "./dist/gesture/gesture.js"
+    },
+    "./gesture-binding": {
+      "types": "./dist/gesture-binding/gesture-binding.d.ts",
+      "import": "./dist/gesture-binding/gesture-binding.js"
+    },
+    "./gesture-binding/register": {
+      "types": "./dist/gesture-binding/register.d.ts",
+      "import": "./dist/gesture-binding/register.js"
     },
     "./button": {
       "types": "./dist/button/button.d.ts",
@@ -550,6 +564,14 @@
       "types": "./dist/date-picker/register.d.ts",
       "import": "./dist/date-picker/register.js"
     },
+    "./data-table": {
+      "types": "./dist/data-table/data-table.d.ts",
+      "import": "./dist/data-table/data-table.js"
+    },
+    "./data-table/register": {
+      "types": "./dist/data-table/register.d.ts",
+      "import": "./dist/data-table/register.js"
+    },
     "./color-picker": {
       "types": "./dist/color-picker/color-picker.d.ts",
       "import": "./dist/color-picker/color-picker.js"
@@ -566,13 +588,63 @@
       "types": "./dist/editor/register.d.ts",
       "import": "./dist/editor/register.js"
     },
+    "./drag": {
+      "types": "./dist/drag/drag.d.ts",
+      "import": "./dist/drag/drag.js"
+    },
+    "./draggable": {
+      "types": "./dist/draggable/draggable.d.ts",
+      "import": "./dist/draggable/draggable.js"
+    },
+    "./draggable/register": {
+      "types": "./dist/draggable/register.d.ts",
+      "import": "./dist/draggable/register.js"
+    },
+    "./icon": {
+      "types": "./dist/icon/icon.d.ts",
+      "import": "./dist/icon/icon.js"
+    },
+    "./icon/carbon": {
+      "types": "./dist/icon/carbon.d.ts",
+      "import": "./dist/icon/carbon.js"
+    },
+    "./icon/register": {
+      "types": "./dist/icon/register.d.ts",
+      "import": "./dist/icon/register.js"
+    },
+    "./motion": {
+      "types": "./dist/motion/motion.d.ts",
+      "import": "./dist/motion/motion.js"
+    },
+    "./motion/register": {
+      "types": "./dist/motion/register.d.ts",
+      "import": "./dist/motion/register.js"
+    },
+    "./typeset": {
+      "types": "./dist/typeset/typeset.d.ts",
+      "import": "./dist/typeset/typeset.js"
+    },
+    "./typeset/register": {
+      "types": "./dist/typeset/register.d.ts",
+      "import": "./dist/typeset/register.js"
+    },
+    "./menu-label": {
+      "types": "./dist/menu-label/menu-label.d.ts",
+      "import": "./dist/menu-label/menu-label.js"
+    },
+    "./menu-label/register": {
+      "types": "./dist/menu-label/register.d.ts",
+      "import": "./dist/menu-label/register.js"
+    },
     "./custom-elements.json": "./custom-elements.json",
     "./package.json": "./package.json"
   },
   "scripts": {
     "build": "pnpm run build:js && pnpm run build:manifest",
     "build:js": "tsc -p tsconfig.build.json",
-    "build:manifest": "cem analyze --config custom-elements-manifest.config.mjs",
+    "build:manifest": "cem analyze --config custom-elements-manifest.config.mjs && pnpm run build:tailwind",
+    "build:tailwind": "node ../../scripts/build-tailwind-components.mjs",
+    "generate:icons": "node scripts/generate-carbon-icons.mjs",
     "check:types": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -585,12 +657,13 @@
     "lit": "3.3.3"
   },
   "devDependencies": {
+    "@carbon/icons": "11.86.0",
     "@custom-elements-manifest/analyzer": "0.11.0",
     "@mash/tokens": "workspace:*",
     "@types/node": "26.2.0",
-    "concurrently": "10.0.5",
     "@vitest/browser": "4.1.10",
     "@vitest/browser-playwright": "4.1.10",
+    "concurrently": "10.0.5",
     "playwright": "1.62.1",
     "typescript": "7.0.2",
     "vite": "8.2.1",

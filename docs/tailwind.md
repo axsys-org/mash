@@ -1,19 +1,22 @@
 # Tailwind v4 with Mash tokens
 
-`@mash/tokens/tailwind.css` is the optional application-styling layer for work that does not need
-a component: page layout, one-off grouping, light surface treatment, and small motion fragments.
-It does not style Mash component internals, and Tailwind is not a second token authority.
+`@mash/tokens/tailwind.css` is the optional application-styling layer for page layout, one-off
+grouping, light surface treatment, and small motion fragments. Generated `@mash/ui/tailwind.css`
+and `@mash/shrine/tailwind.css` adapters extend those same utilities across public component
+anatomy. Tailwind is never a second token or component-contract authority.
 
 ## Setup
 
 Import Tailwind's utility compiler first, then the Mash adapter:
 
 ```css
-@layer theme, base, components, utilities;
+@layer theme, base, mash.catalogue, components, utilities;
 
 @import "tailwindcss/preflight.css" layer(base); /* optional */
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "@mash/tokens/tailwind.css";
+@import "@mash/ui/tailwind.css";
+@import "@mash/shrine/tailwind.css"; /* when using sh-* components */
 ```
 
 The adapter imports the complete Mash token cascade. Light is the default; `data-theme="dark"`
@@ -23,6 +26,36 @@ The adapter deliberately omits Tailwind's default theme. Preflight is optional n
 than a design-value source; the Mash catalogue opts into it in both its shell and preview document.
 Mash remains the only source of colors, spacing, radii, typography, blur, and motion values;
 Tailwind contributes normalization, its utility compiler, and static layout vocabulary.
+
+`mash.catalogue` is ordered before application components and utilities so an imported recipe is
+a default pronunciation rather than a specificity trap. Applications can override public anatomy
+without `!important` or private shadow-root selectors.
+
+## Component anatomy variants
+
+The component adapters are generated from the checked-in Custom Elements Manifests. Public names
+therefore have one source of truth:
+
+- `@csspart prefix` generates `part-prefix:*`, targeting `&::part(prefix)`.
+- `@slot prefix` generates `slot-prefix:*`, targeting a direct authored `[slot="prefix"]`.
+- `@cssstate has-prefix` generates `state-has-prefix:*`, targeting `&:state(has-prefix)`.
+
+Variants compose with all token-backed utilities and with one another:
+
+```html
+<ui-input-group
+  class="part-root:border-action part-prefix:px-control-inline-small
+    slot-prefix:text-action state-has-prefix:part-prefix:bg-action-subtle"
+>
+  <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
+  <ui-input slot="control" label="Search"></ui-input>
+</ui-input-group>
+```
+
+Use a slot variant when styling the authored node itself. Use a part variant when styling the
+renderer-owned wrapper or anatomy. Use a state variant for behavior that the component owns.
+Slots remain content, parts remain rendered anatomy, and state never becomes a presentational
+attribute merely to satisfy a selector.
 
 ## Token-backed utilities
 
@@ -55,21 +88,93 @@ without changing markup.
 
 The adapter also registers small, variant-aware CSS fragments:
 
-| Utility                     | Purpose                                                           |
-| --------------------------- | ----------------------------------------------------------------- |
-| `stack`                     | Vertical flex group with semantic stack spacing                   |
-| `inline-group`              | Centered inline flex group with semantic inline spacing           |
-| `cluster`                   | Wrapping inline group                                             |
-| `surface*`                  | Default, raised, or sunken semantic surface and foreground        |
-| `type-*`                    | Complete body, label, heading, or code typography role            |
-| `duration-*`                | Semantic transition duration only                                 |
-| `motion-*`                  | Semantic transition duration and easing                           |
-| `focus-visible:focus-ring`  | Accessible semantic focus outline                                 |
-| `animate-fade-in/out`       | Surface-timed fades that automatically disable for reduced motion |
-| `backdrop-blur-progressive` | Six-stage, masked backdrop blur with a semantic overlay scrim     |
+| Utility                     | Purpose                                                              |
+| --------------------------- | -------------------------------------------------------------------- |
+| `stack`                     | Vertical flex group with semantic stack spacing                      |
+| `inline-group`              | Centered inline flex group with semantic inline spacing              |
+| `cluster`                   | Wrapping inline group                                                |
+| `surface*`                  | Default, raised, or sunken semantic surface and foreground           |
+| `type-*`                    | Complete Dynamic Type role, plus compatible label/heading/code roles |
+| `duration-*`                | Semantic transition duration only                                    |
+| `motion-*`                  | Semantic transition duration and easing                              |
+| `focus-visible:focus-ring`  | Accessible semantic focus outline                                    |
+| `animate-fade-in/out`       | Surface-timed fades that automatically disable for reduced motion    |
+| `material-*`                | Five Paper-aligned translucent material thicknesses                  |
+| `vibrant-label-*`           | Compositor-aware semantic label pronunciation                        |
+| `vibrant-fill-*`            | Compositor-aware semantic fill pronunciation                         |
+| `vibrant-separator`         | Compositor-aware separator pronunciation                             |
+| `vibrant-accent-action`     | Compositor-aware action foreground                                   |
+| `backdrop-blur-progressive` | Six-stage, masked backdrop blur with a semantic overlay scrim        |
 
 Compose these with Tailwind's ordinary layout utilities. For example, `transition-colors
 motion-control` selects the properties with Tailwind and the timing with the token contract.
+
+## Environmental materials and vibrancy
+
+`material-ultra-thin`, `material-thin`, `material-regular`, `material-thick`, and
+`material-ultra-thick` combine a thickness-specific semantic tint with the same 15px material blur.
+Thickness describes tint contribution and content separation; it does not increase blur and it does
+not choose an accessibility mode. Vibrancy is selected once on the document root or any nested
+subtree:
+
+```html
+<main data-vibrancy="auto">
+  <nav class="material-thin">...</nav>
+  <aside class="material-regular">...</aside>
+</main>
+```
+
+`auto` is the default. In an ordinary environment it resolves labels, fills, separators, and actions
+to their vibrant ingredients and chooses the theme compositor (`multiply` in light mode,
+`plus-lighter` in dark mode). Backdrop chroma is independently tuned by
+`effect.material.backdropSaturation.standard`; saturation is not treated as vibrancy.
+
+Reduced transparency (where supported) or increased contrast replaces translucent materials with
+`color.surfaceRaised`, selects opaque semantic ingredients, disables blend compositing, and removes
+the backdrop filter. Forced-colour mode uses platform colours. `data-vibrancy="reduced"` selects the
+solid treatment explicitly; `data-vibrancy="vibrant"` keeps vibrant ingredients and selects
+`effect.material.backdropSaturation.enhanced` for contexts whose dynamic contrast has been verified.
+
+Opaque labels are derived from two independent inputs: the theme's neutral label source
+(`color.labelSource`, black in light mode and white in dark mode) and the semantic strength tokens
+`opacity.labelPrimary` through `opacity.labelSeximal`. The first three strengths are also the
+ordinary `color.text`, `color.textMuted`, and `color.textDisabled` aliases, so changing the source or
+a strength updates every catalogue recipe without rewriting component CSS. Vibrant mode selects the
+parallel resolved label colours and the renderer compositor instead of pretending opacity alone can
+sample a live backdrop.
+
+The `vibrant-label-*`, `vibrant-fill-*`, `vibrant-separator`, and `vibrant-accent-action` utilities
+apply the renderer compositor to the exact element or part that owns the semantic colour. Do not put
+blend mode on an entire material container: compositing is a foreground/fill pronunciation, not a
+property of the surface tree.
+
+Mash catalogue recipes automatically apply that compositor to exported semantic text leaves such as
+labels, titles, descriptions, menu items, path segments, and tree labels when they are nested in a
+`material-*` utility. Arbitrary authored content is intentionally not guessed: apply a
+`vibrant-label-*` utility to the exact text element. This prevents a rich content slot from blending
+its nested buttons, focus rings, and surfaces as one bitmap.
+
+Material tint, blur, backdrop tuning, semantic colour ingredients, and renderer compositing are
+separate axes. Changing the environment mode updates every material without changing component
+markup. Opaque/vibrant ingredient tokens remain out of Tailwind's general colour namespace; curated
+utilities expose only valid combinations. The catalogue exposes Auto, Vibrant, and Reduced controls
+and persists explicit choices as `?vibrancy=` review links.
+
+### Component recipe conformance
+
+Every `ui-*` and `sh-*` catalogue recipe resolves its structure through four shared internal roles:
+surface, boundary, divider, and shadow. A boundary outlines the component or an interactive control;
+a divider separates regions inside that component. They are deliberately not interchangeable. The
+opaque defaults resolve through `color.surface*`, the opacity-based `color.border*` aliases,
+`color.separatorOpaque`, and `color.shadow`.
+
+A `material-*` ancestor replaces inherited boundaries and dividers with vibrant separators and
+pronounces inset fills through the material fill tiers. It does not automatically erase a nested
+component's surface or shadow: controls, top-layer popups, and deliberately elevated children keep
+their own separation. A composition can explicitly make a direct child transparent when the
+material itself should own that child's backdrop and elevation, as the catalogue's material-card
+examples do. The token-consumer check rejects catalogue recipes that bypass these shared structural
+roles.
 
 ## Progressive backdrop blur
 
@@ -100,7 +205,9 @@ tokens are also available through Tailwind's individual `backdrop-blur-progressi
 
 Use this layer for layout and lightweight visual treatment. If something needs behavior,
 accessibility semantics, state ownership, or reusable anatomy, it belongs in `@mash/ui` instead.
-Component-specific styling remains in the opt-in Mash catalogue recipe.
+Reusable component defaults remain in the opt-in Mash catalogue recipe. Application-specific
+extensions may use the generated anatomy variants, while new behavior, semantics, or state still
+belongs in `@mash/ui` rather than in a utility class.
 
 The catalogue itself demonstrates the split without parallel application stylesheets:
 

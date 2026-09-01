@@ -452,6 +452,8 @@ export class UIColorPicker extends UIAnchoredOverlay {
  *
  * @tag ui-color-swatch
  * @summary Previews and commits one semantic color value.
+ * @example Accent swatch
+ * <ui-color-swatch value="#0A84FF" selected>System blue</ui-color-swatch>
  * @slot - The swatch label. Falls back to the normalized hex value.
  * @csspart control - The native radio-like action.
  * @csspart swatch - The color-value realization.

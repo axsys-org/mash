@@ -32,8 +32,16 @@ const STATES = [
     tag: "ui-button",
     url: "/components/ui-button?example=controls&disabled=true",
   },
-  { name: "card-light", tag: "ui-card", url: "/components/ui-card" },
-  { name: "card-dark", tag: "ui-card", url: "/components/ui-card?theme=dark" },
+  {
+    name: "card-light",
+    tag: "ui-card",
+    url: "/components/ui-card?example=Project+card",
+  },
+  {
+    name: "card-dark",
+    tag: "ui-card",
+    url: "/components/ui-card?theme=dark&example=Project+card",
+  },
 ] as const;
 
 for (const state of STATES) {

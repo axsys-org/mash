@@ -41,6 +41,18 @@ for (const tag of tags) {
       const frame = page.frameLocator("iframe.stage-frame");
       const component = frame.locator(tag).first();
       await expect(component).toBeAttached();
+
+      const intentionallyHeadless = await component.evaluate((node) => {
+        const root = node.shadowRoot?.querySelector<HTMLElement>("[part~='root']");
+        return Boolean(root?.hidden && root.getAttribute("aria-hidden") === "true");
+      });
+
+      if (intentionallyHeadless) {
+        await expect(component).toBeHidden();
+        expect(errors).toEqual([]);
+        return;
+      }
+
       await expect(component).toBeVisible();
 
       const geometry = await component.evaluate((node) => {
@@ -73,6 +85,7 @@ for (const tag of tags) {
 }
 
 const compactSurfaces = [
+  "sh-tree",
   "sh-triptych",
   "ui-color-picker",
   "ui-dialog",

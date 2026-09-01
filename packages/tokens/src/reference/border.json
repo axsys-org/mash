@@ -1,0 +1,16 @@
+{
+  "border": {
+    "$type": "dimension",
+    "reference": {
+      "$description": "Raw border and focus-ring widths. Consumers use the semantic roles in shape.json.",
+      "material": {
+        "$value": { "value": 0.5, "unit": "px" },
+        "$description": "Optical outline for translucent floating materials."
+      },
+      "hairline": { "$value": { "value": 1, "unit": "px" } },
+      "strong": { "$value": { "value": 2, "unit": "px" } },
+      "focusRing": { "$value": { "value": 2, "unit": "px" } },
+      "focusRingOffset": { "$value": { "value": 2, "unit": "px" } }
+    }
+  }
+}

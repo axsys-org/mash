@@ -4,8 +4,18 @@ import { baseStyles } from "../internal/base-styles.js";
 
 let scrollAreaId = 0;
 
-type ScrollAxis = "block" | "inline";
+export type ScrollAxis = "block" | "inline";
 export type ScrollbarMode = "always" | "hover" | "scrolling";
+export type ScrollbarSize = "compact" | "medium" | "large";
+export type ScrollbarGutter = "none" | "stable";
+export type ScrollSnapMode = "none" | "proximity" | "mandatory";
+export type ScrollTargetAlignment = "start" | "center" | "end" | "nearest";
+
+export interface ScrollToTargetOptions {
+  align?: ScrollTargetAlignment;
+  axis?: ScrollAxis;
+  behavior?: ScrollBehavior;
+}
 
 interface ScrollMetrics {
   inline: number;
@@ -51,6 +61,8 @@ const emptyMetrics = (): ScrollMetrics => ({
  * @slot block-thumb - Optional authored content inside the block-axis scrollbar thumb.
  * @slot inline-track - Optional authored content inside the inline-axis scrollbar track.
  * @slot inline-thumb - Optional authored content inside the inline-axis scrollbar thumb.
+ * @slot block-detents - Authored block-axis target marks. Use `data-scroll-target` or `data-scroll-detent` on each control.
+ * @slot inline-detents - Authored inline-axis target marks. Use `data-scroll-target` or `data-scroll-detent` on each control.
  * @slot corner - Optional authored content at the scrollbar junction.
  *
  * @csspart root - The scroll-area boundary.
@@ -62,6 +74,8 @@ const emptyMetrics = (): ScrollMetrics => ({
  * @csspart inline-scrollbar - The inline-axis scroll position control.
  * @csspart inline-track - The full inline-axis scroll extent.
  * @csspart inline-thumb - The movable inline-axis viewport indicator.
+ * @csspart block-detents - The block-axis authored target-mark layer.
+ * @csspart inline-detents - The inline-axis authored target-mark layer.
  * @csspart corner - The junction shown when both scrollbars are present.
  *
  * @cssstate scrollable-block - Content overflows the block axis.
@@ -71,9 +85,15 @@ const emptyMetrics = (): ScrollMetrics => ({
  * @cssstate at-inline-start - The viewport is at its inline-start edge.
  * @cssstate at-inline-end - The viewport is at its inline-end edge.
  * @cssstate visible - At least one semantic scrollbar is currently exposed.
+ * @cssstate idle - The viewport is not currently scrolling or being dragged.
+ * @cssstate active - Scrolling, target navigation, or thumb dragging is active.
+ * @cssstate hovered - The pointer is within the scroll-area boundary.
+ * @cssstate focused - Focus is within the scroll-area boundary.
  * @cssstate dragging - A semantic scrollbar thumb currently owns pointer movement.
+ * @cssstate at-detent - The current scroll offset aligns with an authored detent.
  *
  * @fires {CustomEvent<{ inline: number, block: number, inlineMax: number, blockMax: number }>} ui-scroll-area-scroll - Reports renderer-neutral logical scroll offsets.
+ * @fires {CustomEvent<{ axis: ScrollAxis, target: string | null, position: number }>} ui-scroll-area-target - Reports authored detent and target navigation.
  *
  * @mashrole part root scroller root
  * @mashnode root scroller
@@ -95,8 +115,15 @@ const emptyMetrics = (): ScrollMetrics => ({
  * @mashnode at-inline-start at-inline-start root
  * @mashnode at-inline-end at-inline-end root
  * @mashnode mode mode root
+ * @mashnode size size root
+ * @mashnode gutter gutter root
+ * @mashnode snap snap root
  * @mashnode idle-delay duration root
  * @mashnode visible visible root
+ * @mashnode idle idle root
+ * @mashnode active active root
+ * @mashnode hovered hovered root
+ * @mashnode focused focused root
  * @mashnode dragging dragging root
  * @mashrole attribute idle-delay duration idle-delay
  * @mashrole part block-scrollbar scrollbar block-scrollbar
@@ -114,6 +141,9 @@ export class UIScrollArea extends LitElement {
   static override properties = {
     label: { type: String, reflect: true },
     mode: { type: String, reflect: true },
+    size: { type: String, reflect: true },
+    gutter: { type: String, reflect: true },
+    snap: { type: String, reflect: true },
     idleDelay: { type: Number, attribute: "idle-delay", reflect: true },
     _metrics: { state: true },
   };
@@ -122,6 +152,12 @@ export class UIScrollArea extends LitElement {
   declare label: string;
   /** Selects whether semantic scrollbars are always visible, hover-revealed, or activity-revealed. */
   declare mode: ScrollbarMode;
+  /** Selects the semantic scrollbar hit area and visible track measure. */
+  declare size: ScrollbarSize;
+  /** Selects no reserved layout space or a stable gutter reserved for both axes. */
+  declare gutter: ScrollbarGutter;
+  /** Selects native CSS scroll snapping for authored detent targets. */
+  declare snap: ScrollSnapMode;
   /** Milliseconds that activity-revealed scrollbars remain visible after scrolling stops. */
   declare idleDelay: number;
   declare private _metrics: ScrollMetrics;
@@ -129,17 +165,22 @@ export class UIScrollArea extends LitElement {
   readonly #internals: ElementInternals;
   readonly #viewportId = `ui-scroll-area-viewport-${++scrollAreaId}`;
   #resizeObserver: ResizeObserver | undefined;
+  #syncFrame: number | undefined;
   #visible = false;
   #visibilityTimer: number | undefined;
   #activeUntil = 0;
   #hovered = false;
   #focused = false;
   #dragging = false;
+  #activeDetent: HTMLElement | undefined;
 
   constructor() {
     super();
     this.label = "Scrollable content";
     this.mode = "scrolling";
+    this.size = "medium";
+    this.gutter = "none";
+    this.snap = "none";
     this.idleDelay = 2000;
     this._metrics = emptyMetrics();
     this.#internals = this.attachInternals();
@@ -150,21 +191,33 @@ export class UIScrollArea extends LitElement {
   protected override firstUpdated(): void {
     const viewport = this.#viewport;
     viewport.addEventListener("scroll", this.#onScroll, { passive: true });
-    this.#resizeObserver = new ResizeObserver(this.#syncScrollState);
+    this.#resizeObserver = new ResizeObserver(this.#queueScrollStateSync);
     this.#resizeObserver.observe(viewport);
     this.#resizeObserver.observe(viewport.firstElementChild!);
-    this.ownerDocument.defaultView?.requestAnimationFrame(this.#syncScrollState);
+    this.#queueScrollStateSync();
     this.#refreshVisibility();
   }
 
   protected override updated(changed: PropertyValues<this>): void {
-    if (changed.has("mode") || changed.has("idleDelay")) this.#refreshVisibility();
+    if (
+      changed.has("mode") ||
+      changed.has("idleDelay") ||
+      changed.has("size") ||
+      changed.has("gutter") ||
+      changed.has("snap")
+    ) {
+      this.#refreshVisibility();
+      this.#queueScrollStateSync();
+    }
   }
 
   override disconnectedCallback(): void {
     if (this.#visibilityTimer !== undefined) window.clearTimeout(this.#visibilityTimer);
     this.#resizeObserver?.disconnect();
     this.#resizeObserver = undefined;
+    const view = this.ownerDocument.defaultView;
+    if (this.#syncFrame !== undefined && view) view.cancelAnimationFrame(this.#syncFrame);
+    this.#syncFrame = undefined;
     super.disconnectedCallback();
   }
 
@@ -179,6 +232,7 @@ export class UIScrollArea extends LitElement {
 
   #refreshVisibility(): void {
     const now = performance.now();
+    const active = this.#dragging || this.#activeUntil > now;
     const visible =
       this.mode === "always" ||
       this.#dragging ||
@@ -188,7 +242,17 @@ export class UIScrollArea extends LitElement {
       (this.mode === "scrolling" && this.#hovered && this.#visible);
     this.#visible = visible;
     this.#setState("visible", visible);
+    this.#setState("idle", !active);
+    this.#setState("active", active);
+    this.#setState("hovered", this.#hovered);
+    this.#setState("focused", this.#focused);
     this.#setState("dragging", this.#dragging);
+    this.toggleAttribute("data-scroll-visible", visible);
+    this.toggleAttribute("data-scroll-active", active);
+    this.toggleAttribute("data-scroll-idle", !active);
+    this.toggleAttribute("data-scroll-hovered", this.#hovered);
+    this.toggleAttribute("data-scroll-focused", this.#focused);
+    this.toggleAttribute("data-scroll-dragging", this.#dragging);
   }
 
   #showForActivity(): void {
@@ -262,6 +326,125 @@ export class UIScrollArea extends LitElement {
     this.#setState("at-inline-end", inlineMax - inline <= epsilon);
     this.#setState("at-block-start", block <= epsilon);
     this.#setState("at-block-end", blockMax - block <= epsilon);
+    this.#syncDetents();
+  };
+
+  #queueScrollStateSync = (): void => {
+    const view = this.ownerDocument.defaultView;
+    if (!view) {
+      this.#syncScrollState();
+      return;
+    }
+    if (this.#syncFrame !== undefined) return;
+    this.#syncFrame = view.requestAnimationFrame(() => {
+      this.#syncFrame = undefined;
+      this.#syncScrollState();
+    });
+  };
+
+  #detentControls(axis: ScrollAxis): HTMLElement[] {
+    const slotName = `${axis}-detents`;
+    const controls: HTMLElement[] = [];
+    for (const root of this.querySelectorAll<HTMLElement>(`[slot="${slotName}"]`)) {
+      if (root.matches("[data-scroll-target], [data-scroll-detent]")) controls.push(root);
+      controls.push(
+        ...root.querySelectorAll<HTMLElement>("[data-scroll-target], [data-scroll-detent]"),
+      );
+    }
+    return controls;
+  }
+
+  #resolveTarget(reference: string): HTMLElement | null {
+    const normalized = reference.trim();
+    if (!normalized) return null;
+    if (normalized.startsWith("#")) {
+      try {
+        return this.querySelector<HTMLElement>(normalized);
+      } catch {
+        return null;
+      }
+    }
+    return this.querySelector<HTMLElement>(`[data-scroll-id="${CSS.escape(normalized)}"]`);
+  }
+
+  #targetPosition(
+    target: Element,
+    axis: ScrollAxis,
+    align: ScrollTargetAlignment = "start",
+  ): number {
+    const viewport = this.#viewport;
+    const metrics = this.#axisMetrics(axis);
+    const viewportRect = viewport.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const current = metrics.position;
+    const start =
+      current +
+      (axis === "block" ? targetRect.top - viewportRect.top : targetRect.left - viewportRect.left);
+    const targetSize = axis === "block" ? targetRect.height : targetRect.width;
+    let next = start;
+    if (align === "center") next -= (metrics.viewport - targetSize) / 2;
+    else if (align === "end") next -= metrics.viewport - targetSize;
+    else if (align === "nearest") {
+      const targetEnd = start + targetSize;
+      const viewportEnd = current + metrics.viewport;
+      if (start >= current && targetEnd <= viewportEnd) return current;
+      if (targetEnd > viewportEnd) next = targetEnd - metrics.viewport;
+    }
+    return Math.max(0, Math.min(metrics.maximum, next));
+  }
+
+  #detentPosition(control: HTMLElement, axis: ScrollAxis): number | undefined {
+    const reference = control.dataset.scrollTarget;
+    if (reference) {
+      const target = this.#resolveTarget(reference);
+      return target ? this.#targetPosition(target, axis) : undefined;
+    }
+    const raw = Number.parseFloat(control.dataset.scrollDetent ?? "");
+    if (!Number.isFinite(raw)) return undefined;
+    const normalized = raw > 1 ? raw / 100 : raw;
+    return Math.max(0, Math.min(1, normalized)) * this.#axisMetrics(axis).maximum;
+  }
+
+  #scrollBehavior(requested: ScrollBehavior): ScrollBehavior {
+    return this.ownerDocument.defaultView?.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? "auto"
+      : requested;
+  }
+
+  #syncDetents = (): void => {
+    const candidates: Array<{ control: HTMLElement; distance: number }> = [];
+    for (const axis of ["block", "inline"] as const) {
+      const metrics = this.#axisMetrics(axis);
+      for (const control of this.#detentControls(axis)) {
+        const position = this.#detentPosition(control, axis);
+        if (position === undefined) continue;
+        const normalized = metrics.maximum > 0 ? position / metrics.maximum : 0;
+        control.style.setProperty("--ui-scroll-detent-position", `${normalized * 100}%`);
+        control.dataset.scrollPosition = `${position}`;
+        candidates.push({ control, distance: Math.abs(metrics.position - position) });
+      }
+    }
+    candidates.sort((left, right) => left.distance - right.distance);
+    const nearest = candidates[0];
+    const preferred = candidates.find(
+      ({ control, distance }) =>
+        control === this.#activeDetent &&
+        nearest !== undefined &&
+        Math.abs(distance - nearest.distance) <= 1,
+    );
+    const closest = preferred ?? nearest;
+    for (const { control } of candidates) {
+      if (control === closest?.control) continue;
+      delete control.dataset.scrollDetentCurrent;
+      control.removeAttribute("aria-current");
+    }
+    this.#activeDetent = closest?.control;
+    if (this.#activeDetent) {
+      this.#activeDetent.dataset.scrollDetentCurrent = "";
+      this.#activeDetent.setAttribute("aria-current", "location");
+    }
+    const threshold = Math.max(1, this.#axisMetrics("block").viewport * 0.025);
+    this.#setState("at-detent", Boolean(closest && closest.distance <= threshold));
   };
 
   #onScroll = (): void => {
@@ -348,7 +531,10 @@ export class UIScrollArea extends LitElement {
         .composedPath()
         .some(
           (target) =>
-            target instanceof HTMLElement && target.getAttribute("part")?.includes("thumb"),
+            target instanceof HTMLElement &&
+            (target.getAttribute("part")?.includes("thumb") ||
+              target.dataset.scrollTarget !== undefined ||
+              target.dataset.scrollDetent !== undefined),
         )
     )
       return;
@@ -358,6 +544,42 @@ export class UIScrollArea extends LitElement {
     const length = axis === "block" ? rect.height : rect.width;
     if (length <= 0) return;
     this.#setPosition(axis, (coordinate / length) * this.#axisMetrics(axis).maximum);
+    this.#showForActivity();
+  };
+
+  #onDetentClick = (event: MouseEvent): void => {
+    const control = event
+      .composedPath()
+      .find(
+        (target): target is HTMLElement =>
+          target instanceof HTMLElement &&
+          (target.dataset.scrollTarget !== undefined || target.dataset.scrollDetent !== undefined),
+      );
+    if (!control) return;
+    const axis = ((event.currentTarget as HTMLElement).dataset.scrollAxis ?? "block") as ScrollAxis;
+    const behavior = this.#scrollBehavior(
+      control.dataset.scrollBehavior === "smooth" ? "smooth" : "auto",
+    );
+    const align = (control.dataset.scrollAlign ?? "start") as ScrollTargetAlignment;
+    const targetReference = control.dataset.scrollTarget;
+    const target = targetReference ? this.#resolveTarget(targetReference) : null;
+    const position = target
+      ? this.#targetPosition(target, axis, align)
+      : this.#detentPosition(control, axis);
+    if (position === undefined) return;
+    this.#activeDetent = control;
+    this.#viewport.scrollTo({
+      [axis === "block" ? "top" : "left"]: position,
+      behavior,
+    });
+    this.#showForActivity();
+    this.dispatchEvent(
+      new CustomEvent("ui-scroll-area-target", {
+        bubbles: true,
+        composed: true,
+        detail: { axis, target: targetReference ?? null, position },
+      }),
+    );
   };
 
   #onThumbPointerDown = (event: PointerEvent): void => {
@@ -419,6 +641,9 @@ export class UIScrollArea extends LitElement {
           @pointerdown=${this.#onTrackPointerDown}
         >
           <slot name=${`${prefix}-track`}></slot>
+          <span part=${`${prefix}-detents`} data-scroll-axis=${axis} @click=${this.#onDetentClick}>
+            <slot name=${`${prefix}-detents`} @slotchange=${this.#syncDetents}></slot>
+          </span>
           <span
             part=${`${prefix}-thumb`}
             data-scroll-axis=${axis}
@@ -430,6 +655,43 @@ export class UIScrollArea extends LitElement {
         </span>
       </div>
     `;
+  }
+
+  /** The native overflow viewport retained beneath the authored scrollbar anatomy. */
+  get viewportElement(): HTMLElement {
+    return this.#viewport;
+  }
+
+  /** Scrolls the native viewport without exposing shadow-DOM implementation details. */
+  scrollViewportTo(options: ScrollToOptions): void {
+    this.#viewport.scrollTo(options);
+  }
+
+  /** Resolves a slotted target or selector and scrolls it into this viewport. */
+  scrollToTarget(target: string | Element, options: ScrollToTargetOptions = {}): boolean {
+    const resolved = typeof target === "string" ? this.#resolveTarget(target) : target;
+    if (!resolved) return false;
+    const axis = options.axis ?? "block";
+    const position = this.#targetPosition(resolved, axis, options.align ?? "start");
+    if (typeof target === "string") {
+      this.#activeDetent = [...this.#detentControls(axis)].find(
+        (control) => control.dataset.scrollTarget === target,
+      );
+    }
+    this.#viewport.scrollTo({
+      [axis === "block" ? "top" : "left"]: position,
+      behavior: this.#scrollBehavior(options.behavior ?? "auto"),
+    });
+    this.#syncScrollState();
+    this.#showForActivity();
+    this.dispatchEvent(
+      new CustomEvent("ui-scroll-area-target", {
+        bubbles: true,
+        composed: true,
+        detail: { axis, target: typeof target === "string" ? target : null, position },
+      }),
+    );
+    return true;
   }
 
   protected override render(): TemplateResult {

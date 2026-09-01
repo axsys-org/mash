@@ -5,7 +5,7 @@
  * preview deployment, copies the address bar, and pastes it into a PR comment.
  * Whoever opens that link sees exactly what they saw.
  *
- *   /components/ui-button?variant=quiet&size=small&theme=dark
+ *   /components/ui-button?variant=quiet&size=small&theme=dark&vibrancy=vibrant
  *   /components/ui-tree-item?expanded=true&selected=true&theme=dark
  *
  * This is deliberately not a state framework. It is two pure functions over
@@ -19,7 +19,7 @@
  *   from, and a stale link should degrade, not break.
  */
 
-import { initialState, type State } from "./app.js";
+import { initialState, vibrancyModes, type State, type VibrancyMode } from "./app.js";
 import { controlsFor } from "./controls.js";
 import { controlsPreviewAllowed, examplesFor } from "./examples.js";
 import { components, themes, type ComponentSchema } from "./schema.js";
@@ -32,9 +32,10 @@ const ROUTE = "/components/";
  * controls-driven preview over the component's first `@example`.
  */
 const CONTROLS = "controls";
+const EXAMPLE_STATE_PREFIX = "state-";
 
 /** Reserved keys, so a component attribute called `theme` cannot collide. */
-const RESERVED = new Set(["theme", "example", "slots"]);
+const RESERVED = new Set(["theme", "vibrancy", "example", "slots"]);
 
 function slotParam(name: string): string {
   return `slot-${name || "default"}`;
@@ -71,11 +72,22 @@ export function stateFromUrl(url: URL, fallback: ComponentSchema): State {
   const theme = params.get("theme");
   if (theme && themes.includes(theme)) state.theme = theme;
 
+  const vibrancy = params.get("vibrancy");
+  if (vibrancy && vibrancyModes.some((mode) => mode === vibrancy)) {
+    state.vibrancy = vibrancy as VibrancyMode;
+  }
+
   const example = params.get("example");
   if (example === CONTROLS && controlsPreviewAllowed(component)) {
     state.example = null;
   } else if (example && examplesFor(component).some((entry) => entry.name === example)) {
     state.example = example;
+  }
+
+  for (const [key, value] of params) {
+    if (!key.startsWith(EXAMPLE_STATE_PREFIX) || value.length > 4096) continue;
+    const name = key.slice(EXAMPLE_STATE_PREFIX.length);
+    if (/^[a-z][a-z0-9-]{0,31}$/.test(name)) state.exampleState[name] = value;
   }
 
   // `label` and the comma-separated `slots` list are the catalog's pre-slot
@@ -138,9 +150,16 @@ export function urlForState(state: State): string {
   const params = new URLSearchParams();
 
   if (state.theme !== defaults.theme) params.set("theme", state.theme);
+  if (state.vibrancy !== defaults.vibrancy) params.set("vibrancy", state.vibrancy);
 
   if (state.example !== defaults.example) {
     params.set("example", state.example ?? CONTROLS);
+  }
+
+  for (const [name, value] of Object.entries(state.exampleState)) {
+    if (value && /^[a-z][a-z0-9-]{0,31}$/.test(name)) {
+      params.set(`${EXAMPLE_STATE_PREFIX}${name}`, value);
+    }
   }
 
   for (const slot of component.slots) {

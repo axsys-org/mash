@@ -233,6 +233,11 @@ function createRequireElementMetadata(tagPrefix) {
           if (!declaration.description && !declaration.summary) {
             problems.push(`${where} has no description — add a JSDoc block to the class.`);
           }
+          if (!declaration.examples?.length) {
+            problems.push(
+              `${where} has no canonical example — add an \`@example\` JSDoc block that composes its public contract.`,
+            );
+          }
           for (const attribute of declaration.attributes ?? []) {
             if (!attribute.description) {
               problems.push(

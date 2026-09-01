@@ -17,6 +17,16 @@ export type CardElevation = "flat" | "raised";
  * @tag ui-card
  * @summary Groups related content on a surface.
  *
+ * @example Project summary
+ * <ui-card elevation="raised">
+ *   <ui-icon slot="prefix" name="object.folder" label=""></ui-icon>
+ *   <strong slot="title">Billing migration</strong>
+ *   <span slot="description">Interzone project</span>
+ *   <ui-badge slot="value" tone="positive">Active</ui-badge>
+ *   <p slot="content">Replace the legacy invoice flow.</p>
+ *   <ui-button slot="footer" variant="secondary">Open project</ui-button>
+ * </ui-card>
+ *
  * @slot - Compatibility fallback for the `content` slot.
  * @slot content - The card's primary body.
  * @slot header - Compatibility escape hatch replacing the structured header.
@@ -51,6 +61,16 @@ export type CardElevation = "flat" | "raised";
  * @mashnode content content root
  * @mashnode footer footer root
  * @mashnode elevation elevation root
+ * @mashrole slot default content content
+ * @mashrole slot content content content
+ * @mashrole slot header header header
+ * @mashrole slot prefix prefix prefix
+ * @mashrole slot title title title
+ * @mashrole slot description description description
+ * @mashrole slot value value value
+ * @mashrole slot meta meta meta
+ * @mashrole slot actions actions actions
+ * @mashrole slot footer footer footer
  */
 export class UICard extends LitElement {
   static override properties = {

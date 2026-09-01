@@ -24,6 +24,40 @@ const CONSUMER_ROOTS = [
   "apps/catalog/src",
 ];
 const CATALOG_SYSTEM_ENTRY = "apps/catalog/src/system.css";
+const STRUCTURAL_RECIPE_ROLES = new Map([
+  ["--color-surface", "--_mash-component-surface"],
+  ["--color-surface-raised", "--_mash-component-surface-raised"],
+  ["--color-surface-sunken", "--_mash-component-surface-sunken"],
+  ["--color-border", "--_mash-component-boundary"],
+  ["--color-border-strong", "--_mash-component-boundary-strong"],
+  ["--color-shadow", "--_mash-component-shadow"],
+]);
+// Renderer fragments may communicate scoped runtime state to component recipes
+// without publishing that state as a design token. Every entry must retain a
+// safe CSS fallback at its use site.
+const RUNTIME_VARIABLES = new Set([
+  // Published by the generated material/vibrancy utility layer rather than the
+  // DTCG token graph. Every catalogue use retains a semantic token fallback.
+  "--mash-material-background",
+  "--mash-material-background-highlight",
+  "--mash-material-backdrop",
+  "--mash-material-backdrop-saturation",
+  "--mash-material-compositor",
+  "--mash-material-label-primary",
+  "--mash-material-label-secondary",
+  "--mash-material-label-disabled",
+  "--mash-material-separator",
+  "--mash-material-separator-source",
+  "--mash-vibrancy-blend-mode",
+  "--mash-vibrancy-theme-blend-mode",
+  // Measured by ui-menu-item while a fine pointer traverses from a parent item
+  // into its nested menu. Each geometry variable has a safe zero/50% fallback.
+  "--_mash-safe-top",
+  "--_mash-safe-left",
+  "--_mash-safe-width",
+  "--_mash-safe-height",
+  "--_mash-safe-y",
+]);
 
 async function filesUnder(directory, extension) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -106,17 +140,42 @@ async function main() {
 
   for (const filePath of cssFiles) {
     const source = await readFile(filePath, "utf8");
+    const relativePath = path.relative(ROOT, filePath);
     const localVariables = new Set(
       [...source.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]),
     );
 
+    if (relativePath.startsWith("packages/") && relativePath.includes("/src/catalogue/")) {
+      for (const [legacyVariable, roleVariable] of STRUCTURAL_RECIPE_ROLES) {
+        for (const match of source.matchAll(new RegExp(`var\\(${legacyVariable}\\)`, "g"))) {
+          const lineStart = source.lastIndexOf("\n", match.index) + 1;
+          const lineEnd = source.indexOf("\n", match.index);
+          const line = source.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+          if (
+            line.includes(`${roleVariable}:`) ||
+            (legacyVariable === "--color-surface" &&
+              line.includes("--_mash-component-inverse-label:"))
+          )
+            continue;
+          unresolved.push(
+            `${relativePath}:${lineAt(source, match.index)} bypasses structural recipe role ${roleVariable}`,
+          );
+        }
+      }
+    }
+
     for (const match of source.matchAll(/var\(\s*(--[\w-]+)/g)) {
       references += 1;
       const variable = match[1];
-      if (tokens.has(variable) || localVariables.has(variable)) continue;
-      unresolved.push(
-        `${path.relative(ROOT, filePath)}:${lineAt(source, match.index)} references ${variable}`,
-      );
+      if (variable.startsWith("--ref-")) {
+        unresolved.push(
+          `${relativePath}:${lineAt(source, match.index)} consumes reference primitive ${variable}; component and catalogue CSS must use a semantic role`,
+        );
+        continue;
+      }
+      if (tokens.has(variable) || localVariables.has(variable) || RUNTIME_VARIABLES.has(variable))
+        continue;
+      unresolved.push(`${relativePath}:${lineAt(source, match.index)} references ${variable}`);
     }
   }
 

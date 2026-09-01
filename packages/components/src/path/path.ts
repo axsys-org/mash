@@ -1,9 +1,12 @@
 import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { InlineOverflowController } from "../internal/inline-overflow.js";
 
 /** The physical context where a path preview appears. */
 export type PathSize = "small" | "medium";
+/** Whether the path is a compact preview or navigable breadcrumb trail. */
+export type PathVariant = "preview" | "breadcrumb";
 
 /**
  * Render a Shrine path or its human-readable title.
@@ -21,13 +24,19 @@ export type PathSize = "small" | "medium";
  * @csspart root - The outermost element.
  * @csspart icon - The optional icon wrapper.
  * @csspart content - The title or raw-path content region.
+ * @csspart viewport - The logical inline-overflow viewport.
  * @csspart title - The pretty title, when supplied.
  * @csspart segments - The raw path segment group.
- * @csspart separator - A slash between raw path segments.
+ * @csspart separator - The delimiter between path segments.
  * @csspart segment - An individual raw path segment.
+ * @csspart segment-link - A navigable ancestor in the breadcrumb variant.
+ * @csspart segment-current - The terminal breadcrumb segment.
  *
  * @cssstate current - Matches `:state(current)` when this is the current location.
  * @cssstate selected - Matches `:state(selected)` when this path is selected.
+ * @cssstate overflowing - Matches `:state(overflowing)` when inline content is clipped.
+ * @cssstate overflow-start - Matches `:state(overflow-start)` when content continues before the viewport.
+ * @cssstate overflow-end - Matches `:state(overflow-end)` when content continues after the viewport.
  *
  * @example Default
  * <ui-path path="/foo/bar/baz"></ui-path>
@@ -36,10 +45,20 @@ export type PathSize = "small" | "medium";
  * <div class="demo path-showcase">
  *   <ui-path path="/shrine/axiomatic/foundry" size="medium"></ui-path>
  *   <ui-path path="/shrine/axiomatic/foundry" size="small" current></ui-path>
- *   <ui-path title="Foundry" path="/shrine/axiomatic/foundry" size="small">
+ *   <ui-path path="/shrine/axiomatic/foundry" size="small">
  *     <span slot="icon" aria-hidden="true">◆</span>
+ *     <span slot="title">Foundry</span>
  *   </ui-path>
  * </div>
+ *
+ * @example Breadcrumb navigation
+ * <ui-path
+ *   variant="breadcrumb"
+ *   path="/interzone/projects/billing-migration"
+ *   aria-label="Project path"
+ * >
+ *   <span slot="title">Billing migration</span>
+ * </ui-path>
  *
  * @mashrole attribute lede title title
  * @mashnode root root
@@ -53,6 +72,11 @@ export type PathSize = "small" | "medium";
  * @mashnode size size root
  * @mashnode current current root
  * @mashnode selected selected root
+ * @mashnode variant variant root
+ * @mashnode viewport viewport content
+ * @mashnode overflow overflow content
+ * @mashnode overflow-start overflow-start overflow
+ * @mashnode overflow-end overflow-end overflow
  */
 export class UIPath extends LitElement {
   // Reactive properties go here, as a plain object — this system uses no
@@ -65,6 +89,7 @@ export class UIPath extends LitElement {
     title: { type: String, reflect: true },
     lede: { type: String, reflect: true },
     size: { type: String, reflect: true },
+    variant: { type: String, reflect: true },
     current: { type: Boolean, reflect: true },
     selected: { type: Boolean, reflect: true },
     _authoredTitle: { type: String, state: true },
@@ -82,6 +107,9 @@ export class UIPath extends LitElement {
   /** Physical scale: medium for locators, small for inline links and trees. */
   declare size: PathSize;
 
+  /** Rendering contract: a passive preview or navigable breadcrumb trail. */
+  declare variant: PathVariant;
+
   /** Marks the path as the current location. */
   declare current: boolean;
 
@@ -91,6 +119,7 @@ export class UIPath extends LitElement {
   declare private _authoredTitle: string;
 
   readonly #internals: ElementInternals;
+  readonly #overflow: InlineOverflowController;
 
   constructor() {
     super();
@@ -100,10 +129,12 @@ export class UIPath extends LitElement {
     this.title = "";
     this.lede = "";
     this.size = "medium";
+    this.variant = "preview";
     this.current = false;
     this.selected = false;
     this._authoredTitle = "";
     this.#internals = this.attachInternals();
+    this.#overflow = new InlineOverflowController(this, this.#internals);
   }
 
   static override styles = baseStyles;
@@ -126,7 +157,20 @@ export class UIPath extends LitElement {
       .map((node) => node.textContent ?? "")
       .join("")
       .trim();
+    this.#overflow.queue(this.variant === "preview" ? "start" : "end");
   };
+
+  protected override firstUpdated(): void {
+    this.#connectOverflow();
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    if (!this.hasUpdated) return;
+    void this.updateComplete.then(() => {
+      if (this.isConnected) this.#connectOverflow();
+    });
+  }
 
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("current")) {
@@ -137,6 +181,28 @@ export class UIPath extends LitElement {
       if (this.selected) this.#internals.states.add("selected");
       else this.#internals.states.delete("selected");
     }
+    if (
+      changed.has("path") ||
+      changed.has("title") ||
+      changed.has("lede") ||
+      changed.has("variant")
+    ) {
+      this.#overflow.queue(this.effectiveTitle && this.variant === "preview" ? "start" : "end");
+    }
+  }
+
+  override disconnectedCallback(): void {
+    this.#overflow.disconnect();
+    super.disconnectedCallback();
+  }
+
+  get #viewport(): HTMLElement {
+    return this.renderRoot.querySelector<HTMLElement>('[part="viewport"]')!;
+  }
+
+  #connectOverflow(): void {
+    this.#overflow.connect(this.#viewport);
+    this.#overflow.queue(this.effectiveTitle && this.variant === "preview" ? "start" : "end");
   }
 
   protected override render(): TemplateResult {
@@ -144,12 +210,28 @@ export class UIPath extends LitElement {
       <div
         part="root"
         class="root"
-        aria-current=${this.current ? "page" : nothing}
+        role=${this.variant === "breadcrumb" ? "navigation" : nothing}
+        aria-label=${
+          this.variant === "breadcrumb"
+            ? this.getAttribute("aria-label") || this.path || "Path"
+            : nothing
+        }
+        aria-current=${this.variant === "preview" && this.current ? "page" : nothing}
         aria-selected=${this.selected ? "true" : nothing}
       >
         <span part="icon" class="icon"><slot name="icon"></slot></span>
-        <span part="content" class="content" aria-label=${this.accessibleLabel}>
-          ${this.renderTitle()} ${this.effectiveTitle ? nothing : this.renderRaw()}
+        <span
+          part="content"
+          class="content"
+          aria-label=${this.variant === "preview" ? this.accessibleLabel : nothing}
+        >
+          <span part="viewport" class="viewport">
+            ${
+              this.variant === "breadcrumb"
+                ? this.renderBreadcrumb()
+                : html`${this.renderTitle()} ${this.effectiveTitle ? nothing : this.renderRaw()}`
+            }
+          </span>
         </span>
       </div>
     `;
@@ -162,7 +244,7 @@ export class UIPath extends LitElement {
   }
 
   private renderRaw(): TemplateResult {
-    const segments = this.path.split("/").filter(Boolean);
+    const segments = this.pathSegments;
 
     return html`
       <span part="segments" class="segments">
@@ -172,6 +254,66 @@ export class UIPath extends LitElement {
             <span part="segment" class="segment"> ${segment} </span>
           `,
         )}
+      </span>
+    `;
+  }
+
+  private get pathSegments(): string[] {
+    return this.path.split("/").filter(Boolean);
+  }
+
+  private destinationAt(index: number): string {
+    const destination = this.pathSegments.slice(0, index + 1).join("/");
+    return this.path.startsWith("/") ? `/${destination}` : destination;
+  }
+
+  private renderBreadcrumb(): TemplateResult {
+    const segments = this.pathSegments;
+    const absolute = this.path.startsWith("/");
+
+    if (segments.length === 0) {
+      return html`
+        <span part="segments" class="segments">
+          <span part="segment segment-current" aria-current="page">
+            <slot name="title" @slotchange=${this.onTitleChange}>${this.displayTitle || "/"}</slot>
+          </span>
+        </span>
+      `;
+    }
+
+    return html`
+      <span part="segments" class="segments">
+        ${
+          absolute
+            ? html`
+                <a part="segment segment-link" href="/" aria-label="Root">/</a>
+                <span part="separator" class="separator" aria-hidden="true">›</span>
+              `
+            : nothing
+        }
+        ${segments.map((segment, index) => {
+          const terminal = index === segments.length - 1;
+          return html`
+            ${
+              index > 0
+                ? html`<span part="separator" class="separator" aria-hidden="true">›</span>`
+                : nothing
+            }
+            ${
+              terminal
+                ? html`
+                    <span part="segment segment-current" aria-current="page">
+                      <slot name="title" @slotchange=${this.onTitleChange}
+                        >${this.displayTitle || segment}</slot
+                      >
+                    </span>
+                  `
+                : html`<a part="segment segment-link" href=${this.destinationAt(index)}
+                    >${segment}</a
+                  >`
+            }
+          `;
+        })}
       </span>
     `;
   }

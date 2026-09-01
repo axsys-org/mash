@@ -18,10 +18,13 @@ const PACKAGES = [
   {
     manifest: "packages/components/custom-elements.json",
     catalogue: "packages/components/src/catalogue/mash.css",
+    tailwind: "packages/components/dist/tailwind.css",
   },
   {
     manifest: "packages/shrine-components/custom-elements.json",
+    dependencyManifests: ["packages/components/custom-elements.json"],
     catalogue: "packages/shrine-components/src/catalogue/mash.css",
+    tailwind: "packages/shrine-components/dist/tailwind.css",
   },
 ];
 
@@ -45,8 +48,10 @@ async function main() {
   for (const entry of PACKAGES) {
     const manifestPath = path.join(ROOT, entry.manifest);
     const cataloguePath = path.join(ROOT, entry.catalogue);
+    const tailwindPath = path.join(ROOT, entry.tailwind);
     const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
     const catalogue = await readFile(cataloguePath, "utf8");
+    const tailwind = await readFile(tailwindPath, "utf8");
     const components = new Map();
 
     for (const declaration of declarationsIn(manifest)) {
@@ -64,6 +69,9 @@ async function main() {
         if (parts.filter((candidate) => candidate === part).length > 1) {
           problems.push(`${declaration.tagName} declares CSS part ${part} more than once`);
         }
+        if (!tailwind.includes(`@custom-variant part-${part} (&::part(${part}));`)) {
+          problems.push(`${declaration.tagName} part ${part} is missing from the Tailwind adapter`);
+        }
       }
 
       for (const slot of declaration.slots ?? []) {
@@ -74,14 +82,51 @@ async function main() {
             `${declaration.tagName} named slot ${slot.name} has no same-named styling part`,
           );
         }
+        if (!tailwind.includes(`@custom-variant slot-${slot.name} (& > [slot="${slot.name}"]);`)) {
+          problems.push(
+            `${declaration.tagName} named slot ${slot.name} is missing from the Tailwind adapter`,
+          );
+        }
+      }
+
+      for (const state of declaration.cssStates ?? []) {
+        if (!tailwind.includes(`@custom-variant state-${state.name} (&:state(${state.name}));`)) {
+          problems.push(
+            `${declaration.tagName} custom state ${state.name} is missing from the Tailwind adapter`,
+          );
+        }
       }
     }
 
-    for (const match of catalogue.matchAll(
-      /\b((?:ui|sh|shrine)-[a-z0-9-]+)[^,{]*?::part\(\s*([a-z0-9-]+)\s*\)/g,
-    )) {
+    // A composed package may pronounce public parts from its declared UI
+    // dependency. These declarations authorize recipe targets only; the owner
+    // package above remains responsible for part, slot, state, and Tailwind
+    // conformance so totals and failures are not counted twice.
+    for (const dependencyManifest of entry.dependencyManifests ?? []) {
+      const dependency = JSON.parse(await readFile(path.join(ROOT, dependencyManifest), "utf8"));
+      for (const declaration of declarationsIn(dependency)) {
+        components.set(
+          declaration.tagName,
+          new Set((declaration.cssParts ?? []).map((part) => part.name)),
+        );
+      }
+    }
+
+    for (const match of catalogue.matchAll(/::part\(\s*([a-z0-9-]+)\s*\)/g)) {
       recipeReferenceCount += 1;
-      const [, tagName, partName] = match;
+      const selectorStart = Math.max(
+        catalogue.lastIndexOf("{", match.index),
+        catalogue.lastIndexOf("}", match.index),
+        catalogue.lastIndexOf(",", match.index),
+      );
+      const selector = catalogue.slice(selectorStart + 1, match.index);
+      const tags = [...selector.matchAll(/\b(?:ui|sh|shrine)-[a-z0-9-]+\b/g)];
+      const tagName = tags.at(-1)?.[0];
+      const partName = match[1];
+
+      // Class-only selectors cannot be checked against a component manifest.
+      if (!tagName) continue;
+
       const parts = components.get(tagName);
       const location = `${entry.catalogue}:${lineAt(catalogue, match.index)}`;
 

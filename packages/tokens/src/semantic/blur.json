@@ -10,6 +10,33 @@
       "4": { "$value": "{blur.reference.progressive.4}" },
       "5": { "$value": "{blur.reference.progressive.5}" },
       "6": { "$value": "{blur.reference.progressive.6}" }
+    },
+    "backgroundMaterial": {
+      "$description": "Backdrop blur roles for translucent background materials. All roles intentionally alias the same 15px primitive; their paired colour tint expresses thickness.",
+      "ultraThin": {
+        "$value": "{blur.reference.material}",
+        "$description": "Shared material blur paired with the lightest tint contribution."
+      },
+      "thin": {
+        "$value": "{blur.reference.material}",
+        "$description": "Light separation for bars, edge treatments, and compact chrome."
+      },
+      "regular": {
+        "$value": "{blur.reference.material}",
+        "$description": "Default material separation for panels and floating controls."
+      },
+      "thick": {
+        "$value": "{blur.reference.material}",
+        "$description": "Strong separation for sheets and content-bearing overlays."
+      },
+      "ultraThick": {
+        "$value": "{blur.reference.material}",
+        "$description": "Shared material blur paired with the strongest tint contribution."
+      }
+    },
+    "menu": {
+      "$value": "{blur.reference.menu}",
+      "$description": "Backdrop blur for compact menu and submenu surfaces."
     }
   }
 }

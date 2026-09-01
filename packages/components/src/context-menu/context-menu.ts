@@ -1,10 +1,12 @@
-import { type TemplateResult } from "lit";
+import { html, type TemplateResult } from "lit";
 
 import {
   type OverlayChangeReason,
   type OverlayOpenChangeDetail,
   UIAnchoredOverlay,
 } from "../internal/overlay.js";
+import { MenuCollectionController } from "../internal/menu-collection.js";
+import type { MenuDensity, MenuSizing } from "../menu/menu.js";
 
 /**
  * A context-triggered command menu.
@@ -19,7 +21,7 @@ import {
  * @example Project row context menu
  * <ui-context-menu label="Project actions">
  *   <span slot="trigger">Billing migration</span>
- *   <ui-menu-item value="copy-path">Copy path</ui-menu-item>
+ *   <ui-menu-item value="copy-path">Copy path<ui-kbd slot="shortcut" command="project.copy-path" shortcut="Primary+Shift+C"></ui-kbd></ui-menu-item>
  * </ui-context-menu>
  *
  * @slot trigger - Surface that receives the context-menu gesture.
@@ -30,6 +32,7 @@ import {
  * @csspart backdrop - The dismissal boundary behind the menu.
  * @csspart positioner - The renderer-owned anchor-relative placement boundary.
  * @csspart popup - The semantic context menu surface.
+ * @csspart material - The isolated visual material layer behind context-menu content.
  * @csspart actions - The authored context-menu commands.
  * @csspart close - The authored close action realization.
  *
@@ -47,17 +50,34 @@ import {
  * @mashnode offset offset positioner
  * @mashnode collision-padding collision-padding positioner
  * @mashnode popup popup positioner
+ * @mashnode material material popup
  * @mashnode actions actions popup
  * @mashnode close close popup
+ * @mashnode density density popup
+ * @mashnode sizing sizing popup
  * @mashrole slot default actions actions
  */
 export class UIContextMenu extends UIAnchoredOverlay {
+  static override properties = {
+    ...UIAnchoredOverlay.properties,
+    density: { type: String, reflect: true },
+    sizing: { type: String, reflect: true },
+  };
+
+  /** Menu surface and row density. */
+  declare density: MenuDensity;
+  /** Whether the popup fits content, holds its density width, or stretches within the catalogue bound. */
+  declare sizing: MenuSizing;
+
   protected readonly overlayRole = "menu";
   protected override readonly triggerAction = "contextmenu";
   protected override readonly authoredContentPart = "actions";
+  readonly #collection = new MenuCollectionController(this);
 
   constructor() {
     super();
+    this.density = "regular";
+    this.sizing = "content";
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
   }
 
@@ -71,17 +91,30 @@ export class UIContextMenu extends UIAnchoredOverlay {
     );
   }
 
+  protected override renderAuthoredContent(): TemplateResult {
+    return html`<div part="actions"><slot></slot></div>`;
+  }
+
+  protected override renderPopupMaterial(): TemplateResult {
+    return html`<span part="material" aria-hidden="true"></span>`;
+  }
+
   #onItemSelect = (event: Event): void => {
-    const value = (event as CustomEvent<{ value: string }>).detail.value;
+    const detail = (event as CustomEvent<{ value: string; checked?: boolean; kind?: string }>)
+      .detail;
     this.dispatchEvent(
-      new CustomEvent<{ value: string }>("ui-context-menu-select", {
+      new CustomEvent<typeof detail>("ui-context-menu-select", {
         bubbles: true,
         composed: true,
-        detail: { value },
+        detail,
       }),
     );
     this.requestOpenChange(false, "select");
   };
+
+  protected override handleOverlayKeydown(event: KeyboardEvent): boolean {
+    return this.#collection.handleKeydown(event);
+  }
 
   protected override render(): TemplateResult {
     return this.renderOverlay();

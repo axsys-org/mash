@@ -18,5 +18,48 @@
       "emphasized": { "$value": [0.3, 0, 0, 1] },
       "linear": { "$value": [0, 0, 1, 1] }
     }
+  },
+
+  "motionDistance": {
+    "$type": "dimension",
+    "$description": "Raw spatial motion offsets. Consumers use motion.distance semantic aliases.",
+    "reference": {
+      "short": { "$value": { "value": 0.25, "unit": "rem" } },
+      "medium": { "$value": { "value": 0.75, "unit": "rem" } },
+      "long": { "$value": { "value": 1.5, "unit": "rem" } }
+    }
+  },
+  "motionScale": {
+    "$type": "number",
+    "reference": {
+      "rest": { "$value": 1 },
+      "contracted": { "$value": 0.96 },
+      "pressed": { "$value": 0.98 },
+      "expanded": { "$value": 1.04 }
+    }
+  },
+  "motionBlur": {
+    "$type": "dimension",
+    "reference": {
+      "none": { "$value": { "value": 0, "unit": "px" } },
+      "subtle": { "$value": { "value": 4, "unit": "px" } },
+      "emphasized": { "$value": { "value": 12, "unit": "px" } }
+    }
+  },
+  "motionOpacity": {
+    "$type": "number",
+    "reference": {
+      "hidden": { "$value": 0 },
+      "muted": { "$value": 0.56 },
+      "visible": { "$value": 1 }
+    }
+  },
+  "motionRotation": {
+    "$type": "number",
+    "reference": {
+      "none": { "$value": 0 },
+      "quarter": { "$value": 0.25 },
+      "full": { "$value": 1 }
+    }
   }
 }

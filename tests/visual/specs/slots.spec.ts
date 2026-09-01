@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("catalog slot composition", () => {
   test("keeps compound examples authored as real component trees", async ({ page }) => {
-    await page.goto("/components/ui-card");
+    await page.goto("/components/ui-card?example=Project+card");
 
     await expect(page.locator(".family-title")).toHaveText([
       "Foundations",
@@ -76,8 +76,12 @@ test.describe("catalog slot composition", () => {
     const group = preview.locator("ui-input-group");
     const input = group.locator('ui-input[slot="control"]');
 
-    await expect(group.locator('[slot="prefix"]')).toHaveText("⌕");
-    await expect(group.locator('[slot="suffix"]')).toHaveText("⌘ K");
+    await expect(group.locator('ui-icon[slot="prefix"]')).toHaveAttribute("name", "action.search");
+    await expect(group.locator('ui-kbd[slot="suffix"]')).toHaveAttribute(
+      "command",
+      "workspace.search",
+    );
+    await expect(group.locator('ui-kbd[slot="suffix"]')).toHaveAttribute("shortcut", "Primary+K");
     await expect(input).toHaveAttribute("label", "Search projects");
 
     const composition = await group.evaluate((node) => {
@@ -95,9 +99,23 @@ test.describe("catalog slot composition", () => {
     });
 
     expect(composition).toEqual({
-      prefix: ["span"],
+      prefix: ["ui-icon"],
       control: ["ui-input"],
       suffix: ["ui-kbd"],
+    });
+
+    expect(
+      await group.evaluate((node) => ({
+        prefix: node.matches(":state(has-prefix)"),
+        suffix: node.matches(":state(has-suffix)"),
+        parts: [...node.shadowRoot!.querySelectorAll("[part]")].map((part) =>
+          part.getAttribute("part"),
+        ),
+      })),
+    ).toEqual({
+      prefix: true,
+      suffix: true,
+      parts: ["root", "prefix", "prefix-separator", "control", "suffix-separator", "suffix"],
     });
 
     const geometry = await group.evaluate((node) => {
@@ -198,6 +216,133 @@ test.describe("catalog slot composition", () => {
     expect(new Set(navigationGeometry.map(({ width }) => Math.round(width))).size).toBe(1);
   });
 
+  test("composes semantic background material roles in both themes", async ({ page }) => {
+    const preview = page.frameLocator("iframe.stage-frame");
+    const readMaterials = () =>
+      preview.locator(".example-material").evaluateAll((nodes) =>
+        nodes.map((node) => {
+          const style = getComputedStyle(node);
+          const card = node.querySelector("ui-card")!;
+          return {
+            background: style.backgroundColor,
+            backdrop: style.backdropFilter,
+            cardBackground: getComputedStyle(card).backgroundColor,
+          };
+        }),
+      );
+
+    await page.goto("/components/ui-card?theme=light&example=Background+materials");
+    const light = await readMaterials();
+    expect(light).toHaveLength(5);
+    expect(new Set(light.map(({ background }) => background)).size).toBe(5);
+    expect(light.map(({ backdrop }) => backdrop)).toEqual(
+      Array.from({ length: 5 }, () => "blur(15px) saturate(1.2)"),
+    );
+    expect(light.every(({ cardBackground }) => cardBackground === "rgba(0, 0, 0, 0)")).toBe(true);
+
+    await page.goto("/components/ui-card?theme=dark&example=Background+materials");
+    const dark = await readMaterials();
+    expect(dark).toHaveLength(5);
+    expect(dark.map(({ backdrop }) => backdrop)).toEqual(light.map(({ backdrop }) => backdrop));
+    expect(dark.map(({ background }) => background)).not.toEqual(
+      light.map(({ background }) => background),
+    );
+
+    await page.getByRole("button", { name: "vibrant", exact: true }).click();
+    await expect(page).toHaveURL(/vibrancy=vibrant/);
+    await expect(preview.locator("html")).toHaveAttribute("data-vibrancy", "vibrant");
+    const vibrant = await readMaterials();
+    expect(vibrant.map(({ backdrop }) => backdrop)).toEqual(
+      Array.from({ length: 5 }, () => "blur(15px) saturate(1.5)"),
+    );
+
+    await page.getByRole("button", { name: "reduced", exact: true }).click();
+    await expect(page).toHaveURL(/vibrancy=reduced/);
+    await expect(preview.locator("html")).toHaveAttribute("data-vibrancy", "reduced");
+    const reduced = await readMaterials();
+    expect(reduced.every(({ backdrop }) => backdrop === "none")).toBe(true);
+    expect(new Set(reduced.map(({ background }) => background)).size).toBe(1);
+
+    const session = await page.context().newCDPSession(page);
+    await session.send("Emulation.setEmulatedMedia", {
+      features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
+    });
+    await page.goto("/components/ui-card?theme=dark&example=Background+materials");
+    await expect(preview.locator("html")).toHaveAttribute("data-vibrancy", "auto");
+    const automaticReduced = await readMaterials();
+    expect(automaticReduced.every(({ backdrop }) => backdrop === "none")).toBe(true);
+
+    await page.goto("/components/ui-card?theme=dark&vibrancy=vibrant&example=Background+materials");
+    const explicitVibrant = await readMaterials();
+    expect(explicitVibrant.every(({ backdrop }) => backdrop.includes("saturate(1.5)"))).toBe(true);
+    await session.send("Emulation.setEmulatedMedia", { features: [] });
+  });
+
+  test("keeps path breadcrumbs navigable and overflow edges semantic", async ({ page }) => {
+    await page.goto("/components/ui-path?theme=dark&example=Breadcrumb+navigation");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const breadcrumb = preview.locator('ui-path[variant="breadcrumb"]');
+
+    await expect
+      .poll(() => breadcrumb.evaluate((node) => node.matches(":state(overflow-start)")))
+      .toBe(true);
+    const breadcrumbContract = await breadcrumb.evaluate((node) => {
+      const root = node.shadowRoot!.querySelector<HTMLElement>('[part="root"]')!;
+      const viewport = node.shadowRoot!.querySelector<HTMLElement>('[part="viewport"]')!;
+      const links = [
+        ...node.shadowRoot!.querySelectorAll<HTMLAnchorElement>('[part~="segment-link"]'),
+      ];
+      const current = node.shadowRoot!.querySelector<HTMLElement>('[part~="segment-current"]')!;
+      return {
+        role: root.getAttribute("role"),
+        hrefs: links.map((link) => link.getAttribute("href")),
+        current: current.getAttribute("aria-current"),
+        clipped: viewport.scrollWidth > viewport.clientWidth,
+        alignedEnd: Math.abs(viewport.scrollLeft) > 0,
+        viewportMask: getComputedStyle(viewport).maskImage,
+      };
+    });
+
+    expect(breadcrumbContract.role).toBe("navigation");
+    expect(breadcrumbContract.hrefs).toEqual([
+      "/",
+      "/interzone",
+      "/interzone/projects",
+      "/interzone/projects/billing-migration",
+    ]);
+    expect(breadcrumbContract.current).toBe("page");
+    expect(breadcrumbContract.clipped).toBe(true);
+    expect(breadcrumbContract.alignedEnd).toBe(true);
+    expect(breadcrumbContract.viewportMask).not.toBe("none");
+
+    await page.goto("/components/ui-path?theme=light&example=Preview+overflow");
+    const paths = preview.locator(".example-path-case ui-path");
+    await expect(paths).toHaveCount(3);
+    await expect
+      .poll(() =>
+        paths.evaluateAll((nodes) => [
+          nodes[0]!.matches(":state(overflow-end)"),
+          nodes[1]!.matches(":state(overflow-start)"),
+        ]),
+      )
+      .toEqual([true, true]);
+
+    await page.goto("/components/ui-tree?theme=dark&example=Constrained+namespace+labels");
+    const longTreeItem = preview.locator("ui-tree-item[selected]");
+    await expect
+      .poll(() => longTreeItem.evaluate((node) => node.matches(":state(overflow-end)")))
+      .toBe(true);
+    const treeOverflow = await longTreeItem.evaluate((node) => {
+      const viewport = node.shadowRoot!.querySelector<HTMLElement>('[part="label-viewport"]')!;
+      return {
+        clipped: viewport.scrollWidth > viewport.clientWidth,
+        viewportMask: getComputedStyle(viewport).maskImage,
+      };
+    });
+    expect(treeOverflow.clipped).toBe(true);
+    expect(treeOverflow.viewportMask).not.toBe("none");
+  });
+
   test("keeps tree rows aligned and controlled pagination live", async ({ page }) => {
     await page.goto("/components/ui-tree?theme=dark");
     const preview = page.frameLocator("iframe.stage-frame");
@@ -228,8 +373,8 @@ test.describe("catalog slot composition", () => {
       Math.min(...branches.map(({ labelOffset }) => labelOffset)),
     );
 
-    const projects = preview.locator('ui-tree-item[title="Projects"]');
-    const billing = preview.locator('ui-tree-item[title="Billing migration"]');
+    const projects = preview.locator('ui-tree-item[path="/interzone/projects"]');
+    const billing = preview.locator('ui-tree-item[path="/interzone/projects/billing-migration"]');
     await expect(projects).toHaveAttribute("expanded", "");
     const projectsControl = projects.locator('button[part="control"]').first();
     await projectsControl.click();
@@ -372,6 +517,82 @@ test.describe("catalog slot composition", () => {
     await expect(preview.locator("sh-myth sh-limb").first()).toBeVisible();
   });
 
+  test("keeps compact nested menus aligned and exposes progressive leaf overflow", async ({
+    page,
+  }) => {
+    await page.goto("/components/ui-menu?theme=dark&example=Nested+compact+leafing");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const menu = preview.locator('ui-menu[label="Project commands"]');
+    const branch = menu.locator(':scope > ui-menu-item[value="recent"]');
+    const branchControl = branch.getByRole("menuitem", {
+      name: "Recent projects",
+      exact: true,
+    });
+    const submenu = branch.locator('ui-menu[label="Recent projects"]');
+    const popup = menu.locator('[part~="popup"]').first();
+    const submenuPopup = submenu.locator('[part~="popup"]').first();
+    const material = menu.locator('[part~="material"]').first();
+
+    await expect(popup).toHaveCSS("width", "210px");
+    await expect(popup).toHaveCSS("border-radius", "13px");
+    await expect(popup).toHaveCSS("padding", "5px");
+    await expect(popup).toHaveCSS("box-shadow", /0px 0px 0px 0.5px inset/);
+    await expect(material).toHaveCSS("background-blend-mode", "normal");
+    await expect(branchControl).toHaveCSS("padding-left", "7px");
+    await expect(branchControl).toHaveAttribute("aria-expanded", "true");
+
+    const [branchBox, submenuBox] = await Promise.all([
+      branchControl.boundingBox(),
+      submenuPopup.boundingBox(),
+    ]);
+    expect(branchBox).not.toBeNull();
+    expect(submenuBox).not.toBeNull();
+    expect(Math.abs(submenuBox!.x - (branchBox!.x + branchBox!.width + 2))).toBeLessThanOrEqual(1);
+    expect(Math.abs(submenuBox!.y - branchBox!.y)).toBeLessThanOrEqual(1);
+
+    const overflowed = await submenu
+      .locator('ui-menu-item[value="archive"]')
+      .evaluate((item) => item.matches(":state(overflow-end)"));
+    expect(overflowed).toBe(true);
+
+    await page.goto("/components/ui-menu?theme=light&vibrancy=vibrant&example=Pull-down+commands");
+    const lightPopup = preview.locator('ui-menu[label="Edit commands"] [part~="popup"]').first();
+    const lightMaterial = await lightPopup.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const materialElement = element.previousElementSibling as HTMLElement;
+      const materialStyle = getComputedStyle(materialElement);
+      const probe = document.createElement("span");
+      probe.style.backgroundColor = "var(--color-background-material-thick)";
+      document.body.append(probe);
+      return {
+        background: materialStyle.backgroundColor,
+        materialImage: materialStyle.backgroundImage,
+        materialBlendMode: materialStyle.backgroundBlendMode,
+        thickMaterial: getComputedStyle(probe).backgroundColor,
+        shadow: style.boxShadow,
+      };
+    });
+    expect(lightMaterial.background).toBe(lightMaterial.thickMaterial);
+    expect(lightMaterial.materialImage).not.toBe("none");
+    expect(lightMaterial.materialBlendMode).toBe("color-dodge");
+    expect(lightMaterial.shadow).toContain("inset");
+    expect(lightMaterial.shadow).toContain("0.5px inset");
+    expect(lightMaterial.shadow).toContain("0.13");
+
+    await page.goto("/components/ui-menu?theme=light&vibrancy=reduced&example=Pull-down+commands");
+    const reducedMaterial = await lightPopup.evaluate((element) => {
+      const materialElement = element.previousElementSibling as HTMLElement;
+      const probe = document.createElement("span");
+      probe.style.backgroundColor = "var(--color-surface-raised)";
+      document.body.append(probe);
+      return {
+        background: getComputedStyle(materialElement).backgroundColor,
+        raisedSurface: getComputedStyle(probe).backgroundColor,
+      };
+    });
+    expect(reducedMaterial.background).toBe(reducedMaterial.raisedSurface);
+  });
+
   test("composes scroll-target actions from buttons and a scroll area", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/components/ui-scroll-area?example=Scroll%20target%20action&theme=dark");
@@ -388,5 +609,122 @@ test.describe("catalog slot composition", () => {
 
     await preview.getByRole("button", { name: "Back to top" }).click();
     await expect.poll(scrollTop).toBe(0);
+  });
+
+  test("composes a responsive issue-tracking workspace from Mash primitives", async ({ page }) => {
+    await page.goto("/components/ui-table?theme=dark&example=Issue%20tracker%20workspace");
+
+    const preview = page.frameLocator("iframe.stage-frame");
+    const workspace = preview.locator("[data-linear-workspace]");
+    const table = preview.getByRole("table", { name: "Product issues" });
+    await expect(workspace).toBeVisible();
+    await expect(preview.locator("html")).toHaveAttribute("data-layout", "fill");
+    await expect(preview.locator(".example-linear-sidebar")).toBeVisible();
+    await expect(preview.locator("ui-link.example-linear-nav-link")).toHaveCount(13);
+    await expect(preview.locator("a.example-linear-nav-link")).toHaveCount(0);
+    await expect(
+      preview
+        .locator("ui-link.example-linear-nav-link[current]")
+        .first()
+        .locator('[part="control"]'),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(table).toBeVisible();
+    await expect(preview.locator(".example-linear-table ui-table-row")).toHaveCount(6);
+    await expect(preview.locator(".example-linear-table ui-table-head")).toHaveCount(6);
+
+    const search = preview.locator(".example-linear-filter-search").locator('[part="control"]');
+    await search.fill("keyboard");
+    await expect
+      .poll(() =>
+        preview
+          .locator(".example-linear-filter-search")
+          .evaluate((node) => (node as HTMLElement & { value: string }).value),
+      )
+      .toBe("keyboard");
+    await expect(preview.locator("[data-linear-list-row]:not([hidden])")).toHaveCount(1);
+    await expect(preview.locator("[data-linear-visible-count]")).toHaveText("1 issue");
+
+    const visibleIssue = preview.locator("[data-linear-list-row]:not([hidden])");
+    const firstIssue = visibleIssue.locator("ui-checkbox");
+    await firstIssue.click();
+    await expect
+      .poll(() =>
+        firstIssue.evaluate((node) => (node as HTMLElement & { checked: boolean }).checked),
+      )
+      .toBe(true);
+    await expect(preview.locator("[data-linear-selection-toolbar]")).toBeVisible();
+    await expect(preview.locator("[data-linear-selection-count]")).toHaveText("1");
+
+    await visibleIssue.locator("[data-linear-open-issue]").click();
+    await expect(preview.locator("[data-linear-inspector]")).toBeVisible();
+    await expect(preview.locator("[data-linear-inspector-title]")).toHaveText(
+      "Ship keyboard navigation for issue lists",
+    );
+    await preview.locator("[data-linear-close-inspector]").click();
+
+    await preview.getByRole("button", { name: "Mark done" }).click();
+    await expect(visibleIssue.locator('ui-table-cell[column-index="4"] ui-badge')).toHaveText(
+      "Done",
+    );
+
+    await preview.locator("[data-linear-clear-filters]").first().click();
+    await expect(preview.locator("[data-linear-list-row]:not([hidden])")).toHaveCount(5);
+
+    await preview.getByRole("button", { name: "Board" }).click();
+    await expect(preview.locator("[data-linear-board-view]")).toBeVisible();
+    await expect(preview.locator("[data-linear-board-card]:not([hidden])")).toHaveCount(5);
+
+    const plannedIssue = preview.locator('[data-linear-board-card][data-linear-issue="MAS-133"]');
+    const doneList = preview.locator(
+      '[data-linear-board-column="done"] [data-catalog-kanban-list]',
+    );
+    const handleBounds = await plannedIssue.locator('[slot="handle"]').boundingBox();
+    const doneBounds = await doneList.boundingBox();
+    if (!handleBounds || !doneBounds) throw new Error("Linear board drag targets must be visible.");
+    await page.mouse.move(
+      handleBounds.x + handleBounds.width / 2,
+      handleBounds.y + handleBounds.height / 2,
+    );
+    await page.mouse.down();
+    await page.mouse.move(doneBounds.x + doneBounds.width / 2, doneBounds.y + 24, { steps: 12 });
+    await expect(preview.locator("[data-catalog-drop-indicator]")).toBeVisible();
+    await page.mouse.up();
+    await expect(
+      doneList.locator(':scope > [data-linear-board-card][data-linear-issue="MAS-133"]'),
+    ).toHaveCount(1);
+    await expect(
+      preview.locator(
+        '[data-linear-list-row][data-linear-issue="MAS-133"] ui-table-cell[column-index="4"] ui-badge',
+      ),
+    ).toHaveText("Done");
+    await expect(preview.locator("[data-catalog-kanban-status]")).toHaveText(
+      "Add cycle progress to team overview moved to Done, position 1.",
+    );
+
+    await preview.locator(".example-linear-main").focus();
+    await page.keyboard.press("Control+k");
+    await expect(preview.getByRole("dialog", { name: "Command menu" })).toBeVisible();
+    await page.keyboard.press("Escape");
+
+    const create = preview.locator("ui-dialog.example-linear-new-issue");
+    await create.locator(":scope > ui-button").click();
+    await expect(create.getByRole("dialog", { name: "Create issue" })).toBeVisible();
+    await create
+      .locator("[data-linear-create-title]")
+      .locator('[part="control"]')
+      .fill("Invent issue choreography");
+    await create.locator("[data-linear-create-action]").click();
+    await expect(
+      preview.locator('[data-linear-list-row][data-linear-issue="MAS-151"]'),
+    ).toHaveCount(1);
+
+    await page.setViewportSize({ width: 900, height: 844 });
+    await page.goto("/components/ui-table?example=Issue%20tracker%20workspace");
+    await expect(preview.locator(".example-linear-sidebar")).toBeHidden();
+    const compactGeometry = await preview.locator(".example-linear-table").evaluate((node) => ({
+      clientWidth: node.clientWidth,
+      scrollWidth: node.scrollWidth,
+    }));
+    expect(compactGeometry.scrollWidth - compactGeometry.clientWidth).toBeLessThanOrEqual(2);
   });
 });
