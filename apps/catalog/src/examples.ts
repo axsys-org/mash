@@ -4075,7 +4075,7 @@ export function MarkdownFrame({ html }: { html: string }) {
       "Pull-down commands",
       `
         <div class="catalog-example example-menu-stage">
-          <ui-menu label="Edit commands">
+          <ui-menu label="Edit commands" density="compact">
             <ui-button class="example-menu-trigger" slot="trigger" size="small" variant="secondary">Edit<ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon></ui-button>
             <ui-menu-item value="undo"><ui-icon slot="prefix" name="action.reset" label=""></ui-icon>Undo<ui-kbd slot="shortcut" command="edit.undo" shortcut="Primary+Z"></ui-kbd></ui-menu-item>
             <ui-menu-item value="redo"><ui-icon slot="prefix" name="action.refresh" label=""></ui-icon>Redo<ui-kbd slot="shortcut" command="edit.redo" shortcut="Primary+Shift+Z"></ui-kbd></ui-menu-item>
@@ -4209,7 +4209,7 @@ export function MarkdownFrame({ html }: { html: string }) {
       "Sizing and density",
       `
         <div class="catalog-example example-menu-stage example-actions">
-          <ui-menu label="Regular menu"><ui-button slot="trigger" size="small" variant="secondary">Regular</ui-button><ui-menu-item value="open">Open</ui-menu-item><ui-menu-item value="rename">Rename</ui-menu-item></ui-menu>
+          <ui-menu label="Regular menu" density="regular"><ui-button slot="trigger" size="small" variant="secondary">Regular</ui-button><ui-menu-item value="open">Open</ui-menu-item><ui-menu-item value="rename">Rename</ui-menu-item></ui-menu>
           <ui-menu label="Compact menu" density="compact" sizing="fixed"><ui-button slot="trigger" size="small" variant="secondary">Compact</ui-button><ui-menu-item value="open">Open</ui-menu-item><ui-menu-item value="rename">Rename</ui-menu-item></ui-menu>
           <ui-menu label="Mini menu" density="mini" sizing="fixed"><ui-button slot="trigger" size="xsmall" variant="secondary">Mini</ui-button><ui-menu-item value="open">Open</ui-menu-item><ui-menu-item value="rename">Rename</ui-menu-item></ui-menu>
         </div>`,
@@ -4221,7 +4221,7 @@ export function MarkdownFrame({ html }: { html: string }) {
         <div class="catalog-example example-menu-stage example-menu-lab" data-catalog-menu-lab>
           <ui-toggle id="menu-command-toggle" data-catalog-menu-toggle aria-label="Toggle project commands"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-toggle>
           <ui-gesture-binding for="menu-command-toggle" gesture="press" command="menu.toggle" group="menu-control"></ui-gesture-binding>
-          <ui-menu label="Project commands" data-catalog-menu-demo>
+          <ui-menu label="Project commands" density="compact" data-catalog-menu-demo>
             <ui-button class="example-menu-trigger" slot="trigger" size="small" variant="secondary">Commands<ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon></ui-button>
             <ui-menu-item value="open">Open project</ui-menu-item>
             <ui-menu-item value="duplicate">Duplicate project</ui-menu-item>
@@ -4252,7 +4252,7 @@ export function MarkdownFrame({ html }: { html: string }) {
     example(
       "Project row",
       `
-        <ui-context-menu class="catalog-example example-context-target" label="Project actions">
+        <ui-context-menu class="catalog-example example-context-target" label="Project actions" density="compact">
           <ui-card slot="trigger">
             <strong>Billing migration</strong>
             <p>Right-click this project row for actions.</p>
@@ -4362,12 +4362,12 @@ export function MarkdownFrame({ html }: { html: string }) {
       "Workspace commands",
       `
         <ui-menubar class="catalog-example example-toolbar" label="Workspace commands">
-          <ui-menu label="Project menu">
+          <ui-menu label="Project menu" density="compact">
             <ui-button slot="trigger" variant="quiet">Project</ui-button>
             <ui-menu-item value="new">New project</ui-menu-item>
             <ui-menu-item value="import">Import project</ui-menu-item>
           </ui-menu>
-          <ui-menu label="View menu">
+          <ui-menu label="View menu" density="compact">
             <ui-button slot="trigger" variant="quiet">View</ui-button>
             <ui-menu-item value="activity">Activity</ui-menu-item>
             <ui-menu-item value="settings">Settings</ui-menu-item>
@@ -4384,7 +4384,7 @@ export function MarkdownFrame({ html }: { html: string }) {
           <a href="#projects">Projects</a>
           <a href="#activity">Activity</a>
           <a href="#members">Members</a>
-          <ui-menu label="More workspace links">
+          <ui-menu label="More workspace links" density="compact">
             <ui-button slot="trigger" variant="quiet">More</ui-button>
             <ui-menu-item value="settings">Settings</ui-menu-item>
             <ui-menu-item value="billing">Billing</ui-menu-item>

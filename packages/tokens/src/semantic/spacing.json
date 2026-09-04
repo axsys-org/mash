@@ -99,7 +99,7 @@
     },
     "menuGap": {
       "$value": "{space.reference.0p5}",
-      "$description": "2px vertical gap between popup menu rows."
+      "$description": "2px adjacency gap between popup menu regions and nested menu surfaces."
     },
     "menuInline": {
       "$value": "{space.reference.2}",

@@ -2222,7 +2222,7 @@
     position: relative;
     z-index: 1;
     display: grid;
-    gap: var(--space-menu-gap);
+    gap: var(--layout-dimension-zero);
     min-inline-size: 0;
   }
 
@@ -2380,7 +2380,7 @@
     block-size: var(--_mash-menu-row-size);
     margin: 0;
     border: 0;
-    border-radius: var(--radius-control);
+    border-radius: calc(var(--radius-menu) - var(--space-menu-gap));
     padding-block: var(--layout-dimension-zero);
     padding-inline: var(--space-menu-inline);
     background: transparent;
@@ -2964,12 +2964,12 @@
     );
 
     display: block;
-    block-size: calc(var(--space-menu-shell) + var(--space-control-gap));
+    block-size: calc(var(--space-menu-shell) * 2);
     margin-inline-start: calc(
       var(--space-menu-inline) + var(--_mash-menu-selection-lane) + var(--_mash-menu-prefix-lane)
     );
     margin-inline-end: var(--space-menu-inline);
-    padding-block: calc(var(--space-control-block-small) + var(--border-hairline));
+    padding-block: calc(var(--space-menu-shell) - var(--border-hairline));
   }
 
   :where([data-mash-catalogue="mash"]) ui-menubar::part(root),

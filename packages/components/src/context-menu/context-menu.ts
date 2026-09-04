@@ -96,7 +96,7 @@ export class UIContextMenu extends UIAnchoredOverlay {
 
   constructor() {
     super();
-    this.density = "regular";
+    this.density = "compact";
     this.sizing = "content";
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
   }

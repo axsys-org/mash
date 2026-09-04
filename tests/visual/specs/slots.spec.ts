@@ -701,6 +701,25 @@ test.describe("catalog slot composition", () => {
     await page.goto("/components/ui-menu?theme=light&vibrancy=vibrant&example=Pull-down+commands");
     await preview.getByRole("button", { name: "Edit" }).click();
     const lightPopup = preview.locator('ui-menu[label="Edit commands"] [part~="popup"]').first();
+    const lightRhythm = await preview.locator('ui-menu[label="Edit commands"]').evaluate((node) => {
+      const actions = node.shadowRoot!.querySelector<HTMLElement>('[part="actions"]')!;
+      const item = node.querySelector("ui-menu-item")!;
+      const control = item.shadowRoot!.querySelector<HTMLElement>('[part="control"]')!;
+      const separator = node.querySelector("ui-separator")!;
+      const controlStyle = getComputedStyle(control);
+      return {
+        actionsGap: getComputedStyle(actions).rowGap,
+        itemHeight: controlStyle.height,
+        itemRadius: controlStyle.borderTopLeftRadius,
+        separatorHeight: getComputedStyle(separator).height,
+      };
+    });
+    expect(lightRhythm).toEqual({
+      actionsGap: "0px",
+      itemHeight: "20px",
+      itemRadius: "4px",
+      separatorHeight: "8px",
+    });
     const lightMaterial = await lightPopup.evaluate((element) => {
       const style = getComputedStyle(element);
       const root = element.getRootNode();
