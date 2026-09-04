@@ -2962,7 +2962,7 @@ export function MarkdownFrame({ html }: { html: string }) {
     example(
       "Tailwind anatomy overrides",
       `
-        <ui-field class="catalog-example example-field" label="Namespace filter" description="The recipe remains the default; generated part, slot, and state variants provide the application override seam.">
+        <ui-field class="catalog-example example-field" label="Namespace filter" description="The recipe remains the default; generated part, slot, and state variants provide the application override layer.">
           <ui-input-group
             class="part-root:border-action part-root:bg-surface-raised part-prefix:px-control-inline-small part-suffix:px-control-inline-small slot-prefix:text-action state-has-prefix:part-prefix:bg-action-subtle"
             slot="control"

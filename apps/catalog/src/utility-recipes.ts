@@ -11,28 +11,44 @@ type UtilityRecipes = Readonly<Record<string, string>>;
 
 const catalogRecipes: UtilityRecipes = {
   masthead:
-    "flex flex-wrap items-start justify-between gap-container-gap border-b border-border px-region py-container-block",
-  "masthead-title": "m-0 type-heading tracking-[0.02em]",
-  "masthead-subtitle": "mt-control-block-small mb-0 type-label-small text-text-muted",
+    "sticky top-0 grid h-[3.5rem] grid-cols-[auto_minmax(10rem,28rem)_auto] items-center gap-container-gap border-b border-border bg-surface px-container-gap [z-index:var(--layer-overlay)] max-[45rem]:grid-cols-[auto_minmax(0,1fr)]",
+  "masthead-brand": "flex min-w-0 items-baseline gap-control-gap text-text no-underline",
+  "masthead-title": "m-0 type-heading",
+  "masthead-subtitle": "m-0 type-label-small text-text-muted max-[40rem]:hidden",
   "build-info":
-    "mt-control-block-small mb-0 flex items-center gap-control-gap type-code text-text-muted",
+    "m-0 flex shrink-0 items-center gap-control-gap type-code text-text-muted max-[45rem]:hidden",
+  "build-ref": "",
   "build-sha":
     "rounded-control border border-border px-control-inline-small py-control-block-small text-inherit no-underline hover:border-action hover:text-action",
+  "component-jump":
+    "w-full min-w-0 rounded-control border border-border bg-canvas px-control-inline py-control-block-small type-label-small text-text focus-visible:focus-ring",
   layout:
-    "grid grid-cols-[var(--layout-dimension-panel)_minmax(0,1fr)] items-start max-[45rem]:grid-cols-1",
+    "grid min-h-[calc(100dvh_-_3.5rem)] grid-cols-[var(--layout-dimension-panel)_minmax(0,1fr)] items-start max-[56rem]:grid-cols-1",
   sidebar:
-    "sticky top-0 max-h-dvh overflow-y-auto border-e border-border px-container-gap py-container-block max-[45rem]:static max-[45rem]:max-h-none max-[45rem]:overflow-visible max-[45rem]:border-e-0 max-[45rem]:border-b",
-  "sidebar-heading": "mt-0 mb-inline type-label-small uppercase tracking-[0.09em] text-text-muted",
-  "component-family": "mt-region [&:first-of-type]:mt-0",
-  "family-title": "m-0 type-label text-text",
-  "family-description": "mt-control-block-small mb-control-gap type-label-small text-text-muted",
-  "sidebar-list": "m-0 list-none p-0",
+    "sticky top-[3.5rem] grid h-[calc(100dvh_-_3.5rem)] min-w-0 grid-rows-[auto_minmax(0,1fr)] border-e border-border bg-canvas px-container-gap py-container-block max-[56rem]:hidden",
+  "sidebar-top": "grid gap-control-gap bg-canvas pb-container-block",
+  "sidebar-scroll": "min-h-0 overflow-y-auto",
+  "sidebar-heading": "m-0 type-label text-text",
+  "sidebar-search":
+    "w-full rounded-control border border-border bg-surface px-control-inline py-control-block-small type-label-small text-text outline-none focus-visible:focus-ring",
+  "sidebar-result": "type-label-small text-text-muted",
+  "component-family":
+    "mt-container-gap border-t border-border pt-container-gap [&:first-of-type]:mt-0 [&:first-of-type]:border-t-0 [&:first-of-type]:pt-0",
+  "family-row": "flex min-w-0 items-center justify-between gap-control-gap",
+  "family-title": "m-0 type-label-small text-text",
+  "family-count":
+    "rounded-pill border border-border bg-surface px-control-inline-small py-control-block-small type-label-small text-text-muted",
+  "family-description": "mt-control-block-small mb-0 type-label-small text-text-muted",
+  "sidebar-list": "m-0 mt-control-gap grid list-none gap-[var(--border-hairline)] p-0",
   "nav-item":
-    "block w-full cursor-pointer rounded-control border-0 bg-transparent px-control-inline py-control-block-small text-start type-code text-inherit hover:bg-surface-sunken",
+    "block w-full cursor-pointer rounded-control border border-transparent bg-transparent px-control-inline py-control-block-small text-start type-code text-text-muted hover:bg-surface-sunken hover:text-text focus-visible:focus-ring",
+  "is-selected":
+    "border-action! bg-action! text-on-action! hover:border-action! hover:bg-action! hover:text-on-action!",
   "is-active":
     "border-action bg-action text-on-action hover:border-action hover:bg-action hover:text-on-action",
-  content: "min-w-0 px-region pt-region pb-[calc(var(--space-region)*4)]",
-  "component-heading": "flex flex-wrap items-baseline gap-inline",
+  content: "min-w-0 px-region py-container-gap",
+  "component-intro": "mb-container-gap max-w-[80ch]",
+  "component-heading": "flex min-w-0 flex-wrap items-baseline gap-control-gap",
   "component-title": "m-0 type-heading",
   "package-badge":
     "rounded-pill border border-border px-control-inline-small py-control-block-small type-code text-text-muted",
@@ -42,24 +58,37 @@ const catalogRecipes: UtilityRecipes = {
   description:
     "mt-control-gap mb-0 max-w-[70ch] whitespace-pre-line type-label-small text-text-muted",
   note: "type-label-small text-text-muted",
-  panel: "mt-region rounded-container border border-border p-container-gap",
-  "panel-heading": "mt-0 mb-inline type-label-small uppercase tracking-[0.09em] text-text-muted",
+  workbench:
+    "grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] items-start gap-container-gap max-[86rem]:grid-cols-1",
+  inspector: "min-w-0",
+  panel: "rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "inspector-panel":
+    "sticky top-[calc(3.5rem_+_var(--space-container-gap))] max-h-[calc(100dvh_-_3.5rem_-_(var(--space-container-gap)*2))] overflow-y-auto max-[86rem]:static max-[86rem]:max-h-none",
+  "panel-heading": "mt-0 mb-inline type-label text-text",
   controls: "grid gap-container-gap",
   control: "grid gap-control-gap",
-  "control-label": "type-code text-text-muted",
+  "control-label": "type-label-small text-text-muted",
   "control-hint": "max-w-[70ch] type-label-small text-text-muted",
-  segmented: "flex flex-wrap gap-control-gap",
+  segmented:
+    "inline-flex min-w-0 flex-wrap gap-control-gap rounded-control bg-surface-sunken p-[var(--border-hairline)]",
   segment:
-    "cursor-pointer rounded-control border border-border bg-transparent px-control-inline py-control-block-small type-label-small text-inherit hover:border-action",
+    "min-h-[var(--layout-dimension-control-xsmall)] cursor-pointer rounded-control border border-transparent bg-transparent px-control-inline py-control-block-small type-label-small text-text-muted hover:bg-surface hover:text-text focus-visible:focus-ring",
   toggle: "inline-flex cursor-pointer items-center gap-control-gap type-label-small",
   "slot-toggles": "flex flex-wrap gap-inline",
+  "select-input":
+    "w-full min-w-0 rounded-control border border-border bg-canvas px-control-inline py-control-block-small type-label-small text-text focus-visible:focus-ring",
   "text-input":
-    "max-w-[var(--layout-dimension-panel)] rounded-control border border-border bg-canvas px-control-inline py-control-block-small type-label-small text-inherit focus-visible:focus-ring",
+    "w-full min-w-0 rounded-control border border-border bg-canvas px-control-inline py-control-block-small type-label-small text-text focus-visible:focus-ring",
+  "reference-sections":
+    "mt-container-gap grid min-w-0 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-container-gap max-[80rem]:grid-cols-1",
+  "usage-panel": "min-w-0",
+  "api-panel": "col-span-full min-w-0",
+  "tokens-panel": "min-w-0",
   "catalog-sections": "contents",
   "stage-shell":
-    "mt-region h-[32.5rem] min-h-[11.25rem] resize-y overflow-hidden rounded-container border border-border",
+    "h-[32.5rem] min-h-[18rem] resize-y overflow-hidden rounded-container border border-border bg-surface [box-shadow:0_var(--space-control-block-small)_var(--space-region)_var(--color-shadow)] max-[45rem]:h-[24rem]",
   "stage-frame": "block h-full w-full border-0",
-  code: "mt-0 mb-control-gap block max-w-full min-w-0 overflow-x-auto rounded-control bg-surface-sunken px-container-gap py-inline type-code",
+  code: "mt-0 mb-control-gap block max-h-[22rem] max-w-full min-w-0 overflow-auto rounded-control bg-surface-sunken px-container-gap py-inline type-code",
   "api-block": "mt-container-gap",
   "api-heading": "mt-0 mb-control-gap type-label-small",
   "api-empty-note": "m-0",

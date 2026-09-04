@@ -350,6 +350,30 @@ function controlField(
     : null;
 
   if (control.kind === "enum") {
+    if (control.options.length > 5) {
+      return el(
+        "div",
+        { class: "control" },
+        label,
+        el(
+          "select",
+          {
+            class: "select-input",
+            onchange: (event: Event) =>
+              onChange(control.attribute, (event.target as HTMLSelectElement).value),
+          },
+          ...control.options.map((option) =>
+            el("option", {
+              value: option,
+              selected: state.attrs[control.attribute] === option,
+              text: option,
+            }),
+          ),
+        ),
+        hint,
+      );
+    }
+
     return el(
       "div",
       { class: "control" },
@@ -452,6 +476,7 @@ interface Mounted {
   root: HTMLElement;
   tagName: string;
   above: HTMLElement;
+  inspector: HTMLElement;
   below: HTMLElement;
   frame: HTMLIFrameElement;
   document: Promise<Document>;
@@ -553,16 +578,8 @@ function copyLinkButton(): HTMLElement {
   return button;
 }
 
-/** Everything above the stage: heading and controls. Rebuilt on every change. */
-function aboveStage(
-  component: ComponentSchema,
-  state: State,
-  callbacks: AppCallbacks,
-): (HTMLElement | null)[] {
-  const showingExample = exampleNamed(component, state.example) !== null;
-  const examples = examplesFor(component);
-  const canShowControls = controlsPreviewAllowed(component);
-
+/** Everything above the workbench: component identity and summary. */
+function aboveStage(component: ComponentSchema): (HTMLElement | null)[] {
   return [
     el(
       "div",
@@ -573,139 +590,269 @@ function aboveStage(
     ),
     component.summary ? el("p", { class: "summary", text: component.summary }) : null,
     component.description ? el("p", { class: "description", text: component.description }) : null,
+  ];
+}
 
+/** The right-side inspector that drives examples, controls, theme, and vibrancy. */
+function controlsPanel(
+  component: ComponentSchema,
+  state: State,
+  callbacks: AppCallbacks,
+): HTMLElement {
+  const showingExample = exampleNamed(component, state.example) !== null;
+  const examples = examplesFor(component);
+  const canShowControls = controlsPreviewAllowed(component);
+
+  return el(
+    "section",
+    { class: "panel inspector-panel" },
+    el("h3", { class: "panel-heading", text: "Preview" }),
     el(
-      "section",
-      { class: "panel" },
-      el("h3", { class: "panel-heading", text: "Controls" }),
-      el(
-        "div",
-        { class: "controls" },
+      "div",
+      { class: "controls" },
 
-        examples.length > 0
-          ? el(
-              "div",
-              { class: "control" },
-              el("span", { class: "control-label", text: "example" }),
+      examples.length > 0
+        ? el(
+            "div",
+            { class: "control" },
+            el("span", { class: "control-label", text: "example" }),
+            el(
+              "select",
+              {
+                class: "select-input",
+                onchange: (event: Event) => {
+                  const value = (event.target as HTMLSelectElement).value;
+                  callbacks.update({ example: value === "__controls" ? null : value });
+                },
+              },
+              ...examples.map((example) =>
+                el("option", {
+                  value: example.name,
+                  selected: state.example === example.name,
+                  text: example.name,
+                }),
+              ),
+              ...(canShowControls
+                ? [
+                    el("option", {
+                      value: "__controls",
+                      selected: state.example === null,
+                      text: "controls",
+                    }),
+                  ]
+                : []),
+            ),
+            el("span", {
+              class: "control-hint",
+              text: canShowControls
+                ? "Examples show intended composition; controls render this element in isolation."
+                : "This is composition-only: its children are part of the component contract.",
+            }),
+          )
+        : null,
+
+      // Attribute controls drive the synthesized preview. An example is fixed
+      // markup, so showing them alongside it would imply they do something.
+      ...(showingExample
+        ? [
+            el("p", {
+              class: "note",
+              text: canShowControls
+                ? "Showing an authored example. Switch to controls to drive the component's attributes and slots directly."
+                : "The example provides the required child elements and slot relationships.",
+            }),
+          ]
+        : [
+            ...controlsFor(component).map((control) =>
+              controlField(control, state, callbacks.setAttr),
+            ),
+
+            ...component.slots.map((slot) =>
               el(
                 "div",
-                { class: "segmented" },
-                ...examples.map((example) =>
-                  el("button", {
-                    type: "button",
-                    class: state.example === example.name ? "segment is-active" : "segment",
-                    text: example.name,
-                    onclick: () => callbacks.update({ example: example.name }),
-                  }),
-                ),
-                ...(canShowControls
-                  ? [
-                      el("button", {
-                        type: "button",
-                        class: state.example === null ? "segment is-active" : "segment",
-                        text: "controls",
-                        onclick: () => callbacks.update({ example: null }),
-                      }),
-                    ]
-                  : []),
+                { class: "control" },
+                el("span", {
+                  class: "control-label",
+                  text: slot.name ? `${slot.name} slot` : "default slot",
+                }),
+                el("input", {
+                  type: "text",
+                  class: "text-input",
+                  value: state.slots[slot.name] ?? "",
+                  oninput: (event: Event) =>
+                    callbacks.update({
+                      slots: {
+                        ...state.slots,
+                        [slot.name]: (event.target as HTMLInputElement).value,
+                      },
+                    }),
+                }),
+                slot.description
+                  ? el("span", { class: "control-hint", text: slot.description })
+                  : null,
               ),
-              el("span", {
-                class: "control-hint",
-                text: canShowControls
-                  ? "Examples show intended composition; controls render this element in isolation."
-                  : "This is composition-only: its children are part of the component contract.",
-              }),
-            )
-          : null,
+            ),
+          ]),
 
-        // Attribute controls drive the synthesized preview. An example is fixed
-        // markup, so showing them alongside it would imply they do something.
-        ...(showingExample
-          ? [
-              el("p", {
-                class: "note",
-                text: canShowControls
-                  ? "Showing an authored example. Switch to “controls” to drive the component's attributes and slots directly."
-                  : "The example provides the required child elements and slot relationships.",
-              }),
-            ]
-          : [
-              ...controlsFor(component).map((control) =>
-                controlField(control, state, callbacks.setAttr),
-              ),
-
-              ...component.slots.map((slot) =>
-                el(
-                  "div",
-                  { class: "control" },
-                  el("span", {
-                    class: "control-label",
-                    text: slot.name ? `${slot.name} slot` : "default slot",
-                  }),
-                  el("input", {
-                    type: "text",
-                    class: "text-input",
-                    value: state.slots[slot.name] ?? "",
-                    oninput: (event: Event) =>
-                      callbacks.update({
-                        slots: {
-                          ...state.slots,
-                          [slot.name]: (event.target as HTMLInputElement).value,
-                        },
-                      }),
-                  }),
-                  slot.description
-                    ? el("span", { class: "control-hint", text: slot.description })
-                    : null,
-                ),
-              ),
-            ]),
-
+      el(
+        "div",
+        { class: "control" },
+        el("span", { class: "control-label", text: "theme" }),
         el(
           "div",
-          { class: "control" },
-          el("span", { class: "control-label", text: "theme" }),
-          el(
-            "div",
-            { class: "segmented" },
-            ...themes.map((theme) =>
-              el("button", {
-                type: "button",
-                class: state.theme === theme ? "segment is-active" : "segment",
-                text: theme,
-                onclick: () => callbacks.update({ theme }),
-              }),
-            ),
+          { class: "segmented" },
+          ...themes.map((theme) =>
+            el("button", {
+              type: "button",
+              class: state.theme === theme ? "segment is-active" : "segment",
+              text: theme,
+              onclick: () => callbacks.update({ theme }),
+            }),
           ),
-          el("span", {
-            class: "control-hint",
-            text: "Applied to the catalog and preview roots; nested components can still override it.",
-          }),
         ),
+        el("span", {
+          class: "control-hint",
+          text: "Applied to the catalog and preview roots; nested components can still override it.",
+        }),
+      ),
+      el(
+        "div",
+        { class: "control" },
+        el("span", { class: "control-label", text: "vibrancy" }),
         el(
           "div",
-          { class: "control" },
-          el("span", { class: "control-label", text: "vibrancy" }),
-          el(
-            "div",
-            { class: "segmented" },
-            ...vibrancyModes.map((vibrancy) =>
-              el("button", {
-                type: "button",
-                class: state.vibrancy === vibrancy ? "segment is-active" : "segment",
-                text: vibrancy,
-                onclick: () => callbacks.update({ vibrancy }),
-              }),
-            ),
+          { class: "segmented" },
+          ...vibrancyModes.map((vibrancy) =>
+            el("button", {
+              type: "button",
+              class: state.vibrancy === vibrancy ? "segment is-active" : "segment",
+              text: vibrancy,
+              onclick: () => callbacks.update({ vibrancy }),
+            }),
           ),
-          el("span", {
-            class: "control-hint",
-            text: "Auto follows reduced-transparency and increased-contrast preferences; explicit modes stay shareable in the URL.",
+        ),
+        el("span", {
+          class: "control-hint",
+          text: "Auto follows reduced-transparency and increased-contrast preferences; explicit modes stay shareable in the URL.",
+        }),
+      ),
+    ),
+  );
+}
+
+function buildSidebar(state: State, callbacks: AppCallbacks): HTMLElement {
+  const families = familiesFor(components);
+  const allCount = families.reduce((count, family) => count + family.components.length, 0);
+  const result = el("output", {
+    class: "sidebar-result",
+    "aria-live": "polite",
+    text: `${allCount} components`,
+  });
+  const search = el("input", {
+    class: "sidebar-search",
+    type: "search",
+    placeholder: "Find component",
+    "aria-label": "Find component",
+  }) as HTMLInputElement;
+
+  const familySections = families.map((family) =>
+    el(
+      "section",
+      { class: "component-family", "data-component-family": "" },
+      el(
+        "div",
+        { class: "family-row" },
+        el("h3", { class: "family-title", text: family.title }),
+        el("span", { class: "family-count", text: String(family.components.length) }),
+      ),
+      el("p", { class: "family-description", text: family.description }),
+      el(
+        "ul",
+        { class: "sidebar-list" },
+        ...family.components.map((entry) =>
+          el(
+            "li",
+            { "data-component-nav-item": "", "data-tag-name": entry.tagName },
+            el("button", {
+              type: "button",
+              class: entry.tagName === state.tagName ? "nav-item is-selected" : "nav-item",
+              text: entry.tagName,
+              onclick: () => callbacks.select(entry.tagName),
+            }),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  const sidebar = el(
+    "nav",
+    { class: "sidebar", "aria-label": "Components" },
+    el(
+      "div",
+      { class: "sidebar-top" },
+      el("h2", { class: "sidebar-heading", text: "Components" }),
+      search,
+      result,
+    ),
+    el("div", { class: "sidebar-scroll" }, ...familySections),
+  );
+
+  const filter = () => {
+    const query = search.value.trim().toLocaleLowerCase();
+    let visibleCount = 0;
+
+    for (const family of familySections) {
+      let familyHasMatch = false;
+      const items = family.querySelectorAll<HTMLElement>("[data-component-nav-item]");
+      for (const item of items) {
+        const tagName = item.dataset.tagName ?? "";
+        const visible = !query || tagName.toLocaleLowerCase().includes(query);
+        item.hidden = !visible;
+        familyHasMatch ||= visible;
+        if (visible) visibleCount += 1;
+      }
+      family.hidden = !familyHasMatch;
+    }
+
+    result.textContent = `${visibleCount} ${visibleCount === 1 ? "component" : "components"}`;
+  };
+  search.addEventListener("input", filter);
+
+  globalThis.requestAnimationFrame(() => {
+    if (!globalThis.matchMedia("(min-width: 56.001rem)").matches) return;
+    const active = sidebar.querySelector<HTMLElement>(".nav-item.is-selected");
+    const scroller = sidebar.querySelector<HTMLElement>(".sidebar-scroll");
+    if (!active || !scroller) return;
+    scroller.scrollTop =
+      active.offsetTop - scroller.clientHeight / 2 + active.getBoundingClientRect().height / 2;
+  });
+
+  return sidebar;
+}
+
+function componentJump(state: State, callbacks: AppCallbacks): HTMLElement {
+  return el(
+    "select",
+    {
+      class: "component-jump",
+      "aria-label": "Jump to component",
+      onchange: (event: Event) => callbacks.select((event.target as HTMLSelectElement).value),
+    },
+    ...familiesFor(components).map((family) =>
+      el(
+        "optgroup",
+        { label: family.title },
+        ...family.components.map((entry) =>
+          el("option", {
+            value: entry.tagName,
+            selected: entry.tagName === state.tagName,
+            text: entry.tagName,
           }),
         ),
       ),
     ),
-  ];
+  );
 }
 
 /** Everything below the stage: usage, API tables, token provenance. */
@@ -717,7 +864,7 @@ function belowStage(
   return [
     el(
       "section",
-      { class: "panel" },
+      { class: "panel usage-panel" },
       el("h3", { class: "panel-heading", text: "Usage" }),
       el("pre", { class: "code" }, el("code", { text: markupFor(component, state) })),
       el(
@@ -745,7 +892,7 @@ function belowStage(
 
     el(
       "section",
-      { class: "panel" },
+      { class: "panel api-panel" },
       el("h3", { class: "panel-heading", text: "API" }),
       el("p", { class: "note", text: "Read from custom-elements.json." }),
       attributeTable(component),
@@ -762,7 +909,7 @@ function belowStage(
 
     el(
       "section",
-      { class: "panel" },
+      { class: "panel tokens-panel" },
       el("h3", { class: "panel-heading", text: "Tokens used" }),
       el("p", {
         class: "note",
@@ -781,8 +928,9 @@ function belowStage(
  * document rather than one carrying the previous component's leftovers.
  */
 function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): Mounted {
-  const above = el("div", { class: "catalog-sections" });
-  const below = el("div", { class: "catalog-sections" });
+  const above = el("div", { class: "component-intro" });
+  const inspector = el("aside", { class: "inspector" });
+  const below = el("div", { class: "reference-sections" });
   const tokenList = el("ul", { class: "token-list" });
 
   const frame = el("iframe", {
@@ -796,14 +944,15 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
       "header",
       { class: "masthead" },
       el(
-        "div",
-        { class: "masthead-text" },
+        "a",
+        { class: "masthead-brand", href: "/" },
         el("h1", { class: "masthead-title", text: "mash" }),
         el("p", {
           class: "masthead-subtitle",
-          text: "Design system catalog — everything below is read from generated schemas.",
+          text: "component catalog",
         }),
       ),
+      componentJump(state, callbacks),
       buildBadge(),
     ),
 
@@ -811,46 +960,31 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
       "div",
       { class: "layout" },
 
-      el(
-        "nav",
-        { class: "sidebar" },
-        el("h2", { class: "sidebar-heading", text: "Components" }),
-        ...familiesFor(components).map((family) =>
-          el(
-            "section",
-            { class: "component-family" },
-            el("h3", { class: "family-title", text: family.title }),
-            el("p", { class: "family-description", text: family.description }),
-            el(
-              "ul",
-              { class: "sidebar-list" },
-              ...family.components.map((entry) =>
-                el(
-                  "li",
-                  {},
-                  el("button", {
-                    type: "button",
-                    class: entry.tagName === state.tagName ? "nav-item is-active" : "nav-item",
-                    text: entry.tagName,
-                    onclick: () => callbacks.select(entry.tagName),
-                  }),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+      buildSidebar(state, callbacks),
 
       // The stage sits between two containers whose *children* are replaced on
       // each update. The containers themselves, and the frame, are never moved.
-      el("main", { class: "content" }, above, el("div", { class: "stage-shell" }, frame), below),
+      el(
+        "main",
+        { class: "content" },
+        above,
+        el(
+          "section",
+          { class: "workbench", "aria-label": "Component workbench" },
+          el("div", { class: "stage-shell" }, frame),
+          inspector,
+        ),
+        below,
+      ),
     ),
   );
+  globalThis.scrollTo(0, 0);
 
   return {
     root,
     tagName: state.tagName,
     above,
+    inspector,
     below,
     frame,
     tokenList,
@@ -875,7 +1009,8 @@ export function render(root: HTMLElement, state: State, callbacks: AppCallbacks)
 
   const present = (node: HTMLElement | null): node is HTMLElement => node !== null;
 
-  mounted.above.replaceChildren(...aboveStage(component, state, callbacks).filter(present));
+  mounted.above.replaceChildren(...aboveStage(component).filter(present));
+  mounted.inspector.replaceChildren(controlsPanel(component, state, callbacks));
   mounted.below.replaceChildren(...belowStage(component, state, mounted.tokenList).filter(present));
 
   void syncStage(mounted, component, state);
