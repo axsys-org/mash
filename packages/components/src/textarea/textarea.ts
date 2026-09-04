@@ -2,6 +2,11 @@ import { LitElement, html, nothing, type PropertyValues, type TemplateResult } f
 
 import { baseStyles } from "../internal/base-styles.js";
 
+/** Fired when focus enters or leaves the native multiline editing control. */
+export interface TextareaFocusChangeDetail {
+  focused: boolean;
+}
+
 /**
  * An unstyled, form-associated multi-line text editor.
  *
@@ -23,10 +28,12 @@ import { baseStyles } from "../internal/base-styles.js";
  * @cssstate disabled - Matches `:state(disabled)` while editing is unavailable.
  * @cssstate readonly - Matches `:state(readonly)` while the value cannot be edited.
  * @cssstate required - Matches `:state(required)` while a value is required.
+ * @cssstate focused - Matches `:state(focused)` while the native control owns focus.
  * @cssstate invalid - Matches `:state(invalid)` while the native control or owning field reports an error.
  *
  * @fires {InputEvent} input - Reports an in-progress value edit.
  * @fires {Event} change - Reports a committed value edit.
+ * @fires {CustomEvent<TextareaFocusChangeDetail>} ui-textarea-focus-change - Reports focus entry and exit across the shadow boundary.
  *
  * @mashnode control control
  * @mashnode value value control
@@ -39,9 +46,13 @@ import { baseStyles } from "../internal/base-styles.js";
  * @mashnode disabled disabled control
  * @mashnode readonly readonly control
  * @mashnode required required control
+ * @mashnode focused focused control
  * @mashnode invalid invalid control
  * @mashnode input input control
  * @mashnode change change control
+ * @mashnode focus-change change control
+ * @mashrole state focused focused focused
+ * @mashrole event ui-textarea-focus-change change focus-change
  */
 export class UITextarea extends LitElement {
   static formAssociated = true;
@@ -89,6 +100,7 @@ export class UITextarea extends LitElement {
   #fieldDescription = "";
   #fieldInvalid = false;
   #nativeInvalid = false;
+  #defaultValue: string | undefined;
 
   constructor() {
     super();
@@ -107,9 +119,62 @@ export class UITextarea extends LitElement {
 
   static override styles = baseStyles;
 
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this.#defaultValue ??= this.value;
+  }
+
+  get control(): HTMLTextAreaElement | null {
+    return this.renderRoot.querySelector<HTMLTextAreaElement>("[part='control']");
+  }
+
+  override focus(options?: FocusOptions): void {
+    this.control?.focus(options);
+  }
+
+  override blur(): void {
+    this.control?.blur();
+  }
+
+  /** Selects the complete native value. */
+  select(): void {
+    this.control?.select();
+  }
+
+  /** Moves the native text selection without inventing editor state. */
+  setSelectionRange(start: number, end: number, direction?: SelectionDirection): void {
+    this.control?.setSelectionRange(start, end, direction);
+  }
+
   #onInput = (event: Event): void => {
     this.value = (event.currentTarget as HTMLTextAreaElement).value;
     this.#syncValidity();
+  };
+
+  #onChange = (): void => {
+    this.#syncValidity();
+  };
+
+  #onFocus = (): void => {
+    this.#internals.states.add("focused");
+    this.dispatchEvent(
+      new CustomEvent<TextareaFocusChangeDetail>("ui-textarea-focus-change", {
+        bubbles: true,
+        composed: true,
+        detail: { focused: true },
+      }),
+    );
+  };
+
+  #onBlur = (): void => {
+    this.#internals.states.delete("focused");
+    this.dispatchEvent(
+      new CustomEvent<TextareaFocusChangeDetail>("ui-textarea-focus-change", {
+        bubbles: true,
+        composed: true,
+        detail: { focused: false },
+      }),
+    );
   };
 
   #normalizedRows(): number {
@@ -158,7 +223,7 @@ export class UITextarea extends LitElement {
   }
 
   formResetCallback(): void {
-    this.value = this.getAttribute("value") ?? "";
+    this.value = this.#defaultValue ?? "";
   }
 
   formStateRestoreCallback(state: string | null): void {
@@ -194,6 +259,9 @@ export class UITextarea extends LitElement {
         ?readonly=${this.readonly}
         ?required=${this.required}
         @input=${this.#onInput}
+        @change=${this.#onChange}
+        @focus=${this.#onFocus}
+        @blur=${this.#onBlur}
       ></textarea>
     `;
   }

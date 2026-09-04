@@ -85,7 +85,13 @@ export type {
 } from "./gesture/gesture.js";
 export { UIGestureBinding } from "./gesture-binding/gesture-binding.js";
 export { UIInput } from "./input/input.js";
-export type { InputSize, InputType } from "./input/input.js";
+export type {
+  InputEnterDetail,
+  InputFocusChangeDetail,
+  InputMode,
+  InputSize,
+  InputType,
+} from "./input/input.js";
 export { UIInputGroup } from "./input-group/input-group.js";
 export { UIIcon, hasIcon, iconNames, registerIcon, unregisterIcon } from "./icon/icon.js";
 export type { IconName, IconSize, IconSource } from "./icon/icon.js";
@@ -197,6 +203,7 @@ export {
 } from "./table/table.js";
 export type { TableHeaderScope, TableSortDirection } from "./table/table.js";
 export { UITextarea } from "./textarea/textarea.js";
+export type { TextareaFocusChangeDetail } from "./textarea/textarea.js";
 export { UIToggle } from "./toggle/toggle.js";
 export { UIToggleGroup } from "./toggle-group/toggle-group.js";
 export type { ToggleGroupMode, ToggleGroupOrientation } from "./toggle-group/toggle-group.js";

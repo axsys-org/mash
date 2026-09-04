@@ -23,6 +23,35 @@ tokens, catalogue recipes, and examples evolve in different threads.
 hand. Regenerate it from source JSDoc after any anatomy, event, state, or doc
 change.
 
+## Durable HTML Fragments
+
+Mash should be useful inside plain markup hosts: Markdown, server templates,
+static pages, CMS entries, and Foil-style authored documents. In that setting a
+fragment is content-shaped HTML, not an application component.
+
+A durable fragment may include:
+
+- custom-element tags with stable attributes and authored slots;
+- native HTML semantics such as `form`, `section`, `fieldset`, `output`, `pre`,
+  and headings;
+- local `data-*` hooks for progressive enhancement;
+- catalogue utility classes that speak in semantic tokens.
+
+A durable fragment must not require:
+
+- framework-only components, render callbacks, context providers, or build-time
+  transforms;
+- private shadow selectors or undocumented DOM topology;
+- copied reference-token values;
+- product records, routing, analytics, or persistence to live inside a Mash
+  primitive.
+
+Promote a fragment to a component only when the behavior contract itself recurs:
+focus policy, keyboard navigation, form submission, measured presence,
+virtualization, selection, validation, or event detail. Keep ordinary app
+arrangements such as comment composers, search rows, message shells, and
+settings groups as authored fragments until that threshold is crossed.
+
 ## Sizing Axes
 
 Do not flatten every `size` into one global scale. The word is already used by
@@ -53,16 +82,19 @@ Current consolidation direction:
 
 ## Component Boundaries
 
-| Component    | Owns                                                                                          | Does not own                                                           |
-| ------------ | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `ui-label`   | Generated text, secondary segment, masking, highlighting, text alignment, type-preset sizing. | Action state, badge count, shortcut semantics, rich prose layout.      |
-| `ui-typeset` | Typography preset, tone, and flow over authored semantic HTML.                                | Markdown parsing, command execution, code editing, viewport scrolling. |
-| `ui-kbd`     | Display of a keyboard shortcut or command chord.                                              | Shortcut execution, generic labels, status pills.                      |
-| `ui-badge`   | Compact status, category, metadata, count, dot, icon indicator, and target annotation.        | Actions, general text styling, icon glyph sizing.                      |
-| `ui-icon`    | Glyph identity, accessible label, glyph scale, and optional authored overlay lane.            | Badge status, button action, text label semantics.                     |
-| `ui-button`  | Native button behavior, action activation, form behavior, loading/pressed/selected states.    | Navigation link semantics or product workflow state.                   |
-| `ui-link`    | Native anchor destination and current/disabled presentation roles.                            | Button form behavior.                                                  |
-| `ui-bubble`  | Conversation surface, alignment, variant, and reaction lane.                                  | Message records, sender identity, transcript virtualization.           |
+| Component        | Owns                                                                                                 | Does not own                                                            |
+| ---------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `ui-label`       | Generated text, secondary segment, masking, highlighting, text alignment, type-preset sizing.        | Action state, badge count, shortcut semantics, rich prose layout.       |
+| `ui-typeset`     | Typography preset, tone, and flow over authored semantic HTML.                                       | Markdown parsing, command execution, code editing, viewport scrolling.  |
+| `ui-kbd`         | Display of a keyboard shortcut or command chord.                                                     | Shortcut execution, generic labels, status pills.                       |
+| `ui-badge`       | Compact status, category, metadata, count, dot, icon indicator, and target annotation.               | Actions, general text styling, icon glyph sizing.                       |
+| `ui-icon`        | Glyph identity, accessible label, glyph scale, and optional authored overlay lane.                   | Badge status, button action, text label semantics.                      |
+| `ui-button`      | Native button behavior, action activation, form behavior, loading/pressed/selected states.           | Navigation link semantics or product workflow state.                    |
+| `ui-link`        | Native anchor destination and current/disabled presentation roles.                                   | Button form behavior.                                                   |
+| `ui-input`       | Single-line native text entry, form value, validity, focus/selection forwarding, Enter/focus events. | Affixes, masking chrome, command rows, suggestions, multiline drafting. |
+| `ui-input-group` | Prefix/control/suffix anatomy around one authored control.                                           | Labels, validation, text editing, masking, or search behavior.          |
+| `ui-textarea`    | Multiline native text editing, form value, validity, focus/selection forwarding.                     | Comment composers, markdown formatting, attachments, code editing.      |
+| `ui-bubble`      | Conversation surface, alignment, variant, and reaction lane.                                         | Message records, sender identity, transcript virtualization.            |
 
 Badge indicators annotate a slotted target through `variant`, `count`, `max`,
 and `position`. `ui-icon` may expose an overlay slot for authored composition,

@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const EXAMPLES_PATH = "apps/catalog/src/examples.ts";
 const STAGE_PATH = "apps/catalog/src/stage.ts";
+const UTILITY_RECIPES_PATH = "apps/catalog/src/utility-recipes.ts";
 const ICONS_PATH = "packages/components/src/icon/carbon-icons.generated.ts";
 
 function lineAt(source, index) {
@@ -29,6 +30,7 @@ function location(file, source, index) {
 async function main() {
   const examples = await readFile(path.join(ROOT, EXAMPLES_PATH), "utf8");
   const stage = await readFile(path.join(ROOT, STAGE_PATH), "utf8");
+  const utilityRecipes = await readFile(path.join(ROOT, UTILITY_RECIPES_PATH), "utf8");
   const icons = await readFile(path.join(ROOT, ICONS_PATH), "utf8");
   const problems = [];
   const iconNames = new Set([...icons.matchAll(/^  "([^"]+)": \{$/gm)].map((match) => match[1]));
@@ -63,7 +65,20 @@ async function main() {
   for (const [file, source] of [
     [EXAMPLES_PATH, examples],
     [STAGE_PATH, stage],
+    [UTILITY_RECIPES_PATH, utilityRecipes],
   ]) {
+    for (const match of source.matchAll(/--_mash-[\w-]+/g)) {
+      problems.push(
+        `${location(file, source, match.index)} uses private catalogue variable ${match[0]}`,
+      );
+    }
+
+    for (const match of source.matchAll(/--ref-[\w-]+/g)) {
+      problems.push(
+        `${location(file, source, match.index)} consumes reference primitive ${match[0]}; use a semantic token or utility`,
+      );
+    }
+
     for (const match of source.matchAll(/<ui-icon\b[^>]*\bname="([^"]+)"[^>]*>/g)) {
       const name = match[1];
       if (name === "product.unknown" || iconNames.has(name)) continue;

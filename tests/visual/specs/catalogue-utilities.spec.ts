@@ -37,7 +37,7 @@ test("catalogue chrome and stage are realized by semantic utilities", async ({ p
   );
   expect(legacyStylesheets).toEqual([]);
 
-  await page.goto("/components/ui-bubble?example=Message+rows");
+  await page.goto("/components/ui-bubble?example=Scroller+composition");
   const outgoingBubble = page
     .frameLocator("iframe.stage-frame")
     .locator('ui-bubble[alignment="end"]')

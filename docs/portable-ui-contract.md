@@ -44,6 +44,13 @@ preserving inputs, authored content, realized anatomy, reflected state, outputs,
 and relationships. See
 [`mash-contract.md`](mash-contract.md) for the versioned schema and address rules.
 
+Durable fragments are the preferred shape above primitives: plain authored HTML
+that can move through Markdown, server templates, static output, CMS content, or
+Foil-style markup while keeping the same custom-element tags and native
+semantics. A fragment may arrange fields, toolbars, bubbles, menus, and
+enhancement hooks; it becomes a Mash primitive only when the interaction state
+machine itself needs a shared renderer-neutral contract.
+
 ## Translating Interactions Into Mash
 
 Mash does not reproduce another renderer's API one custom element per external
@@ -177,6 +184,11 @@ event behaviour.
   focus-change events because those are control semantics across the shadow
   boundary. Search icons, clear buttons, masking toggles, units, and shortcut
   hints remain authored siblings.
+- `ui-textarea` follows the same native-control boundary for multiline editing:
+  value, validity, focus, selection, form state, and a composed focus-change
+  event are the contract. Comment composers, counters, attachment menus,
+  formatting toolbars, visibility controls, and markdown preview all remain
+  authored fragment composition until a shared editor state machine is needed.
 - Message and message-scroller patterns currently map to composition instead of
   new Mash primitives: `ui-bubble` owns the conversational surface,
   `ui-scroll-area` owns the native viewport, and application code owns sender

@@ -2503,29 +2503,23 @@ export function MarkdownFrame({ html }: { html: string }) {
   ],
   "ui-bubble": [
     example(
-      "Message rows",
+      "Grouped message",
       `
-        <section class="catalog-example example-message-thread" aria-label="Project conversation">
+        <section class="catalog-example example-message-thread" aria-label="Grouped message">
           <div class="example-message-row">
-            <ui-avatar size="small">MC</ui-avatar>
+            <ui-avatar size="small">AM</ui-avatar>
             <div class="example-message-main">
-              <div class="example-message-meta"><strong>Maya Chen</strong><ui-intl-formatter kind="time" value="2026-08-20T15:42:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter></div>
+              <div class="example-message-meta"><strong>Avery Moss</strong><ui-intl-formatter kind="time" value="2026-08-20T15:42:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter></div>
               <ui-bubble-group>
-                <ui-bubble alignment="start" variant="secondary">The billing migration is ready for review.</ui-bubble>
-                <ui-bubble alignment="start" variant="secondary">The invoice sample is linked in the handoff.</ui-bubble>
+                <ui-bubble alignment="start" variant="secondary">The review note is ready.</ui-bubble>
+                <ui-bubble alignment="start" variant="secondary">I split the follow-up into two short items.</ui-bubble>
+                <ui-bubble alignment="start" variant="secondary" reaction-side="bottom">
+                  Both can travel as ordinary authored content.
+                  <ui-button slot="reactions" type="button" size="xsmall" variant="ghost">+2</ui-button>
+                </ui-bubble>
               </ui-bubble-group>
-              <div class="example-message-footer"><span>Delivered to project room</span><ui-button type="button" size="xsmall" variant="quiet">Reply</ui-button></div>
+              <div class="example-message-footer"><span>Delivered</span><ui-button type="button" size="xsmall" variant="quiet">Reply</ui-button></div>
             </div>
-          </div>
-          <div class="example-message-row example-message-row-end">
-            <div class="example-message-main">
-              <div class="example-message-meta"><strong>You</strong><ui-intl-formatter kind="time" value="2026-08-20T15:44:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter></div>
-              <ui-bubble-group>
-                <ui-bubble alignment="end">Perfect. I will check the final invoice sample now.</ui-bubble>
-              </ui-bubble-group>
-              <div class="example-message-footer"><span>Read</span><ui-button type="button" size="xsmall" variant="quiet">Copy</ui-button></div>
-            </div>
-            <ui-avatar size="small">You</ui-avatar>
           </div>
         </section>`,
       {
@@ -2802,17 +2796,17 @@ export function MarkdownFrame({ html }: { html: string }) {
       "Native state matrix",
       `
         <section class="catalog-example example-input-grid" aria-label="Input states">
-          <ui-field label="Project name" description="Visible to everyone in this workspace." required>
-            <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
+          <ui-field label="Name" description="Submitted with the containing form." required>
+            <ui-input slot="control" name="name" value="Quarterly review"></ui-input>
           </ui-field>
-          <ui-field label="Readonly slug" description="Can be focused, selected, and copied.">
-            <ui-input slot="control" name="project-slug" value="billing-migration" readonly></ui-input>
+          <ui-field label="Readonly value" description="Can be focused, selected, and copied.">
+            <ui-input slot="control" name="readonly-value" value="quarterly-review" readonly></ui-input>
           </ui-field>
-          <ui-field label="Locked source" description="Disabled inputs do not submit a form value.">
-            <ui-input slot="control" name="project-source" value="Inherited from finance" disabled></ui-input>
+          <ui-field label="Disabled value" description="Disabled inputs do not submit a form value.">
+            <ui-input slot="control" name="disabled-value" value="Unavailable" disabled></ui-input>
           </ui-field>
-          <ui-field label="Project key" invalid error="Use three to eight uppercase letters followed by two digits.">
-            <ui-input slot="control" name="project-key" value="bad-key" pattern="[A-Z]{3,8}[0-9]{2}" minlength="5" maxlength="10" autocomplete="off"></ui-input>
+          <ui-field label="Patterned code" invalid error="Use three to eight uppercase letters followed by two digits.">
+            <ui-input slot="control" name="patterned-code" value="bad-key" pattern="[A-Z]{3,8}[0-9]{2}" minlength="5" maxlength="10" autocomplete="off"></ui-input>
           </ui-field>
         </section>`,
       {
@@ -2826,16 +2820,16 @@ export function MarkdownFrame({ html }: { html: string }) {
       "Search, clear, and Enter",
       `
         <div class="catalog-example example-input-lab" data-catalog-input-lab>
-          <ui-field label="Issue search" description="Primary+K focuses the input; Escape clears editable text.">
+          <ui-field label="Search" description="Primary+K focuses the input; Escape clears editable text.">
             <ui-input-group id="input-search-command" slot="control">
               <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
-              <ui-input slot="control" type="search" name="issue-search" label="Issue search" value="billing" autocomplete="off" clean-on-escape data-catalog-input-focus data-catalog-input-events></ui-input>
-              <ui-button slot="suffix" type="button" size="small" variant="quiet" aria-label="Clear issue search" data-catalog-input-clear><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
+              <ui-input slot="control" type="search" name="query" label="Search" value="release" autocomplete="off" clean-on-escape data-catalog-input-focus data-catalog-input-events></ui-input>
+              <ui-button slot="suffix" type="button" size="small" variant="quiet" aria-label="Clear search" data-catalog-input-clear><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
               <ui-kbd slot="suffix" command="input.focus" shortcut="Primary+K"></ui-kbd>
             </ui-input-group>
             <ui-gesture-binding for="input-search-command" gesture="key" shortcut="Primary+K" command="input.focus" prevent-default="recognized"></ui-gesture-binding>
           </ui-field>
-          <output class="example-input-log" data-catalog-input-log>value: billing</output>
+          <output class="example-input-log" data-catalog-input-log>value: release</output>
         </div>`,
       {
         compositionOnly: true,
@@ -2846,10 +2840,10 @@ export function MarkdownFrame({ html }: { html: string }) {
     example(
       "Secure value composition",
       `
-        <ui-field class="catalog-example example-field" label="Access token" description="The reveal control is an adjacent toggle, not hidden input chrome.">
+        <ui-field class="catalog-example example-field" label="Secure value" description="The reveal control is an adjacent toggle, not hidden input chrome.">
           <ui-input-group slot="control" data-catalog-password-group>
             <ui-icon slot="prefix" name="object.keyboard" label=""></ui-icon>
-            <ui-input slot="control" type="password" name="access-token" label="Access token" value="shrine-token" autocomplete="current-password"></ui-input>
+            <ui-input slot="control" type="password" name="secure-value" label="Secure value" value="sample-secret" autocomplete="current-password"></ui-input>
             <ui-toggle slot="suffix" size="small" data-catalog-password-toggle>Show</ui-toggle>
           </ui-input-group>
         </ui-field>`,
@@ -2858,18 +2852,18 @@ export function MarkdownFrame({ html }: { html: string }) {
     example(
       "Formats without masking chrome",
       `
-        <div class="catalog-example example-input-grid">
+        <section class="catalog-example example-input-format-fragment" aria-label="Native input formats">
           <ui-field label="Contact email"><ui-input slot="control" type="email" name="email" label="Contact email" placeholder="team@example.com" autocomplete="email" inputmode="email"></ui-input></ui-field>
           <ui-field label="Support phone"><ui-input slot="control" type="tel" name="phone" label="Support phone" placeholder="+1 555 0100" autocomplete="tel" inputmode="tel"></ui-input></ui-field>
-          <ui-field label="Project URL"><ui-input slot="control" type="url" name="url" label="Project URL" placeholder="https://example.com" autocomplete="url" inputmode="url"></ui-input></ui-field>
-          <ui-field label="Budget cap">
+          <ui-field label="Reference URL"><ui-input slot="control" type="url" name="url" label="Reference URL" placeholder="https://example.com" autocomplete="url" inputmode="url"></ui-input></ui-field>
+          <ui-field label="Amount">
             <ui-input-group slot="control">
               <span slot="prefix">$</span>
-              <ui-input slot="control" name="budget-cap" label="Budget cap" value="12,500" inputmode="decimal" pattern="[0-9,]+(\\.[0-9]{0,2})?"></ui-input>
+              <ui-input slot="control" name="amount" label="Amount" value="12,500" inputmode="decimal" pattern="[0-9,]+(\\.[0-9]{0,2})?"></ui-input>
               <span slot="suffix">USD</span>
             </ui-input-group>
           </ui-field>
-        </div>`,
+        </section>`,
       {
         compositionOnly: true,
         description:
@@ -2883,14 +2877,14 @@ export function MarkdownFrame({ html }: { html: string }) {
       "Rows and availability",
       `
         <section class="catalog-example example-textarea-grid" aria-label="Textarea states">
-          <ui-field label="Project notes" description="Multiline text uses native textarea editing and validation.">
-            <ui-textarea slot="control" name="project-notes" rows="5" maxlength="240" placeholder="Add migration context"></ui-textarea>
+          <ui-field label="Notes" description="Multiline text uses native textarea editing and validation.">
+            <ui-textarea slot="control" name="notes" rows="5" maxlength="240" placeholder="Add context"></ui-textarea>
           </ui-field>
-          <ui-field label="Policy excerpt">
-            <ui-textarea slot="control" rows="4" readonly value="Invoices older than 90 days require finance approval before archival."></ui-textarea>
+          <ui-field label="Readonly text">
+            <ui-textarea slot="control" rows="4" readonly value="Readonly text can still be selected and copied."></ui-textarea>
           </ui-field>
           <ui-field label="Locked field">
-            <ui-textarea slot="control" rows="4" disabled value="Workspace import is unavailable while retention rules are syncing."></ui-textarea>
+            <ui-textarea slot="control" rows="4" disabled value="Editing is unavailable while this field is disabled."></ui-textarea>
           </ui-field>
         </section>`,
       {
@@ -2903,42 +2897,67 @@ export function MarkdownFrame({ html }: { html: string }) {
     example(
       "Comment composer",
       `
-        <section class="catalog-example example-textarea-composer">
-          <ui-field label="Add update" description="Visible to project members.">
-            <ui-textarea slot="control" name="update" rows="3" maxlength="280" placeholder="Share the next useful detail"></ui-textarea>
+        <form class="catalog-example example-comment-composer" aria-label="Comment composer" data-catalog-composer>
+          <div class="example-composer-header">
+            <ui-avatar size="small">RM</ui-avatar>
+            <div class="example-composer-author">
+              <strong>Rina Malik</strong>
+              <span>Drafting a project comment</span>
+            </div>
+            <ui-badge size="small">Draft</ui-badge>
+          </div>
+          <ui-field label="Comment" description="The fragment owns draft state; the textarea owns native multiline editing.">
+            <ui-textarea slot="control" name="comment" rows="4" maxlength="280" placeholder="Leave a concrete update…" data-catalog-composer-text></ui-textarea>
           </ui-field>
-          <ui-toolbar label="Comment tools" class="example-textarea-toolbar">
-            <ui-button type="button" size="small" variant="quiet" aria-label="Attach file">
-              <ui-icon name="action.add" label=""></ui-icon>
-            </ui-button>
-            <ui-button type="button" size="small" variant="quiet" aria-label="Insert link">
-              <ui-icon name="action.launch" label=""></ui-icon>
-            </ui-button>
-            <span>0 / 280</span>
-            <ui-button type="button" size="small">Post update</ui-button>
+          <ui-toolbar label="Comment tools" class="example-composer-toolbar">
+            <ui-toggle size="small" aria-label="Bold"><strong>B</strong></ui-toggle>
+            <ui-toggle size="small" aria-label="Italic"><em>I</em></ui-toggle>
+            <ui-toggle size="small" aria-label="Inline code"><code>&lt;&gt;</code></ui-toggle>
+            <ui-menu label="Insert into comment" density="compact" sizing="fixed">
+              <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Insert content">
+                <ui-icon name="action.add" label=""></ui-icon>
+              </ui-button>
+              <ui-menu-item value="attachment"><ui-icon slot="prefix" name="object.document" label=""></ui-icon>Attachment</ui-menu-item>
+              <ui-menu-item value="link"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Link</ui-menu-item>
+            </ui-menu>
+            <ui-menu label="Comment visibility" density="compact" sizing="fixed">
+              <ui-button slot="trigger" type="button" size="small" variant="quiet">
+                Team
+                <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
+              </ui-button>
+              <ui-menu-item kind="radio" value="team" checked>Team<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              <ui-menu-item kind="radio" value="private">Private note<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+            </ui-menu>
+            <span class="example-composer-count" data-catalog-composer-count>0 / 280</span>
+            <ui-button type="submit" size="small" data-catalog-composer-send disabled>Comment</ui-button>
           </ui-toolbar>
-        </section>`,
+          <output class="example-composer-status" data-catalog-composer-status>Draft is empty.</output>
+        </form>`,
       {
         compositionOnly: true,
         description:
-          "Textarea owns only the edit surface. Attachments, counters, shortcuts, and submission controls compose beside it.",
+          "Textarea owns only the edit surface. Identity, formatting commands, insertion menus, visibility, counters, and submission compose as a durable HTML fragment around it.",
         stageLayout: "start",
       },
     ),
   ],
   "ui-input-group": [
     example(
-      "Search with affordances",
+      "Affix anatomy",
       `
-        <ui-field class="catalog-example example-field" label="Search projects" description="Search by name, owner, or namespace.">
-          <ui-input-group id="catalog-project-search" class="part-prefix-separator:bg-[var(--_mash-component-divider)] part-suffix-separator:bg-[var(--_mash-component-divider)]" slot="control">
-            <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
-            <ui-input slot="control" type="search" label="Search projects" placeholder="Billing migration"></ui-input>
-            <ui-kbd slot="suffix" command="workspace.search" shortcut="Primary+K"></ui-kbd>
+        <ui-field class="catalog-example example-field" label="Reference code" description="One authored control sits between optional leading and trailing content.">
+          <ui-input-group id="catalog-reference-code" class="part-prefix-separator:bg-border part-suffix-separator:bg-border" slot="control">
+            <ui-icon slot="prefix" name="object.keyboard" label=""></ui-icon>
+            <ui-input slot="control" label="Reference code" placeholder="ABC123"></ui-input>
+            <ui-kbd slot="suffix" command="field.commit" shortcut="Enter"></ui-kbd>
           </ui-input-group>
-          <ui-gesture-binding for="catalog-project-search" gesture="key" shortcut="Primary+K" command="workspace.search" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="catalog-reference-code" gesture="key" shortcut="Enter" command="field.commit" prevent-default="recognized"></ui-gesture-binding>
         </ui-field>`,
-      { compositionOnly: true },
+      {
+        compositionOnly: true,
+        description:
+          "InputGroup supplies no editing behavior of its own; it exposes stable prefix, control, and suffix slots around exactly one native or Mash control.",
+      },
     ),
     example(
       "Tailwind anatomy overrides",
@@ -3776,19 +3795,19 @@ export function MarkdownFrame({ html }: { html: string }) {
       `
         <div class="catalog-example example-toolbar-dock">
           <span>Canvas</span>
-          <ui-toolbar data-mash-toolbar-dock="top" orientation="horizontal" label="Top tools">
+          <ui-toolbar data-catalog-toolbar-dock="top" orientation="horizontal" label="Top tools">
             <ui-toggle pressed aria-label="Select">↖</ui-toggle>
             <ui-toggle aria-label="Text">T</ui-toggle>
           </ui-toolbar>
-          <ui-toolbar data-mash-toolbar-dock="right" orientation="vertical" label="Right tools">
+          <ui-toolbar data-catalog-toolbar-dock="right" orientation="vertical" label="Right tools">
             <ui-toggle aria-label="Comments">◌</ui-toggle>
             <ui-toggle aria-label="Inspect">⊙</ui-toggle>
           </ui-toolbar>
-          <ui-toolbar data-mash-toolbar-dock="bottom" orientation="horizontal" label="Bottom tools">
+          <ui-toolbar data-catalog-toolbar-dock="bottom" orientation="horizontal" label="Bottom tools">
             <ui-toggle aria-label="Zoom out">−</ui-toggle>
             <ui-toggle aria-label="Zoom in">+</ui-toggle>
           </ui-toolbar>
-          <ui-toolbar data-mash-toolbar-dock="left" orientation="vertical" label="Left tools">
+          <ui-toolbar data-catalog-toolbar-dock="left" orientation="vertical" label="Left tools">
             <ui-toggle aria-label="Layers">≡</ui-toggle>
             <ui-toggle aria-label="Assets">◇</ui-toggle>
           </ui-toolbar>

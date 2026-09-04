@@ -76,13 +76,13 @@ test.describe("catalog slot composition", () => {
     const group = preview.locator("ui-input-group");
     const input = group.locator('ui-input[slot="control"]');
 
-    await expect(group.locator('ui-icon[slot="prefix"]')).toHaveAttribute("name", "action.search");
-    await expect(group.locator('ui-kbd[slot="suffix"]')).toHaveAttribute(
-      "command",
-      "workspace.search",
+    await expect(group.locator('ui-icon[slot="prefix"]')).toHaveAttribute(
+      "name",
+      "object.keyboard",
     );
-    await expect(group.locator('ui-kbd[slot="suffix"]')).toHaveAttribute("shortcut", "Primary+K");
-    await expect(input).toHaveAttribute("label", "Search projects");
+    await expect(group.locator('ui-kbd[slot="suffix"]')).toHaveAttribute("command", "field.commit");
+    await expect(group.locator('ui-kbd[slot="suffix"]')).toHaveAttribute("shortcut", "Enter");
+    await expect(input).toHaveAttribute("label", "Reference code");
 
     const composition = await group.evaluate((node) => {
       const assigned = (name: string) =>
@@ -136,6 +136,32 @@ test.describe("catalog slot composition", () => {
     expect(geometry.controlWidth).toBeGreaterThan(geometry.rootWidth / 2);
     expect(geometry.trailingInset).toBeLessThan(24);
     expect(geometry.nestedBorder).toBe("0px");
+  });
+
+  test("keeps the comment composer as authored textarea composition", async ({ page }) => {
+    await page.goto("/components/ui-textarea?example=Comment+composer");
+
+    const preview = page.frameLocator("iframe.stage-frame");
+    const composer = preview.locator("[data-catalog-composer]");
+    await expect(composer.locator("ui-field ui-textarea")).toBeVisible();
+    await expect(composer.locator("ui-toolbar ui-menu")).toHaveCount(2);
+    await expect(composer.locator("[data-catalog-composer-send]")).toHaveAttribute("disabled", "");
+
+    await composer.locator("ui-textarea[data-catalog-composer-text] textarea").fill("Ready note");
+
+    await expect(composer.locator("[data-catalog-composer-count]")).toHaveText("10 / 280");
+    await expect(composer.locator("[data-catalog-composer-status]")).toHaveText(
+      "10 characters ready.",
+    );
+    await expect(composer.locator("[data-catalog-composer-send]")).not.toHaveAttribute(
+      "disabled",
+      "",
+    );
+
+    await composer.locator("[data-catalog-composer-send]").click();
+    await expect(composer.locator("[data-catalog-composer-status]")).toHaveText(
+      "Comment queued: 10 characters.",
+    );
   });
 
   test("keeps link variants semantic, composable, and context-aware", async ({ page }) => {

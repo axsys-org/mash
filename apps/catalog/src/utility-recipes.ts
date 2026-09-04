@@ -273,7 +273,7 @@ const stageRecipes: UtilityRecipes = {
   "example-toolbar-document":
     "mx-auto grid w-[min(100%,38rem)] gap-container-block rounded-container border border-border bg-surface px-region py-region type-body leading-relaxed shadow-[0_2px_8px_var(--color-shadow)] outline-none focus-visible:focus-ring",
   "example-toolbar-floating":
-    "absolute z-floating inline-flex max-w-[calc(100%_-_var(--space-container-inline)*2)] -translate-x-1/2 -translate-y-full items-center gap-[var(--border-hairline)] rounded-menu border border-[rgba(255,255,255,0.14)] bg-[var(--ref-color-neutral-900)] px-control-block-small py-control-block-small text-[var(--ref-color-neutral-0)] shadow-[0_8px_24px_var(--color-shadow)] transition-[opacity,transform] duration-control ease-spring-snappy",
+    "absolute z-floating inline-flex max-w-[calc(100%_-_var(--space-container-inline)*2)] -translate-x-1/2 -translate-y-full items-center gap-[var(--border-hairline)] rounded-menu border border-border bg-surface-raised px-control-block-small py-control-block-small text-text shadow-[0_8px_24px_var(--color-shadow)] transition-[opacity,transform] duration-control ease-spring-snappy",
   "example-toolbar-menu":
     "inline-flex shrink-0 items-center [&::part(popup)]:min-w-[var(--layout-menu-inline-compact)]! [&::part(popup)]:max-w-[calc(100vw-var(--space-container-inline)*2)]! [&::part(viewport)]:max-h-[calc(var(--layout-menu-row-compact)*8)]!",
   "example-toolbar-text-trigger":
@@ -314,6 +314,8 @@ const stageRecipes: UtilityRecipes = {
   "example-input-lab": "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-gap",
   "example-input-log":
     "rounded-control bg-surface-sunken px-control-inline py-control-block type-code text-text-muted",
+  "example-input-format-fragment":
+    "grid w-[min(100%,var(--layout-dimension-content))] grid-cols-[repeat(auto-fit,minmax(var(--layout-dimension-compact),1fr))] gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-select-open-stage": "min-h-[22rem]",
   "example-select-showcase":
     "grid w-[min(100%,var(--layout-dimension-content))] gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
@@ -639,9 +641,16 @@ const stageRecipes: UtilityRecipes = {
   "example-flex-row": "flex flex-wrap items-start justify-between gap-container-gap",
   "example-textarea-grid":
     "grid w-[min(100%,var(--layout-dimension-record))] grid-cols-3 gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block max-[60rem]:grid-cols-1",
-  "example-textarea-composer":
+  "example-comment-composer":
     "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
-  "example-textarea-toolbar": "justify-between",
+  "example-composer-header":
+    "grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap",
+  "example-composer-author": "grid min-w-0 gap-[var(--border-hairline)]",
+  "example-composer-toolbar":
+    "flex-wrap justify-start gap-control-gap border-t border-border pt-control-block",
+  "example-composer-count": "ms-auto type-label-small text-text-muted",
+  "example-composer-status":
+    "min-h-[var(--layout-dimension-control-small)] rounded-control bg-surface-sunken px-control-inline py-control-block-small type-label-small text-text-muted",
   "example-tooltip-row":
     "flex min-h-compact flex-wrap items-center justify-center gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-tooltip-grid":
@@ -1017,8 +1026,24 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   ],
   [".example-tab-main ui-tab-panel", "block pt-container-block"],
   [
-    ".example-toolbar-dock ui-toolbar[data-mash-toolbar-dock]",
-    "bg-surface-raised px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
+    ".example-toolbar-dock ui-toolbar[data-catalog-toolbar-dock]",
+    "absolute z-raised bg-surface-raised px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
+  ],
+  [
+    '.example-toolbar-dock ui-toolbar[data-catalog-toolbar-dock="top"]',
+    "[inset-block-start:var(--space-container-block)] [inset-inline:calc(var(--layout-dimension-control)+var(--space-container-inline)+var(--space-container-inline)+var(--space-container-inline))]",
+  ],
+  [
+    '.example-toolbar-dock ui-toolbar[data-catalog-toolbar-dock="bottom"]',
+    "[inset-block-end:var(--space-container-block)] [inset-inline:calc(var(--layout-dimension-control)+var(--space-container-inline)+var(--space-container-inline)+var(--space-container-inline))]",
+  ],
+  [
+    '.example-toolbar-dock ui-toolbar[data-catalog-toolbar-dock="left"]',
+    "[inset-block:calc(var(--layout-dimension-control)+var(--space-container-block)+var(--space-container-block)+var(--space-control-block))] [inset-inline-start:var(--space-container-inline)]",
+  ],
+  [
+    '.example-toolbar-dock ui-toolbar[data-catalog-toolbar-dock="right"]',
+    "[inset-block:calc(var(--layout-dimension-control)+var(--space-container-block)+var(--space-container-block)+var(--space-control-block))] [inset-inline-end:var(--space-container-inline)]",
   ],
   [".example-switch-copy strong", "type-label-large"],
   [".example-switch-copy span", "type-label-small text-text-muted"],
@@ -1036,13 +1061,10 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   ],
   [
     ".example-toolbar-floating ui-button, .example-toolbar-floating ui-toggle",
-    "shrink-0 text-[var(--ref-color-neutral-0)] [&::part(control)]:min-h-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:min-w-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:border-0! [&::part(control)]:bg-transparent! [&::part(control)]:px-control-block! [&::part(control)]:text-[var(--ref-color-neutral-0)]! hover:[&::part(control)]:bg-[rgba(255,255,255,0.12)]!",
+    "shrink-0 text-text [&::part(control)]:min-h-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:min-w-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:border-0! [&::part(control)]:bg-transparent! [&::part(control)]:px-control-block! [&::part(control)]:text-text! hover:[&::part(control)]:bg-surface-sunken!",
   ],
   [".example-toolbar-floating [data-catalog-selection-secondary]", "max-[32rem]:hidden"],
-  [
-    ".example-toolbar-floating ui-toggle[pressed]",
-    "[&::part(control)]:bg-[rgba(255,255,255,0.2)]!",
-  ],
+  [".example-toolbar-floating ui-toggle[pressed]", "[&::part(control)]:bg-action-wash!"],
   [
     ".example-toolbar-floating > ui-separator",
     "mx-control-block-small h-[calc(var(--layout-dimension-control-xsmall)-var(--space-control-block-small))] bg-[rgba(255,255,255,0.18)]",
@@ -1065,8 +1087,11 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   ],
   [".example-media-card figcaption, .example-metric-grid dd, .example-metric-grid dt", "m-0"],
   [".example-flex-row > *", "flex-[1_1_var(--layout-dimension-compact)]"],
-  [".example-textarea-grid ui-field, .example-textarea-composer ui-field", "w-full"],
-  [".example-textarea-toolbar span", "ms-auto type-label-small text-text-muted"],
+  [
+    ".example-textarea-grid ui-field, .example-input-format-fragment ui-field, .example-comment-composer ui-field",
+    "w-full",
+  ],
+  [".example-composer-author span", "type-label-small text-text-muted"],
   [".example-tooltip-hint", "inline-flex items-center gap-control-gap"],
   [".example-tooltip-row ui-popover > p", "m-0 text-text-muted"],
   [".example-media-card ui-image", "[&::part(root)]:aspect-[16/9]"],

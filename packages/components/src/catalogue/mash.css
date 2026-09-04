@@ -5748,41 +5748,6 @@
     cursor: not-allowed;
   }
 
-  /* Toolbar docking is recipe-only layout. `orientation` remains the keyboard
-     contract; top/bottom examples use horizontal, left/right use vertical. */
-  :where([data-mash-catalogue="mash"]) ui-toolbar[data-mash-toolbar-dock] {
-    position: absolute;
-    z-index: var(--layer-raised);
-  }
-  :where([data-mash-catalogue="mash"]) ui-toolbar[data-mash-toolbar-dock="top"] {
-    inset-block-start: var(--space-container-block);
-    inset-inline: calc(
-      var(--layout-dimension-control) + var(--space-container-inline) +
-        var(--space-container-inline) + var(--space-container-inline)
-    );
-  }
-  :where([data-mash-catalogue="mash"]) ui-toolbar[data-mash-toolbar-dock="bottom"] {
-    inset-block-end: var(--space-container-block);
-    inset-inline: calc(
-      var(--layout-dimension-control) + var(--space-container-inline) +
-        var(--space-container-inline) + var(--space-container-inline)
-    );
-  }
-  :where([data-mash-catalogue="mash"]) ui-toolbar[data-mash-toolbar-dock="left"] {
-    inset-block: calc(
-      var(--layout-dimension-control) + var(--space-container-block) +
-        var(--space-container-block) + var(--space-control-block)
-    );
-    inset-inline-start: var(--space-container-inline);
-  }
-  :where([data-mash-catalogue="mash"]) ui-toolbar[data-mash-toolbar-dock="right"] {
-    inset-block: calc(
-      var(--layout-dimension-control) + var(--space-container-block) +
-        var(--space-container-block) + var(--space-control-block)
-    );
-    inset-inline-end: var(--space-container-inline);
-  }
-
   @keyframes mash-button-spin {
     to {
       transform: rotate(1turn);

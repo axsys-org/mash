@@ -83,6 +83,33 @@ type CatalogMenu = HTMLElement & {
   toggle?: (reason?: string) => void;
 };
 
+type CatalogValueControl = HTMLElement & {
+  value?: string;
+};
+
+type CatalogDisableControl = HTMLElement & {
+  disabled?: boolean;
+};
+
+function syncCatalogComposer(composer: HTMLElement): void {
+  const control = composer.querySelector<CatalogValueControl>("[data-catalog-composer-text]");
+  const count = composer.querySelector<HTMLElement>("[data-catalog-composer-count]");
+  const status = composer.querySelector<HTMLOutputElement>("[data-catalog-composer-status]");
+  const send = composer.querySelector<CatalogDisableControl>("[data-catalog-composer-send]");
+  const value = control?.value ?? "";
+  const limit = Number.parseInt(control?.getAttribute("maxlength") ?? "", 10);
+  const hasLimit = Number.isFinite(limit) && limit > 0;
+  const trimmed = value.trim();
+
+  if (count) count.textContent = hasLimit ? `${value.length} / ${limit}` : String(value.length);
+  if (send) send.disabled = trimmed.length === 0;
+  if (status)
+    status.value =
+      trimmed.length === 0
+        ? "Draft is empty."
+        : `${trimmed.length} character${trimmed.length === 1 ? "" : "s"} ready.`;
+}
+
 function comboboxValues(combobox: CatalogCombobox): string[] {
   if (combobox.multiple) return Array.isArray(combobox.values) ? [...combobox.values] : [];
   return combobox.value ? [combobox.value] : [];
@@ -3258,6 +3285,26 @@ document.addEventListener("input", (event) => {
   const output = lab?.querySelector<HTMLOutputElement>("[data-catalog-input-log]");
   const value = (input as HTMLElement & { value?: string }).value ?? "";
   if (output) output.value = `value: ${value || "empty"}`;
+});
+
+document.addEventListener("input", (event) => {
+  const control = event.target;
+  if (!(control instanceof HTMLElement) || !control.matches("[data-catalog-composer-text]")) return;
+  const composer = control.closest<HTMLElement>("[data-catalog-composer]");
+  if (composer) syncCatalogComposer(composer);
+});
+
+document.addEventListener("submit", (event) => {
+  const composer = event.target;
+  if (!(composer instanceof HTMLElement) || !composer.matches("[data-catalog-composer]")) return;
+  event.preventDefault();
+  syncCatalogComposer(composer);
+  const control = composer.querySelector<CatalogValueControl>("[data-catalog-composer-text]");
+  const status = composer.querySelector<HTMLOutputElement>("[data-catalog-composer-status]");
+  const value = control?.value?.trim() ?? "";
+  if (!value) return;
+  if (status)
+    status.value = `Comment queued: ${value.length} character${value.length === 1 ? "" : "s"}.`;
 });
 
 document.addEventListener("ui-input-enter", (event) => {
