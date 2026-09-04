@@ -1,7 +1,7 @@
 {
   "radius": {
     "$type": "dimension",
-    "$description": "Theme-independent shape semantics. Two radii carry almost the whole system: one for controls, one for containers.",
+    "$description": "Theme-independent shape semantics. Persistent controls and containers use broad roles; specialized transient surfaces keep their own optical corner roles.",
 
     "control": {
       "$value": "{radius.reference.3}",
@@ -18,6 +18,10 @@
     "menu": {
       "$value": "{radius.reference.menu}",
       "$description": "Outer radius for compact floating menu surfaces."
+    },
+    "menuItem": {
+      "$value": "{radius.reference.4}",
+      "$description": "Inner row radius for selectable commands inside floating menu surfaces."
     },
     "pill": {
       "$value": "{radius.reference.full}",

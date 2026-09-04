@@ -181,9 +181,10 @@ describe("Mash catalogue", () => {
     expect(getComputedStyle(popup).inlineSize).toBe("210px");
     expect(getComputedStyle(popup).minInlineSize).toBe("210px");
     expect(getComputedStyle(popup).maxInlineSize).toBe("210px");
+    expect(getComputedStyle(popup).borderTopLeftRadius).toBe("13px");
     expect(getComputedStyle(actions).rowGap).toBe("0px");
     expect(getComputedStyle(itemControl).blockSize).toBe("20px");
-    expect(getComputedStyle(itemControl).borderTopLeftRadius).toBe("4px");
+    expect(getComputedStyle(itemControl).borderTopLeftRadius).toBe("8px");
     expect(getComputedStyle(labelRoot).paddingInlineStart).toBe("8px");
     expect(getComputedStyle(separator).blockSize).toBe("8px");
   });

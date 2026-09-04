@@ -2380,7 +2380,7 @@
     block-size: var(--_mash-menu-row-size);
     margin: 0;
     border: 0;
-    border-radius: calc(var(--radius-menu) - var(--space-menu-gap));
+    border-radius: var(--radius-menu-item);
     padding-block: var(--layout-dimension-zero);
     padding-inline: var(--space-menu-inline);
     background: transparent;

@@ -645,6 +645,7 @@ test.describe("catalog slot composition", () => {
       return metrics;
     });
     expect(compactMenuMetrics.width).toBe("210px");
+    expect(compactMenuMetrics.borderRadius).toBe("13px");
     expect(compactMenuMetrics.borderRadius).toBe(compactMenuMetrics.tokenRadius);
     expect(compactMenuMetrics.paddingTop).toBe(compactMenuMetrics.tokenPaddingTop);
     await expect(popup).toHaveCSS("box-shadow", /0px 0px 0px 0.5px inset/);
@@ -717,7 +718,7 @@ test.describe("catalog slot composition", () => {
     expect(lightRhythm).toEqual({
       actionsGap: "0px",
       itemHeight: "20px",
-      itemRadius: "4px",
+      itemRadius: "8px",
       separatorHeight: "8px",
     });
     const lightMaterial = await lightPopup.evaluate((element) => {
