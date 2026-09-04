@@ -619,6 +619,39 @@ describe("Control families", () => {
     expect(leaf.shadowRoot?.activeElement).toBeNull();
   });
 
+  it("dismisses sibling submenus as soon as another branch row is hovered", async () => {
+    const menu = await fixture<UIMenu>(`
+      <ui-menu label="Actions" open>
+        <button slot="trigger">Actions</button>
+        <ui-menu-item value="share">
+          Share
+          <ui-menu slot="submenu" label="Share with">
+            <ui-menu-item value="email">Email</ui-menu-item>
+          </ui-menu>
+        </ui-menu-item>
+        <ui-menu-item value="export">
+          Export
+          <ui-menu slot="submenu" label="Export as">
+            <ui-menu-item value="pdf">PDF</ui-menu-item>
+          </ui-menu>
+        </ui-menu-item>
+      </ui-menu>
+    `);
+    const [share, exportItem] = [...menu.querySelectorAll<UIMenuItem>(":scope > ui-menu-item")];
+    const shareSubmenu = share!.querySelector<UIMenu>(":scope > ui-menu")!;
+    const exportControl = inShadow<HTMLButtonElement>(exportItem!, "button");
+
+    share!.showSubmenu(false);
+    await settled(menu.parentElement!);
+    expect(shareSubmenu.open).toBe(true);
+
+    exportControl.dispatchEvent(new PointerEvent("pointerover", { bubbles: true, composed: true }));
+    await settled(menu.parentElement!);
+
+    expect(shareSubmenu.open).toBe(false);
+    expect(share!.submenuOpen).toBe(false);
+  });
+
   it("selects listbox options and filters editable combobox suggestions", async () => {
     const select = await fixture<HTMLElement>(`
       <ui-select name="visibility" label="Visibility"><ui-option value="team">Team</ui-option><ui-option value="private">Private</ui-option></ui-select>

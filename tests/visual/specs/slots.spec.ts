@@ -686,6 +686,7 @@ test.describe("catalog slot composition", () => {
         fontWeight: controlStyle.fontWeight,
         neutralBackground: probeStyle.backgroundColor,
         primaryColor: probeStyle.color,
+        transitionDuration: controlStyle.transitionDuration,
       };
       probe.remove();
       return state;
@@ -693,6 +694,7 @@ test.describe("catalog slot composition", () => {
     expect(branchState.background).toBe(branchState.neutralBackground);
     expect(branchState.color).toBe(branchState.primaryColor);
     expect(branchState.fontWeight).toBe("400");
+    expect(branchState.transitionDuration).toBe("0s");
 
     const archiveLabel = await submenu.locator('ui-menu-item[value="archive"]').evaluate((item) => {
       const viewport = item.shadowRoot!.querySelector<HTMLElement>('[part~="label-viewport"]')!;
@@ -733,6 +735,7 @@ test.describe("catalog slot composition", () => {
         actionsGap: getComputedStyle(actions).rowGap,
         itemHeight: controlStyle.height,
         itemRadius: controlStyle.borderTopLeftRadius,
+        itemTransitionDuration: controlStyle.transitionDuration,
         itemWeight: controlStyle.fontWeight,
         separatorHeight: getComputedStyle(separator).height,
       };
@@ -741,6 +744,7 @@ test.describe("catalog slot composition", () => {
       actionsGap: "0px",
       itemHeight: "20px",
       itemRadius: "8px",
+      itemTransitionDuration: "0s",
       itemWeight: "400",
       separatorHeight: "8px",
     });
@@ -757,6 +761,8 @@ test.describe("catalog slot composition", () => {
         materialImage: materialStyle.backgroundImage,
         materialBlendMode: materialStyle.backgroundBlendMode,
         active: root instanceof ShadowRoot && root.activeElement === element,
+        animationDuration: style.animationDuration,
+        animationName: style.animationName,
         outlineStyle: style.outlineStyle,
         thickMaterial: getComputedStyle(probe).backgroundColor,
         shadow: style.boxShadow,
@@ -766,6 +772,8 @@ test.describe("catalog slot composition", () => {
     expect(lightMaterial.materialImage).not.toBe("none");
     expect(lightMaterial.materialBlendMode).toBe("color-dodge");
     expect(lightMaterial.active).toBe(true);
+    expect(lightMaterial.animationDuration).toBe("0s");
+    expect(lightMaterial.animationName).toBe("none");
     expect(lightMaterial.outlineStyle).toBe("none");
     expect(lightMaterial.shadow).toContain("inset");
     expect(lightMaterial.shadow).toContain("0.5px inset");

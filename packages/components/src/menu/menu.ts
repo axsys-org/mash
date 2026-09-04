@@ -218,7 +218,7 @@ export class UIMenu extends UIAnchoredOverlay {
 
   #onPointerOver = (event: PointerEvent): void => {
     const item = this.#collection.itemFromEvent(event) as UIMenuItem | undefined;
-    if (!item || item.parentElement !== this || item.hasSubmenu) return;
+    if (!item || item.parentElement !== this) return;
     this.#collection.dismissSiblingSubmenus(item);
   };
 

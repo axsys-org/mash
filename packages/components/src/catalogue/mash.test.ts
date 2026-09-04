@@ -118,7 +118,7 @@ describe("Mash catalogue", () => {
     expect(getComputedStyle(itemControl).blockSize).toBe("20px");
   });
 
-  it("uses the snappy transient motion contract for menu surfaces", async () => {
+  it("opens menus instantly and closes root menus with an optical transient", async () => {
     document.documentElement.dataset.mashCatalogue = "mash";
     const menu = await fixture<HTMLElement & { open: boolean; updateComplete: Promise<unknown> }>(`
       <ui-menu label="Project commands">
@@ -133,9 +133,46 @@ describe("Mash catalogue", () => {
     const motion = getComputedStyle(popup);
 
     expect(menu.matches(":state(entering)")).toBe(true);
-    expect(motion.animationName).toBe("mash-menu-enter");
-    expect(motion.animationDuration).toBe("0.12s");
+    expect(motion.animationName).toBe("none");
+    expect(motion.animationDuration).toBe("0s");
     expect(motion.transformOrigin).toBe("0px 0px");
+
+    menu.open = false;
+    await menu.updateComplete;
+    const exitMotion = getComputedStyle(popup);
+
+    expect(menu.matches(":state(exiting)")).toBe(true);
+    expect(exitMotion.animationName).toBe("mash-menu-closeout");
+    expect(exitMotion.animationDuration).toBe("0.12s");
+  });
+
+  it("removes nested menu exits immediately during pointer leafing", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const menu = await fixture<HTMLElement>(`
+      <ui-menu label="Project commands" open>
+        <button slot="trigger">Project</button>
+        <ui-menu-item value="share">
+          Share
+          <ui-menu slot="submenu" label="Share with" open>
+            <ui-menu-item value="email">Email</ui-menu-item>
+          </ui-menu>
+        </ui-menu-item>
+      </ui-menu>
+    `);
+    const submenu = menu.querySelector<
+      HTMLElement & { open: boolean; updateComplete: Promise<unknown> }
+    >("ui-menu[slot='submenu']")!;
+    await submenu.updateComplete;
+    const popup = inShadow<HTMLElement>(submenu, '[part="popup"]');
+
+    submenu.open = false;
+    await submenu.updateComplete;
+    const motion = getComputedStyle(popup);
+
+    expect(submenu.hasAttribute("nested")).toBe(true);
+    expect(submenu.matches(":state(exiting)")).toBe(true);
+    expect(motion.animationName).toBe("none");
+    expect(motion.animationDuration).toBe("0s");
   });
 
   it("separates initial keyboard focus from checked menu selection", async () => {
@@ -152,13 +189,67 @@ describe("Mash catalogue", () => {
 
     focusedControl.focus();
 
-    expect(getComputedStyle(focusedControl).boxShadow).not.toBe("none");
+    const focusedState = (() => {
+      const probe = document.createElement("span");
+      probe.style.backgroundColor = "var(--color-menu-selection)";
+      probe.style.color = "var(--color-on-menu-selection)";
+      document.body.append(probe);
+      const focusStyle = getComputedStyle(focusedControl);
+      const probeStyle = getComputedStyle(probe);
+      const state = {
+        background: focusStyle.backgroundColor,
+        color: focusStyle.color,
+        selectedBackground: probeStyle.backgroundColor,
+        selectedColor: probeStyle.color,
+      };
+      probe.remove();
+      return state;
+    })();
+
+    expect(getComputedStyle(focusedControl).boxShadow).toBe("none");
+    expect(focusedState.background).toBe(focusedState.selectedBackground);
+    expect(focusedState.color).toBe(focusedState.selectedColor);
     expect(getComputedStyle(checkedControl).backgroundColor).toBe("rgba(0, 0, 0, 0)");
     expect(getComputedStyle(focusedControl).backgroundColor).not.toBe(
       getComputedStyle(checkedControl).backgroundColor,
     );
     expect(focused?.matches(":state(checked)")).toBe(false);
     expect(checked?.matches(":state(checked)")).toBe(true);
+  });
+
+  it("uses the filled critical state for focused destructive menu commands", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const menu = await fixture(`
+      <ui-menu label="Edit commands" open>
+        <ui-menu-item value="delete" tone="critical">Delete</ui-menu-item>
+      </ui-menu>
+    `);
+    const critical = menu.querySelector("ui-menu-item")!;
+    const control = inShadow<HTMLButtonElement>(critical, "button");
+
+    control.focus();
+
+    const criticalState = (() => {
+      const probe = document.createElement("span");
+      probe.style.backgroundColor = "var(--color-critical)";
+      probe.style.color = "var(--color-on-critical)";
+      document.body.append(probe);
+      const controlStyle = getComputedStyle(control);
+      const probeStyle = getComputedStyle(probe);
+      const state = {
+        background: controlStyle.backgroundColor,
+        color: controlStyle.color,
+        criticalBackground: probeStyle.backgroundColor,
+        criticalColor: probeStyle.color,
+        shadow: controlStyle.boxShadow,
+      };
+      probe.remove();
+      return state;
+    })();
+
+    expect(criticalState.background).toBe(criticalState.criticalBackground);
+    expect(criticalState.color).toBe(criticalState.criticalColor);
+    expect(criticalState.shadow).toBe("none");
   });
 
   it("uses declarable menu sizing and applies tokenized menu density", async () => {

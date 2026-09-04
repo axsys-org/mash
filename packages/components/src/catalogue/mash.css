@@ -1595,16 +1595,28 @@
     }
   }
 
-  /* Menus are small, frequently repeated transient surfaces. They share the
-     overlay lifecycle but settle on the fast transient tier with a restrained
-     scale delta; dialogs and larger surfaces keep the deliberate surface tier. */
+  /* Menus are small, frequently repeated transient surfaces. Opening should
+     appear immediate; closing gets the optical fade that confirms dismissal
+     without making pointer hover feel sticky. */
   :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu):state(entering)::part(popup) {
-    animation: mash-menu-enter var(--duration-transient) var(--easing-spring-snappy) both;
+    animation: none;
   }
 
-  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu):state(exiting)::part(popup) {
-    animation: mash-menu-exit var(--duration-transient) var(--easing-control) both;
+  :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(popup) {
+    animation: mash-menu-closeout var(--duration-transient) var(--easing-control) both;
     pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu[nested]:state(exiting)::part(popup) {
+    animation: none;
+    pointer-events: none;
+  }
+
+  @keyframes mash-menu-closeout {
+    to {
+      opacity: var(--motion-opacity-hidden);
+    }
   }
 
   @keyframes mash-menu-enter {
@@ -2386,8 +2398,21 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu-item {
+    --_mash-menu-item-foreground: var(--mash-material-label-primary, var(--color-text));
+    --_mash-menu-item-selection-background: var(--color-menu-selection);
+    --_mash-menu-item-selection-color: var(--color-on-menu-selection);
+    --_mash-menu-item-submenu-background: var(--color-neutral-hover);
+    --_mash-menu-item-submenu-color: var(--_mash-menu-item-foreground);
     display: block;
     min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item[tone="critical"] {
+    --_mash-menu-item-foreground: var(--color-critical);
+    --_mash-menu-item-selection-background: var(--color-critical);
+    --_mash-menu-item-selection-color: var(--color-on-critical);
+    --_mash-menu-item-submenu-background: var(--color-critical);
+    --_mash-menu-item-submenu-color: var(--color-on-critical);
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu-item::part(root) {
@@ -2412,26 +2437,22 @@
     padding-block: var(--layout-dimension-zero);
     padding-inline: var(--space-menu-inline);
     background: transparent;
-    color: var(--mash-material-label-primary, var(--color-text));
+    color: var(--_mash-menu-item-foreground);
     font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
       var(--type-body-font-family);
     text-align: start;
     cursor: default;
-    transition:
-      background-color var(--duration-control) var(--easing-control),
-      color var(--duration-control) var(--easing-control),
-      box-shadow var(--duration-control) var(--easing-control);
+    transition: none;
   }
 
-  :where([data-mash-catalogue="mash"]) ui-menu-item:not([disabled])::part(control):hover {
-    background: var(--color-menu-selection);
-    color: var(--color-on-menu-selection);
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled])::part(control):is(:hover, :focus-visible) {
+    background: var(--_mash-menu-item-selection-background);
+    color: var(--_mash-menu-item-selection-color);
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu-item:not([disabled])::part(control):focus-visible {
-    background: var(--color-action-wash);
-    color: var(--mash-material-label-primary, var(--color-text));
-    box-shadow: inset 0 0 0 var(--border-hairline) var(--color-focus-ring);
+    box-shadow: none;
     outline: none;
   }
 
@@ -2446,27 +2467,8 @@
 
   :where([data-mash-catalogue="mash"])
     ui-menu-item:not([disabled]):state(submenu-open)::part(control) {
-    background: var(--color-neutral-hover);
-    color: var(--mash-material-label-primary, var(--color-text));
-  }
-
-  :where([data-mash-catalogue="mash"]) ui-menu-item[tone="critical"]::part(control) {
-    color: var(--color-critical);
-  }
-
-  :where([data-mash-catalogue="mash"])
-    ui-menu-item[tone="critical"]:not([disabled])::part(control):hover,
-  :where([data-mash-catalogue="mash"])
-    ui-menu-item[tone="critical"]:not([disabled]):state(submenu-open)::part(control) {
-    background: var(--color-critical);
-    color: var(--color-on-critical);
-  }
-
-  :where([data-mash-catalogue="mash"])
-    ui-menu-item[tone="critical"]:not([disabled])::part(control):focus-visible {
-    background: color-mix(in srgb, var(--color-critical) 14%, transparent);
-    color: var(--color-critical);
-    box-shadow: inset 0 0 0 var(--border-hairline) var(--color-critical);
+    background: var(--_mash-menu-item-submenu-background);
+    color: var(--_mash-menu-item-submenu-color);
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu-item[disabled]::part(control) {
