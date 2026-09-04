@@ -273,7 +273,7 @@ export class UIMenuItem extends LitElement {
     submenu.setAttribute("nested", "");
     submenu.placement = "right";
     submenu.align = "start";
-    submenu.offset = 2;
+    submenu.offset = 0;
     if (!submenu.label) submenu.label = this.#authoredLabel();
     submenu.addEventListener("ui-menu-open-change", this.#onSubmenuOpenChange);
     submenu.addEventListener("pointerenter", this.#cancelClose);

@@ -583,6 +583,7 @@ describe("Control families", () => {
     expect(submenu.open).toBe(true);
     expect(submenu.nested).toBe(true);
     expect(submenu.anchorElement).toBe(inShadow(branch, "button"));
+    expect(submenu.offset).toBe(0);
     expect(inShadow(branch, "button").getAttribute("aria-expanded")).toBe("true");
 
     const leaf = submenu.querySelector<UIMenuItem>("ui-menu-item")!;

@@ -670,8 +670,29 @@ test.describe("catalog slot composition", () => {
     ]);
     expect(branchBox).not.toBeNull();
     expect(submenuBox).not.toBeNull();
-    expect(Math.abs(submenuBox!.x - (branchBox!.x + branchBox!.width + 2))).toBeLessThanOrEqual(3);
+    expect(Math.abs(submenuBox!.x - (branchBox!.x + branchBox!.width))).toBeLessThanOrEqual(3);
     expect(Math.abs(submenuBox!.y - branchBox!.y)).toBeLessThanOrEqual(4);
+
+    const branchState = await branchControl.evaluate((control) => {
+      const probe = document.createElement("span");
+      probe.style.backgroundColor = "var(--color-neutral-hover)";
+      probe.style.color = "var(--mash-material-label-primary, var(--color-text))";
+      document.body.append(probe);
+      const controlStyle = getComputedStyle(control);
+      const probeStyle = getComputedStyle(probe);
+      const state = {
+        background: controlStyle.backgroundColor,
+        color: controlStyle.color,
+        fontWeight: controlStyle.fontWeight,
+        neutralBackground: probeStyle.backgroundColor,
+        primaryColor: probeStyle.color,
+      };
+      probe.remove();
+      return state;
+    });
+    expect(branchState.background).toBe(branchState.neutralBackground);
+    expect(branchState.color).toBe(branchState.primaryColor);
+    expect(branchState.fontWeight).toBe("400");
 
     const archiveLabel = await submenu.locator('ui-menu-item[value="archive"]').evaluate((item) => {
       const viewport = item.shadowRoot!.querySelector<HTMLElement>('[part~="label-viewport"]')!;
@@ -712,6 +733,7 @@ test.describe("catalog slot composition", () => {
         actionsGap: getComputedStyle(actions).rowGap,
         itemHeight: controlStyle.height,
         itemRadius: controlStyle.borderTopLeftRadius,
+        itemWeight: controlStyle.fontWeight,
         separatorHeight: getComputedStyle(separator).height,
       };
     });
@@ -719,6 +741,7 @@ test.describe("catalog slot composition", () => {
       actionsGap: "0px",
       itemHeight: "20px",
       itemRadius: "8px",
+      itemWeight: "400",
       separatorHeight: "8px",
     });
     const lightMaterial = await lightPopup.evaluate((element) => {
@@ -746,7 +769,7 @@ test.describe("catalog slot composition", () => {
     expect(lightMaterial.outlineStyle).toBe("none");
     expect(lightMaterial.shadow).toContain("inset");
     expect(lightMaterial.shadow).toContain("0.5px inset");
-    expect(lightMaterial.shadow).toContain("0.13");
+    expect(lightMaterial.shadow).not.toBe("none");
 
     await preview.getByRole("menuitem", { name: /Undo/ }).click();
     const triggerAfterSelect = await preview

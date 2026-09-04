@@ -135,6 +135,7 @@ describe("Mash catalogue", () => {
     expect(menu.matches(":state(entering)")).toBe(true);
     expect(motion.animationName).toBe("mash-menu-enter");
     expect(motion.animationDuration).toBe("0.12s");
+    expect(motion.transformOrigin).toBe("0px 0px");
   });
 
   it("separates initial keyboard focus from checked menu selection", async () => {
@@ -185,6 +186,7 @@ describe("Mash catalogue", () => {
     expect(getComputedStyle(actions).rowGap).toBe("0px");
     expect(getComputedStyle(itemControl).blockSize).toBe("20px");
     expect(getComputedStyle(itemControl).borderTopLeftRadius).toBe("8px");
+    expect(getComputedStyle(itemControl).fontWeight).toBe("400");
     expect(getComputedStyle(labelRoot).paddingInlineStart).toBe("8px");
     expect(getComputedStyle(separator).blockSize).toBe("8px");
   });
