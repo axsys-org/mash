@@ -59,7 +59,7 @@ const catalogRecipes: UtilityRecipes = {
   "stage-shell":
     "mt-region h-[32.5rem] min-h-[11.25rem] resize-y overflow-hidden rounded-container border border-border",
   "stage-frame": "block h-full w-full border-0",
-  code: "mt-0 mb-control-gap overflow-x-auto rounded-control bg-surface-sunken px-container-gap py-inline type-code",
+  code: "mt-0 mb-control-gap block max-w-full min-w-0 overflow-x-auto rounded-control bg-surface-sunken px-container-gap py-inline type-code",
   "api-block": "mt-container-gap",
   "api-heading": "mt-0 mb-control-gap type-label-small",
   "api-empty-note": "m-0",
@@ -73,15 +73,16 @@ const catalogRecipes: UtilityRecipes = {
   "api-term": "type-code",
   "api-description": "m-0 type-label-small",
   "api-variant": "ms-control-gap inline-block text-text-muted type-code",
-  "token-list": "m-0 grid list-none gap-inline p-0",
-  provenance: "rounded-control border border-border px-container-gap py-inline",
-  "provenance-head": "flex flex-wrap items-center gap-control-gap",
-  "token-var": "font-semibold",
-  "token-value": "type-code text-text-muted",
+  "token-list": "m-0 grid min-w-0 list-none gap-inline p-0",
+  provenance:
+    "min-w-0 max-w-full overflow-hidden rounded-control border border-border px-container-gap py-inline",
+  "provenance-head": "flex min-w-0 flex-wrap items-center gap-control-gap",
+  "token-var": "min-w-0 break-all font-semibold",
+  "token-value": "min-w-0 break-all type-code text-text-muted",
   swatch: "size-glyph rounded-control border border-border",
   "provenance-chain":
-    "mt-control-gap mb-0 flex list-none flex-wrap items-center gap-control-gap p-0",
-  "provenance-step": "inline-flex items-center gap-control-gap type-label-small",
+    "mt-control-gap mb-0 flex min-w-0 list-none flex-wrap items-center gap-control-gap p-0",
+  "provenance-step": "inline-flex min-w-0 items-center gap-control-gap type-label-small",
   "provenance-arrow": "me-control-block-small text-text-muted",
   layer:
     "rounded-pill bg-surface-sunken px-control-inline-small py-control-block-small type-label-small uppercase tracking-[0.06em] text-text-muted",
@@ -100,7 +101,7 @@ const stageRecipes: UtilityRecipes = {
   "button-showcase-heading":
     "flex items-baseline justify-between gap-control-gap text-text max-[35rem]:flex-col max-[35rem]:items-start",
   "button-showcase-grid":
-    "grid grid-cols-[minmax(calc(var(--layout-dimension-glyph)*4),0.55fr)_repeat(3,minmax(0,1fr))] items-center gap-y-control-gap gap-x-group-inline max-[35rem]:grid-cols-[minmax(calc(var(--layout-dimension-glyph)*3.5),0.5fr)_repeat(3,minmax(0,1fr))] max-[35rem]:gap-group-related",
+    "grid grid-cols-[minmax(calc(var(--layout-dimension-glyph)*4),0.55fr)_repeat(4,minmax(0,1fr))] items-center gap-y-control-gap gap-x-group-inline max-[35rem]:grid-cols-[minmax(calc(var(--layout-dimension-glyph)*3.5),0.5fr)_repeat(4,minmax(0,1fr))] max-[35rem]:gap-group-related",
   "button-showcase-label": "type-code lowercase text-text-muted",
   "button-showcase-row": "flex flex-wrap items-center gap-control-gap",
   "button-showcase-rule": "my-group-related h-[var(--border-hairline)] bg-border",
@@ -111,12 +112,53 @@ const stageRecipes: UtilityRecipes = {
     "flex flex-col items-start gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-form":
     "flex flex-col items-start gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-badge-matrix":
+    "grid gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-badge-row":
+    "grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-container-gap max-[35rem]:grid-cols-1 max-[35rem]:gap-control-gap",
+  "example-badge-set": "flex min-w-0 flex-wrap items-center gap-control-gap",
+  "example-marker-feed":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-marker-row":
+    "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap rounded-control bg-surface-sunken px-control-inline py-control-block",
+  "example-marker-copy": "grid min-w-0 gap-[var(--border-hairline)]",
+  "example-marker-dot": "block size-[0.375rem] rounded-pill bg-action",
+  "example-skeleton-article":
+    "grid w-[min(100%,var(--layout-dimension-panel))] gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-skeleton-media": "block h-[8rem] rounded-control",
+  "example-skeleton-lines": "grid gap-control-gap",
+  "example-skeleton-table":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-skeleton-row":
+    "grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-container-gap rounded-control bg-surface-sunken px-control-inline py-control-block",
   "example-eyebrow": "m-0 type-label text-text-muted",
   "example-support": "m-0 text-text-muted",
   "example-icon-library":
     "flex flex-wrap items-center gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
-  "example-icon-state-dot":
-    "block size-control-gap rounded-full border border-surface bg-positive shadow-[0_0_0_var(--border-hairline)_var(--color-positive)]",
+  "example-icon-layers":
+    "inline-flex w-auto items-center gap-group-inline rounded-container border border-border bg-surface px-container-inline py-container-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-icon-layer-sample":
+    "grid size-[calc(var(--layout-dimension-glyph)*2.75)] place-items-center rounded-control bg-surface-sunken text-text",
+  "example-icon-fallback-glyph":
+    "grid size-[1em] place-items-center rounded-control border border-border bg-surface type-label-small text-text-muted",
+  "example-label-stack":
+    "grid gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-label-scale":
+    "grid gap-control-block-small rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-clipboard-panel":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-clipboard-heading": "grid gap-control-block-small",
+  "example-clipboard-input-group": "w-full",
+  "example-clipboard-actions": "flex flex-wrap items-center gap-control-gap",
+  "example-clipboard-output": "type-code text-text-muted",
+  "example-clipboard-markdown":
+    "grid w-[min(100%,var(--layout-dimension-content))] gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-code-block":
+    "grid min-w-0 overflow-hidden rounded-container border border-border bg-surface-sunken",
+  "example-code-header":
+    "flex min-w-0 items-center justify-between gap-container-gap border-b border-border bg-surface px-control-inline py-control-block-small",
+  "example-code-title": "flex min-w-0 items-center gap-control-gap [&>span:last-child]:truncate",
+  "example-code-scroll": "block max-h-[18rem] min-h-0",
   "example-gesture-command":
     "grid w-[min(100%,var(--layout-dimension-dialog))] cursor-pointer gap-control-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block outline-none focus-visible:focus-ring",
   "example-gesture-arena-shell":
@@ -148,6 +190,65 @@ const stageRecipes: UtilityRecipes = {
     "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
   "example-motion-drop":
     "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-motion-system":
+    "grid h-full min-h-0 w-full content-start gap-container-gap overflow-auto bg-canvas px-container-inline py-container-block",
+  "example-motion-heading":
+    "flex flex-wrap items-start justify-between gap-container-gap border-b border-border pb-control-block",
+  "example-motion-recipe-grid":
+    "grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-control-gap",
+  "example-motion-target-grid":
+    "grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-control-gap",
+  "example-motion-tile":
+    "grid min-h-[9rem] min-w-0 content-between gap-control-gap rounded-control border border-border bg-surface px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-motion-lane-tile": "min-h-[13rem]",
+  "example-motion-sample":
+    "grid min-h-control place-items-center rounded-control border border-border bg-action-subtle px-control-inline py-control-block text-center type-label-small text-action",
+  "example-motion-tile-copy":
+    "grid grid-cols-[minmax(0,1fr)_auto] items-end gap-control-gap type-label-small",
+  "example-motion-reference":
+    "grid h-full min-h-0 w-full content-start gap-container-gap overflow-auto bg-canvas px-container-inline py-container-block",
+  "example-motion-reference-grid":
+    "grid grid-cols-[repeat(auto-fit,minmax(15rem,1fr))] gap-container-gap",
+  "example-motion-reference-group":
+    "grid min-w-0 content-start gap-control-gap rounded-control border border-border bg-surface px-control-inline py-control-block",
+  "example-motion-token-row":
+    "grid min-w-0 gap-[var(--border-hairline)] rounded-control bg-surface-sunken px-control-inline-small py-control-block-small",
+  "example-motion-token-probe": "min-w-max",
+  "example-motion-utility-demo":
+    "grid h-full min-h-0 w-full content-start gap-container-gap overflow-auto bg-canvas px-container-inline py-container-block",
+  "example-motion-utility-grid":
+    "grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-control-gap",
+  "example-motion-utility-card":
+    "grid min-w-0 gap-control-gap rounded-control border border-border bg-surface px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-motion-utility-copy": "flex min-w-0 flex-wrap gap-control-gap",
+  "example-motion-utility-sample":
+    "inline-grid min-h-control min-w-0 place-items-center rounded-control border border-border bg-action-subtle px-control-inline py-control-block text-center type-label-small text-action",
+  "example-motion-utility-button": "cursor-pointer",
+  "example-motion-consumers":
+    "grid h-full min-h-0 w-full content-start gap-container-gap overflow-auto bg-canvas px-container-inline py-container-block",
+  "example-motion-consumer-grid":
+    "grid grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] items-start gap-container-gap",
+  "example-motion-consumer-slot":
+    "grid min-h-[9rem] min-w-0 content-start gap-control-gap rounded-control border border-border bg-surface px-control-inline py-control-block",
+  "example-motion-progress-set":
+    "grid min-w-0 gap-control-gap rounded-control border border-border bg-surface px-control-inline py-control-block",
+  "example-stagger-demo":
+    "grid h-full min-h-0 w-full content-start gap-container-gap overflow-auto bg-canvas px-container-inline py-container-block",
+  "example-stagger-list": "grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-control-gap",
+  "example-stagger-item":
+    "grid min-h-control min-w-0 gap-[var(--border-hairline)] rounded-control border border-border bg-surface px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-stagger-rail": "flex min-w-0 flex-wrap items-center gap-control-gap",
+  "example-reveal-demo":
+    "grid h-full min-h-0 w-full content-start gap-container-gap overflow-auto bg-canvas px-container-inline py-container-block",
+  "example-reveal-panel":
+    "grid max-w-[var(--layout-dimension-panel)] gap-control-gap rounded-control border border-border bg-surface px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-reveal-pill":
+    "inline-flex max-w-full items-center gap-control-gap rounded-pill border border-border bg-surface px-control-inline py-control-block-small shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-motion-lane":
+    "grid min-h-control place-items-center rounded-control border border-border px-control-inline-small py-control-block-small text-center type-label-small",
+  "example-motion-underlay": "border-action-border bg-action-wash text-action",
+  "example-motion-content": "bg-surface-raised text-text",
+  "example-motion-overlay": "bg-neutral-hover text-text",
   "example-motion-wash": "block h-full w-full rounded-container bg-action-wash",
   "example-motion-scene": "w-full [&::part(root)]:w-full",
   "example-shortcut-list":
@@ -156,6 +257,24 @@ const stageRecipes: UtilityRecipes = {
     "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap max-[35rem]:grid-cols-[auto_minmax(0,1fr)]",
   "example-actions": "flex flex-wrap items-center gap-control-gap",
   "example-toolbar": "flex flex-wrap items-center gap-control-gap",
+  "example-switch-list":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] overflow-hidden rounded-container border border-border bg-surface shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-switch-row":
+    "grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-container-gap px-container-inline py-container-block",
+  "example-switch-copy": "grid min-w-0 gap-[var(--border-hairline)]",
+  "example-switch-matrix":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-toolbar-selection":
+    "relative grid min-h-[24rem] w-[min(100%,var(--layout-dimension-content))] content-center gap-container-gap overflow-hidden rounded-container border border-border bg-canvas px-container-inline py-container-block",
+  "example-toolbar-document":
+    "mx-auto grid w-[min(100%,38rem)] gap-container-block rounded-container border border-border bg-surface px-region py-region type-body leading-relaxed shadow-[0_2px_8px_var(--color-shadow)] outline-none focus-visible:focus-ring",
+  "example-toolbar-floating":
+    "absolute z-floating inline-flex max-w-[calc(100%_-_var(--space-container-inline)*2)] -translate-x-1/2 -translate-y-full items-center gap-[var(--border-hairline)] rounded-menu border border-[rgba(255,255,255,0.14)] bg-[var(--ref-color-neutral-900)] px-control-block-small py-control-block-small text-[var(--ref-color-neutral-0)] shadow-[0_8px_24px_var(--color-shadow)] transition-[opacity,transform] duration-control ease-spring-snappy",
+  "example-toolbar-menu":
+    "inline-flex shrink-0 items-center [&::part(popup)]:min-w-[var(--layout-menu-inline-compact)]! [&::part(popup)]:max-w-[calc(100vw-var(--space-container-inline)*2)]! [&::part(viewport)]:max-h-[calc(var(--layout-menu-row-compact)*8)]!",
+  "example-toolbar-text-trigger":
+    "[&::part(control)]:min-w-[calc(var(--layout-dimension-control-xsmall)*2.25)]! [&::part(control)]:gap-control-block-small! [&::part(control)]:px-control-inline-small!",
+  "example-toolbar-output": "justify-self-center type-code text-text-muted",
   "example-navigation":
     "flex flex-wrap items-center gap-control-gap rounded-container border border-border bg-surface px-control-inline py-control-block",
   "example-link-showcase":
@@ -185,7 +304,40 @@ const stageRecipes: UtilityRecipes = {
     "relative z-raised grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-container-gap",
   "example-material":
     "min-w-0 rounded-container border border-border px-control-inline py-control-block shadow-[0_8px_24px_var(--color-shadow)]",
-  "example-field": "w-[min(100%,var(--layout-dimension-dialog))]",
+  "example-field": "min-w-0 w-[min(100%,var(--layout-dimension-dialog))]",
+  "example-input-grid":
+    "grid w-[min(100%,var(--layout-dimension-content))] grid-cols-[repeat(auto-fit,minmax(var(--layout-dimension-compact),1fr))] gap-container-gap",
+  "example-input-lab": "grid w-[min(100%,var(--layout-dimension-dialog))] gap-container-gap",
+  "example-input-log":
+    "rounded-control bg-surface-sunken px-control-inline py-control-block type-code text-text-muted",
+  "example-select-open-stage": "min-h-[22rem]",
+  "example-select-showcase":
+    "grid w-[min(100%,var(--layout-dimension-content))] gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-select-row":
+    "grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap",
+  "example-select-row-copy": "grid min-w-0 gap-[var(--border-hairline)]",
+  "example-select-meta": "type-label-small text-text-muted",
+  "example-select-toolbar": "flex flex-wrap items-center gap-control-gap",
+  "example-select-log":
+    "whitespace-pre-line rounded-control bg-surface-sunken px-control-inline py-control-block type-code text-text-muted",
+  "example-select-value-prefix": "inline-flex min-w-0 items-center gap-control-gap",
+  "example-select-command-scope":
+    "flex flex-wrap items-center gap-control-gap rounded-control border border-border bg-surface-sunken px-control-inline py-control-block outline-none focus-visible:focus-ring",
+  "example-select-bounded":
+    "[&::part(popup)]:w-[var(--layout-dimension-panel)]! [&::part(popup)]:max-w-[calc(100vw-var(--space-region)*2)]! [&::part(viewport)]:max-h-[calc(var(--layout-menu-row-regular)*4)]!",
+  "example-combobox-open-stage": "min-h-[22rem]",
+  "example-combobox-showcase":
+    "grid w-[min(100%,var(--layout-dimension-content))] gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-combobox-row":
+    "grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap",
+  "example-combobox-row-copy": "grid min-w-0 gap-[var(--border-hairline)]",
+  "example-combobox-meta": "type-label-small text-text-muted",
+  "example-combobox-footer-action":
+    "w-full [&::part(control)]:w-full [&::part(control)]:justify-start",
+  "example-combobox-trigger-pill": "inline-flex items-center gap-control-gap",
+  "example-combobox-toolbar": "flex flex-wrap items-center gap-control-gap",
+  "example-combobox-log":
+    "whitespace-pre-line rounded-control bg-surface-sunken px-control-inline py-control-block type-code text-text-muted",
   "example-editor-workspace": "w-[min(100%,var(--layout-dimension-content))]",
   "example-editor-search": "w-[min(22rem,calc(100vw-var(--space-container-inline)*4))]",
   "example-editor-completion":
@@ -428,13 +580,28 @@ const stageRecipes: UtilityRecipes = {
   "example-tabs":
     "rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-dialog-copy": "grid gap-control-gap",
+  "example-dialog-scroll": "block h-[14rem] min-h-0",
+  "example-dialog-list": "m-0 grid gap-control-gap ps-container-inline",
   "example-popover-content": "grid min-w-[15rem] gap-control-gap",
   "example-menu-stage":
-    "relative min-h-[22rem] w-[min(100%,var(--layout-dimension-content))] rounded-container border border-border bg-surface px-container-inline py-container-block",
-  "example-menu-trigger":
-    "w-[6.25rem] [&::part(control)]:w-full [&::part(control)]:justify-between [&::part(control)]:border-0! [&::part(control)]:bg-fill-tertiary-opaque! [&::part(control)]:px-control-inline [&::part(control)]:py-0 [&::part(control)]:text-text",
+    "relative min-h-[18rem] w-[min(100%,var(--layout-dimension-content))] px-control-inline py-control-block",
+  "example-menu-trigger": "[&::part(control)]:justify-between [&::part(control)]:gap-control-gap",
   "example-menu-flex":
     "[&::part(popup)]:min-w-[var(--layout-menu-inline-compact)]! [&::part(popup)]:max-w-[var(--layout-dimension-dialog)]!",
+  "example-menu-scroll": "[&::part(viewport)]:max-h-[calc(var(--layout-menu-row-compact)*5)]!",
+  "example-menu-sticky-header":
+    "flex min-w-0 flex-1 items-center justify-between gap-control-gap [&>strong]:truncate",
+  "example-menu-sticky-footer":
+    "flex min-w-0 flex-1 items-center justify-between gap-control-gap [&>span]:truncate",
+  "example-split-button": "inline-flex items-start gap-0",
+  "example-split-action": "[&::part(control)]:rounded-e-none",
+  "example-split-trigger": "[&::part(control)]:rounded-s-none [&::part(control)]:border-s-0",
+  "example-menu-lab": "grid w-[min(100%,var(--layout-dimension-panel))] gap-container-gap",
+  "example-menu-drag-stage":
+    "relative min-h-[10rem] w-[min(100%,var(--layout-dimension-panel))] overflow-hidden rounded-container border border-border bg-surface-sunken p-container-inline",
+  "example-menu-draggable":
+    "inline-flex items-center gap-control-gap rounded-control border border-border bg-surface px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-menu-drag-handle": "cursor-grab gap-control-gap touch-none active:cursor-grabbing",
   "example-typeset-specimen":
     "grid w-[min(100%,var(--layout-dimension-content))] gap-region rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-typeset-heading": "grid gap-control-gap",
@@ -442,11 +609,37 @@ const stageRecipes: UtilityRecipes = {
   "example-typeset-tones":
     "grid gap-control-gap rounded-control bg-surface-sunken px-container-inline py-container-block",
   "example-spacing-rhythm": "grid gap-control-gap",
+  "example-text-view":
+    "w-[min(100%,var(--layout-dimension-dialog))] overflow-hidden rounded-container border border-border bg-surface",
+  "example-text-view-scroll": "block max-h-[24rem] min-h-0",
+  "example-text-view-copy": "grid gap-container-gap px-container-inline py-container-block",
   "example-context-target": "w-[min(100%,var(--layout-dimension-dialog))]",
-  "example-message-thread":
-    "flex flex-col gap-control-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
-  "example-message-bubble": "w-[min(82%,var(--layout-dimension-content))] self-start",
+  "example-message-thread": "grid min-w-0 gap-container-gap",
+  "example-message-row": "grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-control-gap",
+  "example-message-row-end": "grid-cols-[minmax(0,1fr)_auto]",
+  "example-message-main": "grid min-w-0 gap-control-block-small",
+  "example-message-meta": "flex min-w-0 items-center gap-control-gap text-text-muted",
+  "example-message-footer": "flex min-w-0 items-center gap-control-gap text-text-muted",
+  "example-message-shell":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-message-scroller": "block h-[18rem] min-h-0",
+  "example-message-composer":
+    "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-control-gap max-[32rem]:grid-cols-1",
+  "example-bubble-variants":
+    "flex flex-col items-stretch gap-control-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-bubble-rich": "w-[min(100%,var(--layout-dimension-panel))]",
+  "example-bubble-file":
+    "flex min-w-0 items-start gap-control-gap [&>span]:grid [&>span]:min-w-0 [&>span]:gap-[var(--border-hairline)]",
+  "example-checkbox-sizes":
+    "grid gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-flex-row": "flex flex-wrap items-start justify-between gap-container-gap",
+  "example-textarea-grid":
+    "grid w-[min(100%,var(--layout-dimension-record))] grid-cols-3 gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block max-[60rem]:grid-cols-1",
+  "example-textarea-composer":
+    "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-textarea-toolbar": "justify-between",
+  "example-tooltip-row":
+    "flex min-h-compact flex-wrap items-center justify-center gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-tooltip-grid":
     "flex min-h-compact flex-wrap items-end justify-center gap-container-gap px-container-inline py-container-block",
   "example-slider-matrix":
@@ -519,7 +712,6 @@ const stageRecipes: UtilityRecipes = {
     "pointer-events-auto absolute top-1/2 left-[var(--ui-scroll-detent-position)] h-[var(--scrollbar-detent-medium)] w-[var(--border-strong)] -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-pill border-0 bg-action p-0 focus-visible:focus-ring",
   "example-sidebar-navigation": "grid gap-control-gap px-container-inline py-container-block",
   "example-activity": "block h-[11.875rem]",
-  "example-message-bubble-me": "self-end",
 };
 
 const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
@@ -597,12 +789,61 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     "scale-[var(--motion-scale-pressed)] bg-surface-raised",
   ],
   [".example-motion-demo > ui-motion, .example-motion-drop > ui-motion", "w-full"],
+  [
+    ".example-motion-system ui-motion, .example-motion-reference ui-motion, .example-motion-consumers ui-motion",
+    "w-full",
+  ],
+  [
+    ".example-motion-custom",
+    "[&::part(content)]:rounded-control [&::part(content)]:bg-positive-subtle [&::part(content)]:text-positive [&::part(content)]:shadow-[0_0_0_var(--border-strong)_var(--color-positive)]",
+  ],
+  [
+    ".example-motion-lanes",
+    "[&::part(root)]:min-h-[8rem] [&::part(root)]:w-full [&::part(root)]:rounded-container [&::part(root)]:border [&::part(root)]:border-border [&::part(root)]:bg-surface-sunken [&::part(content)]:grid [&::part(content)]:place-items-center [&::part(underlay)]:grid [&::part(underlay)]:place-items-center [&::part(overlay)]:grid [&::part(overlay)]:place-items-center",
+  ],
+  [".example-motion-lanes ui-badge", "self-start justify-self-end"],
+  [".example-motion-heading > span", "grid min-w-0 gap-control-block-small"],
+  [".example-motion-heading strong", "type-label"],
+  [".example-motion-tile-copy code", "type-code text-action"],
+  [".example-motion-tile-copy span", "text-text-muted"],
+  [".example-motion-reference-group h3", "m-0 type-label"],
+  [".example-motion-token-row code", "min-w-0 break-all type-code text-action"],
+  [".example-motion-token-row strong", "type-code text-text"],
+  [".example-motion-token-row span", "type-label-small text-text-muted"],
+  [".example-motion-tile-copy > span", "grid min-w-0 gap-[var(--border-hairline)]"],
+  [".example-motion-utility-copy code", "min-w-0 break-all type-code text-action"],
+  [".example-motion-consumer-grid > *", "min-w-0"],
+  [".example-motion-consumer-grid ui-popover > p", "m-0 max-w-[14rem] text-text-muted"],
+  [".example-motion-progress-set ui-progress", "w-full!"],
+  [".example-stagger-list ui-motion", "w-full [&::part(root)]:w-full [&::part(content)]:w-full"],
+  [".example-stagger-item strong", "type-label"],
+  [".example-stagger-item span", "type-label-small text-text-muted"],
+  [
+    ".example-stagger-rail ui-motion > span",
+    "inline-flex min-h-control items-center rounded-pill border border-border bg-surface px-control-inline py-control-block-small type-label-small shadow-[0_2px_8px_var(--color-shadow)]",
+  ],
+  [
+    ".example-reveal-demo ui-reveal",
+    "[&::part(content)]:rounded-control [&::part(content)]:shadow-[inset_0_0_0_var(--border-hairline)_var(--color-border)]",
+  ],
+  [".example-reveal-panel strong", "type-label"],
+  [".example-reveal-panel span, .example-reveal-pill > span", "type-label-small text-text-muted"],
+  [".example-reveal-panel ui-progress", "w-full!"],
   [".example-motion-demo ui-toolbar", "flex flex-wrap gap-control-gap"],
   [".example-motion-demo output", "type-code text-text-muted"],
   [
     ".example-motion-drop ui-separator",
     "self-center [&::part(root)]:bg-action [&::part(root)]:shadow-[0_0_8px_var(--color-action)]",
   ],
+  [".example-badge-row > span", "type-label-small text-text-muted"],
+  [".example-marker-row ui-icon", "text-action"],
+  [".example-marker-copy strong", "type-label"],
+  [".example-marker-copy span", "type-label-small text-text-muted"],
+  [
+    ".example-marker-feed ui-separator",
+    "[&::part(frame)]:grid [&::part(frame)]:grid-cols-[auto_minmax(0,1fr)] [&::part(frame)]:items-center [&::part(frame)]:gap-control-gap [&::part(root)]:bg-border",
+  ],
+  [".example-skeleton-row > ui-skeleton", "min-w-0"],
   [
     ".example-shortcut-list > span",
     "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap border-b border-border px-control-inline py-control-block last:border-b-0",
@@ -616,6 +857,20 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     ".example-typeset-scale code",
     "rounded-control bg-surface-sunken px-control-inline-small py-control-block-small type-label-small text-text-muted",
   ],
+  [".example-clipboard-panel ui-field", "w-full"],
+  [
+    ".example-clipboard-input-group ui-clipboard",
+    "[&::part(control)]:border-0! [&::part(control)]:bg-transparent! [&::part(control)]:px-control-block!",
+  ],
+  [".example-clipboard-markdown p", "max-w-[68ch]"],
+  [
+    ".example-code-block pre",
+    "m-0 min-w-0 overflow-auto rounded-none border-0 bg-transparent px-container-inline py-container-block",
+  ],
+  [
+    ".example-code-block code",
+    "block min-w-max border-0 bg-transparent p-0 type-code text-text whitespace-pre",
+  ],
   [
     ".example-spacing-rhythm > div",
     "grid grid-cols-[var(--layout-dimension-compact)_minmax(0,1fr)] items-center gap-container-gap",
@@ -625,6 +880,24 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   ['.example-spacing-rhythm [data-space="inline"] > span', "w-[var(--space-inline)]"],
   ['.example-spacing-rhythm [data-space="container-gap"] > span', "w-[var(--space-container-gap)]"],
   ['.example-spacing-rhythm [data-space="region"] > span', "w-[var(--space-region)]"],
+  [".example-text-view-copy h2", "m-0 type-heading"],
+  [
+    ".example-text-view-copy p, .example-text-view-copy ul, .example-text-view-copy blockquote",
+    "m-0",
+  ],
+  [
+    ".example-text-view-copy p, .example-text-view-copy li, .example-text-view-copy blockquote",
+    "text-text-muted",
+  ],
+  [
+    ".example-text-view-copy blockquote",
+    "border-s border-action ps-control-inline type-label-small",
+  ],
+  [
+    ".example-text-view-copy pre",
+    "m-0 overflow-x-auto rounded-control bg-surface-sunken px-control-inline py-control-block type-code text-text",
+  ],
+  [".example-text-view-copy ui-link", "justify-self-start"],
   [".example-pagination-heading > div", "grid gap-[var(--border-hairline)]"],
   [".example-linear-identity-copy > span", "truncate type-label-small text-text-muted"],
   [".example-linear-nav-link ui-badge", "ms-auto"],
@@ -743,29 +1016,55 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     ".example-toolbar-dock ui-toolbar[data-mash-toolbar-dock]",
     "bg-surface-raised px-control-inline py-control-block shadow-[0_2px_8px_var(--color-shadow)]",
   ],
+  [".example-switch-copy strong", "type-label-large"],
+  [".example-switch-copy span", "type-label-small text-text-muted"],
+  [".example-switch-matrix ui-switch", "justify-self-start"],
+  [".example-toolbar-document h2, .example-toolbar-document p", "m-0"],
+  [".example-toolbar-document h2", "type-title2"],
+  [".example-toolbar-document ::selection", "bg-action-emphasis text-text"],
+  [
+    ".example-toolbar-document mark",
+    "rounded-control bg-warning-subtle px-control-block-small text-warning",
+  ],
+  [
+    ".example-toolbar-document [data-catalog-toolbar-comment]",
+    "border-b border-dotted border-warning bg-warning-subtle",
+  ],
+  [
+    ".example-toolbar-floating ui-button, .example-toolbar-floating ui-toggle",
+    "shrink-0 text-[var(--ref-color-neutral-0)] [&::part(control)]:min-h-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:min-w-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:border-0! [&::part(control)]:bg-transparent! [&::part(control)]:px-control-block! [&::part(control)]:text-[var(--ref-color-neutral-0)]! hover:[&::part(control)]:bg-[rgba(255,255,255,0.12)]!",
+  ],
+  [".example-toolbar-floating [data-catalog-selection-secondary]", "max-[32rem]:hidden"],
+  [
+    ".example-toolbar-floating ui-toggle[pressed]",
+    "[&::part(control)]:bg-[rgba(255,255,255,0.2)]!",
+  ],
+  [
+    ".example-toolbar-floating > ui-separator",
+    "mx-control-block-small h-[calc(var(--layout-dimension-control-xsmall)-var(--space-control-block-small))] bg-[rgba(255,255,255,0.18)]",
+  ],
   [".example-tabs ui-tab-panel", "block pt-container-block"],
+  [".example-icon-layers ui-icon", "text-text"],
   [
-    '.example-menu-trigger[data-menu-size="mini"]',
-    "[&::part(control)]:h-[1rem] [&::part(control)]:rounded-[0.25rem]",
-  ],
-  [
-    '.example-menu-trigger[data-menu-size="small"]',
-    "[&::part(control)]:h-[1.25rem] [&::part(control)]:rounded-[0.3125rem]",
-  ],
-  [
-    '.example-menu-trigger[data-menu-size="regular"]',
-    "[&::part(control)]:h-[1.5rem] [&::part(control)]:rounded-control",
+    ".example-icon-layer-sample ui-badge",
+    "[&::part(root)]:min-h-[1rem] [&::part(root)]:min-w-[1rem] [&::part(root)]:px-0",
   ],
   [".example-support, .example-dialog-copy p, .example-popover-content p", "m-0 text-text-muted"],
   [".example-dialog-copy h2", "m-0"],
   [".example-context-target ui-card", "cursor-context-menu"],
   [".example-context-target p, .example-activity ol", "m-0"],
-  ['.example-message-bubble[data-from="me"]', "self-end"],
+  [".example-bubble-variants ui-bubble", "max-w-full"],
+  [".example-message-meta ui-intl-formatter, .example-message-meta span", "type-label-small"],
   [
-    ".example-message-bubble p, .example-media-card figcaption, .example-metric-grid dd, .example-metric-grid dt",
-    "m-0",
+    ".example-message-row-end .example-message-meta, .example-message-row-end .example-message-footer",
+    "justify-self-end",
   ],
+  [".example-media-card figcaption, .example-metric-grid dd, .example-metric-grid dt", "m-0"],
   [".example-flex-row > *", "flex-[1_1_var(--layout-dimension-compact)]"],
+  [".example-textarea-grid ui-field, .example-textarea-composer ui-field", "w-full"],
+  [".example-textarea-toolbar span", "ms-auto type-label-small text-text-muted"],
+  [".example-tooltip-hint", "inline-flex items-center gap-control-gap"],
+  [".example-tooltip-row ui-popover > p", "m-0 text-text-muted"],
   [".example-media-card ui-image", "[&::part(root)]:aspect-[16/9]"],
   [".example-media-card figcaption", "type-label-small text-text-muted"],
   [
@@ -870,10 +1169,6 @@ export function applyStageUtilityRecipes(root: Element): void {
 
   for (const [selector, utilities] of stageSelectorRecipes) {
     for (const element of root.querySelectorAll(selector)) addUtilities(element, utilities);
-  }
-
-  for (const element of root.querySelectorAll('.example-message-bubble[data-from="me"]')) {
-    element.classList.remove("self-start");
   }
 }
 

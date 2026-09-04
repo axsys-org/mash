@@ -155,6 +155,8 @@ export abstract class UIOverlay extends LitElement {
       [part="content"],
       [part="actions"],
       [part="description"],
+      [part="header"],
+      [part="footer"],
       [part="title"],
       [part="positioner"],
       [part="cancel"],
@@ -190,6 +192,12 @@ export abstract class UIOverlay extends LitElement {
 
   protected overlayPositionSnapshot(): AnchoredPositionSnapshot | null {
     return this.#positioner.snapshot;
+  }
+
+  /** Allows non-modal composites to close while native Tab navigation continues. */
+  protected releaseFocusReturn(): void {
+    this.#movedFocusForOpen = false;
+    this.#returnFocus = null;
   }
 
   /** Lets concrete overlays handle semantic action slots before generic dismissal. */

@@ -7,8 +7,8 @@ import { baseStyles } from "./base-styles.js";
  *
  * This deliberately owns no visual CSS. The native input is usable without a
  * recipe, while a catalogue can style its stable parts from outside the shadow
- * root. That keeps the form and accessibility contract portable to React,
- * GPUI, and future renderers without coupling it to Mash's current look.
+ * root. That keeps the form and accessibility contract portable across
+ * renderers without coupling it to Mash's current look.
  */
 export abstract class UICheckable extends LitElement {
   static formAssociated = true;
@@ -24,6 +24,7 @@ export abstract class UICheckable extends LitElement {
     name: { type: String, reflect: true },
     required: { type: Boolean, reflect: true },
     value: { type: String, reflect: true },
+    _hasCheckableLabel: { state: true },
   };
 
   static override styles = baseStyles;
@@ -57,6 +58,7 @@ export abstract class UICheckable extends LitElement {
   readonly #internals: ElementInternals;
   #defaultChecked: boolean | undefined;
   #formDisabled = false;
+  protected _hasCheckableLabel = false;
 
   constructor() {
     super();
@@ -179,6 +181,17 @@ export abstract class UICheckable extends LitElement {
     );
   };
 
+  #onLabelSlotChange = (event: Event): void => {
+    const slot = event.currentTarget as HTMLSlotElement;
+    const next = slot
+      .assignedNodes({ flatten: true })
+      .some(
+        (node) => node.nodeType !== Node.TEXT_NODE || (node.textContent ?? "").trim().length > 0,
+      );
+
+    if (next !== this._hasCheckableLabel) this._hasCheckableLabel = next;
+  };
+
   /** Renders the native, intentionally unstyled checkable control. */
   protected renderCheckable(): TemplateResult {
     return html`
@@ -191,6 +204,7 @@ export abstract class UICheckable extends LitElement {
           name=${this.name}
           value=${this.value}
           role=${this.controlRole ?? nothing}
+          aria-label=${this.getAttribute("aria-label") ?? nothing}
           aria-posinset=${this.collectionPosition ?? nothing}
           aria-setsize=${this.collectionSize ?? nothing}
           ?disabled=${this.#isDisabled}
@@ -199,7 +213,9 @@ export abstract class UICheckable extends LitElement {
           @change=${this.#onChange}
         />
         ${this.renderCheckableParts()}
-        <span part="label"><slot></slot></span>
+        <span part="label" ?hidden=${!this._hasCheckableLabel}
+          ><slot @slotchange=${this.#onLabelSlotChange}></slot
+        ></span>
       </label>
     `;
   }

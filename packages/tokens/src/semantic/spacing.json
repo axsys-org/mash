@@ -22,6 +22,98 @@
       "$description": "Gap between a control's own parts, e.g. between a button's icon and its label."
     },
 
+    "buttonInlineXSmall": {
+      "$value": "{space.reference.1}",
+      "$description": "4px inline padding for xsmall buttons."
+    },
+    "buttonInlineSmall": {
+      "$value": "{space.reference.2}",
+      "$description": "8px inline padding for small buttons."
+    },
+    "buttonInlineMedium": {
+      "$value": "{space.reference.2p5}",
+      "$description": "10px inline padding for medium buttons."
+    },
+    "buttonInlineLarge": {
+      "$value": "{space.reference.3}",
+      "$description": "12px inline padding for large buttons."
+    },
+    "buttonInlineCompactXSmall": {
+      "$value": "{space.reference.1}",
+      "$description": "4px compact inline padding for xsmall buttons."
+    },
+    "buttonInlineCompactSmall": {
+      "$value": "{space.reference.1p5}",
+      "$description": "6px compact inline padding for small buttons."
+    },
+    "buttonInlineCompactMedium": {
+      "$value": "{space.reference.2}",
+      "$description": "8px compact inline padding for medium buttons."
+    },
+    "buttonInlineCompactLarge": {
+      "$value": "{space.reference.2}",
+      "$description": "8px compact inline padding for large buttons."
+    },
+
+    "switchInset": {
+      "$value": "{space.reference.0p5}",
+      "$description": "2px inset between a switch thumb and track."
+    },
+
+    "bubbleInline": {
+      "$value": "{space.reference.3}",
+      "$description": "12px inline padding for regular bubble content."
+    },
+    "bubbleBlock": {
+      "$value": "{space.reference.2}",
+      "$description": "8px block padding for regular bubble content."
+    },
+    "bubbleGap": {
+      "$value": "{space.reference.1}",
+      "$description": "4px gap between a bubble surface and its anchored reaction region."
+    },
+    "bubbleGroupGap": {
+      "$value": "{space.reference.2}",
+      "$description": "8px gap between consecutive bubbles in one speaker group."
+    },
+    "bubbleReactionInline": {
+      "$value": "{space.reference.1p5}",
+      "$description": "6px inline padding for non-action bubble reactions."
+    },
+    "bubbleReactionBlock": {
+      "$value": "{space.reference.0p5}",
+      "$description": "2px block padding for non-action bubble reactions."
+    },
+    "bubbleReactionInset": {
+      "$value": "{space.reference.3}",
+      "$description": "12px inline inset for a bubble reaction pill."
+    },
+    "bubbleReactionOffset": {
+      "$value": "{space.reference.5}",
+      "$description": "20px outside offset for top or bottom bubble reactions."
+    },
+
+    "menuShell": {
+      "$value": "{space.reference.1}",
+      "$description": "4px inset around a popup menu item stack."
+    },
+    "menuGap": {
+      "$value": "{space.reference.0p5}",
+      "$description": "2px vertical gap between popup menu rows."
+    },
+    "menuInline": {
+      "$value": "{space.reference.2}",
+      "$description": "8px inline padding inside a popup menu row."
+    },
+    "menuChromeInline": {
+      "$value": "{space.reference.2}",
+      "$description": "8px inline padding for persistent popup menu header and footer chrome."
+    },
+    "menuChromeBlock": {
+      "$value": "{space.reference.1p5}",
+      "$description": "6px block padding for persistent popup menu header and footer chrome."
+    },
+
     "containerInline": {
       "$value": "{space.reference.5}",
       "$description": "Inline padding inside a surface container such as a card."

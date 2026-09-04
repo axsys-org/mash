@@ -1,4 +1,4 @@
-import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -26,12 +26,27 @@ let collapsibleId = 0;
  *
  * @csspart trigger - The native disclosure button.
  * @csspart content - The labelled disclosure region.
+ * @csspart reveal-root - The forwarded reveal render-presence boundary.
+ * @csspart reveal-content - The forwarded clipped disclosure region.
+ * @csspart reveal-measure - The forwarded natural-size measurement wrapper.
  *
  * @cssstate open - Matches `:state(open)` while the content is visible.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  *
  * @fires {CustomEvent<{ open: boolean }>} ui-collapsible-change - Emitted after user activation changes disclosure state.
  *
+ * @mashnode root root
+ * @mashnode trigger trigger root
+ * @mashnode content content root
+ * @mashnode reveal-root root content
+ * @mashnode reveal-content content reveal-root
+ * @mashnode reveal-measure measure reveal-content
+ * @mashnode open open root
+ * @mashnode disabled disabled root
+ * @mashnode change change root
+ * @mashrole slot trigger trigger trigger
+ * @mashrole slot default content content
+ * @mashrole part reveal-content content content
  * @mashfallback slot trigger literal "Details"
  */
 export class UICollapsible extends LitElement {
@@ -94,7 +109,15 @@ export class UICollapsible extends LitElement {
       >
         <slot name="trigger">Details</slot>
       </button>
-      <div part="content" id=${this.#contentId} ?hidden=${!this.open}><slot></slot></div>
+      <ui-reveal
+        part="content"
+        exportparts="root:reveal-root, content:reveal-content, measure:reveal-measure"
+        id=${this.#contentId}
+        .open=${this.open}
+        aria-hidden=${this.open ? nothing : "true"}
+      >
+        <slot></slot>
+      </ui-reveal>
     `;
   }
 }

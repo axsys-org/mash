@@ -15,6 +15,78 @@
         "$value": "{dimension.reference.control}",
         "$description": "The default compact interactive measure."
       },
+      "controlXSmall": {
+        "$value": "{space.reference.5}",
+        "$description": "20px xsmall button control height."
+      },
+      "controlSmall": {
+        "$value": "{space.reference.6}",
+        "$description": "24px small button control height."
+      },
+      "controlMedium": {
+        "$value": "{space.reference.8}",
+        "$description": "32px medium button control height."
+      },
+      "controlLarge": {
+        "$value": "{space.reference.8}",
+        "$description": "32px large button control height; large reads through padding and type rather than a taller button box."
+      },
+      "checkboxXSmall": {
+        "$value": "{space.reference.3}",
+        "$description": "12px xsmall checkbox indicator."
+      },
+      "checkboxSmall": {
+        "$value": "{space.reference.3p5}",
+        "$description": "14px small checkbox indicator."
+      },
+      "checkboxMedium": {
+        "$value": "{space.reference.4}",
+        "$description": "16px medium checkbox indicator."
+      },
+      "checkboxLarge": {
+        "$value": "{space.reference.4p5}",
+        "$description": "18px large checkbox indicator."
+      },
+      "checkboxMarkXSmall": {
+        "$value": "{space.reference.2}",
+        "$description": "8px xsmall checkbox mark."
+      },
+      "checkboxMarkSmall": {
+        "$value": "{space.reference.2p5}",
+        "$description": "10px small checkbox mark."
+      },
+      "checkboxMarkMedium": {
+        "$value": "{space.reference.3}",
+        "$description": "12px medium checkbox mark."
+      },
+      "checkboxMarkLarge": {
+        "$value": "{space.reference.3p5}",
+        "$description": "14px large checkbox mark."
+      },
+      "switchTrackSmallInline": {
+        "$value": "{space.reference.7}",
+        "$description": "28px small switch track width."
+      },
+      "switchTrackSmallBlock": {
+        "$value": "{space.reference.4}",
+        "$description": "16px small switch track height."
+      },
+      "switchTrackMediumInline": {
+        "$value": "{space.reference.9}",
+        "$description": "36px medium switch track width."
+      },
+      "switchTrackMediumBlock": {
+        "$value": "{space.reference.5}",
+        "$description": "20px medium switch track height."
+      },
+      "switchThumbSmall": {
+        "$value": "{space.reference.3}",
+        "$description": "12px small switch thumb."
+      },
+      "switchThumbMedium": {
+        "$value": "{space.reference.4}",
+        "$description": "16px medium switch thumb."
+      },
       "compact": {
         "$value": "{dimension.reference.compact}",
         "$description": "A compact supporting region or short value measure."

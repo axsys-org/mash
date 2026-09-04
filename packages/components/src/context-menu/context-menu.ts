@@ -25,7 +25,9 @@ import type { MenuDensity, MenuSizing } from "../menu/menu.js";
  * </ui-context-menu>
  *
  * @slot trigger - Surface that receives the context-menu gesture.
+ * @slot header - Persistent non-command content shown before the scrollable command viewport.
  * @slot - `ui-menu-item` commands.
+ * @slot footer - Persistent non-command content shown after the scrollable command viewport.
  * @slot close - Optional control that dismisses the menu.
  *
  * @csspart trigger - The authored trigger realization.
@@ -33,7 +35,10 @@ import type { MenuDensity, MenuSizing } from "../menu/menu.js";
  * @csspart positioner - The renderer-owned anchor-relative placement boundary.
  * @csspart popup - The semantic context menu surface.
  * @csspart material - The isolated visual material layer behind context-menu content.
+ * @csspart header - The authored persistent content before the command viewport.
+ * @csspart viewport - The natively scrollable command viewport.
  * @csspart actions - The authored context-menu commands.
+ * @csspart footer - The authored persistent content after the command viewport.
  * @csspart close - The authored close action realization.
  *
  * @cssstate open - Matches `:state(open)` while visible.
@@ -51,11 +56,16 @@ import type { MenuDensity, MenuSizing } from "../menu/menu.js";
  * @mashnode collision-padding collision-padding positioner
  * @mashnode popup popup positioner
  * @mashnode material material popup
- * @mashnode actions actions popup
+ * @mashnode header header popup
+ * @mashnode viewport viewport popup
+ * @mashnode actions actions viewport
+ * @mashnode footer footer popup
  * @mashnode close close popup
  * @mashnode density density popup
  * @mashnode sizing sizing popup
+ * @mashrole slot header header header
  * @mashrole slot default actions actions
+ * @mashrole slot footer footer footer
  */
 export class UIContextMenu extends UIAnchoredOverlay {
   static override properties = {
@@ -81,6 +91,11 @@ export class UIContextMenu extends UIAnchoredOverlay {
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
   }
 
+  override disconnectedCallback(): void {
+    this.#collection.destroy();
+    super.disconnectedCallback();
+  }
+
   protected override emitOpenChange(open: boolean, reason: OverlayChangeReason): void {
     this.dispatchEvent(
       new CustomEvent<OverlayOpenChangeDetail>("ui-context-menu-open-change", {
@@ -92,7 +107,13 @@ export class UIContextMenu extends UIAnchoredOverlay {
   }
 
   protected override renderAuthoredContent(): TemplateResult {
-    return html`<div part="actions"><slot></slot></div>`;
+    return html`
+      <div part="header" role="presentation"><slot name="header"></slot></div>
+      <div part="viewport">
+        <div part="actions"><slot></slot></div>
+      </div>
+      <div part="footer" role="presentation"><slot name="footer"></slot></div>
+    `;
   }
 
   protected override renderPopupMaterial(): TemplateResult {
@@ -113,6 +134,11 @@ export class UIContextMenu extends UIAnchoredOverlay {
   };
 
   protected override handleOverlayKeydown(event: KeyboardEvent): boolean {
+    if (event.key === "Tab") {
+      this.releaseFocusReturn();
+      this.requestOpenChange(false, "keyboard");
+      return true;
+    }
     return this.#collection.handleKeydown(event);
   }
 

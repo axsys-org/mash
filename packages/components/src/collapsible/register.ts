@@ -1,4 +1,5 @@
 import { UICollapsible } from "./collapsible.js";
+import "../reveal/register.js";
 
 if (!customElements.get("ui-collapsible")) {
   customElements.define("ui-collapsible", UICollapsible);

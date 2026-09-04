@@ -20,7 +20,7 @@
  */
 
 import { initialState, vibrancyModes, type State, type VibrancyMode } from "./app.js";
-import { controlsFor } from "./controls.js";
+import { controlsFor, enumControlValue } from "./controls.js";
 import { controlsPreviewAllowed, examplesFor } from "./examples.js";
 import { components, themes, type ComponentSchema } from "./schema.js";
 
@@ -122,7 +122,8 @@ export function stateFromUrl(url: URL, fallback: ComponentSchema): State {
     hasPreviewOverride = true;
 
     if (control.kind === "enum") {
-      if (control.options.includes(raw)) state.attrs[control.attribute] = raw;
+      const value = enumControlValue(control, raw);
+      if (value) state.attrs[control.attribute] = value;
     } else if (control.kind === "boolean") {
       state.attrs[control.attribute] = parseBoolean(raw);
     } else {

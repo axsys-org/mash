@@ -30,7 +30,9 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * </ui-menu>
  *
  * @slot trigger - Control that opens or closes the menu.
+ * @slot header - Persistent non-command content shown before the scrollable command viewport.
  * @slot - `ui-menu-item` commands.
+ * @slot footer - Persistent non-command content shown after the scrollable command viewport.
  * @slot close - Optional control that dismisses the menu.
  *
  * @csspart trigger - The authored trigger realization.
@@ -38,7 +40,10 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * @csspart positioner - The renderer-owned anchor-relative placement boundary.
  * @csspart popup - The semantic menu surface.
  * @csspart material - The isolated visual material layer behind menu content.
+ * @csspart header - The authored persistent content before the command viewport.
+ * @csspart viewport - The natively scrollable command viewport.
  * @csspart actions - The authored menu commands.
+ * @csspart footer - The authored persistent content after the command viewport.
  * @csspart close - The authored close action realization.
  *
  * @cssstate open - Matches `:state(open)` while visible.
@@ -61,7 +66,10 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * @mashnode collision-padding collision-padding positioner
  * @mashnode popup popup positioner
  * @mashnode material material popup
- * @mashnode actions actions popup
+ * @mashnode header header popup
+ * @mashnode viewport viewport popup
+ * @mashnode actions actions viewport
+ * @mashnode footer footer popup
  * @mashnode close close popup
  * @mashnode density density popup
  * @mashnode sizing sizing popup
@@ -70,7 +78,9 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * @mashnode entering entering popup
  * @mashnode active active popup
  * @mashnode exiting exiting popup
+ * @mashrole slot header header header
  * @mashrole slot default actions actions
+ * @mashrole slot footer footer footer
  */
 export class UIMenu extends UIAnchoredOverlay {
   static override properties = {
@@ -109,6 +119,12 @@ export class UIMenu extends UIAnchoredOverlay {
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
     this.addEventListener("ui-menu-item-submenu-change", this.#onSubmenuChange);
     this.addEventListener("pointerover", this.#onPointerOver);
+    this.addEventListener("keydown", this.#onTriggerKeydown);
+  }
+
+  override disconnectedCallback(): void {
+    this.#collection.destroy();
+    super.disconnectedCallback();
   }
 
   protected override emitOpenChange(open: boolean, reason: OverlayChangeReason): void {
@@ -122,7 +138,13 @@ export class UIMenu extends UIAnchoredOverlay {
   }
 
   protected override renderAuthoredContent(): TemplateResult {
-    return html`<div part="actions"><slot></slot></div>`;
+    return html`
+      <div part="header" role="presentation"><slot name="header"></slot></div>
+      <div part="viewport">
+        <div part="actions"><slot></slot></div>
+      </div>
+      <div part="footer" role="presentation"><slot name="footer"></slot></div>
+    `;
   }
 
   protected override renderPopupMaterial(): TemplateResult {
@@ -141,18 +163,33 @@ export class UIMenu extends UIAnchoredOverlay {
     for (const trigger of this.querySelectorAll<HTMLElement>(":scope > [slot='trigger']")) {
       trigger.setAttribute("aria-haspopup", "menu");
       trigger.setAttribute("aria-expanded", String(this.open));
-      if ("selected" in trigger)
-        (trigger as HTMLElement & { selected: boolean }).selected = this.open;
     }
   }
 
   protected override handleOverlayKeydown(event: KeyboardEvent): boolean {
+    if (event.key === "Tab") {
+      this.releaseFocusReturn();
+      this.requestOpenChange(false, "keyboard");
+      return true;
+    }
     return this.#collection.handleKeydown(event, {
       nested: this.nested,
       parentItem: () => this.#parentItem(),
       dismissNested: () => this.requestOpenChange(false, "keyboard"),
     });
   }
+
+  #onTriggerKeydown = (event: KeyboardEvent): void => {
+    if (!this.eventIsWithinSlot(event, "trigger")) return;
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.requestOpenChange(true, "keyboard", "first");
+    void this.updateComplete.then(() => {
+      const items = this.#collection.items();
+      items[event.key === "ArrowDown" ? 0 : items.length - 1]?.focus();
+    });
+  };
 
   #onItemSelect = (event: Event): void => {
     const item = event.target as UIMenuItem;

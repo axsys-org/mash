@@ -142,6 +142,51 @@ describe("overlay authored-slot realizations", () => {
     expect(contextMenu.hasAttribute("open")).toBe(false);
   });
 
+  it("contains modal Tab traversal and returns focus after Escape", async () => {
+    const dialog = await fixture<HTMLElement>(`
+      <ui-dialog label="Rename project">
+        <button slot="trigger">Rename</button>
+        <input aria-label="Project name" />
+        <div slot="close">
+          <button>Cancel</button>
+          <button>Save</button>
+        </div>
+      </ui-dialog>
+    `);
+    const trigger = dialog.querySelector<HTMLButtonElement>('[slot="trigger"]')!;
+    const input = dialog.querySelector<HTMLInputElement>("input")!;
+    const actions = [...dialog.querySelectorAll<HTMLButtonElement>('[slot="close"] button')];
+    const popup = inShadow<HTMLElement>(dialog, '[part="popup"]');
+
+    trigger.focus();
+    trigger.click();
+    await settled(dialog.parentElement!);
+    expect(document.activeElement).toBe(input);
+
+    actions.at(-1)!.focus();
+    actions
+      .at(-1)!
+      .dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, composed: true }));
+    expect(document.activeElement).toBe(input);
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Tab",
+        shiftKey: true,
+        bubbles: true,
+        composed: true,
+      }),
+    );
+    expect(document.activeElement).toBe(actions.at(-1));
+
+    popup.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }),
+    );
+    await settled(dialog.parentElement!);
+    expect(dialog.hasAttribute("open")).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+  });
+
   it("positions anchored popups against their trigger and flips at viewport edges", async () => {
     const popover = await fixture<
       HTMLElement & {
@@ -242,14 +287,13 @@ describe("overlay authored-slot realizations", () => {
 
     exit.finish();
     await exit.finished;
-    await Promise.resolve();
-    await dialog.updateComplete;
+    await settled(dialog.parentElement!);
 
     expect(backdrop.hidden).toBe(true);
     expect(dialog.matches(":state(present)")).toBe(false);
   });
 
-  it("keeps the pinned GPUI hover-card open and close delays configurable", async () => {
+  it("keeps pinned hover-card open and close delays configurable", async () => {
     const preview = await fixture<HTMLElement & { open: boolean }>(`
       <ui-preview-card label="Delayed preview" open-delay="5" close-delay="5">
         <button slot="trigger">Hover</button>

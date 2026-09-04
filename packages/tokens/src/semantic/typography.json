@@ -123,6 +123,25 @@
         "$value": "{lineHeight.reference.body}"
       }
     },
+    "bubble": {
+      "$description": "Conversation bubble copy: 14px regular text with relaxed leading.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.200}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.bubble}"
+      }
+    },
     "title3": {
       "$description": "Third-level title: 15px/20px regular.",
       "fontFamily": {

@@ -49,20 +49,26 @@ export class MotionLifecycleController<T> {
     }
 
     this.#frame = view.requestAnimationFrame(() => {
-      this.#frame = undefined;
-      if (cycle !== this.#cycle) return;
-      const target = this.#options.target();
-      const animations =
-        context.reducedMotion || this.#options.skipAnimations?.(value)
-          ? []
-          : (target?.getAnimations() ?? []);
-      if (animations.length === 0) {
-        queueMicrotask(() => this.#finish(cycle, false));
+      if (cycle !== this.#cycle) {
+        this.#frame = undefined;
         return;
       }
-      void Promise.allSettled(animations.map((animation) => animation.finished)).then(() =>
-        this.#finish(cycle, false),
-      );
+      this.#frame = view.requestAnimationFrame(() => {
+        this.#frame = undefined;
+        if (cycle !== this.#cycle) return;
+        const target = this.#options.target();
+        const animations =
+          context.reducedMotion || this.#options.skipAnimations?.(value)
+            ? []
+            : (target?.getAnimations() ?? []);
+        if (animations.length === 0) {
+          queueMicrotask(() => this.#finish(cycle, false));
+          return;
+        }
+        void Promise.allSettled(animations.map((animation) => animation.finished)).then(() =>
+          this.#finish(cycle, false),
+        );
+      });
     });
   }
 

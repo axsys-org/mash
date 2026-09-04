@@ -1,13 +1,11 @@
-# Base UI parity
+# Portable UI Contract
 
-Mash uses Base UI as a behaviour and accessibility reference, not as a React
-runtime dependency. Every port has one renderer-neutral semantic-node contract
+Mash components are behaviour and accessibility primitives, not visual
+imitations of another toolkit. Every renderer shares one semantic-node contract
 and can have multiple visual catalogues.
 
-The current upstream reference is commit `446df6e` (2026-08-19), following the
-Base UI 1.7.0 release. That reference is intentionally pinned: a Mash
-conformance claim must name the Base UI anatomy and behaviour snapshot it was
-checked against.
+Coverage claims are intentionally scoped: they must name the Mash contract
+surface, the renderer binding, and the behaviour snapshot that was checked.
 
 ## The contract
 
@@ -38,56 +36,58 @@ surface without placing visual declarations back inside the component.
 </main>
 ```
 
-The same contract is the source for React, GPUI, Swift, or other platform
-renderers. Semantic nodes carry stable identity, role, and parent topology.
-Attributes, slots, parts, states, and events are Web bindings to those nodes;
-another renderer replaces those bindings while preserving inputs, authored
-content, realized anatomy, reflected state, outputs, and relationships. See
+The same contract can be implemented by Web Components, React facades, native
+views, or other platform renderers. Semantic nodes carry stable identity, role,
+and parent topology. Attributes, slots, parts, states, and events are Web
+bindings to those nodes; another renderer replaces those bindings while
+preserving inputs, authored content, realized anatomy, reflected state, outputs,
+and relationships. See
 [`mash-contract.md`](mash-contract.md) for the versioned schema and address rules.
 
-## Translating Base UI into Mash
+## Translating Interactions Into Mash
 
-Base UI is a compound React API. Mash does not reproduce that API one custom
-element per React part. It translates each public part into a portable semantic
+Mash does not reproduce another renderer's API one custom element per external
+part. It translates each recurring interaction concern into a portable semantic
 node, then gives each renderer its own bindings to that node.
 
-- Semantic parts such as Trigger, Value, Popup, Backdrop, Viewport, Arrow,
+- Semantic parts such as trigger, value, popup, backdrop, viewport, arrow,
   Status, Empty, Item, and Indicator remain addressable Mash nodes.
 - React/DOM mechanics such as Portal and Positioner map to portable overlay
   layer, anchor, placement, and viewport nodes. A Web renderer may realize a
-  portal; GPUI or Swift may realize the same node through a native scene layer.
+  portal; a native renderer may realize the same node through a scene layer.
 - React-only hooks, stores, render callbacks, and provider plumbing are
   implementation facilities, not new Mash component meaning.
 - A Mash Web binding can be an authored slot, a realized CSS part, a reflected
   attribute/state, or an event. Those bindings point to the same node; they are
   not parallel sources of truth.
 
-This is the practical equivalent of Base UI's direct access to each DOM node,
-without making DOM topology the cross-platform contract.
+This keeps direct access to meaningful anatomy without making DOM topology the
+cross-platform contract.
 
-## Conformance levels
+## Coverage Levels
 
-A family is only called Base UI-conformant after all four levels pass:
+A family is only marked contract-covered after all four levels pass:
 
 1. **Family** — the interaction has a published Mash root and portable state,
    value, and event ownership.
-2. **Anatomy** — every relevant Base UI part has been mapped to an addressed
+2. **Anatomy** — every relevant interaction part has been mapped to an addressed
    Mash node, including optional and empty-state anatomy.
 3. **Behaviour** — keyboard, focus, ARIA, form, controlled-state, and dismissal
    fixtures pass for the Web renderer.
 4. **Catalogue** — every realized semantic node is deliberately styled or
    deliberately left unconstrained by the active catalogue recipe.
 
-Having a family root is Level 1 coverage. It is not, by itself, parity.
+Having a family root is Level 1 coverage. It is not, by itself, complete
+contract coverage.
 
 ## Current coverage
 
-Mash publishes a root for every stable family in that Base UI snapshot. Definition and
+Mash publishes roots for the current stable family set. Definition and
 registration modules remain separately tree-shakeable. Anatomy and behaviour
 coverage are still uneven, so the table below is a family inventory rather than
-a blanket parity claim.
+a blanket coverage claim.
 
-| Base UI family                                                | Mash contract                                                                          |
+| Interaction family                                            | Mash contract                                                                          |
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Accordion                                                     | `ui-accordion`, `ui-accordion-item` with single/multiple policy and disclosure events  |
 | Alert Dialog, Dialog, Drawer                                  | `ui-alert-dialog`, `ui-dialog`, `ui-drawer` on the shared modal focus engine           |
@@ -104,17 +104,17 @@ a blanket parity claim.
 The first audited selection-family slice now exposes the complete portable
 anatomy described below. The next large audits are the shared floating-surface
 families, menus, toast, toolbar, and the custom scroll area. A mapped anatomy
-still is not a blanket parity claim: every family must pass the upstream
+still is not a blanket coverage claim: every family must pass the shared
 keyboard, focus, controlled-state, and dismissal fixture matrix before it is
-marked conformant.
+marked covered.
 
 ### Selection-family map
 
 The first compound pass maps the shared Select/Combobox/Autocomplete anatomy as
-follows. “Renderer binding” means the Base UI part is real on the Web but is not
-made into portable component meaning.
+follows. “Renderer binding” means the part is real on the Web but is not made
+into portable component meaning.
 
-| Base UI snapshot part                  | Mash semantic node / realization                            | State             |
+| Interaction part                       | Mash semantic node / realization                            | State             |
 | -------------------------------------- | ----------------------------------------------------------- | ----------------- |
 | Root                                   | `root`                                                      | mapped            |
 | Label                                  | `label` attribute + `label` slot/part                       | mapped            |
@@ -123,7 +123,7 @@ made into portable component meaning.
 | Value / Icon / Clear                   | same-named slot/part nodes                                  | mapped            |
 | Backdrop / Positioner / Popup / Arrow  | `backdrop`, `positioner`, `popup`, `arrow:pointer`          | mapped            |
 | Portal                                 | Web overlay-layer binding; not a portable Mash content node | renderer binding  |
-| List                                   | `listbox` node with `listbox` and `list` Web part aliases   | mapped            |
+| Viewport / List                        | native-scroll `viewport` containing `listbox` / `list`      | mapped and tested |
 | Status / Empty                         | live `status` node + authored `empty` slot/part             | mapped            |
 | Item / ItemText / ItemIndicator        | `ui-option` control, label/text aliases, indicator slot     | mapped            |
 | Select ScrollUpArrow / ScrollDownArrow | logical `scroll-start` / `scroll-end` action nodes          | mapped            |
@@ -132,16 +132,17 @@ made into portable component meaning.
 | Combobox Chips / Chip / ChipRemove     | `chips` collection + `ui-chip` label/remove anatomy         | mapped            |
 | Combobox Row                           | `ui-option-row` + grid/gridcell semantics                   | mapped and tested |
 | Combobox Collection                    | renderer data-to-authored-child adapter; renders no node    | renderer binding  |
-| multiple / readOnly                    | reflected state, array values, repeated form entries        | mapped and tested |
+| Select value / readOnly                | one reflected value and one submitted form entry            | mapped and tested |
+| Combobox multiple / readOnly           | reflected array values and repeated form entries            | mapped and tested |
 | typeahead / active item                | roving focus or active descendant, per control kind         | mapped and tested |
 | grid navigation                        | row/column movement with logical RTL horizontal direction   | mapped and tested |
 
-`Collection` is deliberately not a custom element: in Base UI it is a render
-function with no HTML realization, so React, Web Components, GPUI, and Swift
-may each source data differently while emitting the same authored option/group/
-row nodes. The family remains non-conformant until the broader Base UI
-keyboard/focus matrix—including async collections, virtualization, controlled
-reason details, and grid edge cases—is represented by shared fixtures.
+`Collection` is deliberately not a custom element: it is a renderer data source
+with no HTML realization, so each renderer may source data differently while
+emitting the same authored option/group/row nodes. The family remains
+incomplete until the broader keyboard/focus matrix, including async
+collections, virtualization, controlled reason details, and grid edge cases, is
+represented by shared fixtures.
 
 ### Shared overlay engine
 
@@ -161,17 +162,33 @@ recipe forward.
 
 The JSON Schema validates manifest shape, and the generator checks shared-role
 membership, unique addresses, and valid parent references. Browser tests provide
-current evidence for the Web renderer's covered behaviour. Equivalent React,
-GPUI, or Swift behaviour is currently reviewed manually; Mash does not yet run
-one shared behaviour fixture suite against every renderer. Schema alignment
-alone must not be reported as proof of identical focus, keyboard, accessibility,
-or event behaviour.
+current evidence for the Web renderer's covered behaviour. Equivalent behaviour
+in other renderers is currently reviewed manually; Mash does not yet run one
+shared behaviour fixture suite against every renderer. Schema alignment alone
+must not be reported as proof of identical focus, keyboard, accessibility, or
+event behaviour.
 
 ### Input, tree, and toolbar boundaries
 
 - `ui-input` is a native text-entry and form contract only. Use
   `ui-input-group` for prefix/control/suffix anatomy; its recipe owns the one
-  outer inset so an affix cannot create duplicate input padding.
+  outer inset so an affix cannot create duplicate input padding. The host
+  forwards focus and selection to the native input and emits composed Enter and
+  focus-change events because those are control semantics across the shadow
+  boundary. Search icons, clear buttons, masking toggles, units, and shortcut
+  hints remain authored siblings.
+- Message and message-scroller patterns currently map to composition instead of
+  new Mash primitives: `ui-bubble` owns the conversational surface,
+  `ui-scroll-area` owns the native viewport, and application code owns sender
+  records, stable IDs, unread meaning, tail-following policy, and composer
+  state. Promote a dedicated message or message-scroller primitive only if
+  multiple renderers need the row or virtual-list state machine as a shared
+  contract.
+- Notification patterns map onto `ui-toast` and `ui-toast-stack`. A toast owns
+  one live-region announcement, title/message/action anatomy, tone, dismissal,
+  and timer pause/resume. The stack owns placement and collapsed visibility.
+  Queue IDs, replacement policy, operating-system delivery, routing, and
+  analytics remain product state.
 - `ui-tree-item` is a controlled record in a hierarchy. It requests expansion
   and selection through events; its parent persists reflected state. A recipe
   decides indentation, disclosure treatment, paths, file/folder glyphs, and

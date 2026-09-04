@@ -2,6 +2,12 @@ import { html, type TemplateResult } from "lit";
 
 import { UICheckable } from "../internal/checkable.js";
 
+/** The switch's physical control scale. */
+export type SwitchSize = "sm" | "small" | "md" | "medium";
+
+/** Which side the visible label occupies relative to the track. */
+export type SwitchLabelSide = "left" | "right";
+
 /**
  * A binary setting exposed with switch semantics.
  *
@@ -15,6 +21,13 @@ import { UICheckable } from "../internal/checkable.js";
  * @example Setting
  * <div class="demo button-showcase-row">
  *   <ui-switch name="desktop-notifications" checked>Desktop notifications</ui-switch>
+ * </div>
+ *
+ * @example Switch sizes
+ * <div class="demo button-showcase-row">
+ *   <ui-switch size="small" checked>Small</ui-switch>
+ *   <ui-switch size="medium" checked>Medium</ui-switch>
+ *   <ui-switch size="medium" label-side="left" checked>Label left</ui-switch>
  * </div>
  *
  * @slot - Visible label for the setting.
@@ -43,11 +56,30 @@ import { UICheckable } from "../internal/checkable.js";
  * @mashnode required required control
  * @mashnode name name control
  * @mashnode value value control
+ * @mashnode size size control
+ * @mashnode label-side label-side label
  * @mashrole slot default label label
  */
 export class UISwitch extends UICheckable {
+  static override properties = {
+    ...UICheckable.properties,
+    size: { type: String, reflect: true },
+    labelSide: { type: String, attribute: "label-side", reflect: true },
+  };
+
+  /** Semantic physical scale. `sm` and `md` aliases match compact control notation. */
+  declare size: SwitchSize;
+  /** Places the visible label before or after the switch track. */
+  declare labelSide: SwitchLabelSide;
+
   protected readonly changeEventName = "ui-switch-change";
   protected readonly controlRole = "switch";
+
+  constructor() {
+    super();
+    this.size = "medium";
+    this.labelSide = "right";
+  }
 
   protected override renderCheckableParts(): TemplateResult {
     return html`

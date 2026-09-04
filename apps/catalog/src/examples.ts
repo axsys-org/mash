@@ -1,4 +1,4 @@
-import { components, type ComponentSchema, type Example } from "./schema.js";
+import { components, tokens, valueOf, type ComponentSchema, type Example } from "./schema.js";
 
 /**
  * A catalog example is deliberately more specific than an `@example` JSDoc
@@ -69,6 +69,384 @@ const scrollCanvasRows = Array.from({ length: 12 }, (_rowValue, rowIndex) => {
   }).join("");
   return `<section class="example-scroll-canvas-row" data-scroll-id="row-${row}">${cards}</section>`;
 }).join("");
+
+const displayTheme = "light";
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+
+const motionRecipes = [
+  {
+    name: "none",
+    state: "active",
+    target: "content",
+    label: "No visual recipe",
+    note: "Lifecycle only",
+  },
+  {
+    name: "custom",
+    state: "active",
+    target: "content",
+    label: "Part-owned CSS",
+    note: "Authored realization",
+  },
+  {
+    name: "fade",
+    state: "active",
+    target: "content",
+    label: "Opacity shift",
+    note: "Control timing",
+  },
+  {
+    name: "scale",
+    state: "active",
+    target: "content",
+    label: "Pressed scale",
+    note: "Snappy spring",
+  },
+  {
+    name: "slide-inline",
+    state: "entering",
+    target: "content",
+    label: "Inline entry",
+    note: "Directional distance",
+  },
+  {
+    name: "slide-block",
+    state: "entering",
+    target: "content",
+    label: "Block entry",
+    note: "Directional distance",
+  },
+  {
+    name: "rotate",
+    state: "active",
+    target: "content",
+    label: "Quarter turn",
+    note: "Control response",
+  },
+  {
+    name: "spin",
+    state: "loading",
+    target: "content",
+    label: "Continuous spin",
+    note: "Loading state",
+  },
+  {
+    name: "pulse",
+    state: "loading",
+    target: "content",
+    label: "Breathing pulse",
+    note: "Loading state",
+  },
+  {
+    name: "shake",
+    state: "active",
+    target: "content",
+    label: "Inline nudge",
+    note: "Attention state",
+  },
+  {
+    name: "blur",
+    state: "entering",
+    target: "content",
+    label: "Optical entry",
+    note: "Surface timing",
+  },
+] as const;
+
+const motionTargets = ["root", "underlay", "content", "overlay", "indicator"] as const;
+
+const motionTokenGroups = [
+  {
+    title: "Timing",
+    ids: ["duration.control", "duration.transient", "duration.surface"],
+  },
+  {
+    title: "Easing",
+    ids: ["easing.control", "easing.surface", "easing.springGentle", "easing.springSnappy"],
+  },
+  {
+    title: "Distance",
+    ids: ["motion.distance.short", "motion.distance.medium", "motion.distance.long"],
+  },
+  {
+    title: "Scale",
+    ids: [
+      "motion.scale.rest",
+      "motion.scale.enter",
+      "motion.scale.pressed",
+      "motion.scale.emphasized",
+    ],
+  },
+  {
+    title: "Optical",
+    ids: [
+      "motion.blur.none",
+      "motion.blur.subtle",
+      "motion.blur.emphasized",
+      "motion.opacity.hidden",
+      "motion.opacity.muted",
+      "motion.opacity.visible",
+    ],
+  },
+  {
+    title: "Rotation",
+    ids: ["motion.rotation.none", "motion.rotation.quarter", "motion.rotation.full"],
+  },
+] as const;
+
+function motionRecipeMatrixCode(): string {
+  return `
+        <section class="catalog-example example-motion-system" data-catalog-motion-demo>
+          <div class="example-motion-heading">
+            <span><strong>Semantic recipe matrix</strong><span class="example-support">Every built-in ui-motion recipe, its intended state, and the target lane it animates.</span></span>
+          </div>
+          <div class="example-motion-recipe-grid">
+            ${motionRecipes
+              .map(
+                (recipe) => `
+                  <article class="example-motion-tile" data-catalog-motion-item>
+                    <ui-motion
+                      class="example-motion-scene${recipe.name === "custom" ? " example-motion-custom" : ""}"
+                      motion="${recipe.name}"
+                      state="${recipe.state}"
+                      target="${recipe.target}"
+                      data-catalog-motion
+                      data-catalog-motion-state="${recipe.state}"
+                    >
+                      <span class="example-motion-sample">${recipe.label}</span>
+                    </ui-motion>
+                    <div class="example-motion-tile-copy">
+                      <span><code>${recipe.name}</code><span>${recipe.state} · ${recipe.note}</span></span>
+                      <ui-button type="button" size="small" variant="quiet" data-catalog-motion-replay>Replay</ui-button>
+                    </div>
+                  </article>`,
+              )
+              .join("")}
+          </div>
+          <output data-catalog-motion-output>Recipe matrix ready</output>
+        </section>`;
+}
+
+function motionTargetMatrixCode(): string {
+  return `
+        <section class="catalog-example example-motion-system" data-catalog-motion-demo>
+          <div class="example-motion-heading">
+            <span><strong>Scene target lanes</strong><span class="example-support">The same pulse recipe can target the whole scene or any one authored lane.</span></span>
+          </div>
+          <div class="example-motion-target-grid">
+            ${motionTargets
+              .map(
+                (target) => `
+                  <article class="example-motion-tile example-motion-lane-tile" data-catalog-motion-item>
+                    <ui-motion
+                      class="example-motion-scene example-motion-lanes"
+                      motion="pulse"
+                      state="loading"
+                      target="${target}"
+                      data-catalog-motion
+                      data-catalog-motion-state="loading"
+                    >
+                      <span slot="underlay" class="example-motion-lane example-motion-underlay">underlay</span>
+                      <span class="example-motion-lane example-motion-content">content</span>
+                      <span slot="overlay" class="example-motion-lane example-motion-overlay">overlay</span>
+                      <ui-badge slot="indicator" tone="positive">indicator</ui-badge>
+                    </ui-motion>
+                    <div class="example-motion-tile-copy">
+                      <span><code>target="${target}"</code><span>${target === "root" ? "all lanes" : `${target} lane`}</span></span>
+                      <ui-button type="button" size="small" variant="quiet" data-catalog-motion-replay>Replay</ui-button>
+                    </div>
+                  </article>`,
+              )
+              .join("")}
+          </div>
+          <output data-catalog-motion-output>Lane matrix ready</output>
+        </section>`;
+}
+
+function motionTokenRow(id: string): string {
+  const token = tokens[id];
+  if (!token) return "";
+  const description = token.description ? `<span>${escapeHtml(token.description)}</span>` : "";
+  return `
+                  <div class="example-motion-token-row">
+                    <code>${escapeHtml(token.cssVar)}</code>
+                    <strong>${escapeHtml(valueOf(token, displayTheme))}</strong>
+                    ${description}
+                  </div>`;
+}
+
+function motionTokenReferenceCode(): string {
+  return `
+        <section class="catalog-example example-motion-reference" data-catalog-motion-demo>
+          <div class="example-motion-heading">
+            <span><strong>Token contract</strong><span class="example-support">The semantic timing, easing, spatial, optical, and rotational values that motion recipes consume.</span></span>
+            <ui-motion class="example-motion-token-probe" motion="blur" state="entering" target="content" data-catalog-motion data-catalog-motion-state="entering">
+              <span>token probe</span>
+            </ui-motion>
+          </div>
+          <div class="example-motion-reference-grid">
+            ${motionTokenGroups
+              .map(
+                (group) => `
+                  <section class="example-motion-reference-group">
+                    <h3>${group.title}</h3>
+                    ${group.ids.map(motionTokenRow).join("")}
+                  </section>`,
+              )
+              .join("")}
+          </div>
+        </section>`;
+}
+
+function motionUtilityReferenceCode(): string {
+  return `
+        <section class="catalog-example example-motion-utility-demo" data-catalog-motion-utility-demo>
+          <div class="example-motion-heading">
+            <span><strong>Utility composition</strong><span class="example-support">Token-generated classes supply the timing and destination values; the app owns when the state is applied.</span></span>
+            <ui-button type="button" size="small" variant="secondary" data-catalog-motion-utility-toggle>Apply</ui-button>
+          </div>
+          <div class="example-motion-utility-grid">
+            <article class="example-motion-utility-card">
+              <span class="example-motion-utility-copy"><code>motion-control</code><code>scale-motion-pressed</code></span>
+              <button type="button" class="example-motion-utility-sample example-motion-utility-button motion-control data-[motion-utility-active=true]:scale-motion-pressed" data-catalog-motion-utility-target>Control press</button>
+            </article>
+            <article class="example-motion-utility-card">
+              <span class="example-motion-utility-copy"><code>motion-surface</code><code>translate-x-motion-short</code></span>
+              <span class="example-motion-utility-sample motion-surface data-[motion-utility-active=true]:translate-x-motion-short" data-catalog-motion-utility-target>Surface offset</span>
+            </article>
+            <article class="example-motion-utility-card">
+              <span class="example-motion-utility-copy"><code>motion-surface</code><code>opacity-motion-muted</code><code>blur-motion-subtle</code></span>
+              <span class="example-motion-utility-sample motion-surface data-[motion-utility-active=true]:opacity-motion-muted data-[motion-utility-active=true]:blur-motion-subtle" data-catalog-motion-utility-target>Optical state</span>
+            </article>
+            <article class="example-motion-utility-card">
+              <span class="example-motion-utility-copy"><code>animate-fade-in</code></span>
+              <span class="example-motion-utility-sample data-[motion-utility-active=true]:animate-fade-in" data-catalog-motion-utility-target>Entry keyframe</span>
+            </article>
+          </div>
+          <output data-catalog-motion-utility-output>Utilities at rest</output>
+        </section>`;
+}
+
+function motionSystemConsumersCode(): string {
+  return `
+        <section class="catalog-example example-motion-consumers" data-catalog-motion-demo>
+          <div class="example-motion-heading">
+            <span><strong>System consumers</strong><span class="example-support">Component recipes share the same motion contract for controls, overlays, feedback, and progress.</span></span>
+            <ui-motion class="example-motion-token-probe" motion="fade" state="active" target="content" data-catalog-motion data-catalog-motion-state="active">
+              <span>component probe</span>
+            </ui-motion>
+          </div>
+          <div class="example-motion-consumer-grid">
+            <div class="example-motion-consumer-slot">
+              <ui-button type="button" loading>Saving preferences</ui-button>
+            </div>
+            <div class="example-motion-consumer-slot">
+              <ui-menu label="Transient commands" density="compact" open>
+                <ui-button slot="trigger" type="button" variant="secondary">Commands</ui-button>
+                <ui-menu-item value="open">Open project</ui-menu-item>
+                <ui-menu-item value="search">Search project</ui-menu-item>
+              </ui-menu>
+            </div>
+            <div class="example-motion-consumer-slot">
+              <ui-popover label="Surface motion" placement="bottom-start" open>
+                <ui-button slot="trigger" type="button" variant="secondary">Details</ui-button>
+                <p>Anchored surfaces use enter/exit states and the surface duration tier.</p>
+              </ui-popover>
+            </div>
+            <div class="example-motion-progress-set example-motion-consumer-slot">
+              <ui-progress indeterminate label="Indexing workspace"></ui-progress>
+              <ui-progress shape="circular" indeterminate label="Syncing workspace"></ui-progress>
+            </div>
+            <div class="example-motion-consumer-slot">
+              <ui-toast open duration="0" tone="positive">Animation contract indexed</ui-toast>
+            </div>
+          </div>
+        </section>`;
+}
+
+function staggerCenterOriginCode(): string {
+  return `
+        <section class="catalog-example example-stagger-demo" data-catalog-motion-demo>
+          <div class="example-motion-heading">
+            <span><strong>Center-origin entrance</strong><span class="example-support">The parent writes delay variables; each child owns its visual motion.</span></span>
+            <ui-button type="button" size="small" variant="secondary" data-catalog-motion-replay>Replay</ui-button>
+          </div>
+          <ui-stagger class="example-stagger-list" step="56" origin="center">
+            <ui-motion motion="slide-block" state="entering" data-catalog-motion data-catalog-motion-state="entering">
+              <span class="example-stagger-item"><strong>Profile</strong><span>Primary identity synced</span></span>
+            </ui-motion>
+            <ui-motion motion="slide-block" state="entering" data-catalog-motion data-catalog-motion-state="entering">
+              <span class="example-stagger-item"><strong>Billing</strong><span>Ledger updated</span></span>
+            </ui-motion>
+            <ui-motion motion="slide-block" state="entering" data-catalog-motion data-catalog-motion-state="entering">
+              <span class="example-stagger-item"><strong>Permissions</strong><span>Team roles indexed</span></span>
+            </ui-motion>
+            <ui-motion motion="slide-block" state="entering" data-catalog-motion data-catalog-motion-state="entering">
+              <span class="example-stagger-item"><strong>Audit</strong><span>Exports queued</span></span>
+            </ui-motion>
+            <ui-motion motion="slide-block" state="entering" data-catalog-motion data-catalog-motion-state="entering">
+              <span class="example-stagger-item"><strong>Archive</strong><span>Retention checked</span></span>
+            </ui-motion>
+          </ui-stagger>
+          <output data-catalog-motion-output>Center origin · 56ms step</output>
+        </section>`;
+}
+
+function staggerIndexedOriginCode(): string {
+  return `
+        <section class="catalog-example example-stagger-demo" data-catalog-motion-demo>
+          <div class="example-motion-heading">
+            <span><strong>Selected-origin pulse</strong><span class="example-support">origin-index lets a selected item become the zero-delay point.</span></span>
+            <ui-button type="button" size="small" variant="secondary" data-catalog-motion-replay>Replay</ui-button>
+          </div>
+          <ui-stagger class="example-stagger-rail" step="42" origin="index" origin-index="2">
+            <ui-motion motion="pulse" state="loading" data-catalog-motion data-catalog-motion-state="loading"><span>Draft</span></ui-motion>
+            <ui-motion motion="pulse" state="loading" data-catalog-motion data-catalog-motion-state="loading"><span>Review</span></ui-motion>
+            <ui-motion motion="pulse" state="loading" data-catalog-motion data-catalog-motion-state="loading"><span>Active</span></ui-motion>
+            <ui-motion motion="pulse" state="loading" data-catalog-motion data-catalog-motion-state="loading"><span>Ready</span></ui-motion>
+            <ui-motion motion="pulse" state="loading" data-catalog-motion data-catalog-motion-state="loading"><span>Done</span></ui-motion>
+          </ui-stagger>
+          <output data-catalog-motion-output>Index origin · item 2</output>
+        </section>`;
+}
+
+function revealMeasuredPresenceCode(): string {
+  return `
+        <section class="catalog-example example-reveal-demo" data-catalog-reveal-demo>
+          <div class="example-motion-heading">
+            <span><strong>Measured presence</strong><span class="example-support">The content remains mounted while the closing animation settles.</span></span>
+            <ui-button type="button" size="small" variant="secondary" data-catalog-reveal-toggle>Close</ui-button>
+          </div>
+          <ui-reveal open data-catalog-reveal>
+            <div class="example-reveal-panel">
+              <strong>Release readiness</strong>
+              <span>Three checks complete, one deployment window reserved, and the audit trail is attached.</span>
+              <ui-progress value="78" label="Release readiness"></ui-progress>
+            </div>
+          </ui-reveal>
+          <output data-catalog-reveal-output>Open · present</output>
+        </section>`;
+}
+
+function revealInlineAxisCode(): string {
+  return `
+        <section class="catalog-example example-reveal-demo" data-catalog-reveal-demo>
+          <div class="example-motion-heading">
+            <span><strong>Inline-axis reveal</strong><span class="example-support">The same presence lifecycle can clip width for compact status affordances.</span></span>
+            <ui-button type="button" size="small" variant="secondary" data-catalog-reveal-toggle>Close</ui-button>
+          </div>
+          <ui-reveal axis="inline" open data-catalog-reveal>
+            <span class="example-reveal-pill"><ui-badge tone="positive">Synced</ui-badge><span>Workspace index refreshed</span></span>
+          </ui-reveal>
+          <output data-catalog-reveal-output>Open · inline</output>
+        </section>`;
+}
 
 /**
  * Compositions that demonstrate a component in a real UI relationship.
@@ -250,6 +628,107 @@ const curated: Record<string, CatalogExample[]> = {
       },
     ),
   ],
+  "ui-label": [
+    example(
+      "Secondary text and highlights",
+      `
+        <div class="catalog-example example-label-stack">
+          <ui-label text="Company address" secondary="(optional)"></ui-label>
+          <ui-label text="Billing migration" highlight="bill" highlight-match="prefix"></ui-label>
+          <ui-label text="Invoice sample approved" highlight="sample"></ui-label>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Secondary text, full-match highlighting, and prefix highlighting share one text-first primitive.",
+      },
+    ),
+    example(
+      "Masked values and sizes",
+      `
+        <div class="catalog-example example-label-scale">
+          <ui-label size="xsmall" text="Archive"></ui-label>
+          <ui-label size="small" text="Invoice sample"></ui-label>
+          <ui-label size="base" text="Billing migration"></ui-label>
+          <ui-label size="large" text="Release checkpoint"></ui-label>
+          <ui-label size="2xl" text="$9,182.50 USD" masked></ui-label>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Text size aliases resolve through Mash typography roles, while masked values keep their measured length.",
+      },
+    ),
+  ],
+  "ui-clipboard": [
+    example(
+      "Values, source, and feedback",
+      `
+        <section class="catalog-example example-clipboard-panel" data-catalog-clipboard-demo>
+          <header class="example-clipboard-heading">
+            <ui-typeset preset="title3">Share commands</ui-typeset>
+            <ui-typeset tone="secondary">Static values, live field values, and late-bound command text share the same copy contract.</ui-typeset>
+          </header>
+          <ui-field label="Share URL" description="The suffix button reads the current field value at activation time.">
+            <ui-input-group class="example-clipboard-input-group" slot="control">
+              <ui-icon slot="prefix" name="action.launch" label=""></ui-icon>
+              <ui-input id="clipboard-share-url" slot="control" type="url" label="Share URL" value="https://shrine.local/interzone/projects/billing?view=release"></ui-input>
+              <ui-clipboard slot="suffix" source="#clipboard-share-url" size="xs" variant="ghost" copied-label="Copied">Copy</ui-clipboard>
+            </ui-input-group>
+          </ui-field>
+          <div class="example-clipboard-actions">
+            <ui-clipboard value="sk-live-redacted-1234" size="small" variant="secondary">Copy key</ui-clipboard>
+            <ui-clipboard value="git checkout -b docs/clipboard" size="small" variant="secondary" data-catalog-clipboard-dynamic>Copy branch command</ui-clipboard>
+            <ui-clipboard value="dangerous reset command withheld" size="small" variant="danger" outline>Copy reset note</ui-clipboard>
+          </div>
+          <output class="example-clipboard-output" data-catalog-clipboard-output aria-live="polite">Ready to copy.</output>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Static values and dynamic value callbacks map to `value`, `source`, and the `ui-clipboard-copy` request event. The control uses button sizing aliases and copied/error feedback states.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Typeset code block",
+      `
+        <ui-typeset flow="block" preset="body" class="catalog-example example-clipboard-markdown" data-catalog-clipboard-demo>
+          <h2>Markdown renderer contract</h2>
+          <p>Rendered prose stays semantic: inline destinations use <ui-link variant="inline" href="#ui-link">ui-link</ui-link>, inline code uses <code>code</code>, and copy remains a button action.</p>
+          <figure class="example-code-block">
+            <figcaption class="example-code-header">
+              <span class="example-code-title">
+                <ui-badge size="small">tsx</ui-badge>
+                <span>components/markdown-frame.tsx</span>
+              </span>
+              <ui-clipboard source="#clipboard-markdown-source" size="xs" variant="ghost" copied-label="Copied" reset-after="1200">Copy</ui-clipboard>
+            </figcaption>
+            <ui-scroll-area class="example-code-scroll" label="Markdown frame source" size="small" gutter="stable" mode="auto">
+              <pre data-not-typeset><code id="clipboard-markdown-source" data-not-typeset>${escapeHtml(`import "@mash/ui/typeset/register";
+import "@mash/ui/clipboard/register";
+
+export function MarkdownFrame({ html }: { html: string }) {
+  return (
+    <ui-typeset flow="block" preset="body">
+      <div dangerouslySetInnerHTML={{ __html: html }} />
+    </ui-typeset>
+  );
+}`)}</code></pre>
+            </ui-scroll-area>
+          </figure>
+          <blockquote>Style the rendered HTML container once; keep links, code, tables, and copy actions as their own semantic primitives.</blockquote>
+          <p><ui-link variant="inline" href="#ui-typeset">Open typeset</ui-link> or copy the source block above.</p>
+          <output class="example-clipboard-output" data-catalog-clipboard-output aria-live="polite">Code block ready.</output>
+        </ui-typeset>`,
+      {
+        compositionOnly: true,
+        description:
+          "A markdown-renderer shaped composition: ui-typeset owns prose rhythm, ui-link preserves navigation semantics, ui-scroll-area owns overflow, and ui-clipboard copies the exact source code by selector.",
+        stageLayout: "start",
+      },
+    ),
+  ],
   "ui-icon": [
     example(
       "Semantic Carbon vocabulary",
@@ -271,16 +750,22 @@ const curated: Record<string, CatalogExample[]> = {
     example(
       "Replaceable layers",
       `
-        <div class="catalog-example example-icon-library">
-          <ui-icon name="object.folder" size="large" label="Billing folder with warning">
-            <ui-icon slot="badge" name="status.warning" size="small"></ui-icon>
-          </ui-icon>
-          <ui-icon name="action.search" size="large" label="Custom search state">
-            <span slot="secondary" class="example-icon-state-dot" aria-hidden="true"></span>
-          </ui-icon>
-          <ui-icon name="product.unknown" size="large" label="Authored fallback">
-            <span slot="fallback" aria-hidden="true">◇</span>
-          </ui-icon>
+        <div class="catalog-example example-icon-layers">
+          <span class="example-icon-layer-sample">
+            <ui-icon name="object.folder" size="large" label="Billing folder with three warnings">
+              <ui-badge slot="badge" size="small" tone="warning">3</ui-badge>
+            </ui-icon>
+          </span>
+          <span class="example-icon-layer-sample">
+            <ui-icon name="object.folder" size="large" label="Synced archive folder">
+              <ui-icon slot="secondary" name="action.confirm" size="small"></ui-icon>
+            </ui-icon>
+          </span>
+          <span class="example-icon-layer-sample">
+            <ui-icon name="product.unknown" size="large" label="Authored product fallback">
+              <span slot="fallback" class="example-icon-fallback-glyph" aria-hidden="true">?</span>
+            </ui-icon>
+          </span>
         </div>`,
       {
         compositionOnly: true,
@@ -290,6 +775,36 @@ const curated: Record<string, CatalogExample[]> = {
     ),
   ],
   "ui-motion": [
+    example("Recipe matrix", motionRecipeMatrixCode(), {
+      compositionOnly: true,
+      description:
+        "Every built-in recipe is represented once, with per-recipe replay so each behavior can be inspected independently.",
+      stageLayout: "fill",
+    }),
+    example("Target lanes", motionTargetMatrixCode(), {
+      compositionOnly: true,
+      description:
+        "Each replay button scopes to one scene, making the target lane relationship visible without animating every lane demo at once.",
+      stageLayout: "fill",
+    }),
+    example("Motion tokens", motionTokenReferenceCode(), {
+      compositionOnly: true,
+      description:
+        "The full semantic token contract covers timing, easing, distance, scale, blur, opacity, and rotation. Values are read from tokens.json.",
+      stageLayout: "fill",
+    }),
+    example("Utility composition", motionUtilityReferenceCode(), {
+      compositionOnly: true,
+      description:
+        "Generated motion utilities are shown as stateful pieces of UI instead of a static class inventory.",
+      stageLayout: "fill",
+    }),
+    example("System consumers", motionSystemConsumersCode(), {
+      compositionOnly: true,
+      description:
+        "The component catalogue recipe applies the same semantic durations, easings, and reduced-motion contract to controls, overlays, toasts, spinners, and indeterminate progress.",
+      stageLayout: "fill",
+    }),
     example(
       "Arbitrary component lifecycle",
       `
@@ -332,6 +847,173 @@ const curated: Record<string, CatalogExample[]> = {
         compositionOnly: true,
         description:
           "The same scene primitive can realize drag feedback, overlays, progress, or any other layered composition.",
+      },
+    ),
+  ],
+  "ui-stagger": [
+    example("Center-origin entrance", staggerCenterOriginCode(), {
+      description:
+        "ui-stagger computes deterministic offsets and exposes them as CSS variables on each slotted child. ui-motion consumes the delay without a parent-specific API.",
+      stageLayout: "fill",
+    }),
+    example("Selected-origin pulse", staggerIndexedOriginCode(), {
+      description:
+        "The index origin mode makes a selected item the temporal anchor, with neighboring children receiving increasing delay by distance.",
+      stageLayout: "fill",
+    }),
+  ],
+  "ui-reveal": [
+    example("Measured presence", revealMeasuredPresenceCode(), {
+      description:
+        "ui-reveal measures slotted content, clips one axis, publishes presence states, and delays absence until the exit motion settles.",
+      stageLayout: "fill",
+    }),
+    example("Inline-axis reveal", revealInlineAxisCode(), {
+      description:
+        "The same measured-presence primitive can reveal inline size for compact status and toolbar affordances.",
+      stageLayout: "fill",
+    }),
+  ],
+  "ui-badge": [
+    example(
+      "Tag matrix",
+      `
+        <section class="catalog-example example-badge-matrix" aria-label="Badge tag matrix">
+          <div class="example-badge-row">
+            <span>Status</span>
+            <div class="example-badge-set">
+              <ui-badge tone="positive">Active</ui-badge>
+              <ui-badge tone="warning">Review</ui-badge>
+              <ui-badge tone="critical">Blocked</ui-badge>
+            </div>
+          </div>
+          <div class="example-badge-row">
+            <span>Category</span>
+            <div class="example-badge-set">
+              <ui-badge class="example-badge-outline" tone="neutral">Docs</ui-badge>
+              <ui-badge class="example-badge-outline">Platform</ui-badge>
+              <ui-badge class="example-badge-outline" tone="positive">Ready</ui-badge>
+            </div>
+          </div>
+          <div class="example-badge-row">
+            <span>Compact</span>
+            <div class="example-badge-set">
+              <ui-badge size="small">P2</ui-badge>
+              <ui-badge size="small" tone="positive">Stable</ui-badge>
+              <ui-badge size="small" tone="warning">Beta</ui-badge>
+            </div>
+          </div>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Tag-style metadata maps to ui-badge's existing display-only status contract. Outline treatment stays in the catalogue recipe, not a separate Tag primitive.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Marker rows",
+      `
+        <section class="catalog-example example-marker-feed" aria-label="Project status timeline">
+          <div class="example-marker-row" role="status">
+            <ui-icon name="action.search" label=""></ui-icon>
+            <span class="example-marker-copy">
+              <strong><ui-shimmer>Indexing workspace</ui-shimmer></strong>
+              <span>32 files remaining</span>
+            </span>
+            <ui-badge size="small">Now</ui-badge>
+          </div>
+          <ui-separator>
+            <span slot="prefix" class="example-marker-dot" aria-hidden="true"></span>
+          </ui-separator>
+          <div class="example-marker-row">
+            <ui-icon name="action.confirm" label=""></ui-icon>
+            <span class="example-marker-copy">
+              <strong>Types generated</strong>
+              <span>Manifest and Tailwind variants are current.</span>
+            </span>
+            <ui-badge size="small" tone="positive">Done</ui-badge>
+          </div>
+          <ui-separator>
+            <span slot="prefix" class="example-marker-dot" aria-hidden="true"></span>
+          </ui-separator>
+          <div class="example-marker-row">
+            <ui-icon name="action.dismiss" label=""></ui-icon>
+            <span class="example-marker-copy">
+              <strong>Visual snapshot missing</strong>
+              <span>Run the catalogue before promoting this example.</span>
+            </span>
+            <ui-badge size="small" tone="warning">Audit</ui-badge>
+          </div>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Markers stay a row composition here: text owns the status, badge owns compact metadata, separator owns the timeline rule, and shimmer remains a short-lived text effect.",
+        stageLayout: "start",
+      },
+    ),
+  ],
+  "ui-shimmer": [
+    example(
+      "Text-owned activity",
+      `
+        <section class="catalog-example example-stack">
+          <ui-shimmer>Thinking...</ui-shimmer>
+          <ui-shimmer reverse style="--ui-shimmer-duration: 3s; --ui-shimmer-spread: 45%">Indexing files...</ui-shimmer>
+          <ui-shimmer once>Preparing preview...</ui-shimmer>
+          <p class="example-support">The text remains the layout and accessibility owner. Shimmer only paints a decorative highlight while the surrounding workflow is in flight.</p>
+        </section>`,
+      {
+        description:
+          "A short-lived loading label with themeable timing and highlight color, distinct from progress, spinner, and skeleton-style placeholder blocks.",
+      },
+    ),
+  ],
+  "ui-skeleton": [
+    example(
+      "Content placeholder",
+      `
+        <article class="catalog-example example-skeleton-article" aria-busy="true">
+          <ui-skeleton class="example-skeleton-media"></ui-skeleton>
+          <div class="example-skeleton-lines">
+            <ui-skeleton style="inline-size: 62%; block-size: 1rem;"></ui-skeleton>
+            <ui-skeleton class="example-skeleton-muted" style="inline-size: 92%; block-size: 0.875rem;"></ui-skeleton>
+            <ui-skeleton class="example-skeleton-muted" style="inline-size: 74%; block-size: 0.875rem;"></ui-skeleton>
+          </div>
+        </article>`,
+      {
+        compositionOnly: true,
+        description:
+          "Skeleton reserves authored layout only. The busy state belongs to the region loading real content; the inert placeholder stays hidden from assistive technology.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Data rows",
+      `
+        <section class="catalog-example example-skeleton-table" aria-label="Loading project rows" aria-busy="true">
+          <div class="example-skeleton-row">
+            <ui-skeleton style="inline-size: 10rem;"></ui-skeleton>
+            <ui-skeleton class="example-skeleton-muted" style="inline-size: 6rem;"></ui-skeleton>
+            <ui-skeleton class="example-skeleton-muted" style="inline-size: 4rem;"></ui-skeleton>
+          </div>
+          <div class="example-skeleton-row">
+            <ui-skeleton style="inline-size: 14rem;"></ui-skeleton>
+            <ui-skeleton class="example-skeleton-muted" style="inline-size: 5rem;"></ui-skeleton>
+            <ui-skeleton class="example-skeleton-muted" style="inline-size: 4.5rem;"></ui-skeleton>
+          </div>
+          <div class="example-skeleton-row">
+            <ui-skeleton style="inline-size: 8rem;"></ui-skeleton>
+            <ui-skeleton class="example-skeleton-muted" style="inline-size: 7rem;"></ui-skeleton>
+            <ui-skeleton class="example-skeleton-muted" style="inline-size: 3rem;"></ui-skeleton>
+          </div>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Table, list, card, and form skeletons are the same inert shape placed into product-owned grid tracks.",
+        stageLayout: "start",
       },
     ),
   ],
@@ -429,6 +1111,31 @@ const curated: Record<string, CatalogExample[]> = {
         compositionOnly: true,
         description:
           "Opacity-aware label roles adapt with material vibrancy, while the companion specimen makes semantic spacing steps visible without introducing a stack or spacer primitive.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Rich text viewport",
+      `
+        <section class="catalog-example example-text-view" aria-label="Release note preview">
+          <ui-scroll-area class="example-text-view-scroll" label="Release note preview" size="large" gutter="stable" mode="always">
+            <article class="example-text-view-copy">
+              <h2>Release readiness</h2>
+              <p>The billing migration can ship once finance signs off the archive import and the deployment note is attached to the project.</p>
+              <ul>
+                <li><strong>Ready:</strong> generated types, command shortcuts, and table state.</li>
+                <li><strong>Needs review:</strong> export retention policy and invoice exception copy.</li>
+              </ul>
+              <blockquote>Keep rendered markdown outside the primitive; preserve semantic HTML inside the viewport.</blockquote>
+              <pre><code>release.status = "review"</code></pre>
+              <p><ui-link href="#release-readiness">Open release record</ui-link></p>
+            </article>
+          </ui-scroll-area>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Rich text views stay a composition boundary: authored HTML keeps document semantics, typeset tokens style the prose, and scroll-area owns the viewport.",
         stageLayout: "start",
       },
     ),
@@ -1445,7 +2152,7 @@ const curated: Record<string, CatalogExample[]> = {
             <ui-table-row row-index="2">
               <ui-table-cell column-index="1"><ui-link href="#billing">Billing migration</ui-link></ui-table-cell>
               <ui-table-cell column-index="2"><span class="example-table-chip-list"><ui-chip value="finance" readonly>Finance</ui-chip><ui-chip value="migration" readonly>Migration</ui-chip></span></ui-table-cell>
-              <ui-table-cell column-index="3"><ui-switch checked label="Billing automation"></ui-switch></ui-table-cell>
+              <ui-table-cell column-index="3"><ui-switch checked aria-label="Billing automation"></ui-switch></ui-table-cell>
               <ui-table-cell column-index="4">
                 <ui-popover label="Edit billing budget" placement="bottom-start">
                   <ui-button slot="trigger" size="small" variant="quiet">$48,000</ui-button>
@@ -1459,13 +2166,13 @@ const curated: Record<string, CatalogExample[]> = {
             <ui-table-row row-index="3">
               <ui-table-cell column-index="1"><ui-link href="#reconciliation">Invoice reconciliation</ui-link></ui-table-cell>
               <ui-table-cell column-index="2"><span class="example-table-chip-list"><ui-chip value="operations" readonly>Operations</ui-chip><ui-chip value="review" readonly>Review</ui-chip></span></ui-table-cell>
-              <ui-table-cell column-index="3"><ui-switch label="Reconciliation automation"></ui-switch></ui-table-cell>
+              <ui-table-cell column-index="3"><ui-switch aria-label="Reconciliation automation"></ui-switch></ui-table-cell>
               <ui-table-cell column-index="4"><ui-intl-formatter kind="currency" value="32500" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
             </ui-table-row>
             <ui-table-row row-index="4">
               <ui-table-cell column-index="1"><ui-link href="#archive">Archive import</ui-link></ui-table-cell>
               <ui-table-cell column-index="2"><span class="example-table-chip-list"><ui-chip value="records" readonly>Records</ui-chip></span></ui-table-cell>
-              <ui-table-cell column-index="3"><ui-switch checked label="Archive automation"></ui-switch></ui-table-cell>
+              <ui-table-cell column-index="3"><ui-switch checked aria-label="Archive automation"></ui-switch></ui-table-cell>
               <ui-table-cell column-index="4"><ui-intl-formatter kind="currency" value="18750" currency="USD" locale="en-US"></ui-intl-formatter></ui-table-cell>
             </ui-table-row>
           </ui-table-body>
@@ -1750,30 +2457,6 @@ const curated: Record<string, CatalogExample[]> = {
       },
     ),
     example(
-      "Message bubble pattern",
-      `
-        <div class="catalog-example example-message-thread" aria-label="Project conversation">
-          <ui-card class="example-message-bubble" data-from="them">
-            <ui-avatar slot="prefix" size="small">MC</ui-avatar>
-            <strong slot="title">Maya Chen</strong>
-            <ui-intl-formatter slot="description" kind="time" value="2026-08-20T15:42:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter>
-            <p slot="content">The billing migration is ready for review.</p>
-          </ui-card>
-          <ui-card class="example-message-bubble" data-from="me">
-            <ui-avatar slot="prefix" size="small">You</ui-avatar>
-            <strong slot="title">You</strong>
-            <ui-intl-formatter slot="description" kind="time" value="2026-08-20T15:44:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter>
-            <p slot="content">Perfect. I’ll check the final invoice sample now.</p>
-            <ui-badge slot="footer" tone="positive">Delivered</ui-badge>
-          </ui-card>
-        </div>`,
-      {
-        compositionOnly: true,
-        description:
-          "A chat-domain pattern assembled from Card, Avatar, IntlFormatter, and Badge rather than a new base primitive.",
-      },
-    ),
-    example(
       "Flexible action surface",
       `
         <ui-card class="catalog-example example-flex-recipe">
@@ -1787,6 +2470,105 @@ const curated: Record<string, CatalogExample[]> = {
           </div>
         </ui-card>`,
       { compositionOnly: true },
+    ),
+  ],
+  "ui-bubble": [
+    example(
+      "Message rows",
+      `
+        <section class="catalog-example example-message-thread" aria-label="Project conversation">
+          <div class="example-message-row">
+            <ui-avatar size="small">MC</ui-avatar>
+            <div class="example-message-main">
+              <div class="example-message-meta"><strong>Maya Chen</strong><ui-intl-formatter kind="time" value="2026-08-20T15:42:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter></div>
+              <ui-bubble alignment="start" variant="secondary">The billing migration is ready for review.</ui-bubble>
+              <div class="example-message-footer"><span>Delivered to project room</span><ui-button type="button" size="xsmall" variant="quiet">Reply</ui-button></div>
+            </div>
+          </div>
+          <div class="example-message-row example-message-row-end">
+            <div class="example-message-main">
+              <div class="example-message-meta"><strong>You</strong><ui-intl-formatter kind="time" value="2026-08-20T15:44:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter></div>
+              <ui-bubble alignment="end">Perfect. I will check the final invoice sample now.</ui-bubble>
+              <div class="example-message-footer"><span>Read</span><ui-button type="button" size="xsmall" variant="quiet">Copy</ui-button></div>
+            </div>
+            <ui-avatar size="small">You</ui-avatar>
+          </div>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Message identity, time, delivery text, and actions compose around the bubble; the bubble owns only the conversational surface and alignment.",
+      },
+    ),
+    example(
+      "Scroller composition",
+      `
+        <section class="catalog-example example-message-shell" aria-label="Conversation shell">
+          <ui-scroll-area class="example-message-scroller" label="Conversation history" mode="always" gutter="stable">
+            <div slot="content" class="example-message-thread">
+              ${Array.from(
+                { length: 5 },
+                (_, index) => `
+                  <div class="example-message-row${index % 2 ? " example-message-row-end" : ""}">
+                    ${index % 2 ? "" : `<ui-avatar size="small">MC</ui-avatar>`}
+                    <div class="example-message-main">
+                      <div class="example-message-meta"><strong>${index % 2 ? "You" : "Maya Chen"}</strong><span>${15 + index}:4${index}</span></div>
+                      <ui-bubble alignment="${index % 2 ? "end" : "start"}" variant="${index % 2 ? "filled" : "secondary"}">${index % 2 ? "I updated the reviewer list and kept the note linked." : "The imported record needs a short status note before the handoff."}</ui-bubble>
+                    </div>
+                    ${index % 2 ? `<ui-avatar size="small">You</ui-avatar>` : ""}
+                  </div>`,
+              ).join("")}
+            </div>
+          </ui-scroll-area>
+          <div class="example-message-composer">
+            <ui-input-group>
+              <ui-input slot="control" type="text" label="Message" placeholder="Write a reply"></ui-input>
+              <ui-kbd slot="suffix" command="message.send" shortcut="Enter"></ui-kbd>
+            </ui-input-group>
+            <ui-button type="button" size="small">Send</ui-button>
+          </div>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Tail-following, unread identity, and composer state stay application-owned; ScrollArea supplies the native viewport while Bubble supplies each message surface.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Surface variants",
+      `
+        <div class="catalog-example example-bubble-variants">
+          <ui-bubble variant="filled">Primary response</ui-bubble>
+          <ui-bubble variant="secondary">Neutral incoming response</ui-bubble>
+          <ui-bubble variant="muted">Low-emphasis context</ui-bubble>
+          <ui-bubble variant="tinted">Selected response context</ui-bubble>
+          <ui-bubble variant="outline">Bounded review note</ui-bubble>
+          <ui-bubble variant="ghost">Full-width unframed transcript line</ui-bubble>
+          <ui-bubble variant="destructive">Failed: regenerate the invoice sample.</ui-bubble>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Bubble variants resolve through semantic surfaces, action roles, and the critical role.",
+      },
+    ),
+    example(
+      "Rich content and actions",
+      `
+        <ui-bubble class="catalog-example example-bubble-rich" variant="outline" alignment="start" reaction-side="bottom" reaction-alignment="end">
+          <div slot="content" class="example-bubble-file">
+            <ui-icon name="object.document" label=""></ui-icon>
+            <span><ui-label size="small" text="design-notes.pdf"></ui-label><ui-label size="xsmall" text="PDF" secondary="2.4 MB"></ui-label></span>
+          </div>
+          <ui-button slot="reactions" type="button" size="xsmall" variant="ghost">Open</ui-button>
+          <ui-button slot="reactions" type="button" size="xsmall" variant="ghost">Copy link</ui-button>
+        </ui-bubble>`,
+      {
+        compositionOnly: true,
+        description:
+          "The content slot carries arbitrary layout while reaction controls remain regular buttons in a compact semantic lane.",
+      },
     ),
   ],
   "ui-image": [
@@ -1861,6 +2643,22 @@ const curated: Record<string, CatalogExample[]> = {
       { compositionOnly: true },
     ),
     example(
+      "Size aliases and no label",
+      `
+        <div class="catalog-example example-checkbox-sizes">
+          <ui-checkbox size="xsmall" checked>Extra small</ui-checkbox>
+          <ui-checkbox size="small" checked>Small</ui-checkbox>
+          <ui-checkbox size="medium" checked>Medium</ui-checkbox>
+          <ui-checkbox size="large" checked>Large</ui-checkbox>
+          <ui-checkbox aria-label="Select billing migration" checked></ui-checkbox>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Size aliases map to checkbox indicator and mark dimensions; no-label checkboxes collapse the label lane.",
+      },
+    ),
+    example(
       "Inside a group",
       `
         <ui-checkbox-group class="catalog-example example-stack" label="Project notifications">
@@ -1921,14 +2719,177 @@ const curated: Record<string, CatalogExample[]> = {
       { compositionOnly: true },
     ),
   ],
+  "ui-switch": [
+    example(
+      "Settings list",
+      `
+        <section class="catalog-example example-switch-list" aria-label="Notification settings">
+          <div class="example-switch-row">
+            <span class="example-switch-copy">
+              <strong>Product updates</strong>
+              <span>New features and release notes.</span>
+            </span>
+            <ui-switch name="product-updates" checked aria-label="Product updates"></ui-switch>
+          </div>
+          <ui-separator></ui-separator>
+          <div class="example-switch-row">
+            <span class="example-switch-copy">
+              <strong>Security alerts</strong>
+              <span>Important account activity.</span>
+            </span>
+            <ui-switch name="security-alerts" aria-label="Security alerts"></ui-switch>
+          </div>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "A switch works best as an immediate binary setting, usually at the trailing edge of a compact row.",
+      },
+    ),
+    example(
+      "Sizes and labels",
+      `
+        <div class="catalog-example example-switch-matrix">
+          <ui-switch size="small" checked>Small</ui-switch>
+          <ui-switch size="medium" checked>Medium</ui-switch>
+          <ui-switch size="medium" label-side="left" checked>Label left</ui-switch>
+          <ui-switch size="small" disabled>Disabled off</ui-switch>
+          <ui-switch size="medium" checked disabled>Disabled on</ui-switch>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Switch geometry maps to small 28x16 and medium 36x20 tracks, with sm/md aliases accepted by the public size attribute.",
+      },
+    ),
+  ],
   "ui-input": [
     example(
-      "A labelled text entry",
+      "Native state matrix",
       `
-        <ui-field class="catalog-example example-field" label="Project name" description="Visible to everyone in this workspace." required>
-          <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
+        <section class="catalog-example example-input-grid" aria-label="Input states">
+          <ui-field label="Project name" description="Visible to everyone in this workspace." required>
+            <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
+          </ui-field>
+          <ui-field label="Readonly slug" description="Can be focused, selected, and copied.">
+            <ui-input slot="control" name="project-slug" value="billing-migration" readonly></ui-input>
+          </ui-field>
+          <ui-field label="Locked source" description="Disabled inputs do not submit a form value.">
+            <ui-input slot="control" name="project-source" value="Inherited from finance" disabled></ui-input>
+          </ui-field>
+          <ui-field label="Project key" invalid error="Use three to eight uppercase letters followed by two digits.">
+            <ui-input slot="control" name="project-key" value="bad-key" pattern="[A-Z]{3,8}[0-9]{2}" minlength="5" maxlength="10" autocomplete="off"></ui-input>
+          </ui-field>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "The custom element keeps one native input as the edit surface while field context, readonly, disabled, required, and native validity remain observable on the host.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Search, clear, and Enter",
+      `
+        <div class="catalog-example example-input-lab" data-catalog-input-lab>
+          <ui-field label="Issue search" description="Primary+K focuses the input; Escape clears editable text.">
+            <ui-input-group id="input-search-command" slot="control">
+              <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
+              <ui-input slot="control" type="search" name="issue-search" label="Issue search" value="billing" autocomplete="off" clean-on-escape data-catalog-input-focus data-catalog-input-events></ui-input>
+              <ui-button slot="suffix" type="button" size="small" variant="quiet" aria-label="Clear issue search" data-catalog-input-clear><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
+              <ui-kbd slot="suffix" command="input.focus" shortcut="Primary+K"></ui-kbd>
+            </ui-input-group>
+            <ui-gesture-binding for="input-search-command" gesture="key" shortcut="Primary+K" command="input.focus" prevent-default="recognized"></ui-gesture-binding>
+          </ui-field>
+          <output class="example-input-log" data-catalog-input-log>value: billing</output>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Prefix, suffix, shortcut hints, and clear commands compose through InputGroup; the input itself emits text, focus, and Enter events from the native control.",
+      },
+    ),
+    example(
+      "Secure value composition",
+      `
+        <ui-field class="catalog-example example-field" label="Access token" description="The reveal control is an adjacent toggle, not hidden input chrome.">
+          <ui-input-group slot="control" data-catalog-password-group>
+            <ui-icon slot="prefix" name="object.keyboard" label=""></ui-icon>
+            <ui-input slot="control" type="password" name="access-token" label="Access token" value="shrine-token" autocomplete="current-password"></ui-input>
+            <ui-toggle slot="suffix" size="small" data-catalog-password-toggle>Show</ui-toggle>
+          </ui-input-group>
         </ui-field>`,
       { compositionOnly: true },
+    ),
+    example(
+      "Formats without masking chrome",
+      `
+        <div class="catalog-example example-input-grid">
+          <ui-field label="Contact email"><ui-input slot="control" type="email" name="email" label="Contact email" placeholder="team@example.com" autocomplete="email" inputmode="email"></ui-input></ui-field>
+          <ui-field label="Support phone"><ui-input slot="control" type="tel" name="phone" label="Support phone" placeholder="+1 555 0100" autocomplete="tel" inputmode="tel"></ui-input></ui-field>
+          <ui-field label="Project URL"><ui-input slot="control" type="url" name="url" label="Project URL" placeholder="https://example.com" autocomplete="url" inputmode="url"></ui-input></ui-field>
+          <ui-field label="Budget cap">
+            <ui-input-group slot="control">
+              <span slot="prefix">$</span>
+              <ui-input slot="control" name="budget-cap" label="Budget cap" value="12,500" inputmode="decimal" pattern="[0-9,]+(\\.[0-9]{0,2})?"></ui-input>
+              <span slot="suffix">USD</span>
+            </ui-input-group>
+          </ui-field>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Email, tel, URL, autocomplete, inputmode, pattern, and affixed units stay native or composed. Heavy masking belongs in an app formatter or a number-field wrapper.",
+        stageLayout: "start",
+      },
+    ),
+  ],
+  "ui-textarea": [
+    example(
+      "Rows and availability",
+      `
+        <section class="catalog-example example-textarea-grid" aria-label="Textarea states">
+          <ui-field label="Project notes" description="Multiline text uses native textarea editing and validation.">
+            <ui-textarea slot="control" name="project-notes" rows="5" maxlength="240" placeholder="Add migration context"></ui-textarea>
+          </ui-field>
+          <ui-field label="Policy excerpt">
+            <ui-textarea slot="control" rows="4" readonly value="Invoices older than 90 days require finance approval before archival."></ui-textarea>
+          </ui-field>
+          <ui-field label="Locked field">
+            <ui-textarea slot="control" rows="4" disabled value="Workspace import is unavailable while retention rules are syncing."></ui-textarea>
+          </ui-field>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Rows, readonly selection, disabled availability, and native length constraints pass through the custom element without adding visual wrapper anatomy.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Comment composer",
+      `
+        <section class="catalog-example example-textarea-composer">
+          <ui-field label="Add update" description="Visible to project members.">
+            <ui-textarea slot="control" name="update" rows="3" maxlength="280" placeholder="Share the next useful detail"></ui-textarea>
+          </ui-field>
+          <ui-toolbar label="Comment tools" class="example-textarea-toolbar">
+            <ui-button type="button" size="small" variant="quiet" aria-label="Attach file">
+              <ui-icon name="action.add" label=""></ui-icon>
+            </ui-button>
+            <ui-button type="button" size="small" variant="quiet" aria-label="Insert link">
+              <ui-icon name="action.launch" label=""></ui-icon>
+            </ui-button>
+            <span>0 / 280</span>
+            <ui-button type="button" size="small">Post update</ui-button>
+          </ui-toolbar>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Textarea owns only the edit surface. Attachments, counters, shortcuts, and submission controls compose beside it.",
+        stageLayout: "start",
+      },
     ),
   ],
   "ui-input-group": [
@@ -2096,165 +3057,423 @@ const curated: Record<string, CatalogExample[]> = {
   ],
   "ui-select": [
     example(
-      "Field control",
+      "Basic single-select",
       `
-        <ui-field class="catalog-example example-field" label="Project visibility" description="Controls who can find this project.">
-          <ui-select slot="control" name="visibility" value="team" label="Project visibility">
+        <ui-field class="catalog-example example-field" label="Framework" description="Default UI kit for this project.">
+          <ui-select slot="control" name="framework" value="mash" label="Framework">
             <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
-            <ui-option value="private">Private<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
-            <ui-option value="team">Everyone in Interzone<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
-            <ui-option value="public">Anyone with the link<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="mash">Mash<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="radix">Radix Themes<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="custom">Custom kit<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="shadcn">shadcn/ui<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
           </ui-select>
         </ui-field>`,
       { compositionOnly: true },
     ),
     example(
-      "Grouped multiple selection",
+      "Placeholder and clear",
       `
-        <ui-field class="catalog-example example-field" label="Project access" description="Choose one or more audiences.">
-          <ui-select slot="control" name="access" label="Project access" multiple values='["team", "guests"]'>
+        <ui-field class="catalog-example example-field" label="Deployment region" description="Primary serving region for the workspace.">
+          <ui-select slot="control" name="region" value="iad" label="Deployment region" placeholder="Choose a region">
             <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
-            <ui-option-group label="Workspace">
-              <ui-option value="team">Everyone in Interzone<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
-              <ui-option value="admins">Administrators<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-button slot="clear" type="button" size="small" variant="quiet" aria-label="Clear region"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
+            <ui-option value="iad">US East<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="sfo">US West<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="fra">Europe Central<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="sin">Asia Pacific<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+          </ui-select>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Searchable countries",
+      `
+        <ui-field class="catalog-example example-field" label="Country">
+          <ui-select slot="control" name="country" value="japan" label="Country" searchable search-placeholder="Search countries">
+            <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+            <span slot="empty">No countries found</span>
+            <ui-option-group label="Americas">
+              <ui-option value="canada">Canada<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="mexico">Mexico<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="united-states">United States<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
             </ui-option-group>
-            <ui-option-group label="External">
-              <ui-option value="guests">Invited guests<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
-              <ui-option value="public">Anyone with the link<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option-group label="Asia Pacific">
+              <ui-option value="japan">Japan<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="singapore">Singapore<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="south-korea">South Korea<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            </ui-option-group>
+            <ui-option-group label="Europe">
+              <ui-option value="france">France<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="germany">Germany<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="spain">Spain<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
             </ui-option-group>
           </ui-select>
         </ui-field>`,
       { compositionOnly: true },
+    ),
+    example(
+      "Readonly selection",
+      `
+        <ui-field class="catalog-example example-field" label="Release channel" description="Readonly values remain focusable and participate in form submission.">
+          <ui-select slot="control" name="release-channel" value="stable" label="Release channel" readonly>
+            <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+            <ui-option value="stable">Stable<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="preview">Preview<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="canary">Canary<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+          </ui-select>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Grouped disabled items",
+      `
+        <ui-field class="catalog-example example-field" label="Timezone">
+          <ui-select slot="control" name="timezone" value="utc-5" label="Timezone">
+            <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+            <ui-option-group label="Americas">
+              <ui-option value="utc-8">Pacific time<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="utc-5">Eastern time<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            </ui-option-group>
+            <ui-option-group label="Europe">
+              <ui-option value="utc-0">Greenwich mean time<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="utc-1" disabled>Central European time<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            </ui-option-group>
+            <ui-option-group label="Asia Pacific">
+              <ui-option value="utc-8-asia" disabled>Singapore time<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="utc-9">Japan standard time<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            </ui-option-group>
+          </ui-select>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Sizes and disabled",
+      `
+        <div class="catalog-example example-select-showcase">
+          <ui-field label="Small" description="Dense settings rows.">
+            <ui-select slot="control" size="small" name="small-priority" value="low" label="Small priority">
+              <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+              <ui-option value="low">Low</ui-option>
+              <ui-option value="medium">Medium</ui-option>
+              <ui-option value="high">High</ui-option>
+            </ui-select>
+          </ui-field>
+          <ui-field label="Medium" description="Default control rhythm.">
+            <ui-select slot="control" name="medium-priority" value="medium" label="Medium priority">
+              <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+              <ui-option value="low">Low</ui-option>
+              <ui-option value="medium">Medium</ui-option>
+              <ui-option value="high">High</ui-option>
+            </ui-select>
+          </ui-field>
+          <ui-field label="Large disabled" description="Prominent but unavailable.">
+            <ui-select slot="control" size="large" name="large-priority" value="high" label="Large priority" disabled>
+              <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+              <ui-option value="low">Low</ui-option>
+              <ui-option value="medium">Medium</ui-option>
+              <ui-option value="high">High</ui-option>
+            </ui-select>
+          </ui-field>
+        </div>`,
+      { compositionOnly: true, stageLayout: "start" },
+    ),
+    example(
+      "Placement and alignment",
+      `
+        <ui-field class="catalog-example example-field" label="Issue state" description="The same selection control can anchor above and align to the logical end.">
+          <ui-select slot="control" name="issue-state" value="progress" label="Issue state" placement="top" align="end">
+            <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+            <ui-option value="backlog">Backlog<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="progress">In progress<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="review">In review<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="done">Done<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+          </ui-select>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Empty state",
+      `
+        <ui-field class="catalog-example example-field" label="University">
+          <ui-select slot="control" name="university" label="University" placeholder="Choose a university" searchable search-placeholder="Search universities">
+            <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+            <span slot="empty">No universities available</span>
+          </ui-select>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Menu width and height",
+      `
+        <ui-field class="catalog-example example-field" label="Food">
+          <ui-select class="example-select-bounded" slot="control" name="food" value="watermelon" label="Food">
+            <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+            <ui-option value="apple">Apple<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="banana">Banana<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="cherry">Cherry<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="dragonfruit">Dragon fruit<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="elderberry">Elderberry<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="fig">Fig<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="grapefruit">Grapefruit<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="watermelon">Watermelon with a very long menu label that should truncate cleanly<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+          </ui-select>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Events and gesture control",
+      `
+        <div class="catalog-example example-select-showcase example-select-open-stage" data-catalog-select-lab>
+          <div id="select-command-scope" class="example-select-command-scope" tabindex="0" aria-label="Select commands">
+            <ui-toggle id="select-open-toggle" data-catalog-select-open-toggle aria-label="Toggle status menu"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-toggle>
+            <ui-button type="button" size="small" variant="secondary" data-catalog-select-action="show">Show</ui-button>
+            <ui-button type="button" size="small" variant="secondary" data-catalog-select-action="dismiss">Dismiss</ui-button>
+            <ui-button type="button" size="small" variant="secondary" data-catalog-select-value="done">Set Done</ui-button>
+            <ui-button type="button" size="small" variant="quiet" data-catalog-select-action="clear">Clear</ui-button>
+          </div>
+          <ui-gesture-binding for="select-open-toggle" gesture="press" command="select.toggle" group="select-control"></ui-gesture-binding>
+          <ui-gesture-binding for="select-command-scope" gesture="key" shortcut="Primary+ArrowDown" command="select.open" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="select-command-scope" gesture="key" shortcut="Escape" command="select.dismiss" prevent-default="recognized"></ui-gesture-binding>
+          <ui-field label="Event status" description="Change, confirm, open state, and semantic commands share one value surface.">
+            <ui-select slot="control" name="event-status" value="progress" label="Event status" data-catalog-select-demo data-catalog-select-events>
+              <ui-icon slot="icon" name="navigation.chevron-down" label=""></ui-icon>
+              <ui-option value="backlog">Backlog<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="progress">In progress<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="review">In review<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="done">Done<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            </ui-select>
+          </ui-field>
+          <output class="example-select-log" data-catalog-select-log>open: false</output>
+        </div>`,
+      { compositionOnly: true, stageLayout: "start" },
     ),
   ],
   "ui-combobox": [
     example(
-      "Assign owner",
+      "Basic single-select",
       `
-        <ui-field class="catalog-example example-field" label="Project owner" description="Search the workspace to assign responsibility.">
-          <ui-combobox slot="control" name="owner" value="maya" label="Project owner">
+        <ui-field class="catalog-example example-field" label="Framework" description="Searchable single selection with a custom clear affordance.">
+          <ui-combobox slot="control" name="framework" value="Next.js" label="Framework" placeholder="Search frameworks">
             <ui-icon slot="icon" name="action.search" label=""></ui-icon>
-            <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Show project owners"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-button>
-            <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
-            <span slot="empty">No matching people</span>
-            <ui-option value="maya">Maya Chen</ui-option>
-            <ui-option value="sam">Sam Okafor</ui-option>
-            <ui-option value="alex">Alex Rivera</ui-option>
+            <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Show frameworks"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-button>
+            <ui-button slot="clear" type="button" size="small" variant="quiet" aria-label="Clear framework"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
+            <span slot="empty">No matching frameworks</span>
+            <ui-option value="Next.js">Next.js<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="SvelteKit">SvelteKit<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Nuxt.js">Nuxt.js<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Remix">Remix<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Astro">Astro<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
           </ui-combobox>
         </ui-field>`,
       { compositionOnly: true },
     ),
     example(
-      "Multiple owners",
+      "Multi-select chips",
       `
-        <ui-field class="catalog-example example-field" label="Project owners" description="Search and assign more than one owner.">
-          <ui-combobox slot="control" name="owners" label="Project owners" multiple values='["maya", "sam"]'>
-            <span slot="chips">
-              <ui-chip value="maya">Maya Chen<ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Maya"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button></ui-chip>
-              <ui-chip value="sam">Sam Okafor<ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Sam"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button></ui-chip>
-            </span>
+        <ui-field class="catalog-example example-field" label="Frameworks" description="Multiple selection keeps the popup available while chips only request removal.">
+          <ui-combobox slot="control" name="frameworks" label="Frameworks" multiple values='["React", "Angular"]' data-catalog-combobox-demo data-catalog-combobox-chips>
             <ui-icon slot="icon" name="action.search" label=""></ui-icon>
-            <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
-            <span slot="empty">No matching people</span>
-            <ui-option-group label="People">
-              <ui-option value="maya">Maya Chen<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
-              <ui-option value="sam">Sam Okafor<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
-              <ui-option value="alex">Alex Rivera<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-button slot="clear" type="button" size="small" variant="quiet" aria-label="Clear frameworks"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
+            <span slot="empty">No matching frameworks</span>
+            <ui-option-group label="Frontend">
+              <ui-option value="React">React<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Angular">Angular<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="VueJS">VueJS<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Svelte">Svelte<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="SolidJS">SolidJS<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            </ui-option-group>
+            <ui-option-group label="Meta frameworks">
+              <ui-option value="Next.js">Next.js<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Astro">Astro<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Remix">Remix<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Qwik">Qwik<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
             </ui-option-group>
           </ui-combobox>
         </ui-field>`,
       { compositionOnly: true },
     ),
     example(
-      "Rearrange selected owners",
+      "Grouped disabled items",
       `
-        <div class="catalog-example example-chip-workspace">
-          <ui-field label="Project owners" description="Drag the grip on a selected owner to change precedence.">
-            <ui-combobox slot="control" name="owners" label="Project owners" multiple values='["maya", "sam", "alex", "jo"]'>
-              <span slot="chips" class="example-chip-sort" role="list" data-catalog-drag-boundary>
-                <ui-chip value="maya" data-catalog-label="Maya" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
-                  <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Maya Chen"></ui-icon>
-                  Maya Chen
-                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Maya"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
-                </ui-chip>
-                <ui-chip value="sam" data-catalog-label="Sam" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
-                  <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Sam Okafor"></ui-icon>
-                  Sam Okafor
-                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Sam"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
-                </ui-chip>
-                <ui-chip value="alex" data-catalog-label="Alex" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
-                  <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Alex Rivera"></ui-icon>
-                  Alex Rivera
-                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Alex"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
-                </ui-chip>
-                <ui-chip value="jo" data-catalog-label="Jo" data-catalog-drag-source="chip" data-catalog-drag-axis="both">
-                  <ui-icon class="example-drag-grip" data-catalog-drag-handle name="action.drag" label="Move Jo Bell"></ui-icon>
-                  Jo Bell
-                  <ui-button slot="remove" type="button" size="small" variant="quiet" aria-label="Remove Jo"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
-                </ui-chip>
+        <ui-field class="catalog-example example-field" label="Food" description="Groups stay authored in light DOM, including unavailable choices.">
+          <ui-combobox slot="control" name="food" label="Food" placeholder="Search foods">
+            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
+            <span slot="empty">No matching foods</span>
+            <ui-option-group label="Fruits">
+              <ui-option value="Apples">Apples<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Bananas">Bananas<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Cherries">Cherries<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            </ui-option-group>
+            <ui-option-group label="Vegetables">
+              <ui-option value="Carrots">Carrots<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Broccoli" disabled>Broccoli<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Spinach">Spinach<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            </ui-option-group>
+            <ui-option-group label="Beverages">
+              <ui-option value="Tea">Tea<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Coffee" disabled>Coffee<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Juice">Juice<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            </ui-option-group>
+          </ui-combobox>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Custom item rows",
+      `
+        <ui-field class="catalog-example example-field" label="Industry" description="Options can carry icons, metadata, badges, and their own selected indicator.">
+          <ui-combobox slot="control" name="industry" value="Education" label="Industry" filter="none">
+            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
+            <ui-option value="Information technology">
+              <span class="example-combobox-row">
+                <ui-icon name="object.terminal" label=""></ui-icon>
+                <span class="example-combobox-row-copy"><strong>Information technology</strong><span class="example-combobox-meta">Cloud, developer tooling, and data platforms</span></span>
               </span>
-              <ui-icon slot="icon" name="action.search" label=""></ui-icon>
-              <ui-button slot="clear" type="button" size="small" variant="quiet">Clear</ui-button>
-              <ui-option-group label="People">
-                <ui-option value="maya">Maya Chen<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
-                <ui-option value="sam">Sam Okafor<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
-                <ui-option value="alex">Alex Rivera<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
-                <ui-option value="jo">Jo Bell<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
-              </ui-option-group>
+              <ui-icon slot="indicator" name="action.confirm" label=""></ui-icon>
+            </ui-option>
+            <ui-option value="Healthcare">
+              <span class="example-combobox-row">
+                <ui-icon name="status.information" label=""></ui-icon>
+                <span class="example-combobox-row-copy"><strong>Healthcare</strong><span class="example-combobox-meta">Care delivery and operations systems</span></span>
+              </span>
+              <ui-icon slot="indicator" name="action.confirm" label=""></ui-icon>
+            </ui-option>
+            <ui-option value="Education">
+              <span class="example-combobox-row">
+                <ui-icon name="object.document" label=""></ui-icon>
+                <span class="example-combobox-row-copy"><strong>Education</strong><span class="example-combobox-meta">Learning products and campus tooling</span></span>
+                <ui-badge tone="accent">Featured</ui-badge>
+              </span>
+              <ui-icon slot="indicator" name="action.confirm" label=""></ui-icon>
+            </ui-option>
+            <ui-option value="Entertainment">
+              <span class="example-combobox-row">
+                <ui-icon name="object.folder" label=""></ui-icon>
+                <span class="example-combobox-row-copy"><strong>Entertainment</strong><span class="example-combobox-meta">Media catalogs and audience workflows</span></span>
+              </span>
+              <ui-icon slot="indicator" name="action.confirm" label=""></ui-icon>
+            </ui-option>
+          </ui-combobox>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Footer action",
+      `
+        <ui-field class="catalog-example example-field" label="University" description="The persistent footer stays outside the listbox while the caller decides what the action creates.">
+          <ui-combobox slot="control" name="university" label="University" placeholder="Search universities" data-catalog-combobox-demo>
+            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
+            <span slot="empty">No matching universities</span>
+            <ui-option value="Stanford University">Stanford University<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Harvard University">Harvard University<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Massachusetts Institute of Technology">Massachusetts Institute of Technology<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-button slot="footer" type="button" variant="ghost" tone="accent" class="example-combobox-footer-action" data-catalog-combobox-add-option="Princeton University">
+              <ui-icon slot="prefix" name="action.add" label=""></ui-icon>
+              New university
+            </ui-button>
+          </ui-combobox>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Custom trigger and clear",
+      `
+        <ui-field class="catalog-example example-field" label="Industry filter" description="Trigger, clear, and value presentation are authored slots around the editable input.">
+          <ui-combobox slot="control" name="industry-filter" value="Finance" label="Industry filter" filter="none">
+            <ui-badge slot="value" tone="accent">Preferred</ui-badge>
+            <ui-button slot="trigger" type="button" variant="secondary" size="small" aria-label="Show industries">
+              <span class="example-combobox-trigger-pill">Industry <ui-icon name="navigation.chevron-down" label=""></ui-icon></span>
+            </ui-button>
+            <ui-button slot="clear" type="button" size="small" variant="quiet" aria-label="Clear industry"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
+            <ui-option value="Information technology">Information technology<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Healthcare">Healthcare<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Finance">Finance<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Education">Education<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+          </ui-combobox>
+        </ui-field>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Sizes and disabled",
+      `
+        <div class="catalog-example example-combobox-showcase">
+          <ui-field label="Small" description="Compact control density.">
+            <ui-combobox slot="control" size="small" name="small-framework" label="Small framework" placeholder="Small">
+              <ui-option value="Next.js">Next.js</ui-option>
+              <ui-option value="Astro">Astro</ui-option>
             </ui-combobox>
           </ui-field>
-          <output class="example-drag-status" data-catalog-chip-status>Owner precedence: Maya, Sam, Alex, Jo</output>
+          <ui-field label="Medium" description="Default catalog density.">
+            <ui-combobox slot="control" name="medium-framework" label="Medium framework" placeholder="Medium">
+              <ui-option value="SvelteKit">SvelteKit</ui-option>
+              <ui-option value="Remix">Remix</ui-option>
+            </ui-combobox>
+          </ui-field>
+          <ui-field label="Large disabled" description="Unavailable controls preserve geometry.">
+            <ui-combobox slot="control" size="large" name="large-framework" value="Qwik" label="Large framework" disabled>
+              <ui-option value="Qwik">Qwik</ui-option>
+              <ui-option value="Nuxt.js">Nuxt.js</ui-option>
+            </ui-combobox>
+          </ui-field>
         </div>`,
-      {
-        compositionOnly: true,
-        description:
-          "The chips remain Combobox-owned values; a catalogue consumer uses the headless drag controller to reorder their authored DOM sequence.",
-        stageLayout: "start",
-      },
+      { compositionOnly: true, stageLayout: "start" },
     ),
     example(
-      "Grid suggestions",
+      "Selection limit",
       `
-        <ui-field class="catalog-example example-field" label="Assignee matrix" description="Arrow keys preserve row and column position.">
-          <ui-combobox slot="control" name="assignee" label="Assignee matrix" grid>
+        <ui-field class="catalog-example example-field" label="Framework limit" description="At capacity, unselected items become disabled until a chip is removed.">
+          <ui-combobox slot="control" name="limited-frameworks" label="Framework limit" multiple values='["React", "Remix"]' data-catalog-combobox-demo data-catalog-combobox-chips data-catalog-combobox-max="2">
             <ui-icon slot="icon" name="action.search" label=""></ui-icon>
-            <ui-option-row>
-              <ui-option value="maya">Maya Chen</ui-option>
-              <ui-option value="sam">Sam Okafor</ui-option>
-            </ui-option-row>
-            <ui-option-row>
-              <ui-option value="alex">Alex Rivera</ui-option>
-              <ui-option value="jo">Jo Bell</ui-option>
-            </ui-option-row>
+            <span slot="empty">No matching frameworks</span>
+            <ui-option value="React">React<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Next.js">Next.js<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Angular">Angular<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Remix">Remix<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Astro">Astro<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
           </ui-combobox>
         </ui-field>`,
       { compositionOnly: true },
     ),
     example(
-      "Externally filtered loading state",
+      "Pinned overflow count",
       `
-        <ui-field class="catalog-example example-field" label="Remote project" description="The caller owns async sourcing; Combobox owns the pending and listbox semantics.">
-          <ui-combobox slot="control" name="remote-project" label="Remote project" filter="none" loading open>
+        <ui-field class="catalog-example example-field" label="Pinned frameworks" description="Pinned selections stay selected and disabled while the trigger summarizes overflow.">
+          <ui-combobox slot="control" name="pinned-frameworks" label="Pinned frameworks" multiple values='["Next.js", "SvelteKit", "React", "Remix"]' data-catalog-combobox-demo data-catalog-combobox-chips data-catalog-combobox-max-visible="2">
             <ui-icon slot="icon" name="action.search" label=""></ui-icon>
-            <ui-spinner slot="loading" size="small" label="Searching projects"></ui-spinner>
-            <span slot="empty">No remote projects found</span>
+            <span slot="empty">No matching frameworks</span>
+            <ui-option value="Next.js" disabled data-catalog-combobox-pinned>Next.js <ui-badge tone="accent">Pinned</ui-badge><ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="SvelteKit" disabled data-catalog-combobox-pinned>SvelteKit <ui-badge tone="accent">Pinned</ui-badge><ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="React">React<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Remix">Remix<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Astro">Astro<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="Qwik">Qwik<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
           </ui-combobox>
         </ui-field>`,
       { compositionOnly: true },
     ),
     example(
-      "Prefix filtering",
+      "Events and programmatic control",
       `
-        <ui-field class="catalog-example example-field" label="Project command" description="Only option labels beginning with the query remain visible.">
-          <ui-combobox slot="control" name="command" value="re" filter="starts-with" label="Project command" open>
-            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
-            <span slot="empty">No matching commands</span>
-            <ui-option value="rename">Rename project</ui-option>
-            <ui-option value="review">Review changes</ui-option>
-            <ui-option value="archive">Archive project</ui-option>
-          </ui-combobox>
-        </ui-field>`,
-      { compositionOnly: true },
+        <div class="catalog-example example-combobox-showcase example-combobox-open-stage" data-catalog-combobox-lab>
+          <div class="example-combobox-toolbar">
+            <ui-button type="button" size="small" variant="secondary" data-catalog-combobox-action="show">Show</ui-button>
+            <ui-button type="button" size="small" variant="secondary" data-catalog-combobox-action="dismiss">Dismiss</ui-button>
+            <ui-button type="button" size="small" variant="secondary" data-catalog-combobox-value="Remix">Select Remix</ui-button>
+            <ui-button type="button" size="small" variant="quiet" data-catalog-combobox-action="clear">Clear</ui-button>
+          </div>
+          <ui-field label="Event framework" description="Input, selection, open changes, and imperative commands share one state surface.">
+            <ui-combobox slot="control" name="event-framework" label="Event framework" placeholder="Type or choose" data-catalog-combobox-demo data-catalog-combobox-events>
+              <ui-icon slot="icon" name="action.search" label=""></ui-icon>
+              <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Show event frameworks"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-button>
+              <ui-option value="Next.js">Next.js<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="SvelteKit">SvelteKit<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Remix">Remix<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+              <ui-option value="Astro">Astro<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            </ui-combobox>
+          </ui-field>
+          <output class="example-combobox-log" data-catalog-combobox-log>open: false</output>
+        </div>`,
+      { compositionOnly: true, stageLayout: "start" },
     ),
   ],
   "ui-autocomplete": [
@@ -2434,20 +3653,64 @@ const curated: Record<string, CatalogExample[]> = {
   ],
   "ui-toolbar": [
     example(
-      "Text formatting",
+      "Selection editor",
       `
-        <ui-toolbar class="catalog-example example-toolbar" label="Text formatting">
-          <ui-toggle value="bold" pressed aria-label="Bold">B</ui-toggle>
-          <ui-toggle value="italic" aria-label="Italic"><em>I</em></ui-toggle>
-          <ui-toggle value="underline" aria-label="Underline"><u>U</u></ui-toggle>
-          <ui-separator orientation="vertical"></ui-separator>
-          <ui-menu label="Block type">
-            <ui-button slot="trigger" variant="secondary">Paragraph</ui-button>
-            <ui-menu-item value="paragraph">Paragraph</ui-menu-item>
-            <ui-menu-item value="heading">Heading</ui-menu-item>
-          </ui-menu>
-        </ui-toolbar>`,
-      { compositionOnly: true },
+        <section class="catalog-example example-toolbar-selection" data-catalog-toolbar-selection-demo data-catalog-gesture-demo>
+          <article class="example-toolbar-document" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" data-catalog-toolbar-selection-surface>
+            <h2>Migration brief</h2>
+            <p>The billing migration should keep invoice review fast while the team replaces brittle one-off approval states.</p>
+            <p>Prioritize <span data-catalog-toolbar-selection-initial>international reconciliation</span> before pushing the final customer notice.</p>
+          </article>
+          <ui-toolbar class="example-toolbar-floating" data-catalog-selection-toolbar hidden label="Selected text formatting">
+            <ui-menu class="example-toolbar-menu" label="Text style" density="compact" sizing="fixed" placement="bottom" align="start" offset="8">
+              <ui-button class="example-toolbar-text-trigger" id="toolbar-selection-text" slot="trigger" type="button" size="small" variant="quiet" dropdown-caret aria-label="Text style">Text</ui-button>
+              <ui-menu-label>Turn into</ui-menu-label>
+              <ui-menu-item kind="checkbox" value="body" data-catalog-selection-command="format.body">Body<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              <ui-menu-item kind="checkbox" value="callout" data-catalog-selection-command="format.callout">Callout<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              <ui-menu-item kind="checkbox" value="headline" data-catalog-selection-command="format.headline">Headline<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              <ui-menu-item kind="checkbox" value="title" data-catalog-selection-command="format.title">Title 3<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              <ui-separator></ui-separator>
+              <ui-menu-item value="tone">
+                Tone
+                <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
+                <ui-menu slot="submenu" label="Text tone" density="compact" sizing="fixed">
+                  <ui-menu-item kind="checkbox" value="secondary" data-catalog-selection-command="tone.secondary">Muted<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                  <ui-menu-item kind="checkbox" value="accent" data-catalog-selection-command="tone.accent">Accent<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                  <ui-menu-item kind="checkbox" value="critical" data-catalog-selection-command="tone.critical">Critical<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                </ui-menu>
+              </ui-menu-item>
+              <ui-menu-item value="insert">
+                Insert component
+                <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
+                <ui-menu slot="submenu" label="Insert component" density="compact" sizing="fixed">
+                  <ui-menu-item kind="checkbox" value="badge" data-catalog-selection-command="insert.badge">Badge<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                  <ui-menu-item kind="checkbox" value="callout-chip" data-catalog-selection-command="insert.callout">Callout chip<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                </ui-menu>
+              </ui-menu-item>
+            </ui-menu>
+            <ui-separator orientation="vertical"></ui-separator>
+            <ui-toggle id="toolbar-selection-bold" value="bold" aria-label="Bold" data-catalog-selection-command="format.bold"><strong>B</strong></ui-toggle>
+            <ui-toggle id="toolbar-selection-italic" value="italic" aria-label="Italic" data-catalog-selection-command="format.italic"><em>I</em></ui-toggle>
+            <ui-toggle id="toolbar-selection-strike" value="strike" aria-label="Strikethrough" data-catalog-selection-command="format.strike"><s>S</s></ui-toggle>
+            <ui-toggle id="toolbar-selection-code" value="code" aria-label="Inline code" data-catalog-selection-command="format.code"><code>&lt;&gt;</code></ui-toggle>
+            <ui-separator orientation="vertical"></ui-separator>
+            <ui-button id="toolbar-selection-link" type="button" size="small" variant="quiet" compact aria-label="Add link" data-catalog-selection-command="format.link"><ui-icon name="action.launch" label=""></ui-icon></ui-button>
+            <ui-button id="toolbar-selection-comment" type="button" size="small" variant="quiet" compact aria-label="Add comment" data-catalog-selection-command="format.comment" data-catalog-selection-secondary><ui-icon name="action.edit" label=""></ui-icon></ui-button>
+            <ui-button id="toolbar-selection-more" type="button" size="small" variant="quiet" compact aria-label="More actions" data-catalog-selection-secondary><ui-icon name="navigation.more.horizontal" label=""></ui-icon></ui-button>
+          </ui-toolbar>
+          <output class="example-toolbar-output" data-catalog-toolbar-selection-output>international reconciliation selected</output>
+          <ui-gesture-binding for="toolbar-selection-bold" gesture="press" command="format.bold" group="selection-toolbar"></ui-gesture-binding>
+          <ui-gesture-binding for="toolbar-selection-italic" gesture="press" command="format.italic" group="selection-toolbar"></ui-gesture-binding>
+          <ui-gesture-binding for="toolbar-selection-strike" gesture="press" command="format.strike" group="selection-toolbar"></ui-gesture-binding>
+          <ui-gesture-binding for="toolbar-selection-code" gesture="press" command="format.code" group="selection-toolbar"></ui-gesture-binding>
+          <ui-gesture-binding for="toolbar-selection-link" gesture="press" command="format.link" group="selection-toolbar"></ui-gesture-binding>
+          <ui-gesture-binding for="toolbar-selection-comment" gesture="press" command="format.comment" group="selection-toolbar"></ui-gesture-binding>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "The toolbar remains a semantic command group; the catalogue composes selection detection, floating placement, nested menus, and gesture bindings around it.",
+      },
     ),
     example(
       "Docked editor tools",
@@ -2480,24 +3743,62 @@ const curated: Record<string, CatalogExample[]> = {
   ],
   "ui-dialog": [
     example(
-      "Rename project",
+      "Focused form",
       `
         <div class="catalog-example example-stack">
-          <p class="example-support">A modal asks for a focused edit, then returns focus to its trigger.</p>
-          <ui-dialog label="Rename Billing migration">
-            <ui-button slot="trigger">Rename project</ui-button>
-            <h2 slot="title">Rename project</h2>
-            <p slot="description">Use a clear name that your whole workspace will recognize.</p>
-            <ui-field label="Project name" description="Visible to everyone in Interzone.">
-              <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
-            </ui-field>
+          <ui-dialog label="Edit project settings">
+            <ui-button slot="trigger">Edit project</ui-button>
+            <h2 slot="title">Edit project settings</h2>
+            <p slot="description">Keep modal work narrow and return focus to the trigger when it closes.</p>
+            <div class="example-dialog-copy">
+              <ui-field label="Project name" description="Visible to everyone in Interzone." required>
+                <ui-input slot="control" name="project-name" value="Billing migration"></ui-input>
+              </ui-field>
+              <ui-field label="Owner email">
+                <ui-input slot="control" type="email" name="owner-email" value="maya@interzone.test" autocomplete="email"></ui-input>
+              </ui-field>
+            </div>
             <div slot="close" class="example-actions">
               <ui-button variant="secondary">Cancel</ui-button>
               <ui-button>Save changes</ui-button>
             </div>
           </ui-dialog>
         </div>`,
-      { compositionOnly: true },
+      {
+        compositionOnly: true,
+        description:
+          "Dialog owns modal focus, Escape/outside dismissal, title/description wiring, and close requests; fields and buttons keep their own semantics.",
+      },
+    ),
+    example(
+      "Scrollable review",
+      `
+        <div class="catalog-example example-stack">
+          <ui-dialog label="Review deployment checklist">
+            <ui-button slot="trigger" variant="secondary">Review checklist</ui-button>
+            <h2 slot="title">Review deployment checklist</h2>
+            <p slot="description">Long modal content should scroll inside the dialog surface, not the page behind it.</p>
+            <ui-scroll-area class="example-dialog-scroll" label="Deployment checklist" mode="always" gutter="stable">
+              <ol slot="content" class="example-dialog-list">
+                <li>Verify finance owner approval.</li>
+                <li>Confirm invoice replay finished without failed checkpoints.</li>
+                <li>Attach the rollback note to the project activity.</li>
+                <li>Notify the migration room before enabling writes.</li>
+                <li>Keep a manual review notification open until sign-off lands.</li>
+                <li>Archive the preview files after the release window closes.</li>
+              </ol>
+            </ui-scroll-area>
+            <div slot="close" class="example-actions">
+              <ui-button variant="secondary">Close</ui-button>
+              <ui-button>Mark reviewed</ui-button>
+            </div>
+          </ui-dialog>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Scrollable body content composes through ScrollArea; the dialog does not become a document viewer or own workflow state.",
+      },
     ),
   ],
   "ui-alert-dialog": [
@@ -2556,128 +3857,103 @@ const curated: Record<string, CatalogExample[]> = {
   ],
   "ui-menu": [
     example(
-      "Stateful sections and flexible bounds",
+      "Labelled command groups",
       `
         <div class="catalog-example example-menu-stage">
-          <ui-menu class="example-menu-flex" label="Workspace view options" density="compact" sizing="content" open>
-            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="small" slot="trigger" tone="neutral" variant="quiet">
+          <ui-menu label="Workspace view options" density="compact" sizing="fixed">
+            <ui-button class="example-menu-trigger" slot="trigger" size="small" variant="secondary">
               View
               <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
             </ui-button>
             <ui-menu-label>Layout</ui-menu-label>
-            <ui-menu-item kind="checkbox" value="breadcrumbs">Show full namespace ancestry in breadcrumbs</ui-menu-item>
-            <ui-menu-item kind="checkbox" value="sidebar" checked>Show sidebar</ui-menu-item>
+            <ui-menu-item kind="checkbox" value="breadcrumbs">Breadcrumbs<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+            <ui-menu-item kind="checkbox" value="sidebar" checked>Show sidebar<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
             <ui-separator></ui-separator>
-            <ui-menu-label>Appearance</ui-menu-label>
-            <ui-menu-item kind="radio" value="comfortable" checked>Comfortable</ui-menu-item>
-            <ui-menu-item kind="radio" value="compact">Compact</ui-menu-item>
+            <ui-menu-label>Theme</ui-menu-label>
+            <ui-menu-item kind="radio" value="system" checked>System<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+            <ui-menu-item kind="radio" value="light">Light<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+            <ui-menu-item kind="radio" value="dark">Dark<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
             <ui-separator></ui-separator>
             <ui-menu-label>Danger zone</ui-menu-label>
-            <ui-menu-item value="reset" tone="critical">Reset workspace layout</ui-menu-item>
+            <ui-menu-item value="reset" tone="critical">Reset layout</ui-menu-item>
           </ui-menu>
         </div>`,
       {
         compositionOnly: true,
         description:
-          "Content sizing flexes between declarable semantic bounds. Menu labels provide regular text fallbacks plus optional sewn lanes; checkbox/radio items own toggle semantics; checked, focus, hover, submenu-open, and destructive tone remain separately styleable states.",
-      },
-    ),
-    example(
-      "Motion lifecycle contracts",
-      `
-        <div class="catalog-example example-menu-stage example-actions">
-          <ui-menu label="Snappy project commands">
-            <ui-button class="example-menu-trigger" slot="trigger" variant="secondary">
-              Snappy
-              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
-            </ui-button>
-            <ui-menu-item value="open"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Open project</ui-menu-item>
-            <ui-menu-item value="search">Search project<ui-kbd slot="shortcut" command="project.search" shortcut="Primary+F"></ui-kbd></ui-menu-item>
-          </ui-menu>
-          <ui-menu
-            label="Deliberate project commands"
-            class="state-entering:part-popup:[animation-duration:var(--duration-surface)] state-exiting:part-popup:[animation-duration:var(--duration-surface)]"
-          >
-            <ui-button class="example-menu-trigger" slot="trigger" variant="secondary">
-              Deliberate override
-              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
-            </ui-button>
-            <ui-menu-item value="open"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Open project</ui-menu-item>
-            <ui-menu-item value="search">Search project<ui-kbd slot="shortcut" command="project.search" shortcut="Primary+F"></ui-kbd></ui-menu-item>
-          </ui-menu>
-        </div>`,
-      {
-        compositionOnly: true,
-        description:
-          "Menus default to the 120ms transient tier. Generated entering/exiting state variants and the popup part let an application opt a specific surface into a different semantic duration without changing menu behavior.",
+          "Menu labels are non-interactive section rows that keep icon, check, label, and suffix lanes aligned with sibling commands.",
       },
     ),
     example(
       "Pull-down commands",
       `
         <div class="catalog-example example-menu-stage">
-          <ui-menu label="Edit commands" open>
-            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="regular" slot="trigger" tone="neutral" variant="quiet">
-              Edit
-              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
-            </ui-button>
-            <ui-menu-item value="undo">
-              <ui-icon slot="prefix" name="action.reset" label=""></ui-icon>
-              Undo
-              <ui-kbd slot="shortcut" command="edit.undo" shortcut="Primary+Z"></ui-kbd>
-            </ui-menu-item>
-            <ui-menu-item value="redo">
-              <ui-icon slot="prefix" name="action.refresh" label=""></ui-icon>
-              Redo
-              <ui-kbd slot="shortcut" command="edit.redo" shortcut="Primary+Shift+Z"></ui-kbd>
-            </ui-menu-item>
+          <ui-menu label="Edit commands">
+            <ui-button class="example-menu-trigger" slot="trigger" size="small" variant="secondary">Edit<ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon></ui-button>
+            <ui-menu-item value="undo"><ui-icon slot="prefix" name="action.reset" label=""></ui-icon>Undo<ui-kbd slot="shortcut" command="edit.undo" shortcut="Primary+Z"></ui-kbd></ui-menu-item>
+            <ui-menu-item value="redo"><ui-icon slot="prefix" name="action.refresh" label=""></ui-icon>Redo<ui-kbd slot="shortcut" command="edit.redo" shortcut="Primary+Shift+Z"></ui-kbd></ui-menu-item>
             <ui-separator></ui-separator>
             <ui-menu-item value="paste">Paste<ui-kbd slot="shortcut" command="edit.paste" shortcut="Primary+V"></ui-kbd></ui-menu-item>
-            <ui-menu-item value="paste-style">Paste and Match Style<ui-kbd slot="shortcut" command="edit.paste-style" shortcut="Alt+Shift+Primary+V"></ui-kbd></ui-menu-item>
             <ui-menu-item value="delete" tone="critical">Delete<ui-kbd slot="shortcut" command="edit.delete-backward" shortcut="Backspace"></ui-kbd></ui-menu-item>
           </ui-menu>
         </div>`,
       {
         compositionOnly: true,
         description:
-          "A regular 250px pull-down menu with fixed symbol and shortcut lanes, 24px rows, separators, and destructive tone.",
+          "A command menu keeps symbols, labels, and semantic keyboard shortcuts in stable lanes.",
       },
     ),
     example(
-      "Pop-up selection",
+      "Checked choices",
       `
         <div class="catalog-example example-menu-stage">
-          <ui-menu label="Sort projects" density="compact" open>
-            <ui-button class="example-menu-trigger" data-menu-trigger="popup" data-menu-size="small" slot="trigger" tone="neutral" variant="quiet">
-              Updated
-              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
-            </ui-button>
-            <ui-menu-item kind="radio" value="name">Name</ui-menu-item>
-            <ui-menu-item kind="radio" value="updated" checked>Updated</ui-menu-item>
-            <ui-menu-item kind="radio" value="created">Created</ui-menu-item>
+          <ui-menu label="Sort projects" density="compact">
+            <ui-button class="example-menu-trigger" slot="trigger" size="small" variant="secondary">Sort<ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon></ui-button>
+            <ui-menu-item kind="radio" value="name">Name<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+            <ui-menu-item kind="radio" value="updated" checked>Updated<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+            <ui-menu-item kind="radio" value="created">Created<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
             <ui-separator></ui-separator>
-            <ui-menu-item kind="checkbox" value="descending" checked>Descending</ui-menu-item>
+            <ui-menu-item kind="checkbox" value="descending" checked>Descending<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
           </ui-menu>
         </div>`,
       {
         compositionOnly: true,
         description:
-          "A pop-up button reports the selected value while the menu uses checkbox and radio semantics with one shared selection lane.",
+          "Menu choices remain commands with checkbox or radio semantics; they do not become a form value like ui-select.",
+      },
+    ),
+    example(
+      "Split dropdown button",
+      `
+        <div class="catalog-example example-menu-stage example-split-button">
+          <ui-button class="example-split-action" size="small">Run build</ui-button>
+          <ui-menu label="Build variants" density="compact">
+            <ui-button class="example-split-trigger" slot="trigger" size="small" aria-label="Choose build variant"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-button>
+            <ui-menu-item value="production">Production build</ui-menu-item>
+            <ui-menu-item value="preview">Preview build</ui-menu-item>
+            <ui-menu-item value="analyze">Analyze bundle</ui-menu-item>
+          </ui-menu>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "The primary action and menu trigger stay independent while sharing one visual control group.",
       },
     ),
     example(
       "Nested compact leafing",
       `
         <div class="catalog-example example-menu-stage">
-          <ui-menu label="Project commands" density="compact" open>
-            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="small" slot="trigger" tone="neutral" variant="quiet">
+          <ui-menu label="Project commands" density="compact">
+            <ui-button class="example-menu-trigger" slot="trigger" size="small" variant="secondary">
               Project
               <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
             </ui-button>
             <ui-menu-item value="open">Open project<ui-kbd slot="shortcut" command="project.open" shortcut="Primary+O"></ui-kbd></ui-menu-item>
             <ui-menu-item value="recent">
               Recent projects
-              <ui-menu slot="submenu" label="Recent projects" density="compact" open>
+              <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
+              <ui-menu slot="submenu" label="Recent projects" density="compact">
                 <ui-menu-item value="billing">Billing migration</ui-menu-item>
                 <ui-menu-item value="invoice">Invoice reconciliation</ui-menu-item>
                 <ui-menu-item value="archive">Legacy ledger</ui-menu-item>
@@ -2686,6 +3962,7 @@ const curated: Record<string, CatalogExample[]> = {
             <ui-menu-item value="find">
               Find
               <ui-kbd slot="shortcut" command="project.find" shortcut="Primary+F"></ui-kbd>
+              <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
               <ui-menu slot="submenu" label="Find" density="compact">
                 <ui-menu-item value="find-next">Find Next<ui-kbd slot="shortcut" command="project.find-next" shortcut="Primary+G"></ui-kbd></ui-menu-item>
                 <ui-menu-item value="find-previous">Find Previous<ui-kbd slot="shortcut" command="project.find-previous" shortcut="Primary+Shift+G"></ui-kbd></ui-menu-item>
@@ -2700,24 +3977,88 @@ const curated: Record<string, CatalogExample[]> = {
       },
     ),
     example(
-      "Mini overflow",
+      "Sticky scroll chrome",
       `
         <div class="catalog-example example-menu-stage">
-          <ui-menu label="Compact history" density="mini" open>
-            <ui-button class="example-menu-trigger" data-menu-trigger="pulldown" data-menu-size="mini" slot="trigger" tone="neutral" variant="quiet">
-              History
-              <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
-            </ui-button>
-            <ui-menu-item value="billing">Billing migration and invoice reconciliation</ui-menu-item>
-            <ui-menu-item value="archive">Legacy ledger verification and archive import</ui-menu-item>
-            <ui-menu-item value="restore" disabled>Restore unavailable workspace snapshot</ui-menu-item>
+          <ui-menu class="example-menu-scroll" label="Recent projects" density="compact" sizing="fixed" open>
+            <ui-button class="example-menu-trigger" slot="trigger" size="small" variant="secondary">Recent<ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon></ui-button>
+            <div slot="header" class="example-menu-sticky-header"><strong>Recent projects</strong><ui-badge size="small">9</ui-badge></div>
+            <ui-menu-item value="billing">Billing migration</ui-menu-item>
+            <ui-menu-item value="ledger">Ledger verification</ui-menu-item>
+            <ui-menu-item value="invoice">Invoice reconciliation</ui-menu-item>
+            <ui-menu-item value="archive">Archive import</ui-menu-item>
+            <ui-menu-item value="tax">Tax reporting</ui-menu-item>
+            <ui-menu-item value="payments">Payment routing</ui-menu-item>
+            <ui-menu-item value="receipts">Receipt matching</ui-menu-item>
+            <ui-menu-item value="forecast">Revenue forecast</ui-menu-item>
+            <ui-menu-item value="restore" disabled>Unavailable snapshot</ui-menu-item>
+            <div slot="footer" class="example-menu-sticky-footer"><span>Team-visible projects</span><span>Return opens</span></div>
           </ui-menu>
         </div>`,
       {
         compositionOnly: true,
         description:
-          "The 190px mini tier keeps trailing lanes fixed and applies the shared progressive overflow mask only to the label viewport.",
+          "Persistent header and footer slots frame a bounded native viewport; only the command collection scrolls.",
       },
+    ),
+    example(
+      "Disabled commands",
+      `
+        <div class="catalog-example example-menu-stage">
+          <ui-menu label="Project permissions" density="compact">
+            <ui-button class="example-menu-trigger" slot="trigger" size="small" variant="secondary">Permissions<ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon></ui-button>
+            <ui-menu-label>Available</ui-menu-label>
+            <ui-menu-item value="copy-link"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Copy link</ui-menu-item>
+            <ui-menu-item value="invite"><ui-icon slot="prefix" name="action.add" label=""></ui-icon>Invite member</ui-menu-item>
+            <ui-separator></ui-separator>
+            <ui-menu-label>Owner only</ui-menu-label>
+            <ui-menu-item value="transfer" disabled>Transfer ownership</ui-menu-item>
+            <ui-menu-item value="delete" disabled tone="critical">Delete workspace</ui-menu-item>
+          </ui-menu>
+        </div>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Sizing and density",
+      `
+        <div class="catalog-example example-menu-stage example-actions">
+          <ui-menu label="Regular menu"><ui-button slot="trigger" size="small" variant="secondary">Regular</ui-button><ui-menu-item value="open">Open</ui-menu-item><ui-menu-item value="rename">Rename</ui-menu-item></ui-menu>
+          <ui-menu label="Compact menu" density="compact" sizing="fixed"><ui-button slot="trigger" size="small" variant="secondary">Compact</ui-button><ui-menu-item value="open">Open</ui-menu-item><ui-menu-item value="rename">Rename</ui-menu-item></ui-menu>
+          <ui-menu label="Mini menu" density="mini" sizing="fixed"><ui-button slot="trigger" size="xsmall" variant="secondary">Mini</ui-button><ui-menu-item value="open">Open</ui-menu-item><ui-menu-item value="rename">Rename</ui-menu-item></ui-menu>
+        </div>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Gesture-bound control",
+      `
+        <div class="catalog-example example-menu-stage example-menu-lab" data-catalog-menu-lab>
+          <ui-toggle id="menu-command-toggle" data-catalog-menu-toggle aria-label="Toggle project commands"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-toggle>
+          <ui-gesture-binding for="menu-command-toggle" gesture="press" command="menu.toggle" group="menu-control"></ui-gesture-binding>
+          <ui-menu label="Project commands" data-catalog-menu-demo>
+            <ui-button class="example-menu-trigger" slot="trigger" size="small" variant="secondary">Commands<ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon></ui-button>
+            <ui-menu-item value="open">Open project</ui-menu-item>
+            <ui-menu-item value="duplicate">Duplicate project</ui-menu-item>
+            <ui-menu-item value="archive" tone="critical">Archive project</ui-menu-item>
+          </ui-menu>
+          <output class="example-select-log" data-catalog-menu-log>open: false</output>
+        </div>`,
+      { compositionOnly: true },
+    ),
+    example(
+      "Draggable row actions",
+      `
+        <div class="catalog-example example-menu-drag-stage">
+          <ui-draggable class="example-menu-draggable" axis="x" containment="parent" snap-step="8">
+            <ui-toolbar slot="handle" label="Move Billing migration" class="example-menu-drag-handle"><ui-icon name="action.drag" label=""></ui-icon><strong>Billing migration</strong></ui-toolbar>
+            <ui-menu label="Billing migration actions" density="compact">
+              <ui-button slot="trigger" size="small" variant="quiet" aria-label="Billing migration actions"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-button>
+              <ui-menu-item value="open">Open</ui-menu-item>
+              <ui-menu-item value="duplicate">Duplicate</ui-menu-item>
+              <ui-menu-item value="archive" tone="critical">Archive</ui-menu-item>
+            </ui-menu>
+          </ui-draggable>
+        </div>`,
+      { compositionOnly: true },
     ),
   ],
   "ui-context-menu": [
@@ -2763,13 +4104,20 @@ const curated: Record<string, CatalogExample[]> = {
   ],
   "ui-tooltip": [
     example(
-      "Compact action",
+      "Icon help",
       `
-        <div class="catalog-example example-stack">
-          <p class="example-support">Short, non-interactive help belongs in a tooltip.</p>
+        <div class="catalog-example example-tooltip-row">
           <ui-tooltip label="Create project">
-            <ui-button slot="trigger" aria-label="Create project">+</ui-button>
+            <ui-button slot="trigger" type="button" aria-label="Create project">
+              <ui-icon name="action.add" label=""></ui-icon>
+            </ui-button>
             Create a new project
+          </ui-tooltip>
+          <ui-tooltip label="Archive project" placement="bottom">
+            <ui-button slot="trigger" type="button" variant="secondary" tone="critical" aria-label="Archive project">
+              <ui-icon name="action.delete" label=""></ui-icon>
+            </ui-button>
+            Archive this project
           </ui-tooltip>
         </div>`,
       { compositionOnly: true },
@@ -2796,6 +4144,30 @@ const curated: Record<string, CatalogExample[]> = {
           </ui-tooltip>
         </div>`,
       { compositionOnly: true },
+    ),
+    example(
+      "Shortcut hint",
+      `
+        <div class="catalog-example example-tooltip-row">
+          <ui-tooltip label="Command palette shortcut" open-delay="0">
+            <ui-button slot="trigger" type="button" variant="secondary">
+              Command palette
+              <ui-kbd slot="suffix" command="workspace.palette" shortcut="Primary+K"></ui-kbd>
+            </ui-button>
+            <span class="example-tooltip-hint">Open command palette <ui-kbd command="workspace.palette" shortcut="Primary+K"></ui-kbd></span>
+          </ui-tooltip>
+          <ui-popover label="Project actions">
+            <ui-button slot="trigger" type="button" variant="secondary">Rich help</ui-button>
+            <strong slot="title">Project actions</strong>
+            <p slot="description">Interactive controls belong in a popover surface.</p>
+            <ui-button slot="close" size="small" variant="quiet">Done</ui-button>
+          </ui-popover>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "Tooltips stay hover/focus descriptions. The adjacent popover shows where rich or actionable overlay content goes.",
+      },
     ),
   ],
   "ui-menubar": [
@@ -3530,54 +4902,86 @@ const curated: Record<string, CatalogExample[]> = {
   ],
   "ui-toast": [
     example(
-      "Saved status",
+      "Notification anatomy",
       `
-        <div class="catalog-example example-stack">
-          <ui-toast open tone="positive" duration="0">Project preferences saved</ui-toast>
-          <p class="example-support">Transient feedback confirms a completed action without taking focus.</p>
-        </div>`,
-      { compositionOnly: true },
+        <ui-toast class="catalog-example" open tone="warning" duration="0">
+          <ui-icon slot="icon" name="status.warning" label=""></ui-icon>
+          <strong slot="title">Connection interrupted</strong>
+          Sync paused while the workspace reconnects.
+          <ui-button slot="actions" type="button" size="small" variant="secondary">Retry now</ui-button>
+        </ui-toast>`,
+      {
+        compositionOnly: true,
+        description:
+          "A toast owns the live-region announcement and dismissal lifecycle; title, message, icon, and action controls are authored content.",
+      },
     ),
     example(
-      "Semantic tones and icons",
+      "Semantic outcomes",
       `
         <div class="catalog-example example-toast-list">
-          <ui-toast open tone="positive" duration="0"><ui-icon slot="icon" name="action.confirm" label=""></ui-icon>Project saved</ui-toast>
-          <ui-toast open tone="warning" duration="0"><ui-icon slot="icon" name="status.warning" label=""></ui-icon>Migration needs attention</ui-toast>
-          <ui-toast open tone="critical" duration="0"><ui-icon slot="icon" name="status.error" label=""></ui-icon>Invoice replay failed</ui-toast>
+          <ui-toast open tone="positive" duration="0"><ui-icon slot="icon" name="action.confirm" label=""></ui-icon><strong slot="title">Project saved</strong>Preferences were stored for this workspace.</ui-toast>
+          <ui-toast open tone="warning" duration="0"><ui-icon slot="icon" name="status.warning" label=""></ui-icon><strong slot="title">Review needed</strong>The migration note is missing a finance owner.</ui-toast>
+          <ui-toast open tone="critical" duration="0"><ui-icon slot="icon" name="status.error" label=""></ui-icon><strong slot="title">Replay failed</strong>Invoice replay stopped before the last checkpoint.</ui-toast>
         </div>`,
       { compositionOnly: true },
     ),
     example(
-      "Pause on interaction",
+      "Auto-hide and persistent",
       `
-        <div class="catalog-example example-stack">
-          <ui-toast open tone="neutral" duration="5000" pause-on-hover>Hover or focus to pause this notification</ui-toast>
-          <p class="example-support">The remaining duration resumes after interaction leaves.</p>
+        <div class="catalog-example example-toast-list">
+          <ui-toast open tone="neutral" duration="5000" pause-on-hover><strong slot="title">Saved draft</strong>Hover or focus pauses the remaining timeout.</ui-toast>
+          <ui-toast open tone="warning" duration="0"><strong slot="title">Manual review</strong>This notification stays open until dismissed.</ui-toast>
         </div>`,
-      { compositionOnly: true },
+      {
+        compositionOnly: true,
+        description:
+          "Auto-hide uses a duration; important or action-bearing notices stay open with duration zero.",
+      },
     ),
   ],
   "ui-toast-stack": [
     example(
-      "Workspace notifications",
+      "Notification layer",
       `
         <ui-toast-stack placement="top-end" limit="3" label="Workspace notifications">
-          <ui-toast open duration="0" tone="positive">Project saved</ui-toast>
-          <ui-toast open duration="0">Review requested</ui-toast>
-          <ui-toast open duration="0" tone="warning">Migration needs attention</ui-toast>
+          <ui-toast open duration="0" tone="positive"><ui-icon slot="icon" name="action.confirm" label=""></ui-icon><strong slot="title">Project saved</strong>Billing migration was updated.</ui-toast>
+          <ui-toast open duration="0"><strong slot="title">Review requested</strong>Maya asked for a deployment-note pass.</ui-toast>
+          <ui-toast open duration="0" tone="warning"><ui-icon slot="icon" name="status.warning" label=""></ui-icon><strong slot="title">Migration needs attention</strong>One imported record has no owner.</ui-toast>
         </ui-toast-stack>`,
-      { compositionOnly: true },
+      {
+        compositionOnly: true,
+        description:
+          "The stack places authored toasts and coordinates collapse/expansion; queue IDs and replacement policy stay with application state.",
+      },
+    ),
+    example(
+      "Long-running operation",
+      `
+        <ui-toast-stack placement="bottom-end" limit="2" label="Upload notifications">
+          <ui-toast open duration="0" tone="neutral">
+            <ui-icon slot="icon" name="status.loading" label=""></ui-icon>
+            <strong slot="title">Uploading archive</strong>
+            42 of 64 records processed.
+            <ui-progress slot="actions" value="66" max="100" label="Upload progress"></ui-progress>
+          </ui-toast>
+          <ui-toast open duration="0" tone="positive"><strong slot="title">Preview ready</strong>The generated summary can be opened from the project activity.</ui-toast>
+        </ui-toast-stack>`,
+      {
+        compositionOnly: true,
+        description:
+          "Progress and replacement semantics are composed into the toast rather than creating a separate notification subtype.",
+      },
     ),
     example(
       "Logical placements",
       `
         <div class="catalog-example example-toast-placement-grid">
           <ui-toast-stack placement="top-start" limit="1" label="Top start notifications">
-            <ui-toast open duration="0">Top start</ui-toast>
+            <ui-toast open duration="0"><strong slot="title">Top start</strong>Logical start respects document direction.</ui-toast>
           </ui-toast-stack>
           <ui-toast-stack placement="bottom-end" limit="1" label="Bottom end notifications">
-            <ui-toast open duration="0" tone="positive">Bottom end</ui-toast>
+            <ui-toast open duration="0" tone="positive"><strong slot="title">Bottom end</strong>Common transient app feedback.</ui-toast>
           </ui-toast-stack>
         </div>`,
       { compositionOnly: true },
@@ -3877,18 +5281,19 @@ const familyCompositions: Record<
   "sh-pail": { parent: "sh-myth" },
   "sh-slot": { parent: "sh-myth" },
   "ui-accordion-item": { parent: "ui-accordion" },
-  "ui-chip": { parent: "ui-combobox", example: "Multiple owners" },
+  "ui-bubble-group": { parent: "ui-bubble", example: "Message rows" },
+  "ui-chip": { parent: "ui-combobox", example: "Multi-select chips" },
   "ui-color-swatch": { parent: "ui-color-picker" },
   "ui-menu-item": { parent: "ui-menu", openParent: true },
   "ui-menu-label": {
     parent: "ui-menu",
-    example: "Stateful sections and flexible bounds",
+    example: "Labelled command groups",
     openParent: true,
   },
   "ui-option": { parent: "ui-select", openParent: true },
   "ui-option-group": {
     parent: "ui-select",
-    example: "Grouped multiple selection",
+    example: "Grouped disabled items",
     openParent: true,
   },
   "ui-option-row": {

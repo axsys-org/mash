@@ -5,6 +5,12 @@ import { baseStyles } from "../internal/base-styles.js";
 /** Semantic meaning carried by a toast announcement. */
 export type ToastTone = "neutral" | "positive" | "warning" | "critical";
 
+function hasAssignedSlotContent(slot: HTMLSlotElement): boolean {
+  return slot
+    .assignedNodes({ flatten: true })
+    .some((node) => node.nodeType !== Node.TEXT_NODE || (node.textContent ?? "").trim().length > 0);
+}
+
 /**
  * A transient live-region message with optional timeout dismissal.
  *
@@ -19,12 +25,17 @@ export type ToastTone = "neutral" | "positive" | "warning" | "critical";
  * <ui-toast open tone="positive" duration="5000">Project saved</ui-toast>
  *
  * @slot - Toast message and optional passive content.
+ * @slot title - Optional notification title.
  * @slot icon - Optional symbolic status content before the message.
+ * @slot actions - Optional semantic action controls owned by the application.
  * @slot close - Optional authored dismiss action; the native button is the fallback.
  *
  * @csspart root - The semantic live-region toast surface.
  * @csspart icon - The optional symbolic status content.
+ * @csspart body - The title, message, and action stack.
+ * @csspart title - The optional notification title.
  * @csspart message - The authored notification message.
+ * @csspart actions - The optional action-control region.
  * @csspart close - The optional native dismiss button.
  *
  * @cssstate open - Matches `:state(open)` while visible.
@@ -33,13 +44,20 @@ export type ToastTone = "neutral" | "positive" | "warning" | "critical";
  * @fires {CustomEvent<{ open: boolean, reason: string }>} ui-toast-open-change - Emitted after timeout or user dismissal requests a new open state.
  *
  * @mashnode root root
- * @mashnode message message root
+ * @mashnode icon icon root
+ * @mashnode body body root
+ * @mashnode title title body
+ * @mashnode message message body
+ * @mashnode actions actions body
  * @mashnode close close root
  * @mashnode open open root
  * @mashnode paused paused root
  * @mashnode duration duration root
+ * @mashrole slot icon icon icon
+ * @mashrole slot title title title
  * @mashrole event ui-toast-open-change open open
  * @mashrole slot default message message
+ * @mashrole slot actions actions actions
  * @mashrole slot close close close
  */
 export class UIToast extends LitElement {
@@ -56,6 +74,9 @@ export class UIToast extends LitElement {
     paused: { type: Boolean, reflect: true },
     pauseOnHover: { type: Boolean, attribute: "pause-on-hover", reflect: true },
     _interactionPaused: { type: Boolean, state: true },
+    _hasIcon: { type: Boolean, state: true },
+    _hasTitle: { type: Boolean, state: true },
+    _hasActions: { type: Boolean, state: true },
   };
 
   /** Whether the toast is visible. */
@@ -73,6 +94,9 @@ export class UIToast extends LitElement {
   /** Suspends automatic dismissal while pointer or keyboard focus is within the toast. */
   declare pauseOnHover: boolean;
   declare _interactionPaused: boolean;
+  declare private _hasIcon: boolean;
+  declare private _hasTitle: boolean;
+  declare private _hasActions: boolean;
 
   readonly #internals: ElementInternals;
   #timeout: ReturnType<typeof setTimeout> | undefined;
@@ -89,6 +113,9 @@ export class UIToast extends LitElement {
     this.paused = false;
     this.pauseOnHover = true;
     this._interactionPaused = false;
+    this._hasIcon = false;
+    this._hasTitle = false;
+    this._hasActions = false;
     this.#internals = this.attachInternals();
   }
 
@@ -154,6 +181,14 @@ export class UIToast extends LitElement {
     this.#setInteractionPaused(false);
   };
 
+  #onSlotChange = (event: Event): void => {
+    const slot = event.currentTarget as HTMLSlotElement;
+    const hasContent = hasAssignedSlotContent(slot);
+    if (slot.name === "icon") this._hasIcon = hasContent;
+    else if (slot.name === "title") this._hasTitle = hasContent;
+    else if (slot.name === "actions") this._hasActions = hasContent;
+  };
+
   /** Requests dismissal with a renderer-neutral reason. */
   requestClose(reason = "dismiss"): void {
     if (!this.open) return;
@@ -178,9 +213,30 @@ export class UIToast extends LitElement {
       @focusin=${() => this.#setInteractionPaused(true)}
       @focusout=${this.#onFocusOut}
     >
-      <span part="icon"><slot name="icon"></slot></span
-      ><slot part="message"></slot
-      >${this.dismissible ? html`<button part="close" type="button" aria-label="Dismiss notification" @click=${() => this.requestClose("dismiss")}><slot name="close">×</slot></button>` : null}
+      <span part="icon" ?hidden=${!this._hasIcon}
+        ><slot name="icon" @slotchange=${this.#onSlotChange}></slot
+      ></span>
+      <span part="body">
+        <span part="title" ?hidden=${!this._hasTitle}
+          ><slot name="title" @slotchange=${this.#onSlotChange}></slot
+        ></span>
+        <span part="message"><slot></slot></span>
+        <span part="actions" ?hidden=${!this._hasActions}
+          ><slot name="actions" @slotchange=${this.#onSlotChange}></slot
+        ></span>
+      </span>
+      ${
+        this.dismissible
+          ? html`<button
+              part="close"
+              type="button"
+              aria-label="Dismiss notification"
+              @click=${() => this.requestClose("dismiss")}
+            >
+              <slot name="close">×</slot>
+            </button>`
+          : null
+      }
     </div>`;
   }
 }

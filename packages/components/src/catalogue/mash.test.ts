@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { fixture, inShadow } from "../test-support/fixture.js";
+import "../bubble/register.js";
 import "../checkbox/register.js";
 import "../input-group/register.js";
 import "../input/register.js";
 import "../kbd/register.js";
+import "../label/register.js";
 import "../menu-item/register.js";
 import "../menu-label/register.js";
 import "../menu/register.js";
@@ -34,6 +36,26 @@ describe("Mash catalogue", () => {
 
     expect(getComputedStyle(indicator).display).toBe("grid");
     expect(getComputedStyle(indicator).borderTopWidth).toBe("1px");
+  });
+
+  it("maps label and bubble recipes through semantic tokens", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const host = await fixture(`
+      <div>
+        <ui-label text="Billing migration" size="large" highlight="migration"></ui-label>
+        <ui-bubble variant="outline" alignment="start">Ready for review.</ui-bubble>
+      </div>
+    `);
+    const label = host.querySelector("ui-label")!;
+    const bubble = host.querySelector("ui-bubble")!;
+    const labelRoot = inShadow<HTMLElement>(label, '[part="root"]');
+    const highlight = inShadow<HTMLElement>(label, '[part~="highlight"]');
+    const content = inShadow<HTMLElement>(bubble, '[part="content"]');
+
+    expect(getComputedStyle(labelRoot).fontSize).toBe("15px");
+    expect(getComputedStyle(highlight).color).not.toBe("rgba(0, 0, 0, 0)");
+    expect(getComputedStyle(content).borderTopWidth).toBe("1px");
+    expect(getComputedStyle(content).borderRadius).toBe("16px");
   });
 
   it("lets a composed input group own one focus boundary", async () => {
@@ -117,7 +139,7 @@ describe("Mash catalogue", () => {
     expect(checked?.matches(":state(checked)")).toBe(true);
   });
 
-  it("uses declarable menu sizing and applies menu-label padding", async () => {
+  it("uses declarable menu sizing and applies tokenized menu density", async () => {
     document.documentElement.dataset.mashCatalogue = "mash";
     const menu = await fixture(`
       <ui-menu label="Project commands" density="compact" sizing="fixed" open>
@@ -128,11 +150,14 @@ describe("Mash catalogue", () => {
     const popup = inShadow<HTMLElement>(menu, '[part="popup"]');
     const label = menu.querySelector("ui-menu-label")!;
     const labelRoot = inShadow<HTMLElement>(label, '[part="root"]');
+    const item = menu.querySelector("ui-menu-item")!;
+    const itemControl = inShadow<HTMLElement>(item, '[part="control"]');
 
     expect(getComputedStyle(popup).inlineSize).toBe("210px");
     expect(getComputedStyle(popup).minInlineSize).toBe("210px");
     expect(getComputedStyle(popup).maxInlineSize).toBe("210px");
-    expect(getComputedStyle(labelRoot).paddingInlineStart).toBe("12px");
+    expect(getComputedStyle(itemControl).blockSize).toBe("20px");
+    expect(getComputedStyle(labelRoot).paddingInlineStart).toBe("8px");
   });
 
   it("pronounces typeset preset and tone tokens through parts", async () => {

@@ -27,9 +27,24 @@ export { UIAlertDialog } from "./alert-dialog/alert-dialog.js";
 export { UIAutocomplete } from "./autocomplete/autocomplete.js";
 export { UIBadge } from "./badge/badge.js";
 export type { BadgeSize, BadgeTone } from "./badge/badge.js";
+export { UIBubble, UIBubbleGroup } from "./bubble/bubble.js";
+export type {
+  BubbleAlignment,
+  BubbleReactionAlignment,
+  BubbleReactionSide,
+  BubbleVariant,
+} from "./bubble/bubble.js";
 export { UICheckbox } from "./checkbox/checkbox.js";
+export type { CheckboxSize } from "./checkbox/checkbox.js";
 export { UICheckboxGroup } from "./checkbox-group/checkbox-group.js";
 export type { CheckboxGroupOrientation } from "./checkbox-group/checkbox-group.js";
+export { UIClipboard } from "./clipboard/clipboard.js";
+export type {
+  ClipboardCopiedDetail,
+  ClipboardCopyRequestDetail,
+  ClipboardErrorDetail,
+  ClipboardValueSource,
+} from "./clipboard/clipboard.js";
 export { UICollapsible } from "./collapsible/collapsible.js";
 export { UIColorPicker, UIColorSwatch, normalizeHexColor } from "./color-picker/color-picker.js";
 export { UICombobox } from "./combobox/combobox.js";
@@ -90,6 +105,8 @@ export type {
   IntlFormatterStyle,
 } from "./intl-formatter/intl-formatter.js";
 export { UILink } from "./link/link.js";
+export { UILabel } from "./label/label.js";
+export type { LabelAlign, LabelHighlightMatch, LabelSize } from "./label/label.js";
 export { UIKbd } from "./kbd/kbd.js";
 export { UIDialog } from "./dialog/dialog.js";
 export { UIDrawer } from "./drawer/drawer.js";
@@ -160,7 +177,9 @@ export type {
 export { UISelect } from "./select/select.js";
 export { UISeparator } from "./separator/separator.js";
 export type { SeparatorOrientation } from "./separator/separator.js";
+export { UISkeleton } from "./skeleton/skeleton.js";
 export { UISlider } from "./slider/slider.js";
+export { UIShimmer } from "./shimmer/shimmer.js";
 export { UISpinner } from "./spinner/spinner.js";
 export type { SpinnerSize } from "./spinner/spinner.js";
 export { UISwitch } from "./switch/switch.js";
@@ -198,5 +217,9 @@ export * from "./drag/drag.js";
 export { UIDraggable } from "./draggable/draggable.js";
 export type { DraggableContainment } from "./draggable/draggable.js";
 export { UITypeset } from "./typeset/typeset.js";
-export type { TypesetPreset, TypesetTone } from "./typeset/typeset.js";
+export type { TypesetFlow, TypesetPreset, TypesetTone } from "./typeset/typeset.js";
 export { UIMenuLabel } from "./menu-label/menu-label.js";
+export { UIStagger } from "./stagger/stagger.js";
+export type { StaggerChangeDetail, StaggerOrigin } from "./stagger/stagger.js";
+export { UIReveal } from "./reveal/reveal.js";
+export type { RevealAxis, RevealEventDetail, RevealState } from "./reveal/reveal.js";

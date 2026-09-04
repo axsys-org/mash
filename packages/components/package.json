@@ -62,6 +62,14 @@
       "types": "./dist/badge/register.d.ts",
       "import": "./dist/badge/register.js"
     },
+    "./bubble": {
+      "types": "./dist/bubble/bubble.d.ts",
+      "import": "./dist/bubble/bubble.js"
+    },
+    "./bubble/register": {
+      "types": "./dist/bubble/register.d.ts",
+      "import": "./dist/bubble/register.js"
+    },
     "./catalogue/mash.css": "./src/catalogue/mash.css",
     "./tailwind.css": "./dist/tailwind.css",
     "./checkbox": {
@@ -147,6 +155,14 @@
     "./chip/register": {
       "types": "./dist/chip/register.d.ts",
       "import": "./dist/chip/register.js"
+    },
+    "./clipboard": {
+      "types": "./dist/clipboard/clipboard.d.ts",
+      "import": "./dist/clipboard/clipboard.js"
+    },
+    "./clipboard/register": {
+      "types": "./dist/clipboard/register.d.ts",
+      "import": "./dist/clipboard/register.js"
     },
     "./input": {
       "types": "./dist/input/input.d.ts",
@@ -275,6 +291,22 @@
     "./spinner/register": {
       "types": "./dist/spinner/register.d.ts",
       "import": "./dist/spinner/register.js"
+    },
+    "./skeleton": {
+      "types": "./dist/skeleton/skeleton.d.ts",
+      "import": "./dist/skeleton/skeleton.js"
+    },
+    "./skeleton/register": {
+      "types": "./dist/skeleton/register.d.ts",
+      "import": "./dist/skeleton/register.js"
+    },
+    "./shimmer": {
+      "types": "./dist/shimmer/shimmer.d.ts",
+      "import": "./dist/shimmer/shimmer.js"
+    },
+    "./shimmer/register": {
+      "types": "./dist/shimmer/register.d.ts",
+      "import": "./dist/shimmer/register.js"
     },
     "./switch": {
       "types": "./dist/switch/switch.d.ts",
@@ -508,6 +540,14 @@
       "types": "./dist/link/register.d.ts",
       "import": "./dist/link/register.js"
     },
+    "./label": {
+      "types": "./dist/label/label.d.ts",
+      "import": "./dist/label/label.js"
+    },
+    "./label/register": {
+      "types": "./dist/label/register.d.ts",
+      "import": "./dist/label/register.js"
+    },
     "./textarea": {
       "types": "./dist/textarea/textarea.d.ts",
       "import": "./dist/textarea/textarea.js"
@@ -635,6 +675,22 @@
     "./menu-label/register": {
       "types": "./dist/menu-label/register.d.ts",
       "import": "./dist/menu-label/register.js"
+    },
+    "./stagger": {
+      "types": "./dist/stagger/stagger.d.ts",
+      "import": "./dist/stagger/stagger.js"
+    },
+    "./stagger/register": {
+      "types": "./dist/stagger/register.d.ts",
+      "import": "./dist/stagger/register.js"
+    },
+    "./reveal": {
+      "types": "./dist/reveal/reveal.d.ts",
+      "import": "./dist/reveal/reveal.js"
+    },
+    "./reveal/register": {
+      "types": "./dist/reveal/register.d.ts",
+      "import": "./dist/reveal/register.js"
     },
     "./custom-elements.json": "./custom-elements.json",
     "./package.json": "./package.json"

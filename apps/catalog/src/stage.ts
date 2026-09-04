@@ -19,6 +19,7 @@ import {
   type DragAxis,
   type DragController,
   type DragEventDetail,
+  type RevealEventDetail,
 } from "@mash/ui";
 import {
   defaultLinearWorkspaceSnapshot,
@@ -47,6 +48,288 @@ document.documentElement.dataset.mashCatalogue = "mash";
 const dragControllers = new Map<HTMLElement, DragController>();
 let activeCatalogDragSource: HTMLElement | null = null;
 const canceledCatalogDrags = new WeakSet<HTMLElement>();
+const comboboxChipKeys = new WeakMap<HTMLElement, string>();
+
+type CatalogCombobox = HTMLElement & {
+  dismiss?: (reason?: string) => void;
+  multiple?: boolean;
+  open?: boolean;
+  show?: () => void;
+  value?: string;
+  values?: string[];
+};
+
+type CatalogComboboxOption = HTMLElement & {
+  disabled?: boolean;
+  value?: string;
+};
+
+type CatalogSelect = HTMLElement & {
+  dismiss?: (reason?: string) => void;
+  open?: boolean;
+  show?: () => void;
+  toggle?: (reason?: string) => void;
+  value?: string;
+};
+
+type CatalogSelectOption = HTMLElement & {
+  value?: string;
+};
+
+type CatalogMenu = HTMLElement & {
+  dismiss?: (reason?: string) => void;
+  open?: boolean;
+  show?: (reason?: string) => void;
+  toggle?: (reason?: string) => void;
+};
+
+function comboboxValues(combobox: CatalogCombobox): string[] {
+  if (combobox.multiple) return Array.isArray(combobox.values) ? [...combobox.values] : [];
+  return combobox.value ? [combobox.value] : [];
+}
+
+function comboboxOptions(combobox: CatalogCombobox): CatalogComboboxOption[] {
+  return [...combobox.querySelectorAll<CatalogComboboxOption>("ui-option")];
+}
+
+function comboboxOptionValue(option: CatalogComboboxOption): string {
+  return option.value ?? option.getAttribute("value") ?? option.textContent?.trim() ?? "";
+}
+
+function comboboxOptionForValue(
+  combobox: CatalogCombobox,
+  value: string,
+): CatalogComboboxOption | undefined {
+  return comboboxOptions(combobox).find((option) => comboboxOptionValue(option) === value);
+}
+
+function comboboxLabelForValue(combobox: CatalogCombobox, value: string): string {
+  return comboboxOptionForValue(combobox, value)?.dataset.catalogComboboxLabel ?? value;
+}
+
+function syncComboboxConstraints(combobox: CatalogCombobox): void {
+  const values = new Set(comboboxValues(combobox));
+  const max = Number.parseInt(combobox.dataset.catalogComboboxMax ?? "", 10);
+  const hasMax = Number.isFinite(max) && max > 0;
+  const atLimit = hasMax && values.size >= max;
+  for (const option of comboboxOptions(combobox)) {
+    const pinned = option.dataset.catalogComboboxPinned !== undefined;
+    if (pinned) {
+      option.disabled = true;
+      continue;
+    }
+    if (!hasMax) continue;
+    option.disabled = atLimit && !values.has(comboboxOptionValue(option));
+  }
+}
+
+function createComboboxChip(
+  combobox: CatalogCombobox,
+  value: string,
+  removable: boolean,
+): HTMLElement {
+  const chip = document.createElement("ui-chip");
+  chip.setAttribute("slot", "chips");
+  chip.setAttribute("value", value);
+  chip.dataset.catalogComboboxChip = "";
+  chip.dataset.catalogLabel = comboboxLabelForValue(combobox, value);
+  chip.append(document.createTextNode(comboboxLabelForValue(combobox, value)));
+  if (!removable) {
+    chip.setAttribute("disabled", "");
+    return chip;
+  }
+  const remove = document.createElement("ui-button");
+  remove.setAttribute("slot", "remove");
+  remove.setAttribute("type", "button");
+  remove.setAttribute("size", "xsmall");
+  remove.setAttribute("variant", "quiet");
+  remove.setAttribute("tabindex", "-1");
+  remove.setAttribute("aria-label", `Remove ${comboboxLabelForValue(combobox, value)}`);
+  const icon = document.createElement("ui-icon");
+  icon.setAttribute("name", "action.dismiss");
+  icon.setAttribute("label", "");
+  remove.append(icon);
+  chip.append(remove);
+  return chip;
+}
+
+function syncComboboxChips(combobox: CatalogCombobox): void {
+  if (!combobox.matches("[data-catalog-combobox-chips]")) return;
+  const values = comboboxValues(combobox);
+  const requestedMaxVisible = Number.parseInt(combobox.dataset.catalogComboboxMaxVisible ?? "", 10);
+  const maxVisible =
+    Number.isFinite(requestedMaxVisible) && requestedMaxVisible >= 0
+      ? requestedMaxVisible
+      : values.length;
+  const key = JSON.stringify([values, maxVisible]);
+  if (comboboxChipKeys.get(combobox) === key) return;
+  comboboxChipKeys.set(combobox, key);
+  for (const chip of combobox.querySelectorAll(":scope > [data-catalog-combobox-chip]"))
+    chip.remove();
+  const firstOption = combobox.querySelector(
+    ":scope > ui-option, :scope > ui-option-group, :scope > ui-option-row",
+  );
+  const insertChip = (chip: HTMLElement): void => {
+    combobox.insertBefore(chip, firstOption);
+  };
+  for (const value of values.slice(0, maxVisible)) {
+    const option = comboboxOptionForValue(combobox, value);
+    const removable = option?.dataset.catalogComboboxPinned === undefined;
+    insertChip(createComboboxChip(combobox, value, removable));
+  }
+  const overflow = values.length - maxVisible;
+  if (overflow <= 0) return;
+  const badge = document.createElement("ui-badge");
+  badge.setAttribute("slot", "chips");
+  badge.setAttribute("size", "small");
+  badge.setAttribute("tone", "neutral");
+  badge.setAttribute("aria-label", `${overflow} more selected`);
+  badge.dataset.catalogComboboxChip = "";
+  badge.textContent = `+${overflow}`;
+  insertChip(badge);
+}
+
+function syncComboboxDemo(combobox: CatalogCombobox): void {
+  syncComboboxConstraints(combobox);
+  syncComboboxChips(combobox);
+}
+
+function syncCatalogComboboxDemos(): void {
+  for (const combobox of document.querySelectorAll<CatalogCombobox>("[data-catalog-combobox-demo]"))
+    syncComboboxDemo(combobox);
+}
+
+function comboboxLabForAction(action: HTMLElement): HTMLElement | null {
+  return action.closest<HTMLElement>("[data-catalog-combobox-lab]");
+}
+
+function comboboxForAction(action: HTMLElement): CatalogCombobox | null {
+  return (
+    action.closest<CatalogCombobox>("[data-catalog-combobox-demo]") ??
+    comboboxLabForAction(action)?.querySelector<CatalogCombobox>("[data-catalog-combobox-demo]") ??
+    null
+  );
+}
+
+function dispatchComboboxChange(combobox: CatalogCombobox): void {
+  combobox.dispatchEvent(
+    new CustomEvent<{ value: string; values: string[] }>("ui-combobox-change", {
+      bubbles: true,
+      composed: true,
+      detail: {
+        value: combobox.value ?? "",
+        values: combobox.multiple
+          ? [...(combobox.values ?? [])]
+          : combobox.value
+            ? [combobox.value]
+            : [],
+      },
+    }),
+  );
+}
+
+function dispatchComboboxInput(combobox: CatalogCombobox): void {
+  combobox.dispatchEvent(
+    new CustomEvent<{ value: string }>("ui-combobox-input", {
+      bubbles: true,
+      composed: true,
+      detail: { value: combobox.value ?? "" },
+    }),
+  );
+}
+
+function createComboboxOption(value: string): CatalogComboboxOption {
+  const option = document.createElement("ui-option") as CatalogComboboxOption;
+  option.setAttribute("value", value);
+  option.append(document.createTextNode(value));
+  const indicator = document.createElement("ui-icon");
+  indicator.setAttribute("slot", "indicator");
+  indicator.setAttribute("name", "action.confirm");
+  indicator.setAttribute("label", "");
+  option.append(indicator);
+  return option;
+}
+
+function addComboboxOption(combobox: CatalogCombobox, fallback: string): void {
+  const value = (combobox.value ?? "").trim() || fallback.trim();
+  if (!value) return;
+  if (!comboboxOptionForValue(combobox, value)) combobox.append(createComboboxOption(value));
+  if (combobox.multiple) {
+    combobox.values = [...new Set([...(combobox.values ?? []), value])];
+    combobox.value = "";
+  } else {
+    combobox.value = value;
+  }
+  dispatchComboboxChange(combobox);
+  if (!combobox.multiple) combobox.dismiss?.("select");
+  syncComboboxDemo(combobox);
+}
+
+function recordComboboxEvent(combobox: CatalogCombobox, message: string): void {
+  if (!combobox.matches("[data-catalog-combobox-events]")) return;
+  const log = comboboxLabForAction(combobox)?.querySelector<HTMLOutputElement>(
+    "[data-catalog-combobox-log]",
+  );
+  if (!log) return;
+  const lines = (log.textContent ?? "").split("\n").filter(Boolean);
+  lines.push(message);
+  log.textContent = lines.slice(-6).join("\n");
+}
+
+function selectOptions(select: CatalogSelect): CatalogSelectOption[] {
+  return [...select.querySelectorAll<CatalogSelectOption>("ui-option")];
+}
+
+function selectOptionValue(option: CatalogSelectOption): string {
+  return option.value ?? option.getAttribute("value") ?? option.textContent?.trim() ?? "";
+}
+
+function selectOptionForValue(
+  select: CatalogSelect,
+  value: string,
+): CatalogSelectOption | undefined {
+  return selectOptions(select).find((option) => selectOptionValue(option) === value);
+}
+
+function selectLabForAction(action: HTMLElement): HTMLElement | null {
+  return action.closest<HTMLElement>("[data-catalog-select-lab]");
+}
+
+function selectForAction(action: HTMLElement): CatalogSelect | null {
+  return (
+    action.closest<CatalogSelect>("[data-catalog-select-demo]") ??
+    selectLabForAction(action)?.querySelector<CatalogSelect>("[data-catalog-select-demo]") ??
+    null
+  );
+}
+
+function dispatchSelectChange(select: CatalogSelect): void {
+  select.dispatchEvent(
+    new CustomEvent<{ value: string }>("ui-select-change", {
+      bubbles: true,
+      composed: true,
+      detail: { value: select.value ?? "" },
+    }),
+  );
+}
+
+function recordSelectEvent(select: CatalogSelect, message: string): void {
+  if (!select.matches("[data-catalog-select-events]")) return;
+  const log = selectLabForAction(select)?.querySelector<HTMLOutputElement>(
+    "[data-catalog-select-log]",
+  );
+  if (!log) return;
+  const lines = (log.textContent ?? "").split("\n").filter(Boolean);
+  lines.push(message);
+  log.textContent = lines.slice(-6).join("\n");
+}
+
+function syncSelectOpenToggle(select: CatalogSelect, open: boolean): void {
+  const toggle = selectLabForAction(select)?.querySelector<HTMLElement & { pressed?: boolean }>(
+    "[data-catalog-select-open-toggle]",
+  );
+  if (toggle) toggle.pressed = open;
+}
 
 function dragAxis(source: HTMLElement): DragAxis {
   const axis = source.dataset.catalogDragAxis;
@@ -78,6 +361,8 @@ function syncDragSources(): void {
 
 function syncStageContent(): void {
   syncDragSources();
+  syncCatalogComboboxDemos();
+  syncToolbarSelectionDemos();
   syncLinearWorkspaces();
 }
 
@@ -1102,6 +1387,35 @@ function syncCatalogResizableOutput(group: CatalogResizable): void {
 // component. The button names the intent; the example owns which scroll area
 // and edge that intent targets.
 document.addEventListener("click", (event) => {
+  const motionReplay = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement && node.dataset.catalogMotionReplay !== undefined,
+    );
+  if (motionReplay) {
+    const demo = motionReplay.closest<HTMLElement>("[data-catalog-motion-demo]");
+    const scope = motionReplay.closest<HTMLElement>("[data-catalog-motion-item]") ?? demo;
+    const motions = [
+      ...(scope?.querySelectorAll<HTMLElement>("[data-catalog-motion]") ?? []),
+    ] as Array<HTMLElement & { play?: (state: string) => Promise<void>; state?: string }>;
+    for (const motion of motions) {
+      const state = motion.dataset.catalogMotionState ?? motion.getAttribute("state") ?? "active";
+      if (state === "idle") {
+        motion.state = "idle";
+        continue;
+      }
+      void motion.play?.(state);
+    }
+    const output = demo?.querySelector<HTMLOutputElement>("[data-catalog-motion-output]");
+    const label =
+      scope !== demo
+        ? (scope?.querySelector("code")?.textContent ?? "motion")
+        : `${motions.length} motions`;
+    if (output) output.textContent = `Replaying ${label}`;
+    return;
+  }
+
   const motionAction = event
     .composedPath()
     .find(
@@ -1114,6 +1428,48 @@ document.addEventListener("click", (event) => {
       (HTMLElement & { state?: string; play?: (state: string) => Promise<void> }) | null;
     const state = motionAction.dataset.catalogMotionState;
     if (motion && state) void motion.play?.(state);
+    return;
+  }
+
+  const motionUtilityToggle = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement && node.dataset.catalogMotionUtilityToggle !== undefined,
+    );
+  if (motionUtilityToggle) {
+    const demo = motionUtilityToggle.closest<HTMLElement>("[data-catalog-motion-utility-demo]");
+    if (!demo) return;
+    const active = demo.dataset.motionUtilityActive !== "true";
+    demo.dataset.motionUtilityActive = String(active);
+    for (const target of demo.querySelectorAll<HTMLElement>(
+      "[data-catalog-motion-utility-target]",
+    )) {
+      if (active) target.dataset.motionUtilityActive = "true";
+      else delete target.dataset.motionUtilityActive;
+    }
+    motionUtilityToggle.textContent = active ? "Reset" : "Apply";
+    const output = demo.querySelector<HTMLOutputElement>("[data-catalog-motion-utility-output]");
+    if (output) output.textContent = active ? "Utilities applied" : "Utilities at rest";
+    return;
+  }
+
+  const revealToggle = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement && node.dataset.catalogRevealToggle !== undefined,
+    );
+  if (revealToggle) {
+    const demo = revealToggle.closest<HTMLElement>("[data-catalog-reveal-demo]");
+    const reveal = demo?.querySelector<HTMLElement>("[data-catalog-reveal]") as
+      (HTMLElement & { open?: boolean }) | null;
+    const output = demo?.querySelector<HTMLOutputElement>("[data-catalog-reveal-output]");
+    if (!reveal) return;
+    const nextOpen = !reveal.open;
+    reveal.open = nextOpen;
+    revealToggle.textContent = nextOpen ? "Close" : "Open";
+    if (output) output.textContent = nextOpen ? "Opening…" : "Closing…";
     return;
   }
 
@@ -1218,6 +1574,352 @@ interface CatalogGestureCommandDetail {
 }
 
 const clampGestureValue = (value: number): number => Math.min(100, Math.max(0, value));
+
+const toolbarSelectionRanges = new WeakMap<HTMLElement, Range>();
+const initializedToolbarSelectionDemos = new WeakSet<HTMLElement>();
+
+interface ToolbarSelectionCommandDescriptor {
+  selector: string;
+  tag: string;
+  label: string;
+  attributes?: Record<string, string>;
+  className?: string;
+  dataset?: string;
+  href?: string;
+}
+
+const toolbarSelectionCommands = {
+  "format.body": {
+    selector: 'ui-typeset[preset="body"]',
+    tag: "ui-typeset",
+    label: "set to body",
+    attributes: { preset: "body" },
+  },
+  "format.callout": {
+    selector: 'ui-typeset[preset="callout"]',
+    tag: "ui-typeset",
+    label: "set to callout",
+    attributes: { preset: "callout" },
+  },
+  "format.headline": {
+    selector: 'ui-typeset[preset="headline"]',
+    tag: "ui-typeset",
+    label: "set to headline",
+    attributes: { preset: "headline" },
+  },
+  "format.title": {
+    selector: 'ui-typeset[preset="title3"]',
+    tag: "ui-typeset",
+    label: "set to title",
+    attributes: { preset: "title3" },
+  },
+  "format.bold": { selector: "strong, b", tag: "strong", label: "bold" },
+  "format.italic": { selector: "em, i", tag: "em", label: "italic" },
+  "format.strike": { selector: "s, strike", tag: "s", label: "struck" },
+  "format.code": {
+    selector: "code",
+    tag: "code",
+    label: "code",
+    className: "rounded-control bg-surface-sunken px-control-block-small type-code",
+  },
+  "format.link": {
+    selector: "a[href]",
+    tag: "a",
+    label: "linked",
+    className: "text-action underline underline-offset-[var(--space-control-block-small)]",
+    href: "#migration-brief",
+  },
+  "format.comment": {
+    selector: "[data-catalog-toolbar-comment]",
+    tag: "mark",
+    label: "commented",
+    className: "rounded-control bg-warning-subtle px-control-block-small text-warning",
+    dataset: "catalogToolbarComment",
+  },
+  "tone.secondary": {
+    selector: 'ui-typeset[tone="secondary"]',
+    tag: "ui-typeset",
+    label: "muted",
+    attributes: { preset: "body", tone: "secondary" },
+  },
+  "tone.accent": {
+    selector: 'ui-typeset[tone="accent"]',
+    tag: "ui-typeset",
+    label: "accented",
+    attributes: { preset: "body", tone: "accent" },
+  },
+  "tone.critical": {
+    selector: 'ui-typeset[tone="critical"]',
+    tag: "ui-typeset",
+    label: "marked critical",
+    attributes: { preset: "body", tone: "critical" },
+  },
+  "insert.badge": {
+    selector: "[data-catalog-toolbar-badge]",
+    tag: "ui-badge",
+    label: "badged",
+    attributes: { tone: "accent", "data-catalog-toolbar-badge": "" },
+  },
+  "insert.callout": {
+    selector: "[data-catalog-toolbar-callout]",
+    tag: "span",
+    label: "called out",
+    className:
+      "inline-flex items-baseline rounded-control bg-action-wash px-control-inline-small py-control-block-small text-action",
+    dataset: "catalogToolbarCallout",
+  },
+} satisfies Record<string, ToolbarSelectionCommandDescriptor>;
+
+type ToolbarSelectionCommand = keyof typeof toolbarSelectionCommands;
+
+const toolbarSelectionCommandMap: Record<
+  ToolbarSelectionCommand,
+  ToolbarSelectionCommandDescriptor
+> = toolbarSelectionCommands;
+
+function toolbarSelectionSurface(demo: HTMLElement): HTMLElement | null {
+  return demo.querySelector<HTMLElement>("[data-catalog-toolbar-selection-surface]");
+}
+
+function toolbarSelectionToolbar(demo: HTMLElement): HTMLElement | null {
+  return demo.querySelector<HTMLElement>("[data-catalog-selection-toolbar]");
+}
+
+function toolbarSelectionOutput(demo: HTMLElement): HTMLOutputElement | null {
+  return demo.querySelector<HTMLOutputElement>("[data-catalog-toolbar-selection-output]");
+}
+
+function toolbarSelectionElement(node: Node): Element | null {
+  if (node instanceof Element) return node;
+  const parent = node.parentNode;
+  return parent instanceof Element ? parent : null;
+}
+
+function toolbarSelectionRangeInside(range: Range, surface: HTMLElement): boolean {
+  const start = toolbarSelectionElement(range.startContainer);
+  const end = toolbarSelectionElement(range.endContainer);
+  return Boolean(start && end && surface.contains(start) && surface.contains(end));
+}
+
+function toolbarSelectionRangeText(range: Range): string {
+  return range.toString().replace(/\s+/g, " ").trim();
+}
+
+function toolbarSelectionRect(range: Range): DOMRect | null {
+  const rects = [...range.getClientRects()].filter((rect) => rect.width > 0 && rect.height > 0);
+  if (rects[0]) return rects[0];
+  const rect = range.getBoundingClientRect();
+  return rect.width > 0 || rect.height > 0 ? rect : null;
+}
+
+function toolbarSelectionActiveElement(toolbar: HTMLElement): boolean {
+  const active = document.activeElement;
+  return active instanceof HTMLElement && toolbar.contains(active);
+}
+
+function toolbarSelectionHasAncestor(
+  range: Range,
+  surface: HTMLElement,
+  selector: string,
+): boolean {
+  let current: Node | null = toolbarSelectionElement(range.commonAncestorContainer);
+  while (current && current !== surface) {
+    if (current instanceof Element && current.matches(selector)) return true;
+    current = current.parentNode;
+  }
+  return false;
+}
+
+function syncToolbarSelectionPressed(demo: HTMLElement, range: Range): void {
+  const surface = toolbarSelectionSurface(demo);
+  if (!surface) return;
+  for (const control of demo.querySelectorAll<HTMLElement>("[data-catalog-selection-command]")) {
+    const command = control.dataset.catalogSelectionCommand;
+    const descriptor = toolbarSelectionCommandMap[command as ToolbarSelectionCommand];
+    const active =
+      descriptor !== undefined &&
+      toolbarSelectionRangeInside(range, surface) &&
+      toolbarSelectionHasAncestor(range, surface, descriptor.selector);
+    if ("pressed" in control) {
+      (control as HTMLElement & { pressed?: boolean }).pressed = active;
+    } else if ("checked" in control) {
+      (control as HTMLElement & { checked?: boolean }).checked = active;
+    } else {
+      control.toggleAttribute("selected", active);
+    }
+  }
+}
+
+function hideToolbarSelectionDemo(demo: HTMLElement): void {
+  delete demo.dataset.toolbarSelectionActive;
+  const toolbar = toolbarSelectionToolbar(demo);
+  if (toolbar) toolbar.hidden = true;
+}
+
+function syncToolbarSelectionDemo(demo: HTMLElement, allowStoredRange = false): void {
+  const surface = toolbarSelectionSurface(demo);
+  const toolbar = toolbarSelectionToolbar(demo);
+  const output = toolbarSelectionOutput(demo);
+  if (!surface || !toolbar) return;
+
+  let range: Range | null = null;
+  const stored = toolbarSelectionRanges.get(demo);
+  const selection = window.getSelection();
+  if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+    const candidate = selection.getRangeAt(0);
+    if (toolbarSelectionRangeInside(candidate, surface)) {
+      if (stored && toolbarSelectionRangeText(stored) !== toolbarSelectionRangeText(candidate)) {
+        delete demo.dataset.toolbarSelectionFeedback;
+      }
+      range = candidate.cloneRange();
+      toolbarSelectionRanges.set(demo, range.cloneRange());
+    }
+  }
+
+  if (
+    !range &&
+    allowStoredRange &&
+    stored &&
+    toolbarSelectionActiveElement(toolbar) &&
+    toolbarSelectionRangeInside(stored, surface)
+  ) {
+    range = stored.cloneRange();
+  }
+
+  const selectedText = range ? toolbarSelectionRangeText(range) : "";
+  if (!range || range.collapsed || !selectedText) {
+    hideToolbarSelectionDemo(demo);
+    delete demo.dataset.toolbarSelectionFeedback;
+    if (output) output.value = "Select text in the brief.";
+    return;
+  }
+
+  const selectionRect = toolbarSelectionRect(range);
+  if (!selectionRect) {
+    hideToolbarSelectionDemo(demo);
+    return;
+  }
+
+  toolbar.hidden = false;
+  demo.dataset.toolbarSelectionActive = "true";
+  const demoRect = demo.getBoundingClientRect();
+  const toolbarRect = toolbar.getBoundingClientRect();
+  const gutter = 8;
+  const halfToolbar = toolbarRect.width / 2;
+  const minimumX = halfToolbar + gutter;
+  const maximumX = Math.max(minimumX, demo.clientWidth - halfToolbar - gutter);
+  const rawX = selectionRect.left - demoRect.left + selectionRect.width / 2;
+  const x = Math.min(maximumX, Math.max(minimumX, rawX));
+  const rawY = selectionRect.top - demoRect.top - gutter;
+  const y = Math.max(toolbarRect.height + gutter, rawY);
+
+  toolbar.style.left = `${x}px`;
+  toolbar.style.top = `${y}px`;
+  syncToolbarSelectionPressed(demo, range);
+  if (output) output.value = demo.dataset.toolbarSelectionFeedback ?? `${selectedText} selected`;
+}
+
+function selectInitialToolbarText(demo: HTMLElement): void {
+  if (initializedToolbarSelectionDemos.has(demo)) return;
+  initializedToolbarSelectionDemos.add(demo);
+  const initial = demo.querySelector<HTMLElement>("[data-catalog-toolbar-selection-initial]");
+  if (!initial) return;
+  window.requestAnimationFrame(() => {
+    if (!demo.isConnected) return;
+    const selection = window.getSelection();
+    if (!selection || selection.toString().trim()) return;
+    const range = document.createRange();
+    range.selectNodeContents(initial);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    toolbarSelectionRanges.set(demo, range.cloneRange());
+    syncToolbarSelectionDemo(demo);
+  });
+}
+
+function syncToolbarSelectionDemos(): void {
+  for (const demo of document.querySelectorAll<HTMLElement>(
+    "[data-catalog-toolbar-selection-demo]",
+  )) {
+    selectInitialToolbarText(demo);
+    syncToolbarSelectionDemo(demo, true);
+  }
+}
+
+function toolbarSelectionCommand(command: string): ToolbarSelectionCommand | null {
+  return Object.prototype.hasOwnProperty.call(toolbarSelectionCommandMap, command)
+    ? (command as ToolbarSelectionCommand)
+    : null;
+}
+
+function applyToolbarSelectionCommand(target: HTMLElement, command: ToolbarSelectionCommand): void {
+  const demo = target.closest<HTMLElement>("[data-catalog-toolbar-selection-demo]");
+  const surface = demo ? toolbarSelectionSurface(demo) : null;
+  const output = demo ? toolbarSelectionOutput(demo) : null;
+  if (!demo || !surface) return;
+  const stored = toolbarSelectionRanges.get(demo);
+  if (!stored || stored.collapsed || !toolbarSelectionRangeInside(stored, surface)) return;
+
+  const descriptor = toolbarSelectionCommandMap[command];
+  const wrapper = document.createElement(descriptor.tag);
+  if (descriptor.className) wrapper.className = descriptor.className;
+  for (const [name, value] of Object.entries(descriptor.attributes ?? {})) {
+    wrapper.setAttribute(name, value);
+  }
+  if (descriptor.href) wrapper.setAttribute("href", descriptor.href);
+  if (descriptor.dataset) wrapper.dataset[descriptor.dataset] = "";
+
+  try {
+    const range = stored.cloneRange();
+    wrapper.append(range.extractContents());
+    range.insertNode(wrapper);
+    const nextRange = document.createRange();
+    nextRange.selectNodeContents(wrapper);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(nextRange);
+    toolbarSelectionRanges.set(demo, nextRange.cloneRange());
+    demo.dataset.toolbarSelectionFeedback = `${toolbarSelectionRangeText(nextRange)} ${
+      descriptor.label
+    }`;
+    syncToolbarSelectionDemo(demo, true);
+  } catch {
+    delete demo.dataset.toolbarSelectionFeedback;
+    if (output) output.value = "Selection could not be formatted.";
+  }
+}
+
+function syncToolbarSelectionSoon(): void {
+  window.requestAnimationFrame(syncToolbarSelectionDemos);
+}
+
+document.addEventListener("selectionchange", syncToolbarSelectionSoon);
+
+document.addEventListener("pointerup", (event) => {
+  if (
+    event
+      .composedPath()
+      .some(
+        (node) =>
+          node instanceof HTMLElement && node.matches("[data-catalog-toolbar-selection-demo]"),
+      )
+  ) {
+    window.setTimeout(syncToolbarSelectionDemos, 0);
+  }
+});
+
+document.addEventListener("keyup", (event) => {
+  if (
+    event
+      .composedPath()
+      .some(
+        (node) =>
+          node instanceof HTMLElement && node.matches("[data-catalog-toolbar-selection-demo]"),
+      )
+  ) {
+    syncToolbarSelectionSoon();
+  }
+});
 
 function updateGestureSelection(
   demo: HTMLElement,
@@ -1351,6 +2053,12 @@ function updateShrineGesturePreview(
 document.addEventListener("mash-command", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
+  const inputLab = target.closest<HTMLElement>("[data-catalog-input-lab]");
+  const inputDetail = (event as CustomEvent<CatalogGestureCommandDetail>).detail;
+  if (inputLab && inputDetail.command === "input.focus" && inputDetail.phase === "ended") {
+    inputLab.querySelector<HTMLElement>("[data-catalog-input-focus]")?.focus();
+    return;
+  }
   const demo = target.closest<HTMLElement>("[data-catalog-gesture-demo]");
   if (!demo) return;
   const detail = (event as CustomEvent<CatalogGestureCommandDetail>).detail;
@@ -1402,6 +2110,62 @@ document.addEventListener("mash-command", (event) => {
   }
 });
 
+document.addEventListener("mash-command", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const detail = (event as CustomEvent<CatalogGestureCommandDetail>).detail;
+  if (detail.phase !== "ended") return;
+  const command = toolbarSelectionCommand(detail.command);
+  if (!command) return;
+  target.dataset.catalogSelectionCommandHandledAt = String(performance.now());
+  applyToolbarSelectionCommand(target, command);
+});
+
+document.addEventListener("click", (event) => {
+  const action = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement && node.dataset.catalogSelectionCommand !== undefined,
+    );
+  if (!action) return;
+  const command = toolbarSelectionCommand(action.dataset.catalogSelectionCommand ?? "");
+  if (!command) return;
+  const handledAt = Number(action.dataset.catalogSelectionCommandHandledAt ?? 0);
+  if (performance.now() - handledAt < 250) return;
+  applyToolbarSelectionCommand(action, command);
+});
+
+document.addEventListener("mash-command", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const lab = target.closest<HTMLElement>("[data-catalog-select-lab]");
+  if (!lab) return;
+  const detail = (event as CustomEvent<CatalogGestureCommandDetail>).detail;
+  if (detail.phase !== "ended") return;
+  const select = lab.querySelector<CatalogSelect>("[data-catalog-select-demo]");
+  if (!select) return;
+
+  if (detail.command === "select.open") select.show?.();
+  if (detail.command === "select.dismiss") select.dismiss?.("imperative");
+  if (detail.command === "select.toggle") select.toggle?.("imperative");
+  recordSelectEvent(select, `command: ${detail.command}`);
+});
+
+document.addEventListener("mash-command", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const lab = target.closest<HTMLElement>("[data-catalog-menu-lab]");
+  if (!lab) return;
+  const detail = (event as CustomEvent<CatalogGestureCommandDetail>).detail;
+  if (detail.phase !== "ended") return;
+  const menu = lab.querySelector<CatalogMenu>("[data-catalog-menu-demo]");
+  if (!menu) return;
+  if (detail.command === "menu.open") menu.show?.("imperative");
+  if (detail.command === "menu.dismiss") menu.dismiss?.("imperative");
+  if (detail.command === "menu.toggle") menu.toggle?.("imperative");
+});
+
 document.addEventListener("mash-gesture-state", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
@@ -1443,11 +2207,68 @@ document.addEventListener("mash-motion-end", (event) => {
       : `${detail.state} complete`;
 });
 
+document.addEventListener("mash-reveal-start", (event) => {
+  const source = event.target;
+  if (!(source instanceof HTMLElement) || !source.matches("[data-catalog-reveal]")) return;
+  const output = source
+    .closest<HTMLElement>("[data-catalog-reveal-demo]")
+    ?.querySelector<HTMLOutputElement>("[data-catalog-reveal-output]");
+  const detail = (event as CustomEvent<RevealEventDetail>).detail;
+  if (output) output.textContent = `${detail.state} · ${detail.axis}`;
+});
+
+document.addEventListener("mash-reveal-end", (event) => {
+  const source = event.target;
+  if (!(source instanceof HTMLElement) || !source.matches("[data-catalog-reveal]")) return;
+  const output = source
+    .closest<HTMLElement>("[data-catalog-reveal-demo]")
+    ?.querySelector<HTMLOutputElement>("[data-catalog-reveal-output]");
+  const detail = (event as CustomEvent<RevealEventDetail>).detail;
+  if (!output) return;
+  output.textContent = detail.interrupted
+    ? `${detail.state} interrupted`
+    : detail.open
+      ? "Open · active"
+      : "Closed · absent";
+});
+
 document.addEventListener("ui-resizable-change", (event) => {
   const group = event.target;
   if (group instanceof HTMLElement && group.matches("[data-catalog-resizable-group]")) {
     syncCatalogResizableOutput(group as CatalogResizable);
   }
+});
+
+document.addEventListener("ui-clipboard-copy", (event) => {
+  const clipboard = event.target;
+  if (!(clipboard instanceof HTMLElement) || !clipboard.matches("[data-catalog-clipboard-dynamic]"))
+    return;
+  const stamp = new Date().toISOString().slice(11, 19).replaceAll(":", "");
+  const detail = (event as CustomEvent<{ setValue(value: string): void }>).detail;
+  detail.setValue(`git checkout -b docs/clipboard-${stamp}`);
+});
+
+document.addEventListener("ui-clipboard-copied", (event) => {
+  const clipboard = event.target;
+  if (!(clipboard instanceof HTMLElement)) return;
+  const output = clipboard
+    .closest<HTMLElement>("[data-catalog-clipboard-demo]")
+    ?.querySelector<HTMLOutputElement>("[data-catalog-clipboard-output]");
+  if (!output) return;
+  const detail = (event as CustomEvent<{ source: string; value: string }>).detail;
+  output.value = `Copied ${detail.value.length} characters from ${detail.source}.`;
+});
+
+document.addEventListener("ui-clipboard-error", (event) => {
+  const clipboard = event.target;
+  if (!(clipboard instanceof HTMLElement)) return;
+  const output = clipboard
+    .closest<HTMLElement>("[data-catalog-clipboard-demo]")
+    ?.querySelector<HTMLOutputElement>("[data-catalog-clipboard-output]");
+  if (!output) return;
+  const detail = (event as CustomEvent<{ error: unknown }>).detail;
+  output.value =
+    detail.error instanceof Error ? `Copy failed: ${detail.error.message}` : "Copy failed.";
 });
 
 type MashValueElement = HTMLElement & { value?: string };
@@ -2154,6 +2975,191 @@ document.addEventListener("mash-command", (event) => {
   linearSetQueryPanel(workspace, true);
 });
 
+document.addEventListener("ui-combobox-input", (event) => {
+  const combobox = event.target;
+  if (!(combobox instanceof HTMLElement) || !combobox.matches("[data-catalog-combobox-demo]"))
+    return;
+  const detail = (event as CustomEvent<{ value: string }>).detail;
+  syncComboboxDemo(combobox as CatalogCombobox);
+  recordComboboxEvent(combobox as CatalogCombobox, `input: ${detail.value.trim() || "empty"}`);
+});
+
+document.addEventListener("ui-combobox-change", (event) => {
+  const combobox = event.target;
+  if (!(combobox instanceof HTMLElement) || !combobox.matches("[data-catalog-combobox-demo]"))
+    return;
+  const detail = (event as CustomEvent<{ value: string; values: string[] }>).detail;
+  syncComboboxDemo(combobox as CatalogCombobox);
+  recordComboboxEvent(
+    combobox as CatalogCombobox,
+    `change: ${detail.values.filter(Boolean).join(", ") || "empty"}`,
+  );
+});
+
+document.addEventListener("ui-combobox-confirm", (event) => {
+  const combobox = event.target;
+  if (!(combobox instanceof HTMLElement) || !combobox.matches("[data-catalog-combobox-demo]"))
+    return;
+  const detail = (event as CustomEvent<{ value: string; values: string[] }>).detail;
+  recordComboboxEvent(
+    combobox as CatalogCombobox,
+    `confirm: ${detail.values.filter(Boolean).join(", ") || "empty"}`,
+  );
+});
+
+document.addEventListener("ui-combobox-open-change", (event) => {
+  const combobox = event.target;
+  if (!(combobox instanceof HTMLElement) || !combobox.matches("[data-catalog-combobox-demo]"))
+    return;
+  const detail = (event as CustomEvent<{ open: boolean; reason: string }>).detail;
+  recordComboboxEvent(combobox as CatalogCombobox, `open: ${detail.open} (${detail.reason})`);
+});
+
+document.addEventListener("ui-select-change", (event) => {
+  const select = event.target;
+  if (!(select instanceof HTMLElement) || !select.matches("[data-catalog-select-demo]")) return;
+  const detail = (event as CustomEvent<{ value: string }>).detail;
+  recordSelectEvent(select as CatalogSelect, `change: ${detail.value || "empty"}`);
+});
+
+document.addEventListener("ui-select-confirm", (event) => {
+  const select = event.target;
+  if (!(select instanceof HTMLElement) || !select.matches("[data-catalog-select-demo]")) return;
+  const detail = (event as CustomEvent<{ value: string }>).detail;
+  recordSelectEvent(select as CatalogSelect, `confirm: ${detail.value || "empty"}`);
+});
+
+document.addEventListener("ui-select-open-change", (event) => {
+  const select = event.target;
+  if (!(select instanceof HTMLElement) || !select.matches("[data-catalog-select-demo]")) return;
+  const detail = (event as CustomEvent<{ open: boolean; reason: string }>).detail;
+  syncSelectOpenToggle(select as CatalogSelect, detail.open);
+  recordSelectEvent(select as CatalogSelect, `open: ${detail.open} (${detail.reason})`);
+});
+
+document.addEventListener(
+  "pointerdown",
+  (event) => {
+    const action = event
+      .composedPath()
+      .find(
+        (node): node is HTMLElement =>
+          node instanceof HTMLElement &&
+          node.matches(
+            "[data-catalog-combobox-action], [data-catalog-combobox-add-option], [data-catalog-combobox-value]",
+          ),
+      );
+    const combobox = action ? comboboxForAction(action) : null;
+    if (combobox?.open) event.stopImmediatePropagation();
+  },
+  true,
+);
+
+document.addEventListener(
+  "pointerdown",
+  (event) => {
+    const action = event
+      .composedPath()
+      .find(
+        (node): node is HTMLElement =>
+          node instanceof HTMLElement &&
+          node.matches("[data-catalog-select-action], [data-catalog-select-value]"),
+      );
+    const select = action ? selectForAction(action) : null;
+    if (select?.open) event.stopImmediatePropagation();
+  },
+  true,
+);
+
+document.addEventListener("click", (event) => {
+  const action = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement &&
+        node.matches(
+          "[data-catalog-combobox-action], [data-catalog-combobox-add-option], [data-catalog-combobox-value]",
+        ),
+    );
+  if (!action) return;
+  const combobox = comboboxForAction(action);
+  if (!combobox) return;
+  event.preventDefault();
+
+  const fallback = action.dataset.catalogComboboxAddOption;
+  if (fallback !== undefined) {
+    addComboboxOption(combobox, fallback);
+    return;
+  }
+
+  const nextValue = action.dataset.catalogComboboxValue;
+  if (nextValue !== undefined) {
+    if (!comboboxOptionForValue(combobox, nextValue))
+      combobox.append(createComboboxOption(nextValue));
+    if (combobox.multiple) combobox.values = [...new Set([...(combobox.values ?? []), nextValue])];
+    else {
+      combobox.value = nextValue;
+    }
+    dispatchComboboxChange(combobox);
+    if (!combobox.multiple) combobox.dismiss?.("imperative");
+    syncComboboxDemo(combobox);
+    return;
+  }
+
+  switch (action.dataset.catalogComboboxAction) {
+    case "show":
+      combobox.show?.();
+      break;
+    case "dismiss":
+      combobox.dismiss?.("imperative");
+      break;
+    case "clear":
+      combobox.value = "";
+      combobox.values = [];
+      dispatchComboboxInput(combobox);
+      dispatchComboboxChange(combobox);
+      syncComboboxDemo(combobox);
+      break;
+  }
+});
+
+document.addEventListener("click", (event) => {
+  const action = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement &&
+        node.matches("[data-catalog-select-action], [data-catalog-select-value]"),
+    );
+  if (!action) return;
+  const select = selectForAction(action);
+  if (!select) return;
+  event.preventDefault();
+
+  const nextValue = action.dataset.catalogSelectValue;
+  if (nextValue !== undefined) {
+    if (!selectOptionForValue(select, nextValue)) return;
+    select.value = nextValue;
+    dispatchSelectChange(select);
+    select.dismiss?.("imperative");
+    return;
+  }
+
+  switch (action.dataset.catalogSelectAction) {
+    case "show":
+      select.show?.();
+      break;
+    case "dismiss":
+      select.dismiss?.("imperative");
+      break;
+    case "clear":
+      select.value = "";
+      dispatchSelectChange(select);
+      select.dismiss?.("clear");
+      break;
+  }
+});
+
 document.addEventListener("input", (event) => {
   const target = event
     .composedPath()
@@ -2208,6 +3214,74 @@ document.addEventListener("ui-menu-select", (event) => {
   }
   linearSyncFilters(workspace);
   if (!menu.matches("[data-linear-demo-state]")) linearPersistState(workspace);
+});
+
+document.addEventListener("ui-menu-open-change", (event) => {
+  const menu = event.target;
+  if (!(menu instanceof HTMLElement) || !menu.matches("[data-catalog-menu-demo]")) return;
+  const lab = menu.closest<HTMLElement>("[data-catalog-menu-lab]");
+  const detail = (event as CustomEvent<{ open: boolean; reason: string }>).detail;
+  const toggle = lab?.querySelector<HTMLElement & { pressed?: boolean }>(
+    "[data-catalog-menu-toggle]",
+  );
+  const output = lab?.querySelector<HTMLOutputElement>("[data-catalog-menu-log]");
+  if (toggle) toggle.pressed = detail.open;
+  if (output) output.value = `open: ${detail.open} (${detail.reason})`;
+});
+
+document.addEventListener("ui-toggle-change", (event) => {
+  const toggle = event.target;
+  if (!(toggle instanceof HTMLElement) || !toggle.matches("[data-catalog-password-toggle]")) return;
+  const group = toggle.closest<HTMLElement>("[data-catalog-password-group]");
+  const input = group?.querySelector<HTMLElement & { type: string }>("ui-input");
+  if (!input) return;
+  const { pressed } = (event as CustomEvent<{ pressed: boolean }>).detail;
+  input.type = pressed ? "text" : "password";
+  toggle.textContent = pressed ? "Hide" : "Show";
+});
+
+document.addEventListener("input", (event) => {
+  const input = event.target;
+  if (!(input instanceof HTMLElement) || !input.matches("[data-catalog-input-events]")) return;
+  const lab = input.closest<HTMLElement>("[data-catalog-input-lab]");
+  const output = lab?.querySelector<HTMLOutputElement>("[data-catalog-input-log]");
+  const value = (input as HTMLElement & { value?: string }).value ?? "";
+  if (output) output.value = `value: ${value || "empty"}`;
+});
+
+document.addEventListener("ui-input-enter", (event) => {
+  const input = event.target;
+  if (!(input instanceof HTMLElement) || !input.matches("[data-catalog-input-events]")) return;
+  const lab = input.closest<HTMLElement>("[data-catalog-input-lab]");
+  const output = lab?.querySelector<HTMLOutputElement>("[data-catalog-input-log]");
+  const detail = (event as CustomEvent<{ value: string; secondary: boolean }>).detail;
+  if (output)
+    output.value = `enter: ${detail.value || "empty"}${detail.secondary ? " secondary" : ""}`;
+});
+
+document.addEventListener("ui-input-focus-change", (event) => {
+  const input = event.target;
+  if (!(input instanceof HTMLElement) || !input.matches("[data-catalog-input-events]")) return;
+  const lab = input.closest<HTMLElement>("[data-catalog-input-lab]");
+  const output = lab?.querySelector<HTMLOutputElement>("[data-catalog-input-log]");
+  const detail = (event as CustomEvent<{ focused: boolean }>).detail;
+  if (output) output.value = detail.focused ? "focus: editing" : "focus: left";
+});
+
+document.addEventListener("click", (event) => {
+  const action = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement && node.matches("[data-catalog-input-clear]"),
+    );
+  if (!action) return;
+  const lab = action.closest<HTMLElement>("[data-catalog-input-lab]");
+  const input = lab?.querySelector<HTMLElement & { value: string }>("[data-catalog-input-events]");
+  if (!input) return;
+  input.value = "";
+  input.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+  input.focus();
 });
 
 document.addEventListener("ui-toggle-group-change", (event) => {

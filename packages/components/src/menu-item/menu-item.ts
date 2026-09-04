@@ -1,7 +1,6 @@
 import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
-import { InlineOverflowController } from "../internal/inline-overflow.js";
 import type { UIMenu } from "../menu/menu.js";
 
 /** Accessible action semantics exposed by a menu item. */
@@ -69,9 +68,6 @@ export interface MenuItemSelectDetail {
  * @cssstate has-shortcut - Matches when a shortcut is authored.
  * @cssstate has-submenu - Matches when a nested menu is authored.
  * @cssstate submenu-open - Matches while the nested menu is visible.
- * @cssstate overflowing - Matches while the label exceeds its viewport.
- * @cssstate overflow-start - Matches when label content continues before the viewport.
- * @cssstate overflow-end - Matches when label content continues after the viewport.
  *
  * @fires {CustomEvent<MenuItemSelectDetail>} ui-menu-item-select - Emitted when a leaf command is activated, after checkbox/radio state is updated.
  * @fires {CustomEvent<MenuItemSubmenuChangeDetail>} ui-menu-item-submenu-change - Emitted when a submenu branch opens or closes.
@@ -131,7 +127,6 @@ export class UIMenuItem extends LitElement {
   declare _hasSubmenu: boolean;
 
   readonly #internals: ElementInternals;
-  readonly #overflow: InlineOverflowController;
   #submenu: UIMenu | null = null;
   #openTimer: number | undefined;
   #closeTimer: number | undefined;
@@ -148,7 +143,6 @@ export class UIMenuItem extends LitElement {
     this._hasShortcut = false;
     this._hasSubmenu = false;
     this.#internals = this.attachInternals();
-    this.#overflow = new InlineOverflowController(this, this.#internals);
   }
 
   static override styles = baseStyles;
@@ -161,16 +155,15 @@ export class UIMenuItem extends LitElement {
     return Boolean(this.#submenu?.open);
   }
 
-  override disconnectedCallback(): void {
-    this.#clearTimers();
-    this.#overflow.disconnect();
-    this.#setSubmenu(null);
-    super.disconnectedCallback();
+  /** Normalized authored label used by menu typeahead. */
+  get textValue(): string {
+    return this.#authoredLabel();
   }
 
-  protected override firstUpdated(): void {
-    const viewport = this.renderRoot.querySelector<HTMLElement>("[part~='label-viewport']");
-    if (viewport) this.#overflow.connect(viewport);
+  override disconnectedCallback(): void {
+    this.#clearTimers();
+    this.#setSubmenu(null);
+    super.disconnectedCallback();
   }
 
   protected override updated(changed: PropertyValues<this>): void {
@@ -182,7 +175,6 @@ export class UIMenuItem extends LitElement {
     if (changed.has("_hasPrefix")) this.#setState("has-prefix", this._hasPrefix);
     if (changed.has("_hasShortcut")) this.#setState("has-shortcut", this._hasShortcut);
     if (changed.has("_hasSubmenu")) this.#setState("has-submenu", this._hasSubmenu);
-    this.#overflow.queue("start");
   }
 
   /** Opens an authored submenu through its public overlay contract. */

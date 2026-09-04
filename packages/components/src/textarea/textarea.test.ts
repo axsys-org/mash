@@ -28,4 +28,33 @@ describe("ui-textarea", () => {
     expect(UITextarea.styles.cssText).not.toContain("border:");
     expect(inShadow(textarea, "textarea")).toBeInstanceOf(HTMLTextAreaElement);
   });
+
+  it("forwards native multiline sizing and length constraints", async () => {
+    const textarea = await fixture<UITextarea>(
+      `<ui-textarea rows="5" minlength="8" maxlength="160"></ui-textarea>`,
+    );
+    const control = inShadow<HTMLTextAreaElement>(textarea, "[part='control']");
+
+    expect(control.rows).toBe(5);
+    expect(control.minLength).toBe(8);
+    expect(control.maxLength).toBe(160);
+
+    textarea.rows = 0;
+    await settled(textarea.parentElement!);
+
+    expect(control.rows).toBe(2);
+  });
+
+  it("reflects native validity into the invalid state", async () => {
+    const textarea = await fixture<UITextarea>(`<ui-textarea required></ui-textarea>`);
+    const control = inShadow<HTMLTextAreaElement>(textarea, "[part='control']");
+
+    expect(textarea.matches(":state(invalid)")).toBe(true);
+
+    control.value = "Reviewed";
+    control.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    await settled(textarea.parentElement!);
+
+    expect(textarea.matches(":state(invalid)")).toBe(false);
+  });
 });

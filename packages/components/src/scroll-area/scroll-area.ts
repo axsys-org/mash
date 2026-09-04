@@ -1,8 +1,9 @@
-import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, css, html, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
 let scrollAreaId = 0;
+const defaultIdleDelay = 2000;
 
 export type ScrollAxis = "block" | "inline";
 export type ScrollbarMode = "always" | "hover" | "scrolling";
@@ -181,19 +182,91 @@ export class UIScrollArea extends LitElement {
     this.size = "medium";
     this.gutter = "none";
     this.snap = "none";
-    this.idleDelay = 2000;
+    this.idleDelay = defaultIdleDelay;
     this._metrics = emptyMetrics();
     this.#internals = this.attachInternals();
   }
 
-  static override styles = baseStyles;
+  static override styles = [
+    baseStyles,
+    css`
+      :host {
+        display: block;
+        min-inline-size: 0;
+        min-block-size: 0;
+        overflow: hidden;
+      }
+
+      [part="root"] {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+        inline-size: 100%;
+        block-size: 100%;
+        max-block-size: inherit;
+        min-inline-size: 0;
+        min-block-size: 0;
+        overflow: hidden;
+      }
+
+      :host([gutter="stable"]) [part="root"] {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: minmax(0, 1fr) auto;
+      }
+
+      [part="viewport"] {
+        grid-column: 1;
+        grid-row: 1;
+        inline-size: 100%;
+        block-size: 100%;
+        max-inline-size: 100%;
+        max-block-size: inherit;
+        min-inline-size: 0;
+        min-block-size: 0;
+        overflow: auto;
+      }
+
+      [part="content"] {
+        min-inline-size: 0;
+      }
+
+      :host([snap="proximity"]) [part="viewport"] {
+        scroll-snap-type: block proximity;
+      }
+
+      :host([snap="mandatory"]) [part="viewport"] {
+        scroll-snap-type: block mandatory;
+      }
+
+      [part="block-scrollbar"],
+      [part="inline-scrollbar"] {
+        touch-action: none;
+      }
+    `,
+  ];
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    if (this.hasUpdated) this.#connectScrollState();
+  }
 
   protected override firstUpdated(): void {
+    this.#connectScrollState();
+  }
+
+  override disconnectedCallback(): void {
+    this.#disconnectScrollState();
+    super.disconnectedCallback();
+  }
+
+  #connectScrollState(): void {
+    if (this.#resizeObserver) return;
     const viewport = this.#viewport;
     viewport.addEventListener("scroll", this.#onScroll, { passive: true });
     this.#resizeObserver = new ResizeObserver(this.#queueScrollStateSync);
     this.#resizeObserver.observe(viewport);
-    this.#resizeObserver.observe(viewport.firstElementChild!);
+    if (viewport.firstElementChild) this.#resizeObserver.observe(viewport.firstElementChild);
     this.#queueScrollStateSync();
     this.#refreshVisibility();
   }
@@ -211,14 +284,15 @@ export class UIScrollArea extends LitElement {
     }
   }
 
-  override disconnectedCallback(): void {
+  #disconnectScrollState(): void {
+    if (this.hasUpdated) this.#viewport.removeEventListener("scroll", this.#onScroll);
     if (this.#visibilityTimer !== undefined) window.clearTimeout(this.#visibilityTimer);
+    this.#visibilityTimer = undefined;
     this.#resizeObserver?.disconnect();
     this.#resizeObserver = undefined;
     const view = this.ownerDocument.defaultView;
     if (this.#syncFrame !== undefined && view) view.cancelAnimationFrame(this.#syncFrame);
     this.#syncFrame = undefined;
-    super.disconnectedCallback();
   }
 
   get #viewport(): HTMLElement {
@@ -256,7 +330,7 @@ export class UIScrollArea extends LitElement {
   }
 
   #showForActivity(): void {
-    const delay = Math.max(0, this.idleDelay);
+    const delay = this.#idleDelayMs();
     this.#activeUntil = performance.now() + delay;
     this.#refreshVisibility();
     if (this.#visibilityTimer !== undefined) window.clearTimeout(this.#visibilityTimer);
@@ -265,6 +339,10 @@ export class UIScrollArea extends LitElement {
       this.#activeUntil = 0;
       this.#refreshVisibility();
     }, delay + 1);
+  }
+
+  #idleDelayMs(): number {
+    return Math.max(0, Number.isFinite(this.idleDelay) ? this.idleDelay : defaultIdleDelay);
   }
 
   #onPointerEnter = (): void => {
@@ -412,7 +490,7 @@ export class UIScrollArea extends LitElement {
   }
 
   #syncDetents = (): void => {
-    const candidates: Array<{ control: HTMLElement; distance: number }> = [];
+    const candidates: Array<{ axis: ScrollAxis; control: HTMLElement; distance: number }> = [];
     for (const axis of ["block", "inline"] as const) {
       const metrics = this.#axisMetrics(axis);
       for (const control of this.#detentControls(axis)) {
@@ -421,7 +499,7 @@ export class UIScrollArea extends LitElement {
         const normalized = metrics.maximum > 0 ? position / metrics.maximum : 0;
         control.style.setProperty("--ui-scroll-detent-position", `${normalized * 100}%`);
         control.dataset.scrollPosition = `${position}`;
-        candidates.push({ control, distance: Math.abs(metrics.position - position) });
+        candidates.push({ axis, control, distance: Math.abs(metrics.position - position) });
       }
     }
     candidates.sort((left, right) => left.distance - right.distance);
@@ -443,7 +521,7 @@ export class UIScrollArea extends LitElement {
       this.#activeDetent.dataset.scrollDetentCurrent = "";
       this.#activeDetent.setAttribute("aria-current", "location");
     }
-    const threshold = Math.max(1, this.#axisMetrics("block").viewport * 0.025);
+    const threshold = closest ? Math.max(1, this.#axisMetrics(closest.axis).viewport * 0.025) : 1;
     this.#setState("at-detent", Boolean(closest && closest.distance <= threshold));
   };
 
@@ -495,7 +573,21 @@ export class UIScrollArea extends LitElement {
     const maximum = this.#axisMetrics(axis).maximum;
     const next = Math.max(0, Math.min(maximum, value));
     if (axis === "block") viewport.scrollTop = next;
-    else viewport.scrollLeft = getComputedStyle(viewport).direction === "rtl" ? -next : next;
+    else viewport.scrollLeft = this.#inlineScrollLeft(next);
+    this.#syncScrollState();
+  }
+
+  #inlineScrollLeft(position: number): number {
+    return getComputedStyle(this.#viewport).direction === "rtl" ? -position : position;
+  }
+
+  #scrollToPosition(axis: ScrollAxis, value: number, behavior: ScrollBehavior): void {
+    const maximum = this.#axisMetrics(axis).maximum;
+    const next = Math.max(0, Math.min(maximum, value));
+    this.#viewport.scrollTo({
+      [axis === "block" ? "top" : "left"]: axis === "block" ? next : this.#inlineScrollLeft(next),
+      behavior,
+    });
     this.#syncScrollState();
   }
 
@@ -568,10 +660,7 @@ export class UIScrollArea extends LitElement {
       : this.#detentPosition(control, axis);
     if (position === undefined) return;
     this.#activeDetent = control;
-    this.#viewport.scrollTo({
-      [axis === "block" ? "top" : "left"]: position,
-      behavior,
-    });
+    this.#scrollToPosition(axis, position, behavior);
     this.#showForActivity();
     this.dispatchEvent(
       new CustomEvent("ui-scroll-area-target", {
@@ -678,11 +767,7 @@ export class UIScrollArea extends LitElement {
         (control) => control.dataset.scrollTarget === target,
       );
     }
-    this.#viewport.scrollTo({
-      [axis === "block" ? "top" : "left"]: position,
-      behavior: this.#scrollBehavior(options.behavior ?? "auto"),
-    });
-    this.#syncScrollState();
+    this.#scrollToPosition(axis, position, this.#scrollBehavior(options.behavior ?? "auto"));
     this.#showForActivity();
     this.dispatchEvent(
       new CustomEvent("ui-scroll-area-target", {

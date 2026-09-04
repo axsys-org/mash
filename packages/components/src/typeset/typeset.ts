@@ -24,6 +24,9 @@ export type TypesetPreset =
 /** Semantic foreground roles supplied by the active Mash catalogue. */
 export type TypesetTone = "primary" | "secondary" | "tertiary" | "disabled" | "accent" | "critical";
 
+/** Rendering mode for the authored content boundary. */
+export type TypesetFlow = "inline" | "block";
+
 /**
  * Pronounces authored text through a catalogue's semantic type and label tokens.
  *
@@ -37,7 +40,14 @@ export type TypesetTone = "primary" | "secondary" | "tertiary" | "disabled" | "a
  * @example Dynamic headline
  * <ui-typeset preset="headline">Billing migration</ui-typeset>
  *
- * @slot - Authored text or semantic inline content.
+ * @example Rendered markdown
+ * <ui-typeset flow="block" preset="body">
+ *   <h2>Release readiness</h2>
+ *   <p>Rendered markdown keeps semantic HTML and inherits Mash rhythm.</p>
+ *   <pre><code>release.status = "review"</code></pre>
+ * </ui-typeset>
+ *
+ * @slot - Authored text or semantic content.
  *
  * @csspart root - The complete typeset boundary.
  * @csspart content - The authored text realization.
@@ -46,28 +56,39 @@ export type TypesetTone = "primary" | "secondary" | "tertiary" | "disabled" | "a
  * @mashnode content content root
  * @mashnode preset preset content
  * @mashnode tone tone content
+ * @mashnode flow flow root
  * @mashrole slot default content content
  */
 export class UITypeset extends LitElement {
   static override properties = {
     preset: { type: String, reflect: true },
     tone: { type: String, reflect: true },
+    flow: { type: String, reflect: true },
   };
 
   /** Semantic type-token group used to pronounce the content. */
   declare preset: TypesetPreset;
   /** Semantic foreground tier used to pronounce the content. */
   declare tone: TypesetTone;
+  /** Whether the boundary is inline text or block rendered prose. */
+  declare flow: TypesetFlow;
 
   constructor() {
     super();
     this.preset = "body";
     this.tone = "primary";
+    this.flow = "inline";
   }
 
   static override styles = baseStyles;
 
   protected override render(): TemplateResult {
+    if (this.flow === "block") {
+      return html`<div part="root">
+        <div part="content"><slot></slot></div>
+      </div>`;
+    }
+
     return html`<span part="root"
       ><span part="content"><slot></slot></span
     ></span>`;

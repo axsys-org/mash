@@ -35,4 +35,20 @@ describe("ui-switch", () => {
     expect(control.disabled).toBe(true);
     expect(toggle.matches(":state(disabled)")).toBe(true);
   });
+
+  it("exposes size aliases and label placement", async () => {
+    const toggle = await fixture<UISwitch>(
+      `<ui-switch size="small" label-side="left">Notifications</ui-switch>`,
+    );
+
+    expect(toggle.size).toBe("small");
+    expect(toggle.labelSide).toBe("left");
+
+    toggle.size = "medium";
+    toggle.labelSide = "right";
+    await settled(toggle.parentElement!);
+
+    expect(toggle.getAttribute("size")).toBe("medium");
+    expect(toggle.getAttribute("label-side")).toBe("right");
+  });
 });

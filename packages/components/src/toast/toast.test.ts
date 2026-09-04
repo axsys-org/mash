@@ -40,4 +40,23 @@ describe("ui-toast", () => {
       0,
     );
   });
+
+  it("keeps title and actions optional composition lanes", async () => {
+    const toast = await fixture<UIToast>(`
+      <ui-toast open duration="0">
+        <strong slot="title">Upload complete</strong>
+        archive.zip is ready.
+        <button slot="actions" type="button">Open</button>
+      </ui-toast>
+    `);
+
+    await settled(toast.parentElement!);
+
+    expect(inShadow<HTMLElement>(toast, '[part="icon"]').hidden).toBe(true);
+    expect(inShadow<HTMLElement>(toast, '[part="title"]').hidden).toBe(false);
+    expect(inShadow<HTMLElement>(toast, '[part="actions"]').hidden).toBe(false);
+    expect(
+      inShadow<HTMLSlotElement>(toast, 'slot[name="actions"]').assignedElements()[0]?.textContent,
+    ).toBe("Open");
+  });
 });

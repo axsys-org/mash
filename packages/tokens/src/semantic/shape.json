@@ -11,6 +11,10 @@
       "$value": "{radius.reference.5}",
       "$description": "Corner radius for surfaces that contain other content: cards, panels, dialogs."
     },
+    "bubble": {
+      "$value": "{radius.reference.6}",
+      "$description": "Large conversation bubble radius."
+    },
     "menu": {
       "$value": "{radius.reference.menu}",
       "$description": "Outer radius for compact floating menu surfaces."

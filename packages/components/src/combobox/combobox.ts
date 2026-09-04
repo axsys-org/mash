@@ -13,6 +13,7 @@ import type { UIOption } from "../option/option.js";
 let comboboxListId = 0;
 
 export type ComboboxFilter = "contains" | "none" | "starts-with";
+export type ComboboxSize = "small" | "medium" | "large";
 
 function optionLabel(option: UIOption): string {
   return [...option.childNodes]
@@ -32,10 +33,10 @@ function optionLabel(option: UIOption): string {
  * @tag ui-combobox
  * @summary Edits or selects one value from filterable slotted options.
  *
- * @example Assign owner
- * <ui-combobox name="owner" label="Owner">
- *   <ui-option value="maya">Maya</ui-option>
- *   <ui-option value="sam">Sam</ui-option>
+ * @example Framework selector
+ * <ui-combobox name="framework" label="Framework" placeholder="Search frameworks">
+ *   <ui-option value="Next.js">Next.js</ui-option>
+ *   <ui-option value="SvelteKit">SvelteKit</ui-option>
  * </ui-combobox>
  *
  * @slot - `ui-option` suggestions or `ui-option-row` grid rows.
@@ -49,6 +50,7 @@ function optionLabel(option: UIOption): string {
  * @slot arrow - Optional connector between the popup and its anchor.
  * @slot loading - Content shown while externally sourced suggestions are pending.
  * @slot empty - Content shown when filtering leaves no suggestions.
+ * @slot footer - Persistent action content shown below the suggestion list.
  *
  * @csspart root - The complete combobox realization.
  * @csspart label - The optional visible label.
@@ -66,9 +68,11 @@ function optionLabel(option: UIOption): string {
  * @csspart status - The live result-count announcement.
  * @csspart loading - The authored pending-results content.
  * @csspart empty - The authored empty-result content.
+ * @csspart viewport - The natively scrollable suggestion viewport.
  * @csspart listbox - The semantic listbox of suggestions.
  * @csspart list - Alias for the semantic suggestion list.
  * @csspart children - The authored suggestion collection.
+ * @csspart footer - The authored action area below suggestions.
  *
  * @cssstate open - Matches `:state(open)` while suggestions are visible.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
@@ -81,6 +85,7 @@ function optionLabel(option: UIOption): string {
  *
  * @fires {CustomEvent<{ value: string }>} ui-combobox-input - Emitted as the editable text changes.
  * @fires {CustomEvent<{ value: string; values: string[] }>} ui-combobox-change - Emitted after selection changes.
+ * @fires {CustomEvent<{ value: string; values: string[] }>} ui-combobox-confirm - Emitted when the open suggestion surface closes with the current values.
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-combobox-open-change - Emitted after interaction changes suggestion visibility, including a portable reason.
  *
  * @mashrole part input-group group input-group
@@ -89,6 +94,7 @@ function optionLabel(option: UIOption): string {
  * @mashrole part list listbox listbox
  * @mashrole attribute values value values
  * @mashrole attribute grid grid-mode grid-mode
+ * @mashrole slot footer footer footer
  * @mashrole state grid grid-mode grid-mode
  * @mashnode root root
  * @mashnode label label root
@@ -109,12 +115,18 @@ function optionLabel(option: UIOption): string {
  * @mashnode arrow pointer popup
  * @mashnode status status popup
  * @mashnode empty empty popup
- * @mashnode listbox listbox popup
+ * @mashnode viewport viewport popup
+ * @mashnode listbox listbox viewport
  * @mashnode children children listbox
+ * @mashnode footer footer popup
  * @mashnode values value root
+ * @mashnode size size root
  * @mashnode grid-mode grid-mode root
  * @mashnode open open root
  * @mashnode invalid invalid control
+ * @mashrole event ui-combobox-input input input
+ * @mashrole event ui-combobox-change change values
+ * @mashrole event ui-combobox-confirm confirm values
  * @mashrole event ui-combobox-open-change open open
  * @mashrole slot default children children
  */
@@ -129,6 +141,7 @@ export class UICombobox extends LitElement {
     values: { converter: stringArrayConverter, reflect: true },
     multiple: { type: Boolean, reflect: true },
     grid: { type: Boolean, reflect: true },
+    size: { type: String, reflect: true },
     name: { type: String, reflect: true },
     label: { type: String, reflect: true },
     placeholder: { type: String, reflect: true },
@@ -154,6 +167,8 @@ export class UICombobox extends LitElement {
   declare multiple: boolean;
   /** Uses grid roles and two-dimensional option-row navigation. */
   declare grid: boolean;
+  /** Physical scale of the editable control. */
+  declare size: ComboboxSize;
   /** Form key used for submission. */
   declare name: string;
   /** Accessible name for the editable input. */
@@ -207,6 +222,7 @@ export class UICombobox extends LitElement {
     this.values = [];
     this.multiple = false;
     this.grid = false;
+    this.size = "medium";
     this.name = "";
     this.label = "Search options";
     this.placeholder = "";
@@ -225,6 +241,7 @@ export class UICombobox extends LitElement {
     this.#internals = this.attachInternals();
     this.addEventListener("ui-option-select", this.#onOptionSelect);
     this.addEventListener("ui-chip-remove", this.#onChipRemove);
+    this.addEventListener("keydown", this.#onChipKeydown);
     this.addEventListener("click", this.#onComposedClick);
   }
 
@@ -241,7 +258,8 @@ export class UICombobox extends LitElement {
       [part~="clear"],
       [part~="arrow"],
       [part~="loading"],
-      [part~="empty"] {
+      [part~="empty"],
+      [part~="footer"] {
         display: contents;
       }
 
@@ -260,6 +278,16 @@ export class UICombobox extends LitElement {
   }
   #options(): UIOption[] {
     return [...this.querySelectorAll<UIOption>("ui-option")];
+  }
+
+  #chips(): Array<HTMLElement & { disabled?: boolean; value?: string }> {
+    return [
+      ...this.querySelectorAll<HTMLElement & { disabled?: boolean; value?: string }>("ui-chip"),
+    ].filter((chip) => {
+      const owner = chip.closest("ui-combobox");
+      const chipSlot = chip.slot === "chips" ? chip : chip.closest<HTMLElement>('[slot="chips"]');
+      return owner === this && chipSlot?.parentElement === this;
+    });
   }
 
   override connectedCallback(): void {
@@ -369,6 +397,11 @@ export class UICombobox extends LitElement {
     }
   }
 
+  #selectedValues(): string[] {
+    if (this.multiple) return [...this.values];
+    return this.value ? [this.value] : [];
+  }
+
   #setOpen(open: boolean, reason: OverlayChangeReason): void {
     if (this.#isDisabled || (this.readonly && open) || this.open === open) return;
     this.open = open;
@@ -380,6 +413,15 @@ export class UICombobox extends LitElement {
         detail: { open, reason },
       }),
     );
+    if (!open) {
+      this.dispatchEvent(
+        new CustomEvent<{ value: string; values: string[] }>("ui-combobox-confirm", {
+          bubbles: true,
+          composed: true,
+          detail: { value: this.value, values: this.#selectedValues() },
+        }),
+      );
+    }
   }
 
   #onDocumentPointerDown = (event: PointerEvent): void => {
@@ -426,7 +468,6 @@ export class UICombobox extends LitElement {
       this.#setOpen(true, "select");
     } else {
       this.value = selectedValue;
-      this.#setOpen(false, "select");
     }
     this.dispatchEvent(
       new CustomEvent<{ value: string; values: string[] }>("ui-combobox-change", {
@@ -435,6 +476,7 @@ export class UICombobox extends LitElement {
         detail: { value: this.value, values: this.multiple ? [...this.values] : [this.value] },
       }),
     );
+    if (!this.multiple) this.#setOpen(false, "select");
   }
 
   #visibleOptions(): UIOption[] {
@@ -455,6 +497,7 @@ export class UICombobox extends LitElement {
   #setActive(option: UIOption | null): void {
     for (const candidate of this.#options()) candidate.active = candidate === option;
     this._activeOptionId = option?.id ?? "";
+    option?.scrollIntoView({ block: "nearest" });
   }
 
   #moveActive(direction: 1 | -1): void {
@@ -502,6 +545,12 @@ export class UICombobox extends LitElement {
 
   #onChipRemove = (event: Event): void => {
     if (!this.multiple || this.#isDisabled || this.readonly) return;
+    const chip = event
+      .composedPath()
+      .find(
+        (node): node is HTMLElement => node instanceof HTMLElement && node.localName === "ui-chip",
+      );
+    const chipIndex = chip ? this.#chips().indexOf(chip) : -1;
     const value = (event as CustomEvent<{ value: string }>).detail.value;
     if (!this.values.includes(value)) return;
     this.values = this.values.filter((selected) => selected !== value);
@@ -512,7 +561,49 @@ export class UICombobox extends LitElement {
         detail: { value: this.value, values: [...this.values] },
       }),
     );
-    queueMicrotask(() => this.renderRoot.querySelector<HTMLInputElement>("input")?.focus());
+    queueMicrotask(() => {
+      const chips = this.#chips().filter((candidate) => !candidate.disabled);
+      const target = chipIndex < 0 ? undefined : chips[Math.min(chipIndex, chips.length - 1)];
+      (target ?? this.renderRoot.querySelector<HTMLInputElement>("input"))?.focus();
+    });
+  };
+
+  #focusChip(chip: HTMLElement): void {
+    this.#setOpen(false, "keyboard");
+    chip.focus();
+  }
+
+  #onChipKeydown = (event: KeyboardEvent): void => {
+    const chip = event
+      .composedPath()
+      .find(
+        (node): node is HTMLElement => node instanceof HTMLElement && node.localName === "ui-chip",
+      );
+    if (!chip || this.#isDisabled) return;
+    const chips = this.#chips().filter((candidate) => !candidate.disabled);
+    const index = chips.indexOf(chip);
+    const input = this.renderRoot.querySelector<HTMLInputElement>("input");
+    if (index < 0 || !input) return;
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      input.focus();
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      input.focus();
+      this.#setOpen(true, "keyboard");
+      this.#moveActive(event.key === "ArrowDown" ? 1 : -1);
+      return;
+    }
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    const rtl = getComputedStyle(this).direction === "rtl";
+    const direction = (event.key === "ArrowRight" ? 1 : -1) * (rtl ? -1 : 1);
+    const target = chips[index + direction];
+    if (target) this.#focusChip(target);
+    else input.focus();
   };
 
   #eventIsWithinSlot(event: Event, name: string): boolean {
@@ -557,6 +648,25 @@ export class UICombobox extends LitElement {
 
   #onKeydown = (event: KeyboardEvent): void => {
     if (this.readonly && event.key !== "Escape") return;
+    const input = event.currentTarget as HTMLInputElement;
+    const atStart = input.selectionStart === 0 && input.selectionEnd === 0;
+    const rtl = getComputedStyle(this).direction === "rtl";
+    const towardChips = rtl ? "ArrowRight" : "ArrowLeft";
+    if (
+      this.multiple &&
+      !this.value &&
+      ((event.key === "Backspace" && atStart) ||
+        (event.key === towardChips && atStart && !event.shiftKey))
+    ) {
+      const last = this.#chips()
+        .filter((chip) => !chip.disabled)
+        .at(-1);
+      if (last) {
+        event.preventDefault();
+        this.#focusChip(last);
+        return;
+      }
+    }
     if (event.key === "Escape") {
       if (this.open) event.preventDefault();
       this.#setOpen(false, "escape");
@@ -609,7 +719,14 @@ export class UICombobox extends LitElement {
       <span part="root">
         <span part="label"><slot name="label"></slot></span>
         <span part="input-group">
-          <span part="chips" role="list"><slot name="chips"></slot></span>
+          <span
+            part="chips"
+            role=${this.multiple && this.values.length > 0 ? "toolbar" : nothing}
+            aria-label=${
+              this.multiple && this.values.length > 0 ? `${this.label} selected values` : nothing
+            }
+            ><slot name="chips"></slot
+          ></span>
           <span part="value"><slot name="value"></slot></span>
           <input
             part="control"
@@ -652,16 +769,19 @@ export class UICombobox extends LitElement {
             <span part="empty" ?hidden=${this.loading || this._resultCount !== 0}>
               <slot name="empty"></slot>
             </span>
-            <div
-              part="listbox list"
-              id=${this.#listboxId}
-              role=${this.grid ? "grid" : "listbox"}
-              aria-label=${this.label}
-              aria-multiselectable=${this.multiple ? "true" : nothing}
-              ?hidden=${this.loading}
-            >
-              <slot part="children" @slotchange=${() => this.#sync()}></slot>
+            <div part="viewport">
+              <div
+                part="listbox list"
+                id=${this.#listboxId}
+                role=${this.grid ? "grid" : "listbox"}
+                aria-label=${this.label}
+                aria-multiselectable=${this.multiple ? "true" : nothing}
+                ?hidden=${this.loading}
+              >
+                <slot part="children" @slotchange=${() => this.#sync()}></slot>
+              </div>
             </div>
+            <span part="footer"><slot name="footer"></slot></span>
           </div>
         </div>
       </span>

@@ -4,6 +4,9 @@ import { fixture, inShadow, settled } from "../test-support/fixture.js";
 import { UIMotion, type MotionEventDetail } from "./motion.js";
 import "./register.js";
 
+const nextPaint = (): Promise<void> =>
+  new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
 describe("ui-motion", () => {
   it("projects arbitrary content through stable scene lanes", async () => {
     const motion = await fixture<UIMotion>(`
@@ -88,5 +91,72 @@ describe("ui-motion", () => {
     await settled(motion);
 
     expect(endings.some((detail) => detail.state === "loading" && detail.interrupted)).toBe(true);
+  });
+
+  it("only asks for compositor preparation during an active lifecycle", async () => {
+    const motion = await fixture<UIMotion>(`
+      <ui-motion
+        motion="scale"
+        style="--duration-control: 120ms; --easing-spring-snappy: linear; --motion-scale-pressed: .92"
+      ><span>Prepare briefly</span></ui-motion>
+    `);
+    const target = inShadow<HTMLElement>(motion, '[part="content"]');
+
+    expect(getComputedStyle(target).willChange).toBe("auto");
+
+    motion.state = "active";
+    await settled(motion);
+
+    expect(getComputedStyle(target).willChange).toContain("scale");
+
+    await new Promise((resolve) => setTimeout(resolve, 160));
+
+    expect(getComputedStyle(target).willChange).toBe("auto");
+  });
+
+  it("replays the current keyframe state through a painted idle reset", async () => {
+    const motion = await fixture<UIMotion>(`
+      <ui-motion
+        motion="slide-block"
+        state="entering"
+        style="--duration-surface: 240ms; --easing-spring-gentle: linear"
+      ><span>Replay me</span></ui-motion>
+    `);
+    const target = inShadow<HTMLElement>(motion, '[part="content"]');
+    await new Promise((resolve) => setTimeout(resolve, 280));
+
+    const starts: MotionEventDetail[] = [];
+    motion.addEventListener("mash-motion-start", (event) => starts.push(event.detail));
+
+    await motion.play("entering");
+    await nextPaint();
+
+    expect(starts.map((detail) => detail.state)).toEqual(["entering"]);
+    expect(target.getAnimations().some((animation) => animation.playState === "running")).toBe(
+      true,
+    );
+  });
+
+  it("replays the current transition state through a painted idle reset", async () => {
+    const motion = await fixture<UIMotion>(`
+      <ui-motion
+        motion="scale"
+        state="active"
+        style="--duration-control: 240ms; --easing-spring-snappy: linear; --motion-scale-pressed: .92"
+      ><span>Replay me</span></ui-motion>
+    `);
+    const target = inShadow<HTMLElement>(motion, '[part="content"]');
+    await new Promise((resolve) => setTimeout(resolve, 280));
+
+    const starts: MotionEventDetail[] = [];
+    motion.addEventListener("mash-motion-start", (event) => starts.push(event.detail));
+
+    await motion.play("active");
+    await nextPaint();
+
+    expect(starts.map((detail) => detail.state)).toEqual(["active"]);
+    expect(target.getAnimations().some((animation) => animation.playState === "running")).toBe(
+      true,
+    );
   });
 });

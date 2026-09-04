@@ -18,7 +18,7 @@
  *                            tokens alias rather than re-authoring values
  *   5. No duplicate CSS names  no two tokens in one output file compile to the
  *                            same custom property
- *   6. Theme parity          every theme defines exactly the same token ids, so
+ *   6. Theme lockstep        every theme defines exactly the same token ids, so
  *                            a token can never exist in one theme only
  *
  * Exits non-zero with a grouped report on any failure.

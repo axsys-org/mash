@@ -1,4 +1,4 @@
-/** Physical popup side shared with GPUI Base's portable Positioner contract. */
+/** Physical popup side shared with the portable positioner contract. */
 export type AnchoredPlacement = "top" | "bottom" | "left" | "right";
 /** Logical alignment along the selected popup side. */
 export type AnchoredAlign = "start" | "center" | "end";

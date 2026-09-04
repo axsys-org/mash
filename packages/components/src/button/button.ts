@@ -1,15 +1,26 @@
-import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
 /** How much visual weight the button carries. Orthogonal to {@link ButtonTone}. */
-export type ButtonVariant = "primary" | "secondary" | "quiet";
+export type ButtonVariant =
+  | "default"
+  | "primary"
+  | "secondary"
+  | "danger"
+  | "warning"
+  | "success"
+  | "info"
+  | "quiet"
+  | "ghost"
+  | "link"
+  | "text";
 
 /** The button's physical scale. */
-export type ButtonSize = "small" | "medium" | "large";
+export type ButtonSize = "xs" | "xsmall" | "sm" | "small" | "md" | "medium" | "lg" | "large";
 
 /** What the button's action *means*. Orthogonal to {@link ButtonVariant}. */
-export type ButtonTone = "accent" | "neutral" | "positive" | "warning" | "critical";
+export type ButtonTone = "accent" | "neutral" | "info" | "positive" | "warning" | "critical";
 
 /** How the button behaves inside a form. Mirrors the native `<button type>` attribute. */
 export type ButtonType = "button" | "submit" | "reset";
@@ -19,8 +30,13 @@ export type ButtonType = "button" | "submit" | "reset";
  *
  * Two independent axes describe every button in the system. `variant` controls
  * emphasis — how loudly it asks to be pressed. `tone` controls meaning — what
- * kind of thing happens when it is. They compose freely: a `quiet` `critical`
+ * kind of thing happens when it is. They compose freely: a `ghost` `critical`
  * button is a low-emphasis destructive action, and needs no special casing.
+ *
+ * Status variants map directly onto semantic tones: `danger`, `warning`,
+ * `success`, and `info` are accepted as aliases for Mash meaning roles;
+ * `primary`, `secondary`, `ghost`, `link`, and `text` are emphasis variants.
+ * The older Mash name `quiet` remains as an alias for `ghost`.
  *
  * The element is form-associated, so a `submit` button submits its containing
  * form even though the real `<button>` lives inside a shadow root.
@@ -33,43 +49,44 @@ export type ButtonType = "button" | "submit" | "reset";
  * @tag ui-button
  * @summary Triggers an action. The primary interactive control of the system.
  *
- * @example Foundation matrix
+ * @example Variant matrix
  * <div class="demo button-showcase">
  *   <div class="button-showcase-heading">
- *     <strong>Emphasis × meaning</strong>
- *     <span>Every tone composes with every variant.</span>
+ *     <strong>Variant × tone</strong>
+ *     <span>Status aliases compose with Mash semantic tones.</span>
  *   </div>
  *   <div class="button-showcase-grid">
- *     <span class="button-showcase-label">accent</span>
+ *     <span class="button-showcase-label">variants</span>
+ *     <ui-button variant="default" size="small">Default</ui-button>
  *     <ui-button size="small">Primary</ui-button>
  *     <ui-button variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button variant="quiet" size="small">Quiet</ui-button>
- *     <span class="button-showcase-label">neutral</span>
- *     <ui-button tone="neutral" size="small">Primary</ui-button>
- *     <ui-button tone="neutral" variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button tone="neutral" variant="quiet" size="small">Quiet</ui-button>
- *     <span class="button-showcase-label">positive</span>
- *     <ui-button tone="positive" size="small">Primary</ui-button>
- *     <ui-button tone="positive" variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button tone="positive" variant="quiet" size="small">Quiet</ui-button>
- *     <span class="button-showcase-label">warning</span>
- *     <ui-button tone="warning" size="small">Primary</ui-button>
- *     <ui-button tone="warning" variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button tone="warning" variant="quiet" size="small">Quiet</ui-button>
- *     <span class="button-showcase-label">critical</span>
- *     <ui-button tone="critical" size="small">Primary</ui-button>
- *     <ui-button tone="critical" variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button tone="critical" variant="quiet" size="small">Quiet</ui-button>
+ *     <ui-button variant="ghost" size="small">Ghost</ui-button>
+ *     <span class="button-showcase-label">status</span>
+ *     <ui-button variant="danger" size="small">Danger</ui-button>
+ *     <ui-button variant="warning" size="small">Warning</ui-button>
+ *     <ui-button variant="success" size="small">Success</ui-button>
+ *     <ui-button variant="info" size="small">Info</ui-button>
+ *     <span class="button-showcase-label">quiet</span>
+ *     <ui-button variant="quiet" tone="critical" size="small">Quiet</ui-button>
+ *     <ui-button variant="ghost" tone="warning" size="small">Ghost</ui-button>
+ *     <ui-button variant="secondary" tone="positive" size="small">Success</ui-button>
+ *     <ui-button variant="secondary" tone="info" size="small">Info</ui-button>
+ *     <span class="button-showcase-label">inline</span>
+ *     <ui-button variant="link" size="small">Link</ui-button>
+ *     <ui-button variant="text" size="small">Text</ui-button>
+ *     <ui-button variant="secondary" outline size="small">Outline</ui-button>
+ *     <ui-button variant="secondary" compact size="small">Compact</ui-button>
  *   </div>
  *   <div class="button-showcase-rule"></div>
  *   <div class="button-showcase-heading">
  *     <strong>Size</strong>
- *     <span>Use the same action at three physical scales.</span>
+ *     <span>Buttons accept xs/xsmall, sm/small, md/medium, and lg/large.</span>
  *   </div>
  *   <div class="button-showcase-row">
- *     <ui-button size="small">Small</ui-button>
- *     <ui-button>Medium</ui-button>
- *     <ui-button size="large">Large</ui-button>
+ *     <ui-button size="xs">XS</ui-button>
+ *     <ui-button size="sm">Small</ui-button>
+ *     <ui-button size="md">Medium</ui-button>
+ *     <ui-button size="lg">Large</ui-button>
  *   </div>
  * </div>
  *
@@ -77,12 +94,12 @@ export type ButtonType = "button" | "submit" | "reset";
  * <div class="demo button-showcase button-showcase-compact">
  *   <div class="button-showcase-heading">
  *     <strong>Content is a slot</strong>
- *     <span>Prefix and suffix content keeps the action legible.</span>
+ *     <span>Prefix, suffix, loading and dropdown affordances share one rhythm.</span>
  *   </div>
  *   <div class="button-showcase-row">
- *     <ui-button><span slot="prefix" aria-hidden="true">+</span>Create</ui-button>
- *     <ui-button variant="secondary"><span slot="prefix" aria-hidden="true">□</span>Save draft</ui-button>
- *     <ui-button variant="quiet"><span slot="suffix" aria-hidden="true">→</span>View details</ui-button>
+ *     <ui-button><ui-icon slot="prefix" name="action.search" size="small" label=""></ui-icon>Search</ui-button>
+ *     <ui-button variant="secondary" dropdown-caret>Options</ui-button>
+ *     <ui-button variant="ghost"><ui-icon slot="suffix" name="navigation.forward" size="small" label=""></ui-icon>Details</ui-button>
  *   </div>
  *   <div class="button-showcase-rule"></div>
  *   <div class="button-showcase-heading">
@@ -92,7 +109,8 @@ export type ButtonType = "button" | "submit" | "reset";
  *   <div class="button-showcase-row">
  *     <ui-button disabled>Disabled</ui-button>
  *     <ui-button loading>Loading</ui-button>
- *     <ui-button tone="critical" variant="secondary">Delete</ui-button>
+ *     <ui-button selected>Selected</ui-button>
+ *     <ui-button tone="critical" variant="secondary" outline>Delete</ui-button>
  *   </div>
  * </div>
  *
@@ -104,6 +122,7 @@ export type ButtonType = "button" | "submit" | "reset";
  * @csspart prefix - The wrapper around the `prefix` slot.
  * @csspart label - The wrapper around the default slot.
  * @csspart suffix - The wrapper around the `suffix` slot.
+ * @csspart caret - The dropdown caret, present only while `dropdown-caret` is set.
  * @csspart spinner - The loading indicator, present only while `loading` is set.
  *
  * @cssstate loading - Matches `:state(loading)` while an async action is in flight.
@@ -119,10 +138,14 @@ export type ButtonType = "button" | "submit" | "reset";
  * @mashnode prefix prefix control
  * @mashnode label label control
  * @mashnode suffix suffix control
+ * @mashnode caret caret suffix
  * @mashnode spinner spinner control
  * @mashnode variant variant control
  * @mashnode size size control
  * @mashnode tone tone control
+ * @mashnode compact compact control
+ * @mashnode outline outline control
+ * @mashnode dropdownCaret dropdown-caret suffix
  * @mashnode disabled disabled control
  * @mashnode loading loading control
  * @mashnode selected selected control
@@ -153,6 +176,9 @@ export class UIButton extends LitElement {
     disabled: { type: Boolean, reflect: true },
     loading: { type: Boolean, reflect: true },
     selected: { type: Boolean, reflect: true },
+    compact: { type: Boolean, reflect: true },
+    outline: { type: Boolean, reflect: true },
+    dropdownCaret: { type: Boolean, attribute: "dropdown-caret", reflect: true },
     type: { type: String, reflect: true },
     name: { type: String, reflect: true },
     value: { type: String, reflect: true },
@@ -172,6 +198,12 @@ export class UIButton extends LitElement {
   declare loading: boolean;
   /** Parent-controlled presentation state for persistent triggers such as an open popover. */
   declare selected: boolean;
+  /** Reduces the inline padding while preserving the current size tier. */
+  declare compact: boolean;
+  /** Draws an outlined treatment that can combine with any tone. */
+  declare outline: boolean;
+  /** Adds the built-in dropdown caret after any authored suffix content. */
+  declare dropdownCaret: boolean;
   /** Form behaviour, mirroring native `<button type>`. */
   declare type: ButtonType;
   /** Form control name, submitted with the form. */
@@ -191,6 +223,9 @@ export class UIButton extends LitElement {
     this.disabled = false;
     this.loading = false;
     this.selected = false;
+    this.compact = false;
+    this.outline = false;
+    this.dropdownCaret = false;
     this.type = "button";
     this.name = "";
     this.value = "";
@@ -272,6 +307,8 @@ export class UIButton extends LitElement {
   }
 
   protected override render(): TemplateResult {
+    const hasSuffix = this._hasSuffix || this.dropdownCaret;
+
     return html`
       <button
         part="control"
@@ -299,8 +336,13 @@ export class UIButton extends LitElement {
 
         <span part="label" class="label"><slot></slot></span>
 
-        <span part="suffix" class="suffix" ?hidden=${!this._hasSuffix}>
+        <span part="suffix" class="suffix" ?hidden=${!hasSuffix}>
           <slot name="suffix" @slotchange=${this.#onSlotChange}></slot>
+          ${
+            this.dropdownCaret
+              ? html`<span part="caret" class="caret" aria-hidden="true"></span>`
+              : nothing
+          }
         </span>
       </button>
     `;

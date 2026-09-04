@@ -103,6 +103,10 @@
       },
       "callout": { "$value": 1.25, "$description": "15px on 12px type." },
       "body": { "$value": 1.230769, "$description": "16px on 13px type." },
+      "bubble": {
+        "$value": 1.625,
+        "$description": "Relaxed leading for compact conversation bubble copy."
+      },
       "title3": { "$value": 1.333333, "$description": "20px on 15px type." },
       "title2": { "$value": 1.294118, "$description": "22px on 17px type." },
       "title1": { "$value": 1.181818, "$description": "26px on 22px type." },

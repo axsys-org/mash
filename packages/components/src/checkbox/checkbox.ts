@@ -2,6 +2,9 @@ import { html, type PropertyValues, type TemplateResult } from "lit";
 
 import { UICheckable } from "../internal/checkable.js";
 
+export type CheckboxSize =
+  "xs" | "xsmall" | "sm" | "small" | "base" | "md" | "medium" | "lg" | "large";
+
 /**
  * A native-form checkbox with a portable Mash behaviour contract.
  *
@@ -16,6 +19,14 @@ import { UICheckable } from "../internal/checkable.js";
  * @example Form option
  * <div class="demo button-showcase-row">
  *   <ui-checkbox name="updates" checked>Email me release notes</ui-checkbox>
+ * </div>
+ *
+ * @example Sized options
+ * <div class="demo button-showcase-row">
+ *   <ui-checkbox size="xsmall">Extra small</ui-checkbox>
+ *   <ui-checkbox size="small">Small</ui-checkbox>
+ *   <ui-checkbox size="medium" checked>Medium</ui-checkbox>
+ *   <ui-checkbox size="large">Large</ui-checkbox>
  * </div>
  *
  * @slot - Visible label for the option.
@@ -43,16 +54,20 @@ import { UICheckable } from "../internal/checkable.js";
  * @mashnode required required control
  * @mashnode name name control
  * @mashnode value value control
+ * @mashnode size size root
  * @mashrole slot default label label
  */
 export class UICheckbox extends UICheckable {
   static override properties = {
     ...UICheckable.properties,
     indeterminate: { type: Boolean, reflect: true },
+    size: { type: String, reflect: true },
   };
 
   /** Displays a mixed state without treating the control as checked. */
   declare indeterminate: boolean;
+  /** Semantic physical scale. Short control-size aliases are accepted. */
+  declare size: CheckboxSize;
 
   protected readonly changeEventName = "ui-checkbox-change";
   protected readonly controlRole = null;
@@ -61,6 +76,7 @@ export class UICheckbox extends UICheckable {
   constructor() {
     super();
     this.indeterminate = false;
+    this.size = "medium";
   }
 
   override connectedCallback(): void {

@@ -17,7 +17,14 @@
 import type { Attribute, ComponentSchema } from "./schema.js";
 
 export type Control =
-  | { kind: "enum"; attribute: string; description?: string; options: string[]; fallback: string }
+  | {
+      kind: "enum";
+      attribute: string;
+      description?: string;
+      options: string[];
+      aliases?: Record<string, string>;
+      fallback: string;
+    }
   | { kind: "boolean"; attribute: string; description?: string; fallback: boolean }
   | { kind: "text"; attribute: string; description?: string; fallback: string };
 
@@ -40,7 +47,90 @@ function parseDefault(raw: string | undefined): string | boolean | undefined {
   return STRING_LITERAL.exec(raw)?.[1] ?? raw;
 }
 
-function controlFor(attribute: Attribute): Control | null {
+function unique(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+function normalizedSizeOptions(
+  options: string[],
+  preferredMiddle: "base" | "medium",
+): {
+  options: string[];
+  aliases: Record<string, string>;
+} {
+  const available = new Set(options);
+  const seenGroups = new Set<string>();
+  const aliases: Record<string, string> = {};
+  const canonical: string[] = [];
+  const groups = [
+    { key: "xsmall", preferred: "xsmall", values: ["xs", "xsmall"] },
+    { key: "small", preferred: "small", values: ["sm", "small"] },
+    { key: "middle", preferred: preferredMiddle, values: ["base", "md", "medium"] },
+    { key: "large", preferred: "large", values: ["lg", "large"] },
+    { key: "xl", preferred: "xl", values: ["xl"] },
+    { key: "2xl", preferred: "2xl", values: ["2xl"] },
+  ];
+  const valueGroups = new Map<string, (typeof groups)[number]>();
+
+  for (const group of groups) {
+    for (const value of group.values) valueGroups.set(value, group);
+
+    const canonicalValue = available.has(group.preferred)
+      ? group.preferred
+      : group.values.find((value) => available.has(value));
+    if (!canonicalValue) continue;
+
+    for (const value of group.values) {
+      if (available.has(value) && value !== canonicalValue) aliases[value] = canonicalValue;
+    }
+  }
+
+  for (const option of options) {
+    const group = valueGroups.get(option);
+    if (!group) {
+      canonical.push(option);
+      continue;
+    }
+    if (seenGroups.has(group.key)) continue;
+    seenGroups.add(group.key);
+    canonical.push(aliases[option] ?? option);
+  }
+
+  return { options: unique(canonical), aliases };
+}
+
+function normalizedEnumOptions(
+  component: ComponentSchema,
+  attribute: Attribute,
+  options: string[],
+): { options: string[]; aliases?: Record<string, string> } {
+  if (attribute.name !== "size") return { options: unique(options) };
+
+  const normalized = normalizedSizeOptions(
+    options,
+    component.tagName === "ui-label" ? "base" : "medium",
+  );
+  const hasAliases = Object.keys(normalized.aliases).length > 0;
+  return hasAliases ? normalized : { options: normalized.options };
+}
+
+export function enumControlValue(
+  control: Extract<Control, { kind: "enum" }>,
+  raw: string,
+): string | null {
+  return canonicalEnumValue(control.options, control.aliases, raw);
+}
+
+function canonicalEnumValue(
+  options: string[],
+  aliases: Record<string, string> | undefined,
+  raw: string,
+): string | null {
+  const value = aliases?.[raw] ?? raw;
+  return options.includes(value) ? value : null;
+}
+
+function controlFor(component: ComponentSchema, attribute: Attribute): Control | null {
   const text = attribute.type?.text?.trim();
   if (!text) return null;
 
@@ -49,11 +139,16 @@ function controlFor(attribute: Attribute): Control | null {
 
   const options = literalUnion(text);
   if (options) {
+    const normalized = normalizedEnumOptions(component, attribute, options);
+    const fallbackValue =
+      typeof fallback === "string"
+        ? canonicalEnumValue(normalized.options, normalized.aliases, fallback)
+        : null;
     return {
       ...shared,
       kind: "enum",
-      options,
-      fallback: typeof fallback === "string" && options.includes(fallback) ? fallback : options[0]!,
+      ...normalized,
+      fallback: fallbackValue ?? normalized.options[0]!,
     };
   }
 
@@ -72,7 +167,7 @@ function controlFor(attribute: Attribute): Control | null {
 
 export function controlsFor(component: ComponentSchema): Control[] {
   return component.attributes
-    .map(controlFor)
+    .map((attribute) => controlFor(component, attribute))
     .filter((control): control is Control => control !== null);
 }
 

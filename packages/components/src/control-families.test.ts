@@ -54,7 +54,7 @@ import "./toolbar/register.js";
 import "./tree/register.js";
 import "./tooltip/register.js";
 
-describe("Base UI control families", () => {
+describe("Control families", () => {
   it("realizes authored collection and control slots as semantic parts", async () => {
     const cases: Array<{ markup: string; part: string }> = [
       { markup: "<ui-accordion></ui-accordion>", part: "children" },
@@ -432,6 +432,73 @@ describe("Base UI control families", () => {
     expect(first?.shadowRoot?.activeElement).toBe(inShadow(first!, "button"));
   });
 
+  it("supports trigger arrows, typeahead, native viewport anatomy, and Tab dismissal", async () => {
+    const menu = await fixture<UIMenu>(`
+      <ui-menu label="Actions">
+        <button slot="trigger">Actions</button>
+        <ui-menu-item value="open">Open project</ui-menu-item>
+        <ui-menu-item value="search">Search project</ui-menu-item>
+        <ui-menu-item value="archive">Archive project</ui-menu-item>
+      </ui-menu>
+    `);
+    const trigger = menu.querySelector<HTMLButtonElement>("[slot=trigger]")!;
+    const items = [...menu.querySelectorAll<UIMenuItem>("ui-menu-item")];
+
+    trigger.focus();
+    trigger.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true, composed: true }),
+    );
+    await settled(menu.parentElement!);
+
+    expect(menu.open).toBe(true);
+    expect(items.at(-1)?.shadowRoot?.activeElement).toBe(inShadow(items.at(-1)!, "button"));
+    expect(inShadow(menu, '[part="viewport"]')).toBeInstanceOf(HTMLElement);
+
+    inShadow<HTMLButtonElement>(items.at(-1)!, "button").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "s", bubbles: true, composed: true }),
+    );
+    expect(items[1]?.shadowRoot?.activeElement).toBe(inShadow(items[1]!, "button"));
+
+    inShadow<HTMLButtonElement>(items[1]!, "button").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Tab", bubbles: true, composed: true }),
+    );
+    await settled(menu.parentElement!);
+    expect(menu.open).toBe(false);
+    expect(document.activeElement).not.toBe(trigger);
+  });
+
+  it("keeps menu header and footer chrome outside the scrollable command viewport", async () => {
+    for (const tag of ["ui-menu", "ui-context-menu"]) {
+      const menu = await fixture<HTMLElement>(`
+        <${tag} label="Recent projects" open>
+          <button slot="trigger">Recent</button>
+          <span slot="header">Recent projects</span>
+          <ui-menu-item value="billing">Billing migration</ui-menu-item>
+          <ui-menu-item value="invoice">Invoice reconciliation</ui-menu-item>
+          <span slot="footer">9 projects</span>
+        </${tag}>
+      `);
+      const header = inShadow<HTMLElement>(menu, '[part="header"]');
+      const viewport = inShadow<HTMLElement>(menu, '[part="viewport"]');
+      const actions = inShadow<HTMLElement>(menu, '[part="actions"]');
+      const footer = inShadow<HTMLElement>(menu, '[part="footer"]');
+      const firstItem = menu.querySelector<UIMenuItem>("ui-menu-item")!;
+
+      expect(header.querySelector("slot")?.assignedElements()[0]?.textContent).toBe(
+        "Recent projects",
+      );
+      expect(footer.querySelector("slot")?.assignedElements()[0]?.textContent).toBe("9 projects");
+      expect(viewport.contains(actions)).toBe(true);
+      expect(viewport.contains(header)).toBe(false);
+      expect(viewport.contains(footer)).toBe(false);
+
+      inShadow<HTMLElement>(menu, "[part=popup]").dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
+      );
+      expect(firstItem.shadowRoot?.activeElement).toBe(inShadow(firstItem, "button"));
+    }
+  });
+
   it("exposes semantic menu lanes and checked item roles", async () => {
     const item = await fixture<UIMenuItem>(`
       <ui-menu-item kind="checkbox" value="sidebar" checked>
@@ -560,6 +627,32 @@ describe("Base UI control families", () => {
     await settled(select.parentElement!);
     expect((select as unknown as { value: string }).value).toBe("private");
 
+    const searchableSelect = await fixture<UISelect>(`
+      <ui-select name="country" label="Country" searchable open>
+        <span slot="empty">No countries</span>
+        <ui-option-group label="Countries">
+          <ui-option value="japan">Japan</ui-option>
+          <ui-option value="singapore">Singapore</ui-option>
+        </ui-option-group>
+      </ui-select>
+    `);
+    const search = inShadow<HTMLInputElement>(searchableSelect, "[part~=search-control]");
+    search.value = "jap";
+    search.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    await settled(searchableSelect.parentElement!);
+    expect(
+      searchableSelect.querySelector<HTMLElement>('ui-option[value="singapore"]')!.hidden,
+    ).toBe(true);
+    expect(inShadow<HTMLElement>(searchableSelect, "[part~=empty]").hidden).toBe(true);
+    search.value = "missing";
+    search.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    await settled(searchableSelect.parentElement!);
+    expect(searchableSelect.querySelector<HTMLElement>("ui-option-group")!.hidden).toBe(true);
+    expect(inShadow<HTMLElement>(searchableSelect, "[part~=empty]").hidden).toBe(false);
+    expect(inShadow<HTMLElement>(searchableSelect, "[part~=status]").textContent).toContain(
+      "0 options",
+    );
+
     const combobox = await fixture<HTMLElement>(`
       <ui-combobox name="owner" label="Owner"><ui-option value="maya">Maya</ui-option><ui-option value="sam">Sam</ui-option></ui-combobox>
     `);
@@ -578,8 +671,12 @@ describe("Base UI control families", () => {
       <ui-select label="Visibility"><ui-option value="team">Team</ui-option></ui-select>
     `);
     const selectReasons: string[] = [];
+    const selectConfirms: string[] = [];
     select.addEventListener("ui-select-open-change", (event) => {
       selectReasons.push((event as CustomEvent<OverlayOpenChangeDetail>).detail.reason);
+    });
+    select.addEventListener("ui-select-confirm", (event) => {
+      selectConfirms.push((event as CustomEvent<{ value: string }>).detail.value);
     });
 
     select.show();
@@ -601,13 +698,18 @@ describe("Base UI control families", () => {
     await settled(select.parentElement!);
     expect(select.value).toBe("private");
     expect(selectReasons.at(-1)).toBe("select");
+    expect(selectConfirms).toEqual(["", "private"]);
 
     const combobox = await fixture<UICombobox>(`
       <ui-combobox label="Owner"><ui-option value="maya">Maya</ui-option></ui-combobox>
     `);
     const comboboxReasons: string[] = [];
+    const confirmedValues: string[][] = [];
     combobox.addEventListener("ui-combobox-open-change", (event) => {
       comboboxReasons.push((event as CustomEvent<OverlayOpenChangeDetail>).detail.reason);
+    });
+    combobox.addEventListener("ui-combobox-confirm", (event) => {
+      confirmedValues.push((event as CustomEvent<{ values: string[] }>).detail.values);
     });
     const input = inShadow<HTMLInputElement>(combobox, "input");
     input.value = "sa";
@@ -625,15 +727,17 @@ describe("Base UI control families", () => {
     await settled(combobox.parentElement!);
     expect(combobox.value).toBe("sam");
     expect(comboboxReasons).toEqual(["input", "select"]);
+    expect(confirmedValues).toEqual([["sam"]]);
   });
 
   it("realizes compound selection anatomy without making DOM-only portal mechanics portable", async () => {
-    const combobox = await fixture<HTMLElement & { value: string }>(`
-      <ui-combobox name="owner" label="Owner">
+    const combobox = await fixture<HTMLElement & { size: string; value: string }>(`
+      <ui-combobox name="owner" label="Owner" size="large">
         <span slot="icon">Search</span>
         <button slot="trigger" type="button">Show</button>
         <button slot="clear" type="button">Clear</button>
         <span slot="empty">No matches</span>
+        <button slot="footer" type="button">Add owner</button>
         <ui-option value="maya">Maya</ui-option>
       </ui-combobox>
     `);
@@ -649,12 +753,15 @@ describe("Base UI control families", () => {
       "popup",
       "status",
       "empty",
+      "viewport",
       "listbox",
       "children",
+      "footer",
     ]) {
       expect(inShadow(combobox, `[part~="${part}"]`)).toBeInstanceOf(HTMLElement);
     }
     expect(combobox.shadowRoot!.querySelector("[part~=portal]")).toBeNull();
+    expect(combobox.size).toBe("large");
 
     const input = inShadow<HTMLInputElement>(combobox, "input");
     const trigger = combobox.querySelector<HTMLButtonElement>("[slot=trigger]")!;
@@ -675,21 +782,30 @@ describe("Base UI control families", () => {
     expect(combobox.querySelector<HTMLElement>("ui-option")!.hidden).toBe(false);
   });
 
-  it("keeps select value, icon, popup, list, and option indicator independently addressable", async () => {
-    const select = await fixture<HTMLElement>(`
-      <ui-select name="visibility" value="team" label="Visibility">
+  it("keeps select value, search, empty, popup, list, and option indicator independently addressable", async () => {
+    const select = await fixture<UISelect>(`
+      <ui-select name="visibility" value="team" label="Visibility" size="large" searchable>
         <span slot="icon">Open</span>
+        <button slot="clear" type="button">Clear</button>
+        <span slot="empty">No options</span>
         <ui-option value="team">Team<span slot="indicator">Selected</span></ui-option>
       </ui-select>
     `);
 
     for (const part of [
       "root",
+      "control",
       "trigger",
       "value",
       "icon",
+      "clear",
       "positioner",
       "popup",
+      "search",
+      "search-control",
+      "status",
+      "empty",
+      "viewport",
       "listbox",
       "children",
     ]) {
@@ -700,6 +816,10 @@ describe("Base UI control families", () => {
     expect(inShadow(option, "[part~=text]")).toBeInstanceOf(HTMLSlotElement);
     expect(inShadow(option, "[part~=indicator]")).toBeInstanceOf(HTMLSlotElement);
     expect(inShadow<HTMLElement>(select, "[part~=value]").textContent).toContain("Team");
+    expect(select.size).toBe("large");
+    select.querySelector<HTMLButtonElement>("[slot=clear]")!.click();
+    await settled(select.parentElement!);
+    expect(select.value).toBe("");
   });
 
   it("shares anchored placement and outside dismissal across select and combobox", async () => {
@@ -738,10 +858,10 @@ describe("Base UI control families", () => {
     expect(comboboxPositioner.getAttribute("style")).toBeNull();
   });
 
-  it("coordinates grouped multiple select values and repeated form entries", async () => {
+  it("coordinates grouped single select values and one form entry", async () => {
     const form = await fixture<HTMLFormElement>(`
       <form>
-        <ui-select name="visibility" label="Visibility" multiple values='["team"]' open>
+        <ui-select name="visibility" label="Visibility" value="team" open>
           <ui-option-group label="Workspace">
             <ui-option value="team">Team</ui-option>
             <ui-option value="private">Private</ui-option>
@@ -749,19 +869,19 @@ describe("Base UI control families", () => {
         </ui-select>
       </form>
     `);
-    const select = form.querySelector<HTMLElement & { values: string[] }>("ui-select")!;
+    const select = form.querySelector<UISelect>("ui-select")!;
     const group = select.querySelector<HTMLElement>("ui-option-group")!;
     const privateOption = select.querySelector<HTMLElement>('ui-option[value="private"]')!;
 
     expect(inShadow(group, "[role=group]").getAttribute("aria-labelledby")).toBeTruthy();
-    expect(inShadow(select, "[role=listbox]").getAttribute("aria-multiselectable")).toBe("true");
+    expect(inShadow(select, "[role=listbox]").hasAttribute("aria-multiselectable")).toBe(false);
 
     privateOption.click();
     await settled(form);
 
-    expect(select.values).toEqual(["team", "private"]);
-    expect(select.hasAttribute("open")).toBe(true);
-    expect(new FormData(form).getAll("visibility")).toEqual(["team", "private"]);
+    expect(select.value).toBe("private");
+    expect(select.hasAttribute("open")).toBe(false);
+    expect(new FormData(form).getAll("visibility")).toEqual(["private"]);
   });
 
   it("lets a multiple combobox own values while chips only request removal", async () => {
@@ -796,6 +916,32 @@ describe("Base UI control families", () => {
     await settled(form);
     sam.click();
     expect(combobox.values).toEqual(["sam"]);
+  });
+
+  it("moves from an empty multiple-combobox input to compact chips for keyboard removal", async () => {
+    const combobox = await fixture<UICombobox>(`
+      <ui-combobox label="Frameworks" multiple values='["React", "Angular"]'>
+        <ui-chip slot="chips" value="React">React<button slot="remove" type="button" tabindex="-1">Remove React</button></ui-chip>
+        <ui-chip slot="chips" value="Angular">Angular<button slot="remove" type="button" tabindex="-1">Remove Angular</button></ui-chip>
+        <ui-option value="React">React</ui-option>
+        <ui-option value="Angular">Angular</ui-option>
+      </ui-combobox>
+    `);
+    const input = inShadow<HTMLInputElement>(combobox, "input");
+    const chips = [...combobox.querySelectorAll<HTMLElement>("ui-chip")];
+
+    expect(inShadow(combobox, '[part="chips"]').getAttribute("role")).toBe("toolbar");
+    input.focus();
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Backspace", bubbles: true, composed: true }),
+    );
+    expect(document.activeElement).toBe(chips[1]);
+
+    inShadow(chips[1]!, '[part="root"]').dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Delete", bubbles: true, composed: true }),
+    );
+    await settled(combobox.parentElement!);
+    expect(combobox.values).toEqual(["React"]);
   });
 
   it("keeps editable-combobox focus on the input while exposing one active option", async () => {
@@ -884,6 +1030,7 @@ describe("Base UI control families", () => {
     await settled(select.parentElement!);
     expect(select.value).toBe("private");
     expect(select.open).toBe(false);
+    expect(select.shadowRoot!.activeElement).toBe(trigger);
 
     trigger.focus();
     trigger.dispatchEvent(

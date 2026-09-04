@@ -9,7 +9,7 @@ import { UICombobox } from "../combobox/combobox.js";
  * `ui-combobox`; the distinct name communicates that callers should provide
  * suggestions as text changes rather than treating the field as a fixed
  * vocabulary. It intentionally preserves the combobox events for renderer
- * parity.
+ * portability.
  *
  * @tag ui-autocomplete
  * @summary An editable combobox intended for asynchronously supplied suggestions.

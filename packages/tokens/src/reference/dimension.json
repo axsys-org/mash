@@ -19,16 +19,16 @@
         "$description": "190px menu surface from the Apple mini menu reference."
       },
       "menuRowRegular": {
-        "$value": { "value": 1.5, "unit": "rem" },
-        "$description": "24px regular command row."
+        "$value": { "value": 1.625, "unit": "rem" },
+        "$description": "26px default command row."
       },
       "menuRowCompact": {
-        "$value": { "value": 1.375, "unit": "rem" },
-        "$description": "22px compact command row."
+        "$value": { "value": 1.25, "unit": "rem" },
+        "$description": "20px compact command row."
       },
       "menuRowMini": {
-        "$value": { "value": 1.1875, "unit": "rem" },
-        "$description": "19px mini command row."
+        "$value": { "value": 1.25, "unit": "rem" },
+        "$description": "20px mini command-row alias."
       },
       "compact": { "$value": { "value": 8, "unit": "rem" } },
       "panel": { "$value": { "value": 16, "unit": "rem" } },
