@@ -4,6 +4,7 @@ export interface MenuCollectionItem extends HTMLElement {
   readonly textValue: string;
   showSubmenu(focusFirst?: boolean): void;
   dismissSubmenu(restoreFocus?: boolean): void;
+  setHoverSuppressed(active: boolean): void;
 }
 
 export interface MenuKeyboardOptions {
@@ -109,5 +110,9 @@ export class MenuCollectionController {
     for (const sibling of this.items()) {
       if (sibling !== active && sibling.submenuOpen) sibling.dismissSubmenu();
     }
+  }
+
+  suppressHoverSelection(active?: MenuCollectionItem | null): void {
+    for (const item of this.items()) item.setHoverSuppressed(item === active);
   }
 }

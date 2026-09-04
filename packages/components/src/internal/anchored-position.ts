@@ -212,12 +212,15 @@ export class AnchoredPositionController {
     if (Math.abs(deltaY) > 0.5) {
       positioner.style.insetBlockStart = `${Math.round(resolved.top + deltaY)}px`;
     }
+    const finalPopup = popup.getBoundingClientRect();
     positioner.dataset.side = resolved.placement;
     positioner.dataset.align = config.align;
     this.#snapshot = {
       ...resolved,
+      left: finalPopup.left,
+      top: finalPopup.top,
       align: config.align,
-      popup: DOMRect.fromRect(popupRect),
+      popup: DOMRect.fromRect(finalPopup),
     };
   }
 }

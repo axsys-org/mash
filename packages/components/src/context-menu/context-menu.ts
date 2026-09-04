@@ -1,4 +1,4 @@
-import { html, type TemplateResult } from "lit";
+import { html, type PropertyValues, type TemplateResult } from "lit";
 
 import {
   type OverlayChangeReason,
@@ -49,6 +49,8 @@ import type { MenuDensity, MenuSizing } from "../menu/menu.js";
  * @cssstate exiting - Matches while the popup is exiting.
  * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while the trigger is unavailable.
+ * @cssstate has-header - Matches when persistent header chrome is authored.
+ * @cssstate has-footer - Matches when persistent footer chrome is authored.
  *
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-context-menu-open-change - Emitted after user interaction requests a new open state and reports why.
  * @fires {CustomEvent<{ value: string }>} ui-context-menu-select - Emitted when a menu item is selected.
@@ -102,11 +104,18 @@ export class UIContextMenu extends UIAnchoredOverlay {
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
     this.addEventListener("ui-menu-item-submenu-change", this.#onSubmenuChange);
     this.addEventListener("pointerover", this.#onPointerOver);
+    this.addEventListener("pointermove", this.#onPointerMove);
+    this.addEventListener("pointerout", this.#onPointerOut);
   }
 
   override disconnectedCallback(): void {
     this.#collection.destroy();
     super.disconnectedCallback();
+  }
+
+  protected override firstUpdated(changed: PropertyValues<this>): void {
+    super.firstUpdated(changed);
+    this.#syncChromeSlots();
   }
 
   protected override emitOpenChange(open: boolean, reason: OverlayChangeReason): void {
@@ -121,17 +130,44 @@ export class UIContextMenu extends UIAnchoredOverlay {
 
   protected override renderAuthoredContent(): TemplateResult {
     return html`
-      <div part="header" role="presentation"><slot name="header"></slot></div>
+      <div part="header" role="presentation">
+        <slot name="header" @slotchange=${this.#onChromeSlotChange}></slot>
+      </div>
       <div part="viewport">
         <div part="actions"><slot></slot></div>
       </div>
-      <div part="footer" role="presentation"><slot name="footer"></slot></div>
+      <div part="footer" role="presentation">
+        <slot name="footer" @slotchange=${this.#onChromeSlotChange}></slot>
+      </div>
     `;
   }
 
   protected override renderPopupMaterial(): TemplateResult {
     return html`<span part="material" aria-hidden="true"></span>`;
   }
+
+  #setChromeState(name: "header" | "footer", active: boolean): void {
+    const state = `has-${name}`;
+    if (active) this.overlayInternals.states.add(state);
+    else this.overlayInternals.states.delete(state);
+  }
+
+  #hasAssignedChrome(name: "header" | "footer"): boolean {
+    const slot = this.renderRoot.querySelector<HTMLSlotElement>(`slot[name="${name}"]`);
+    return (
+      slot?.assignedNodes({ flatten: true }).some((node) => {
+        if (node.nodeType === Node.TEXT_NODE) return Boolean(node.textContent?.trim());
+        return true;
+      }) ?? false
+    );
+  }
+
+  #syncChromeSlots(): void {
+    this.#setChromeState("header", this.#hasAssignedChrome("header"));
+    this.#setChromeState("footer", this.#hasAssignedChrome("footer"));
+  }
+
+  #onChromeSlotChange = (): void => this.#syncChromeSlots();
 
   #onItemSelect = (event: Event): void => {
     const detail = (event as CustomEvent<{ value: string; checked?: boolean; kind?: string }>)
@@ -150,14 +186,27 @@ export class UIContextMenu extends UIAnchoredOverlay {
     const item = event.target as UIMenuItem;
     const { open } = (event as CustomEvent<{ open: boolean }>).detail;
     if (!open || item.parentElement !== this) return;
+    this.#collection.suppressHoverSelection();
     this.#collection.dismissSiblingSubmenus(item);
   };
 
-  #onPointerOver = (event: PointerEvent): void => {
+  #updatePointerHover = (event: PointerEvent): void => {
     const item = this.#collection.itemFromEvent(event) as UIMenuItem | undefined;
     if (!item || item.parentElement !== this) return;
-    if (item.hasSubmenu || item.shouldPreserveSiblingSubmenuForPointer(event)) return;
+    const preservesSiblingSubmenu = item.shouldPreserveSiblingSubmenuForPointer(event);
+    this.#collection.suppressHoverSelection(preservesSiblingSubmenu ? item : null);
+    if (preservesSiblingSubmenu || item.hasSubmenu) return;
     this.#collection.dismissSiblingSubmenus(item);
+  };
+
+  #onPointerOver = (event: PointerEvent): void => this.#updatePointerHover(event);
+
+  #onPointerMove = (event: PointerEvent): void => this.#updatePointerHover(event);
+
+  #onPointerOut = (event: PointerEvent): void => {
+    const related = event.relatedTarget;
+    if (related instanceof Node && this.contains(related)) return;
+    this.#collection.suppressHoverSelection();
   };
 
   protected override handleOverlayKeydown(event: KeyboardEvent): boolean {

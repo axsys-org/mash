@@ -2300,10 +2300,10 @@
     min-inline-size: 0;
   }
 
-  :where([data-mash-catalogue="mash"]) ui-menu::part(header),
-  :where([data-mash-catalogue="mash"]) ui-context-menu::part(header),
-  :where([data-mash-catalogue="mash"]) ui-menu::part(footer),
-  :where([data-mash-catalogue="mash"]) ui-context-menu::part(footer) {
+  :where([data-mash-catalogue="mash"]) ui-menu:state(has-header)::part(header),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(has-header)::part(header),
+  :where([data-mash-catalogue="mash"]) ui-menu:state(has-footer)::part(footer),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(has-footer)::part(footer) {
     position: relative;
     z-index: 1;
     display: flex;
@@ -2318,23 +2318,16 @@
       var(--type-label-small-line-height) var(--type-label-small-font-family);
   }
 
-  :where([data-mash-catalogue="mash"]) ui-menu::part(header),
-  :where([data-mash-catalogue="mash"]) ui-context-menu::part(header) {
+  :where([data-mash-catalogue="mash"]) ui-menu:state(has-header)::part(header),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(has-header)::part(header) {
     border-block-end: var(--border-hairline) solid var(--_mash-component-boundary);
     margin-block-end: var(--space-menu-gap);
   }
 
-  :where([data-mash-catalogue="mash"]) ui-menu::part(footer),
-  :where([data-mash-catalogue="mash"]) ui-context-menu::part(footer) {
+  :where([data-mash-catalogue="mash"]) ui-menu:state(has-footer)::part(footer),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(has-footer)::part(footer) {
     border-block-start: var(--border-hairline) solid var(--_mash-component-boundary);
     margin-block-start: var(--space-menu-gap);
-  }
-
-  :where([data-mash-catalogue="mash"]) ui-menu:not(:has(> [slot="header"]))::part(header),
-  :where([data-mash-catalogue="mash"]) ui-context-menu:not(:has(> [slot="header"]))::part(header),
-  :where([data-mash-catalogue="mash"]) ui-menu:not(:has(> [slot="footer"]))::part(footer),
-  :where([data-mash-catalogue="mash"]) ui-context-menu:not(:has(> [slot="footer"]))::part(footer) {
-    display: none;
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu::part(viewport),
@@ -2448,6 +2441,7 @@
 
   :where([data-mash-catalogue="mash"]) ui-menu[nested]::part(popup) {
     pointer-events: auto;
+    margin-block-start: calc(-1 * var(--space-menu-shell));
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu-item {
@@ -2502,7 +2496,8 @@
   }
 
   :where([data-mash-catalogue="mash"])
-    ui-menu-item:not([disabled])::part(control):is(:hover, :focus-visible) {
+    ui-menu-item:not([disabled]):not(:state(hover-suppressed))::part(control):hover,
+  :where([data-mash-catalogue="mash"]) ui-menu-item:not([disabled])::part(control):focus-visible {
     background: var(--_mash-menu-item-selection-background);
     color: var(--_mash-menu-item-selection-color);
   }

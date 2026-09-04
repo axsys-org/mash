@@ -623,7 +623,6 @@ test.describe("catalog slot composition", () => {
     });
     const submenu = branch.locator('ui-menu[label="Recent projects"]');
     const popup = menu.locator('[part~="popup"]').first();
-    const submenuPopup = submenu.locator('[part~="popup"]').first();
     const material = menu.locator('[part~="material"]').first();
 
     const compactMenuMetrics = await popup.evaluate((element) => {
@@ -664,14 +663,30 @@ test.describe("catalog slot composition", () => {
     expect(branchPadding.actual).toBe(branchPadding.token);
     await expect(branchControl).toHaveAttribute("aria-expanded", "true");
 
-    const [branchBox, submenuBox] = await Promise.all([
-      branchControl.boundingBox(),
-      submenuPopup.boundingBox(),
-    ]);
-    expect(branchBox).not.toBeNull();
-    expect(submenuBox).not.toBeNull();
-    expect(Math.abs(submenuBox!.x - (branchBox!.x + branchBox!.width))).toBeLessThanOrEqual(3);
-    expect(Math.abs(submenuBox!.y - branchBox!.y)).toBeLessThanOrEqual(4);
+    const submenuGeometry = await menu.evaluate((node) => {
+      const branchItem = node.querySelector<HTMLElement>('ui-menu-item[value="recent"]')!;
+      const submenuElement = branchItem.querySelector<HTMLElement>(
+        'ui-menu[label="Recent projects"]',
+      )!;
+      const branchControlElement =
+        branchItem.shadowRoot!.querySelector<HTMLElement>('[part~="control"]')!;
+      const submenuPopupElement =
+        submenuElement.shadowRoot!.querySelector<HTMLElement>('[part~="popup"]')!;
+      const firstControl = submenuElement
+        .querySelector<HTMLElement>('ui-menu-item[value="billing"]')!
+        .shadowRoot!.querySelector<HTMLElement>('[part~="control"]')!;
+      const branchBox = branchControlElement.getBoundingClientRect();
+      const popupBox = submenuPopupElement.getBoundingClientRect();
+      const firstBox = firstControl.getBoundingClientRect();
+      return {
+        inlineGap: popupBox.left - branchBox.right,
+        popupTopDelta: popupBox.top - branchBox.top,
+        firstRowTopDelta: firstBox.top - branchBox.top,
+      };
+    });
+    expect(Math.abs(submenuGeometry.inlineGap)).toBeLessThanOrEqual(3);
+    expect(Math.abs(submenuGeometry.popupTopDelta)).toBeLessThanOrEqual(4);
+    expect(Math.abs(submenuGeometry.firstRowTopDelta)).toBeLessThanOrEqual(1);
 
     const branchState = await branchControl.evaluate((control) => {
       const probe = document.createElement("span");

@@ -523,6 +523,8 @@ describe("Control families", () => {
         "Recent projects",
       );
       expect(footer.querySelector("slot")?.assignedElements()[0]?.textContent).toBe("9 projects");
+      expect(menu.matches(":state(has-header)")).toBe(true);
+      expect(menu.matches(":state(has-footer)")).toBe(true);
       expect(viewport.contains(actions)).toBe(true);
       expect(viewport.contains(header)).toBe(false);
       expect(viewport.contains(footer)).toBe(false);
@@ -735,6 +737,15 @@ describe("Control families", () => {
         }),
       );
       exportControl.dispatchEvent(
+        new PointerEvent("pointerover", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 88,
+          clientY: 120,
+        }),
+      );
+      exportControl.dispatchEvent(
         new PointerEvent("pointerenter", {
           bubbles: true,
           composed: true,
@@ -743,6 +754,7 @@ describe("Control families", () => {
           clientY: 120,
         }),
       );
+      expect(exportItem!.matches(":state(hover-suppressed)")).toBe(false);
 
       await vi.advanceTimersByTimeAsync(63);
       expect(shareSubmenu.open).toBe(true);
@@ -842,6 +854,17 @@ describe("Control families", () => {
         }),
       );
       exportControl.dispatchEvent(
+        new PointerEvent("pointerover", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 126,
+          clientY: 96,
+        }),
+      );
+      expect(exportItem!.matches(":state(hover-suppressed)")).toBe(true);
+
+      exportControl.dispatchEvent(
         new PointerEvent("pointerenter", {
           bubbles: true,
           composed: true,
@@ -859,6 +882,7 @@ describe("Control families", () => {
           clientY: 108,
         }),
       );
+      expect(exportItem!.matches(":state(hover-suppressed)")).toBe(true);
 
       await vi.advanceTimersByTimeAsync(64);
 
@@ -872,6 +896,7 @@ describe("Control families", () => {
           pointerType: "mouse",
         }),
       );
+      expect(exportItem!.matches(":state(hover-suppressed)")).toBe(false);
       await vi.advanceTimersByTimeAsync(80);
 
       expect(shareSubmenu.open).toBe(true);

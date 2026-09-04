@@ -294,6 +294,8 @@ describe("Mash catalogue", () => {
     `);
     const popup = inShadow<HTMLElement>(menu, '[part="popup"]');
     const actions = inShadow<HTMLElement>(menu, '[part="actions"]');
+    const header = inShadow<HTMLElement>(menu, '[part="header"]');
+    const footer = inShadow<HTMLElement>(menu, '[part="footer"]');
     const label = menu.querySelector("ui-menu-label")!;
     const labelRoot = inShadow<HTMLElement>(label, '[part="root"]');
     const item = menu.querySelector("ui-menu-item")!;
@@ -305,6 +307,10 @@ describe("Mash catalogue", () => {
     expect(getComputedStyle(popup).maxInlineSize).toBe("210px");
     expect(getComputedStyle(popup).borderTopLeftRadius).toBe("13px");
     expect(getComputedStyle(actions).rowGap).toBe("0px");
+    expect(menu.matches(":state(has-header)")).toBe(false);
+    expect(menu.matches(":state(has-footer)")).toBe(false);
+    expect(getComputedStyle(header).display).toBe("contents");
+    expect(getComputedStyle(footer).display).toBe("contents");
     expect(getComputedStyle(itemControl).blockSize).toBe("20px");
     expect(getComputedStyle(itemControl).borderTopLeftRadius).toBe("8px");
     expect(getComputedStyle(itemControl).fontWeight).toBe("400");

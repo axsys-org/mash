@@ -115,6 +115,7 @@ function pointerAimsAtSubmenu(
  * @cssstate has-shortcut - Matches when a shortcut is authored.
  * @cssstate has-submenu - Matches when a nested menu is authored.
  * @cssstate submenu-open - Matches while the nested menu is visible.
+ * @cssstate hover-suppressed - Matches while sibling submenu aim suppresses incidental pointer hover.
  *
  * @fires {CustomEvent<MenuItemSelectDetail>} ui-menu-item-select - Emitted when a leaf command is activated, after checkbox/radio state is updated.
  * @fires {CustomEvent<MenuItemSubmenuChangeDetail>} ui-menu-item-submenu-change - Emitted when a submenu branch opens or closes.
@@ -229,6 +230,7 @@ export class UIMenuItem extends LitElement {
   showSubmenu(focusFirst = false): void {
     if (this.disabled || !this.#submenu) return;
     this.#clearTimers();
+    this.setHoverSuppressed(false);
     this.#submenu.show(focusFirst ? "keyboard" : "hover");
     if (focusFirst) {
       void this.#submenu.updateComplete.then(() => {
@@ -243,6 +245,11 @@ export class UIMenuItem extends LitElement {
     this.#clearTimers();
     this.#submenu?.dismiss("keyboard");
     if (restoreFocus) this.focus();
+  }
+
+  /** Internal pointer-aim hook used by menu composites during submenu handoff. */
+  setHoverSuppressed(active: boolean): void {
+    this.#setState("hover-suppressed", active);
   }
 
   #setState(name: string, active: boolean): void {
@@ -456,7 +463,10 @@ export class UIMenuItem extends LitElement {
     this.#scheduleOpen();
   };
 
-  #onPointerLeave = (): void => this.#scheduleClose();
+  #onPointerLeave = (): void => {
+    this.setHoverSuppressed(false);
+    this.#scheduleClose();
+  };
 
   #onPointerMove = (event: PointerEvent): void => {
     this.#recordPointerSample(event);
