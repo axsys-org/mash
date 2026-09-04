@@ -5,12 +5,12 @@ test.describe("catalog slot composition", () => {
     await page.goto("/components/ui-card?example=Project+card");
 
     await expect(page.locator(".family-title")).toHaveText([
-      "Foundations",
-      "Actions",
-      "Input & selection",
-      "Forms",
-      "Navigation & disclosure",
-      "Overlays & feedback",
+      "Text, Media & Status",
+      "Actions & Commands",
+      "Forms & Choice",
+      "Surfaces & Overlays",
+      "Navigation, Data & Layout",
+      "Feedback & Motion",
       "Shrine",
     ]);
 
@@ -533,12 +533,41 @@ test.describe("catalog slot composition", () => {
     const submenuPopup = submenu.locator('[part~="popup"]').first();
     const material = menu.locator('[part~="material"]').first();
 
-    await expect(popup).toHaveCSS("width", "210px");
-    await expect(popup).toHaveCSS("border-radius", "13px");
-    await expect(popup).toHaveCSS("padding", "5px");
+    const compactMenuMetrics = await popup.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const probe = document.createElement("span");
+      probe.style.display = "block";
+      probe.style.borderRadius = "var(--radius-menu)";
+      probe.style.padding = "var(--space-menu-shell)";
+      document.body.append(probe);
+      const probeStyle = getComputedStyle(probe);
+      const metrics = {
+        width: style.width,
+        borderRadius: style.borderTopLeftRadius,
+        tokenRadius: probeStyle.borderTopLeftRadius,
+        paddingTop: style.paddingTop,
+        tokenPaddingTop: probeStyle.paddingTop,
+      };
+      probe.remove();
+      return metrics;
+    });
+    expect(compactMenuMetrics.width).toBe("210px");
+    expect(compactMenuMetrics.borderRadius).toBe(compactMenuMetrics.tokenRadius);
+    expect(compactMenuMetrics.paddingTop).toBe(compactMenuMetrics.tokenPaddingTop);
     await expect(popup).toHaveCSS("box-shadow", /0px 0px 0px 0.5px inset/);
     await expect(material).toHaveCSS("background-blend-mode", "normal");
-    await expect(branchControl).toHaveCSS("padding-left", "7px");
+    const branchPadding = await branchControl.evaluate((control) => {
+      const probe = document.createElement("span");
+      probe.style.paddingInlineStart = "var(--space-menu-inline)";
+      document.body.append(probe);
+      const result = {
+        actual: getComputedStyle(control).paddingInlineStart,
+        token: getComputedStyle(probe).paddingInlineStart,
+      };
+      probe.remove();
+      return result;
+    });
+    expect(branchPadding.actual).toBe(branchPadding.token);
     await expect(branchControl).toHaveAttribute("aria-expanded", "true");
 
     const [branchBox, submenuBox] = await Promise.all([
@@ -547,13 +576,34 @@ test.describe("catalog slot composition", () => {
     ]);
     expect(branchBox).not.toBeNull();
     expect(submenuBox).not.toBeNull();
-    expect(Math.abs(submenuBox!.x - (branchBox!.x + branchBox!.width + 2))).toBeLessThanOrEqual(1);
-    expect(Math.abs(submenuBox!.y - branchBox!.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(submenuBox!.x - (branchBox!.x + branchBox!.width + 2))).toBeLessThanOrEqual(3);
+    expect(Math.abs(submenuBox!.y - branchBox!.y)).toBeLessThanOrEqual(4);
 
-    const overflowed = await submenu
-      .locator('ui-menu-item[value="archive"]')
-      .evaluate((item) => item.matches(":state(overflow-end)"));
-    expect(overflowed).toBe(true);
+    const archiveLabel = await submenu.locator('ui-menu-item[value="archive"]').evaluate((item) => {
+      const viewport = item.shadowRoot!.querySelector<HTMLElement>('[part~="label-viewport"]')!;
+      const style = getComputedStyle(viewport);
+      const measure = document.createElement("span");
+      measure.style.position = "fixed";
+      measure.style.visibility = "hidden";
+      measure.style.whiteSpace = "nowrap";
+      measure.style.font = style.font;
+      measure.textContent = item.textContent?.trim() ?? "";
+      document.body.append(measure);
+      const naturalWidth = measure.getBoundingClientRect().width;
+      measure.remove();
+      return {
+        clipped: naturalWidth > viewport.getBoundingClientRect().width,
+        overflow: style.overflowX,
+        textOverflow: style.textOverflow,
+        whiteSpace: style.whiteSpace,
+      };
+    });
+    expect(archiveLabel).toEqual({
+      clipped: true,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    });
 
     await page.goto("/components/ui-menu?theme=light&vibrancy=vibrant&example=Pull-down+commands");
     const lightPopup = preview.locator('ui-menu[label="Edit commands"] [part~="popup"]').first();

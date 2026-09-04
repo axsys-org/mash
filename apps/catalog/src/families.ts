@@ -39,6 +39,7 @@ const families: ComponentFamily[] = [
       "ui-toggle-group",
       "ui-toolbar",
       "ui-menu",
+      "ui-menu-label",
       "ui-context-menu",
       "ui-menubar",
     ],

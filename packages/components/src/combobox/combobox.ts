@@ -7,6 +7,12 @@ import {
 } from "../internal/anchored-position.js";
 import { baseStyles } from "../internal/base-styles.js";
 import type { OverlayChangeReason, OverlayOpenChangeDetail } from "../internal/overlay.js";
+import {
+  PresenceLifecycleController,
+  type PresenceLifecycleContext,
+  type PresenceLifecycleEventDetail,
+  type PresenceState,
+} from "../internal/presence-lifecycle.js";
 import { stringArrayConverter } from "../internal/string-array.js";
 import type { UIOption } from "../option/option.js";
 
@@ -75,6 +81,11 @@ function optionLabel(option: UIOption): string {
  * @csspart footer - The authored action area below suggestions.
  *
  * @cssstate open - Matches `:state(open)` while suggestions are visible.
+ * @cssstate present - Matches while the popup is rendered, including exit motion.
+ * @cssstate entering - Matches while the popup is entering.
+ * @cssstate active - Matches after enter motion settles.
+ * @cssstate exiting - Matches while the popup is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  * @cssstate readonly - Matches `:state(readonly)` while selection cannot change.
  * @cssstate multiple - Matches `:state(multiple)` while multiple values are selected.
@@ -87,6 +98,8 @@ function optionLabel(option: UIOption): string {
  * @fires {CustomEvent<{ value: string; values: string[] }>} ui-combobox-change - Emitted after selection changes.
  * @fires {CustomEvent<{ value: string; values: string[] }>} ui-combobox-confirm - Emitted when the open suggestion surface closes with the current values.
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-combobox-open-change - Emitted after interaction changes suggestion visibility, including a portable reason.
+ * @fires {CustomEvent<PresenceLifecycleEventDetail>} mash-presence-start - Announces combobox popup enter or exit presence.
+ * @fires {CustomEvent<PresenceLifecycleEventDetail>} mash-presence-end - Announces completion or interruption of combobox popup presence.
  *
  * @mashrole part input-group group input-group
  * @mashrole slot arrow pointer arrow
@@ -121,8 +134,14 @@ function optionLabel(option: UIOption): string {
  * @mashnode footer footer popup
  * @mashnode values value root
  * @mashnode size size root
+ * @mashaxis size control-size
  * @mashnode grid-mode grid-mode root
  * @mashnode open open root
+ * @mashnode present present popup
+ * @mashnode entering entering popup
+ * @mashnode active active popup
+ * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
  * @mashnode invalid invalid control
  * @mashrole event ui-combobox-input input input
  * @mashrole event ui-combobox-change change values
@@ -155,6 +174,7 @@ export class UICombobox extends LitElement {
     align: { type: String, reflect: true },
     offset: { type: Number, reflect: true },
     collisionPadding: { type: Number, attribute: "collision-padding", reflect: true },
+    popupPresent: { state: true },
     _resultCount: { type: Number, state: true },
     _activeOptionId: { type: String, state: true },
   };
@@ -195,6 +215,8 @@ export class UICombobox extends LitElement {
   declare offset: number;
   /** Minimum viewport-edge clearance in CSS pixels. */
   declare collisionPadding: number;
+  /** Internal render-presence; public state remains the `open` contract. */
+  declare protected popupPresent: boolean;
   declare private _resultCount: number;
   declare private _activeOptionId: string;
 
@@ -215,6 +237,7 @@ export class UICombobox extends LitElement {
     positioner: () => this.renderRoot.querySelector<HTMLElement>("[part~='positioner']"),
     config: () => this,
   });
+  readonly #presence: PresenceLifecycleController<"entering" | "exiting">;
 
   constructor() {
     super();
@@ -236,9 +259,24 @@ export class UICombobox extends LitElement {
     this.align = "start";
     this.offset = 4;
     this.collisionPadding = 4;
+    this.popupPresent = false;
     this._resultCount = 0;
     this._activeOptionId = "";
     this.#internals = this.attachInternals();
+    this.#presence = new PresenceLifecycleController(this, {
+      target: () => this.renderRoot.querySelector<HTMLElement>("[part~='popup']"),
+      present: () => this.popupPresent,
+      setPresent: (present) => {
+        this.popupPresent = present;
+      },
+      setState: (state, present) => this.#setPresenceState(state, present),
+      onStart: (context) => this.#emitPresenceEvent("mash-presence-start", context),
+      onFinish: (context) => this.#emitPresenceEvent("mash-presence-end", context),
+      onSettle: (phase) => {
+        if (phase === "absent") this.#positioner.stop();
+        else this.#positioner.queue();
+      },
+    });
     this.addEventListener("ui-option-select", this.#onOptionSelect);
     this.addEventListener("ui-chip-remove", this.#onChipRemove);
     this.addEventListener("keydown", this.#onChipKeydown);
@@ -303,6 +341,7 @@ export class UICombobox extends LitElement {
 
   override disconnectedCallback(): void {
     this.#collectionObserver.disconnect();
+    this.#presence.destroy();
     this.#positioner.stop();
     this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
     super.disconnectedCallback();
@@ -353,6 +392,7 @@ export class UICombobox extends LitElement {
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
+    if (changed.has("open") && this.open) this.popupPresent = true;
     if (
       changed.has("value") ||
       changed.has("values") ||
@@ -368,15 +408,50 @@ export class UICombobox extends LitElement {
       this.#sync();
   }
 
-  protected override updated(): void {
-    if (this.open) {
-      this.#positioner.start();
+  protected override updated(changed: PropertyValues<this>): void {
+    if (changed.has("open")) {
+      if (this.open) {
+        this.#positioner.start();
+        this.#positioner.queue();
+        this.ownerDocument.addEventListener("pointerdown", this.#onDocumentPointerDown, true);
+        this.#presence.enter("entering");
+      } else {
+        this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
+        this.#presence.exit("exiting", changed.get("open") === true);
+      }
+    } else if (this.open || this.popupPresent) {
       this.#positioner.queue();
-      this.ownerDocument.addEventListener("pointerdown", this.#onDocumentPointerDown, true);
-    } else {
-      this.#positioner.stop();
-      this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
     }
+  }
+
+  #setPresenceState(state: PresenceState, present: boolean): void {
+    if (present) this.#internals.states.add(state);
+    else this.#internals.states.delete(state);
+  }
+
+  #emitPresenceEvent(
+    type: "mash-presence-start" | "mash-presence-end",
+    context: PresenceLifecycleContext<"entering" | "exiting">,
+  ): void {
+    const eventInit: CustomEventInit<PresenceLifecycleEventDetail> = {
+      bubbles: true,
+      composed: true,
+      detail: {
+        open: context.open,
+        phase: context.phase,
+        reducedMotion: context.reducedMotion,
+        interrupted: context.interrupted,
+      },
+    };
+    if (type === "mash-presence-start") {
+      this.dispatchEvent(
+        new CustomEvent<PresenceLifecycleEventDetail>("mash-presence-start", eventInit),
+      );
+      return;
+    }
+    this.dispatchEvent(
+      new CustomEvent<PresenceLifecycleEventDetail>("mash-presence-end", eventInit),
+    );
   }
 
   formDisabledCallback(disabled: boolean): void {
@@ -752,8 +827,10 @@ export class UICombobox extends LitElement {
           <span part="trigger"><slot name="trigger"></slot></span>
           <span part="clear"><slot name="clear"></slot></span>
         </span>
-        <span part="backdrop" ?hidden=${!this.open}><slot name="backdrop"></slot></span>
-        <div part="positioner" ?hidden=${!this.open}>
+        <span part="backdrop" ?hidden=${!this.popupPresent} .inert=${!this.open}
+          ><slot name="backdrop"></slot
+        ></span>
+        <div part="positioner" ?hidden=${!this.popupPresent} .inert=${!this.open}>
           <div part="popup">
             <span part="arrow"><slot name="arrow"></slot></span>
             <span part="status" role="status" aria-live="polite">

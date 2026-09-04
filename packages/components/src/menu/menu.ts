@@ -51,6 +51,7 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * @cssstate entering - Matches while the popup is entering.
  * @cssstate active - Matches after enter motion settles.
  * @cssstate exiting - Matches while the popup is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while the trigger is unavailable.
  * @cssstate nested - Matches when a menu item owns this menu as a submenu.
  *
@@ -78,6 +79,7 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * @mashnode entering entering popup
  * @mashnode active active popup
  * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
  * @mashrole slot header header header
  * @mashrole slot default actions actions
  * @mashrole slot footer footer footer

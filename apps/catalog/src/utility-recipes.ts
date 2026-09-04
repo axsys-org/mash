@@ -114,6 +114,8 @@ const stageRecipes: UtilityRecipes = {
     "flex flex-col items-start gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-badge-matrix":
     "grid gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-badge-indicators":
+    "flex min-w-0 flex-wrap items-center gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-badge-row":
     "grid grid-cols-[6rem_minmax(0,1fr)] items-center gap-container-gap max-[35rem]:grid-cols-1 max-[35rem]:gap-control-gap",
   "example-badge-set": "flex min-w-0 flex-wrap items-center gap-control-gap",
@@ -141,6 +143,8 @@ const stageRecipes: UtilityRecipes = {
     "grid size-[calc(var(--layout-dimension-glyph)*2.75)] place-items-center rounded-control bg-surface-sunken text-text",
   "example-icon-fallback-glyph":
     "grid size-[1em] place-items-center rounded-control border border-border bg-surface type-label-small text-text-muted",
+  "example-icon-authored-glyph":
+    "grid size-[1em] place-items-center rounded-control bg-action type-label-small text-on-action",
   "example-label-stack":
     "grid gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
   "example-label-scale":

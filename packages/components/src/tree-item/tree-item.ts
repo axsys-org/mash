@@ -84,6 +84,7 @@ export type TreeItemKind = "file" | "folder";
  * @mashnode children children root
  * @mashnode kind kind root
  * @mashnode size size root
+ * @mashaxis size control-size
  * @mashnode expanded expanded children
  * @mashnode current current control
  * @mashnode selected selected control

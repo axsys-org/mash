@@ -7,6 +7,12 @@ import {
 } from "../internal/anchored-position.js";
 import { baseStyles } from "../internal/base-styles.js";
 import type { OverlayChangeReason, OverlayOpenChangeDetail } from "../internal/overlay.js";
+import {
+  PresenceLifecycleController,
+  type PresenceLifecycleContext,
+  type PresenceLifecycleEventDetail,
+  type PresenceState,
+} from "../internal/presence-lifecycle.js";
 import type { UIOption } from "../option/option.js";
 
 let selectListId = 0;
@@ -73,6 +79,11 @@ function optionLabel(option: UIOption): string {
  * @csspart children - The authored option collection.
  *
  * @cssstate open - Matches `:state(open)` while choices are visible.
+ * @cssstate present - Matches while the popup is rendered, including exit motion.
+ * @cssstate entering - Matches while the popup is entering.
+ * @cssstate active - Matches after enter motion settles.
+ * @cssstate exiting - Matches while the popup is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  * @cssstate readonly - Matches `:state(readonly)` while selection cannot change.
  * @cssstate empty - Matches `:state(empty)` while no enabled option is available.
@@ -81,6 +92,8 @@ function optionLabel(option: UIOption): string {
  * @fires {CustomEvent<{ value: string }>} ui-select-change - Emitted after selection changes.
  * @fires {CustomEvent<{ value: string }>} ui-select-confirm - Emitted when the open option surface closes with the current value.
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-select-open-change - Emitted after interaction changes list visibility, including a portable reason.
+ * @fires {CustomEvent<PresenceLifecycleEventDetail>} mash-presence-start - Announces select popup enter or exit presence.
+ * @fires {CustomEvent<PresenceLifecycleEventDetail>} mash-presence-end - Announces completion or interruption of select popup presence.
  *
  * @mashrole slot arrow pointer arrow
  * @mashrole part arrow pointer arrow
@@ -118,8 +131,14 @@ function optionLabel(option: UIOption): string {
  * @mashnode listbox listbox viewport
  * @mashnode children children listbox
  * @mashnode size size root
+ * @mashaxis size control-size
  * @mashnode searchable searchable root
  * @mashnode open open root
+ * @mashnode present present popup
+ * @mashnode entering entering popup
+ * @mashnode active active popup
+ * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
  * @mashnode invalid invalid trigger
  * @mashrole event ui-select-change change value
  * @mashrole event ui-select-confirm confirm value
@@ -148,6 +167,7 @@ export class UISelect extends LitElement {
     align: { type: String, reflect: true },
     offset: { type: Number, reflect: true },
     collisionPadding: { type: Number, attribute: "collision-padding", reflect: true },
+    popupPresent: { state: true },
     _resultCount: { type: Number, state: true },
   };
 
@@ -181,6 +201,8 @@ export class UISelect extends LitElement {
   declare offset: number;
   /** Minimum viewport-edge clearance in CSS pixels. */
   declare collisionPadding: number;
+  /** Internal render-presence; public state remains the `open` contract. */
+  declare protected popupPresent: boolean;
   declare private _resultCount: number;
 
   readonly #internals: ElementInternals;
@@ -202,6 +224,7 @@ export class UISelect extends LitElement {
     positioner: () => this.renderRoot.querySelector<HTMLElement>("[part~='positioner']"),
     config: () => this,
   });
+  readonly #presence: PresenceLifecycleController<"entering" | "exiting">;
 
   constructor() {
     super();
@@ -220,8 +243,23 @@ export class UISelect extends LitElement {
     this.align = "start";
     this.offset = 4;
     this.collisionPadding = 4;
+    this.popupPresent = false;
     this._resultCount = 0;
     this.#internals = this.attachInternals();
+    this.#presence = new PresenceLifecycleController(this, {
+      target: () => this.renderRoot.querySelector<HTMLElement>("[part~='popup']"),
+      present: () => this.popupPresent,
+      setPresent: (present) => {
+        this.popupPresent = present;
+      },
+      setState: (state, present) => this.#setPresenceState(state, present),
+      onStart: (context) => this.#emitPresenceEvent("mash-presence-start", context),
+      onFinish: (context) => this.#emitPresenceEvent("mash-presence-end", context),
+      onSettle: (phase) => {
+        if (phase === "absent") this.#positioner.stop();
+        else this.#positioner.queue();
+      },
+    });
     this.addEventListener("ui-option-select", this.#onOptionSelect);
     this.addEventListener("click", this.#onComposedClick);
     this.addEventListener("keydown", this.#onOptionKeydown);
@@ -279,6 +317,7 @@ export class UISelect extends LitElement {
 
   override disconnectedCallback(): void {
     this.#collectionObserver.disconnect();
+    this.#presence.destroy();
     this.#positioner.stop();
     this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
     super.disconnectedCallback();
@@ -321,6 +360,7 @@ export class UISelect extends LitElement {
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
+    if (changed.has("open") && this.open) this.popupPresent = true;
     if (
       changed.has("value") ||
       changed.has("name") ||
@@ -333,15 +373,50 @@ export class UISelect extends LitElement {
       this.#sync();
   }
 
-  protected override updated(): void {
-    if (this.open) {
-      this.#positioner.start();
+  protected override updated(changed: PropertyValues<this>): void {
+    if (changed.has("open")) {
+      if (this.open) {
+        this.#positioner.start();
+        this.#positioner.queue();
+        this.ownerDocument.addEventListener("pointerdown", this.#onDocumentPointerDown, true);
+        this.#presence.enter("entering");
+      } else {
+        this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
+        this.#presence.exit("exiting", changed.get("open") === true);
+      }
+    } else if (this.open || this.popupPresent) {
       this.#positioner.queue();
-      this.ownerDocument.addEventListener("pointerdown", this.#onDocumentPointerDown, true);
-    } else {
-      this.#positioner.stop();
-      this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
     }
+  }
+
+  #setPresenceState(state: PresenceState, present: boolean): void {
+    if (present) this.#internals.states.add(state);
+    else this.#internals.states.delete(state);
+  }
+
+  #emitPresenceEvent(
+    type: "mash-presence-start" | "mash-presence-end",
+    context: PresenceLifecycleContext<"entering" | "exiting">,
+  ): void {
+    const eventInit: CustomEventInit<PresenceLifecycleEventDetail> = {
+      bubbles: true,
+      composed: true,
+      detail: {
+        open: context.open,
+        phase: context.phase,
+        reducedMotion: context.reducedMotion,
+        interrupted: context.interrupted,
+      },
+    };
+    if (type === "mash-presence-start") {
+      this.dispatchEvent(
+        new CustomEvent<PresenceLifecycleEventDetail>("mash-presence-start", eventInit),
+      );
+      return;
+    }
+    this.dispatchEvent(
+      new CustomEvent<PresenceLifecycleEventDetail>("mash-presence-end", eventInit),
+    );
   }
 
   formDisabledCallback(disabled: boolean): void {
@@ -682,8 +757,10 @@ export class UISelect extends LitElement {
           </button>
           <span part="clear"><slot name="clear"></slot></span>
         </span>
-        <span part="backdrop" ?hidden=${!this.open}><slot name="backdrop"></slot></span>
-        <div part="positioner" ?hidden=${!this.open}>
+        <span part="backdrop" ?hidden=${!this.popupPresent} .inert=${!this.open}
+          ><slot name="backdrop"></slot
+        ></span>
+        <div part="positioner" ?hidden=${!this.popupPresent} .inert=${!this.open}>
           <div part="popup">
             <span part="scroll-up"><slot name="scroll-up"></slot></span>
             <span part="arrow"><slot name="arrow"></slot></span>

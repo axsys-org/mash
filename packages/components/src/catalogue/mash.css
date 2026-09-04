@@ -3091,6 +3091,10 @@
     display: contents;
   }
 
+  :where([data-mash-catalogue="mash"]) ui-combobox > [slot="chips"][data-catalog-drag-source] {
+    display: inline-block;
+  }
+
   :where([data-mash-catalogue="mash"]) ui-autocomplete::part(control),
   :where([data-mash-catalogue="mash"]) ui-combobox::part(control) {
     flex: 1 1 auto;
@@ -3156,6 +3160,17 @@
     padding: var(--space-control-block);
     background: var(--_mash-component-surface-raised);
     box-shadow: 0 4px 12px var(--_mash-component-shadow);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(ui-select, ui-autocomplete, ui-combobox):state(entering)::part(popup) {
+    animation: mash-menu-enter var(--duration-transient) var(--easing-spring-snappy) both;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(ui-select, ui-autocomplete, ui-combobox):state(exiting)::part(popup) {
+    animation: mash-menu-exit var(--duration-transient) var(--easing-control) both;
+    pointer-events: none;
   }
 
   :where([data-mash-catalogue="mash"]) ui-select::part(popup),
@@ -3375,7 +3390,6 @@
 
   :where([data-mash-catalogue="mash"]) ui-toast-stack > ui-toast {
     display: block;
-    animation: mash-toast-enter var(--duration-surface) var(--easing-surface);
   }
 
   :where([data-mash-catalogue="mash"]) ui-toast::part(root) {
@@ -3393,6 +3407,14 @@
     font-family: var(--type-body-font-family);
     font-size: var(--type-body-font-size);
     line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toast:state(entering)::part(root) {
+    animation: mash-toast-enter var(--duration-surface) var(--easing-surface) both;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-toast:state(exiting)::part(root) {
+    animation: mash-toast-exit var(--duration-surface) var(--easing-surface) both;
   }
 
   :where([data-mash-catalogue="mash"]) ui-toast::part(icon) {
@@ -4954,13 +4976,104 @@
       var(--type-label-small-line-height) var(--type-label-small-font-family);
     white-space: nowrap;
   }
+  :where([data-mash-catalogue="mash"]) ui-badge::part(indicator) {
+    display: contents;
+  }
+  :where([data-mash-catalogue="mash"]) ui-badge::part(icon) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  :where([data-mash-catalogue="mash"]) ui-badge:state(anchored)::part(root) {
+    position: relative;
+    display: inline-grid;
+    min-block-size: auto;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    white-space: normal;
+  }
+  :where([data-mash-catalogue="mash"]) ui-badge:state(anchored)::part(target) {
+    grid-area: 1 / 1;
+    display: inline-flex;
+  }
+  :where([data-mash-catalogue="mash"]) ui-badge:state(anchored)::part(indicator) {
+    grid-area: 1 / 1;
+    align-self: start;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--layout-dimension-control-xsmall);
+    min-block-size: var(--layout-dimension-control-xsmall);
+    padding: 0 calc(var(--space-control-inline-small) / 2);
+    border: var(--border-hairline) solid var(--_mash-component-surface-raised);
+    border-radius: var(--radius-pill);
+    background: var(--_mash-badge-background);
+    color: var(--_mash-badge-foreground);
+    font: var(--type-caption1-font-weight) var(--type-caption1-font-size) /
+      var(--type-caption1-line-height) var(--type-caption1-font-family);
+    translate: 50% -35%;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-badge[position="top-start"]:state(anchored)::part(indicator) {
+    justify-self: start;
+    translate: -50% -35%;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-badge[position="bottom-end"]:state(anchored)::part(indicator) {
+    align-self: end;
+    translate: 50% 35%;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-badge[position="bottom-start"]:state(anchored)::part(indicator) {
+    align-self: end;
+    justify-self: start;
+    translate: -50% 35%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-badge[variant="dot"]::part(root),
+  :where([data-mash-catalogue="mash"]) ui-badge[variant="dot"]:state(anchored)::part(indicator) {
+    min-inline-size: var(--space-control-gap);
+    inline-size: var(--space-control-gap);
+    min-block-size: var(--space-control-gap);
+    block-size: var(--space-control-gap);
+    padding: 0;
+  }
   :where([data-mash-catalogue="mash"]) ui-badge[size="small"]::part(root) {
     min-block-size: var(--layout-dimension-control-xsmall);
     padding-block: calc(var(--space-control-block-small) / 2);
     font: var(--type-caption1-font-weight) var(--type-caption1-font-size) /
       var(--type-caption1-line-height) var(--type-caption1-font-family);
   }
+  :where([data-mash-catalogue="mash"]) ui-badge[size="large"]::part(root) {
+    min-block-size: var(--layout-dimension-control-medium);
+    padding-inline: var(--space-control-inline);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+  }
+  :where([data-mash-catalogue="mash"]) ui-badge[size="large"]:state(anchored)::part(root) {
+    min-block-size: auto;
+    padding: 0;
+    font: inherit;
+  }
+  :where([data-mash-catalogue="mash"]) ui-badge[size="large"]:state(anchored)::part(indicator) {
+    min-inline-size: var(--layout-dimension-control-small);
+    min-block-size: var(--layout-dimension-control-small);
+    font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-small-font-family);
+  }
   :where([data-mash-catalogue="mash"]) ui-badge.example-badge-outline::part(root) {
+    background: transparent;
+    color: var(--_mash-badge-outline);
+    box-shadow: inset 0 0 0 var(--border-hairline) var(--_mash-badge-outline);
+  }
+  :where([data-mash-catalogue="mash"]) ui-badge.example-badge-outline:state(anchored)::part(root) {
+    box-shadow: none;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-badge.example-badge-outline:state(anchored)::part(indicator) {
     background: transparent;
     color: var(--_mash-badge-outline);
     box-shadow: inset 0 0 0 var(--border-hairline) var(--_mash-badge-outline);
@@ -5699,6 +5812,12 @@
       translate: 0 calc(var(--space-control-gap) * -1);
     }
   }
+  @keyframes mash-toast-exit {
+    to {
+      opacity: 0;
+      translate: 0 calc(var(--space-control-gap) * -1);
+    }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     :where([data-mash-catalogue="mash"]) ui-button::part(control),
@@ -5709,7 +5828,12 @@
     :where([data-mash-catalogue="mash"]) ui-button::part(spinner),
     :where([data-mash-catalogue="mash"]) ui-spinner::part(indicator),
     :where([data-mash-catalogue="mash"]) ui-progress:state(indeterminate)::part(indicator),
-    :where([data-mash-catalogue="mash"]) ui-toast-stack > ui-toast {
+    :where([data-mash-catalogue="mash"])
+      :is(ui-select, ui-autocomplete, ui-combobox):state(entering)::part(popup),
+    :where([data-mash-catalogue="mash"])
+      :is(ui-select, ui-autocomplete, ui-combobox):state(exiting)::part(popup),
+    :where([data-mash-catalogue="mash"]) ui-toast:state(entering)::part(root),
+    :where([data-mash-catalogue="mash"]) ui-toast:state(exiting)::part(root) {
       animation: none;
     }
   }

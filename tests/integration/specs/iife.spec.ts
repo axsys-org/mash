@@ -1,227 +1,88 @@
-import { resolve } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 
 import { expect, test } from "@playwright/test";
 
-const bundle = resolve(import.meta.dirname, "../../../apps/catalog/dist/mash.js");
-
-const expectedTags = [
-  "sh-limb",
-  "sh-locator",
-  "sh-myth",
-  "sh-pail",
-  "sh-slot",
-  "sh-tree",
-  "sh-triptych",
-  "shrine-confirm",
-  "ui-accordion",
-  "ui-accordion-item",
-  "ui-alert-dialog",
-  "ui-autocomplete",
-  "ui-avatar",
-  "ui-badge",
-  "ui-button",
-  "ui-calendar",
-  "ui-card",
-  "ui-checkbox",
-  "ui-checkbox-group",
-  "ui-chip",
-  "ui-collapsible",
-  "ui-color-picker",
-  "ui-color-swatch",
-  "ui-combobox",
-  "ui-context-menu",
-  "ui-data-table",
-  "ui-date-picker",
-  "ui-dialog",
-  "ui-draggable",
-  "ui-drawer",
-  "ui-editor",
-  "ui-field",
-  "ui-fieldset",
-  "ui-form",
-  "ui-gesture-binding",
-  "ui-icon",
-  "ui-image",
-  "ui-input",
-  "ui-input-group",
-  "ui-intl-formatter",
-  "ui-kbd",
-  "ui-link",
-  "ui-menu",
-  "ui-menu-item",
-  "ui-menu-label",
-  "ui-menubar",
-  "ui-meter",
-  "ui-motion",
-  "ui-navigation-menu",
-  "ui-number-field",
-  "ui-option",
-  "ui-option-group",
-  "ui-option-row",
-  "ui-otp-field",
-  "ui-pagination",
-  "ui-path",
-  "ui-popover",
-  "ui-preview-card",
-  "ui-progress",
-  "ui-radio",
-  "ui-radio-group",
-  "ui-resizable",
-  "ui-resizable-handle",
-  "ui-resizable-panel",
-  "ui-scroll-area",
-  "ui-select",
-  "ui-separator",
-  "ui-slider",
-  "ui-spinner",
-  "ui-switch",
-  "ui-tab",
-  "ui-tab-panel",
-  "ui-table",
-  "ui-table-body",
-  "ui-table-caption",
-  "ui-table-cell",
-  "ui-table-head",
-  "ui-table-header",
-  "ui-table-row",
-  "ui-tabs",
-  "ui-textarea",
-  "ui-toast",
-  "ui-toast-stack",
-  "ui-toggle",
-  "ui-toggle-group",
-  "ui-toolbar",
-  "ui-tooltip",
-  "ui-tree",
-  "ui-tree-item",
-  "ui-typeset",
-  "ui-virtual-item",
-  "ui-virtual-list",
+const repoRoot = resolve(import.meta.dirname, "../../..");
+const bundle = resolve(repoRoot, "apps/catalog/dist/mash.js");
+const packageSources = [
+  resolve(repoRoot, "packages/components/src"),
+  resolve(repoRoot, "packages/shrine-components/src"),
 ];
 
-const expectedGlobalExports = [
-  "DragAutoScrollController",
-  "DragController",
-  "GestureController",
-  "ShrineConfirm",
-  "ShrineLimb",
-  "ShrineLocator",
-  "ShrineMyth",
-  "ShrinePail",
-  "ShrineSlot",
-  "ShrineTree",
-  "ShrineTriptych",
-  "UIAccordion",
-  "UIAccordionItem",
-  "UIAlertDialog",
-  "UIAutocomplete",
-  "UIAvatar",
-  "UIBadge",
-  "UIButton",
-  "UICalendar",
-  "UICard",
-  "UICheckbox",
-  "UICheckboxGroup",
-  "UIChip",
-  "UICollapsible",
-  "UIColorPicker",
-  "UIColorSwatch",
-  "UICombobox",
-  "UIContextMenu",
-  "UIDataTable",
-  "UIDatePicker",
-  "UIDialog",
-  "UIDraggable",
-  "UIDrawer",
-  "UIEditor",
-  "UIField",
-  "UIFieldset",
-  "UIForm",
-  "UIGestureBinding",
-  "UIIcon",
-  "UIImage",
-  "UIInput",
-  "UIInputGroup",
-  "UIIntlFormatter",
-  "UIKbd",
-  "UILink",
-  "UIMenu",
-  "UIMenuItem",
-  "UIMenuLabel",
-  "UIMenubar",
-  "UIMeter",
-  "UIMotion",
-  "UINavigationMenu",
-  "UINumberField",
-  "UIOption",
-  "UIOptionGroup",
-  "UIOptionRow",
-  "UIOtpField",
-  "UIPagination",
-  "UIPath",
-  "UIPopover",
-  "UIPreviewCard",
-  "UIProgress",
-  "UIRadio",
-  "UIRadioGroup",
-  "UIResizable",
-  "UIResizableHandle",
-  "UIResizablePanel",
-  "UIScrollArea",
-  "UISelect",
-  "UISeparator",
-  "UISlider",
-  "UISpinner",
-  "UISwitch",
-  "UITab",
-  "UITabPanel",
-  "UITable",
-  "UITableBody",
-  "UITableCaption",
-  "UITableCell",
-  "UITableHead",
-  "UITableHeader",
-  "UITableRow",
-  "UITabs",
-  "UITextarea",
-  "UIToast",
-  "UIToastStack",
-  "UIToggle",
-  "UIToggleGroup",
-  "UIToolbar",
-  "UITooltip",
-  "UITree",
-  "UITreeItem",
-  "UITypeset",
-  "UIVirtualItem",
-  "UIVirtualList",
-  "bindGesture",
-  "clamp",
-  "clampDragPosition",
-  "createDraggable",
-  "cssTranslateDragPositioner",
-  "cssVariableDragPositioner",
-  "dispatchCommand",
-  "elementPaddingRect",
-  "formatAriaShortcut",
-  "hasIcon",
-  "iconNames",
-  "leftTopDragPositioner",
-  "modifiersFromEvent",
-  "normalizeHexColor",
-  "parseGestureModifiers",
-  "parseGestureShortcut",
-  "pointsEqual",
-  "rectFromDomRect",
-  "rectFromEdges",
-  "registerIcon",
-  "resolveDragRect",
-  "resolveDragSnap",
-  "subtractPoint",
-  "translateDragRect",
-  "unregisterIcon",
-  "viewportRect",
-];
+function sourceFiles(root: string): string[] {
+  const files: string[] = [];
+
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const path = resolve(root, entry.name);
+    if (entry.isDirectory()) files.push(...sourceFiles(path));
+    else if (entry.isFile()) files.push(path);
+  }
+
+  return files;
+}
+
+function registeredTags(): string[] {
+  const tags = new Set<string>();
+
+  for (const root of packageSources) {
+    for (const file of sourceFiles(root).filter((path) => path.endsWith("register.ts"))) {
+      const source = readFileSync(file, "utf8");
+      for (const block of source.matchAll(/interface\s+HTMLElementTagNameMap\s*{([\s\S]*?)}/g)) {
+        for (const tag of block[1]!.matchAll(/"([^"]+)":/g)) tags.add(tag[1]!);
+      }
+    }
+  }
+
+  return [...tags].sort();
+}
+
+function publicValueExports(): string[] {
+  const exports = new Set<string>();
+  const seen = new Set<string>();
+
+  collectValueExports(resolve(repoRoot, "packages/components/src/index.ts"), exports, seen);
+  collectValueExports(resolve(repoRoot, "packages/shrine-components/src/index.ts"), exports, seen);
+
+  return [...exports].sort();
+}
+
+function collectValueExports(file: string, exports: Set<string>, seen: Set<string>): void {
+  const path = file.replace(/\.js$/, ".ts");
+  if (seen.has(path)) return;
+  seen.add(path);
+
+  const source = readFileSync(path, "utf8");
+
+  for (const statement of source.matchAll(/export\s+{([\s\S]*?)}\s+from\s+"([^"]+)";/g)) {
+    for (const specifier of statement[1]!.split(",")) {
+      const name = exportedName(specifier);
+      if (name) exports.add(name);
+    }
+  }
+
+  for (const statement of source.matchAll(/export\s+\*\s+from\s+"([^"]+)";/g)) {
+    collectValueExports(
+      resolve(dirname(path), statement[1]!.replace(/\.js$/, ".ts")),
+      exports,
+      seen,
+    );
+  }
+}
+
+function exportedName(specifier: string): string | null {
+  const name = specifier.trim();
+  if (!name || name.startsWith("type ")) return null;
+  return (
+    name
+      .split(/\s+as\s+/)
+      .at(-1)
+      ?.trim() || null
+  );
+}
+
+const expectedTags = registeredTags();
+const expectedGlobalExports = publicValueExports();
 
 test.describe("single-file browser distribution", () => {
   test("registers every element and installs its token styles", async ({ page }) => {

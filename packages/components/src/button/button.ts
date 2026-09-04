@@ -142,6 +142,7 @@ export type ButtonType = "button" | "submit" | "reset";
  * @mashnode spinner spinner control
  * @mashnode variant variant control
  * @mashnode size size control
+ * @mashaxis size control-size
  * @mashnode tone tone control
  * @mashnode compact compact control
  * @mashnode outline outline control

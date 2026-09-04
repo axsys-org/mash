@@ -26,7 +26,7 @@ export { UIAccordionItem } from "./accordion-item/accordion-item.js";
 export { UIAlertDialog } from "./alert-dialog/alert-dialog.js";
 export { UIAutocomplete } from "./autocomplete/autocomplete.js";
 export { UIBadge } from "./badge/badge.js";
-export type { BadgeSize, BadgeTone } from "./badge/badge.js";
+export type { BadgePosition, BadgeSize, BadgeTone, BadgeVariant } from "./badge/badge.js";
 export { UIBubble, UIBubbleGroup } from "./bubble/bubble.js";
 export type {
   BubbleAlignment,

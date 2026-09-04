@@ -37,12 +37,20 @@ test("catalogue chrome and stage are realized by semantic utilities", async ({ p
   );
   expect(legacyStylesheets).toEqual([]);
 
-  await page.goto("/components/ui-card?example=Message+bubble+pattern");
+  await page.goto("/components/ui-bubble?example=Message+rows");
   const outgoingBubble = page
     .frameLocator("iframe.stage-frame")
-    .locator('.example-message-bubble[data-from="me"]');
+    .locator('ui-bubble[alignment="end"]')
+    .first();
   await expect(outgoingBubble).toBeVisible();
-  await expect(outgoingBubble).toHaveCSS("align-self", "flex-end");
+  await expect
+    .poll(() =>
+      outgoingBubble.evaluate((node) => {
+        const root = node.shadowRoot?.querySelector<HTMLElement>('[part~="root"]');
+        return root ? getComputedStyle(root).alignSelf : "";
+      }),
+    )
+    .toBe("flex-end");
 });
 
 test("material utilities keep thickness, vibrancy, and accessibility policy independent", async ({

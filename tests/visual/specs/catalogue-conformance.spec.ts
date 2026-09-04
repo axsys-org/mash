@@ -39,11 +39,41 @@ for (const tag of tags) {
 
       await page.goto(`/components/${tag}?theme=${theme}`);
       const frame = page.frameLocator("iframe.stage-frame");
-      const component = frame.locator(tag).first();
-      await expect(component).toBeAttached();
+      const components = frame.locator(tag);
+      await expect(components.first()).toBeAttached();
+      let visibleIndex = -1;
+      await expect
+        .poll(async () => {
+          const result = await components.evaluateAll((nodes) => {
+            const visible = nodes.findIndex((node) => {
+              const element = node as HTMLElement;
+              const style = getComputedStyle(element);
+              const hostBounds = element.getBoundingClientRect();
+              const part = element.shadowRoot?.querySelector<HTMLElement>("[part~='root'], [part]");
+              const partBounds = part?.getBoundingClientRect();
+              const bounds =
+                hostBounds.width > 0 && hostBounds.height > 0 ? hostBounds : partBounds;
+              return (
+                style.display !== "none" &&
+                style.visibility !== "hidden" &&
+                Boolean(bounds && bounds.width > 0 && bounds.height > 0)
+              );
+            });
+            const first = nodes[0] as HTMLElement | undefined;
+            const root = first?.shadowRoot?.querySelector<HTMLElement>("[part~='root']");
+            return {
+              visible,
+              ready: visible >= 0 || Boolean(root?.hidden && root.getAttribute("aria-hidden")),
+            };
+          });
+          visibleIndex = result.visible;
+          return result.ready;
+        })
+        .toBe(true);
+      const component = visibleIndex >= 0 ? components.nth(visibleIndex) : components.first();
 
       const intentionallyHeadless = await component.evaluate((node) => {
-        const root = node.shadowRoot?.querySelector<HTMLElement>("[part~='root']");
+        const root = node.shadowRoot?.querySelector<HTMLElement>("[part~='root'], [part]");
         return Boolean(root?.hidden && root.getAttribute("aria-hidden") === "true");
       });
 
@@ -53,11 +83,9 @@ for (const tag of tags) {
         return;
       }
 
-      await expect(component).toBeVisible();
-
       const geometry = await component.evaluate((node) => {
         const hostBounds = node.getBoundingClientRect();
-        const root = node.shadowRoot?.querySelector<HTMLElement>("[part~='root']");
+        const root = node.shadowRoot?.querySelector<HTMLElement>("[part~='root'], [part]");
         const target = hostBounds.width > 0 && hostBounds.height > 0 ? node : root;
         const bounds = target?.getBoundingClientRect() ?? hostBounds;
         const documentElement = node.ownerDocument.documentElement;

@@ -117,6 +117,7 @@ const emptyMetrics = (): ScrollMetrics => ({
  * @mashnode at-inline-end at-inline-end root
  * @mashnode mode mode root
  * @mashnode size size root
+ * @mashaxis size scrollbar-size
  * @mashnode gutter gutter root
  * @mashnode snap snap root
  * @mashnode idle-delay duration root

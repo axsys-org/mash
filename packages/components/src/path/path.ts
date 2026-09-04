@@ -70,6 +70,7 @@ export type PathVariant = "preview" | "breadcrumb";
  * @mashnode segment segment segments
  * @mashnode separator separator segments
  * @mashnode size size root
+ * @mashaxis size type-preset
  * @mashnode current current root
  * @mashnode selected selected root
  * @mashnode variant variant root

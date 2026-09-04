@@ -1,7 +1,11 @@
 import { LitElement, css, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
-import { MotionLifecycleController } from "../internal/motion-lifecycle.js";
+import {
+  PresenceLifecycleController,
+  type PresenceLifecycleContext,
+  type PresenceState,
+} from "../internal/presence-lifecycle.js";
 
 export type RevealAxis = "block" | "inline";
 export type RevealState = "entering" | "active" | "exiting";
@@ -11,6 +15,11 @@ export interface RevealEventDetail {
   interrupted: boolean;
   open: boolean;
   reducedMotion: boolean;
+  state: RevealState;
+}
+
+interface RevealPresenceValue {
+  axis: RevealAxis;
   state: RevealState;
 }
 
@@ -73,7 +82,7 @@ export class UIReveal extends LitElement {
   declare protected revealPresent: boolean;
 
   readonly #internals: ElementInternals;
-  readonly #motion: MotionLifecycleController<RevealEventDetail>;
+  readonly #presence: PresenceLifecycleController<RevealPresenceValue>;
 
   constructor() {
     super();
@@ -81,26 +90,42 @@ export class UIReveal extends LitElement {
     this.axis = "block";
     this.revealPresent = false;
     this.#internals = this.attachInternals();
-    this.#motion = new MotionLifecycleController(this, {
+    this.#presence = new PresenceLifecycleController(this, {
       target: () => this.#content(),
-      onStart: ({ value, reducedMotion }) => {
-        this.#setReducedMotionState(reducedMotion);
+      present: () => this.revealPresent,
+      setPresent: (present) => {
+        this.revealPresent = present;
+      },
+      setState: (state, present) => this.#setState(state, present),
+      beforeEnter: () => {
+        this.#setZeroDimension();
+        this.#content()?.getBoundingClientRect();
+        this.#setMeasuredDimension();
+      },
+      beforeExitPhase: () => {
+        this.#setMeasuredDimension();
+        this.#content()?.getBoundingClientRect();
+      },
+      afterExitPhase: () => this.#setZeroDimension(),
+      onSettle: (phase) => {
+        if (phase === "active") this.#setAutoDimension();
+        else this.#setZeroDimension();
+      },
+      onStart: (context) => {
         this.dispatchEvent(
           new CustomEvent<RevealEventDetail>("mash-reveal-start", {
             bubbles: true,
             composed: true,
-            detail: { ...value, reducedMotion },
+            detail: this.#eventDetail(context),
           }),
         );
       },
-      onFinish: ({ value, reducedMotion, interrupted }) => {
-        this.#setReducedMotionState(reducedMotion);
-        if (!interrupted) this.#settle(value.state);
+      onFinish: (context) => {
         this.dispatchEvent(
           new CustomEvent<RevealEventDetail>("mash-reveal-end", {
             bubbles: true,
             composed: true,
-            detail: { ...value, reducedMotion, interrupted },
+            detail: this.#eventDetail(context),
           }),
         );
       },
@@ -167,7 +192,7 @@ export class UIReveal extends LitElement {
   }
 
   override disconnectedCallback(): void {
-    this.#motion.destroy();
+    this.#presence.destroy();
     super.disconnectedCallback();
   }
 
@@ -179,74 +204,20 @@ export class UIReveal extends LitElement {
     const content = this.#content();
     if (!content) return;
 
-    this.#setPresenceStates(true);
-    this.#setPhase("entering");
-    this.#setZeroDimension();
-    content.getBoundingClientRect();
-    this.#setMeasuredDimension();
-    this.#motion.play(this.#eventDetail("entering", false));
+    this.#presence.enter(this.#presenceValue("entering"));
   }
 
   #exit(wasOpen: boolean): void {
-    this.#internals.states.delete("open");
-    this.#internals.states.delete("active");
-    if (!wasOpen || !this.revealPresent) {
-      this.#setAbsent();
+    if (!this.#content()) {
+      this.#presence.absent();
       return;
     }
-
-    const content = this.#content();
-    if (!content) {
-      this.#setAbsent();
-      return;
-    }
-
-    this.#setMeasuredDimension();
-    content.getBoundingClientRect();
-    this.#setPhase("exiting");
-    this.#setZeroDimension();
-    this.#motion.play(this.#eventDetail("exiting", false));
+    this.#presence.exit(this.#presenceValue("exiting"), wasOpen);
   }
 
-  #settle(state: RevealState): void {
-    this.#internals.states.delete("entering");
-    this.#internals.states.delete("exiting");
-    if (state === "entering") {
-      this.#internals.states.add("active");
-      this.#setAutoDimension();
-      return;
-    }
-    this.#setAbsent();
-  }
-
-  #setPresenceStates(present: boolean): void {
-    if (present) {
-      this.#internals.states.add("present");
-      this.#internals.states.add("open");
-      return;
-    }
-    this.#internals.states.delete("present");
-    this.#internals.states.delete("open");
-  }
-
-  #setPhase(state: "entering" | "exiting"): void {
-    this.#internals.states.delete("active");
-    this.#internals.states.delete(state === "entering" ? "exiting" : "entering");
-    this.#internals.states.add(state);
-  }
-
-  #setAbsent(): void {
-    this.revealPresent = false;
-    this.#setPresenceStates(false);
-    this.#internals.states.delete("active");
-    this.#internals.states.delete("entering");
-    this.#internals.states.delete("exiting");
-    this.#setZeroDimension();
-  }
-
-  #setReducedMotionState(reducedMotion: boolean): void {
-    if (reducedMotion) this.#internals.states.add("reduced-motion");
-    else this.#internals.states.delete("reduced-motion");
+  #setState(state: PresenceState, present: boolean): void {
+    if (present) this.#internals.states.add(state);
+    else this.#internals.states.delete(state);
   }
 
   #setMeasuredDimension(): void {
@@ -277,13 +248,20 @@ export class UIReveal extends LitElement {
     content.style.inlineSize = "";
   }
 
-  #eventDetail(state: RevealState, interrupted: boolean): RevealEventDetail {
+  #presenceValue(state: RevealState): RevealPresenceValue {
     return {
       axis: this.#axis(),
-      interrupted,
-      open: this.open,
-      reducedMotion: false,
       state,
+    };
+  }
+
+  #eventDetail(context: PresenceLifecycleContext<RevealPresenceValue>): RevealEventDetail {
+    return {
+      axis: context.value.axis,
+      interrupted: context.interrupted,
+      open: context.open,
+      reducedMotion: context.reducedMotion,
+      state: context.value.state,
     };
   }
 

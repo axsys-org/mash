@@ -752,13 +752,13 @@ export function MarkdownFrame({ html }: { html: string }) {
       `
         <div class="catalog-example example-icon-layers">
           <span class="example-icon-layer-sample">
-            <ui-icon name="object.folder" size="large" label="Billing folder with three warnings">
-              <ui-badge slot="badge" size="small" tone="warning">3</ui-badge>
+            <ui-icon name="object.folder" size="large" label="Synced billing folder">
+              <ui-icon slot="secondary" name="action.confirm" size="small"></ui-icon>
             </ui-icon>
           </span>
           <span class="example-icon-layer-sample">
-            <ui-icon name="object.folder" size="large" label="Synced archive folder">
-              <ui-icon slot="secondary" name="action.confirm" size="small"></ui-icon>
+            <ui-icon name="object.folder" size="large" label="Authored folder glyph">
+              <span slot="primary" class="example-icon-authored-glyph" aria-hidden="true">F</span>
             </ui-icon>
           </span>
           <span class="example-icon-layer-sample">
@@ -912,6 +912,31 @@ export function MarkdownFrame({ html }: { html: string }) {
       },
     ),
     example(
+      "Anchored indicators",
+      `
+        <section class="catalog-example example-badge-indicators" aria-label="Badge target indicators">
+          <ui-badge variant="count" count="12" max="9" size="small" label="12 pending reviews">
+            <ui-icon slot="target" name="status.warning" size="large" label=""></ui-icon>
+          </ui-badge>
+          <ui-badge variant="dot" tone="positive" label="Online">
+            <ui-avatar slot="target" size="medium">MR</ui-avatar>
+          </ui-badge>
+          <ui-badge variant="icon" tone="positive" position="bottom-end" label="Verified">
+            <ui-avatar slot="target" size="medium">AX</ui-avatar>
+            <ui-icon slot="icon" name="action.confirm" size="small" label=""></ui-icon>
+          </ui-badge>
+          <ui-badge variant="count" count="0" size="small" label="No unread updates">
+            <ui-icon slot="target" name="object.folder" size="large" label=""></ui-icon>
+          </ui-badge>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Badge indicators annotate a slotted target with count, dot, or authored icon state while the target keeps its own component contract.",
+        stageLayout: "start",
+      },
+    ),
+    example(
       "Marker rows",
       `
         <section class="catalog-example example-marker-feed" aria-label="Project status timeline">
@@ -1022,6 +1047,10 @@ export function MarkdownFrame({ html }: { html: string }) {
       "Coordinated loading command",
       `
         <section id="catalog-loading-command" class="catalog-example example-stack" tabindex="0">
+          <div class="example-actions">
+            <ui-spinner size="medium" label="Loading projects"></ui-spinner>
+            <span>Loading project list</span>
+          </div>
           <ui-motion motion="pulse" state="loading" target="content">
             <ui-button variant="secondary" loading>
               <ui-spinner slot="prefix" size="small" label=""></ui-spinner>
@@ -2481,14 +2510,19 @@ export function MarkdownFrame({ html }: { html: string }) {
             <ui-avatar size="small">MC</ui-avatar>
             <div class="example-message-main">
               <div class="example-message-meta"><strong>Maya Chen</strong><ui-intl-formatter kind="time" value="2026-08-20T15:42:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter></div>
-              <ui-bubble alignment="start" variant="secondary">The billing migration is ready for review.</ui-bubble>
+              <ui-bubble-group>
+                <ui-bubble alignment="start" variant="secondary">The billing migration is ready for review.</ui-bubble>
+                <ui-bubble alignment="start" variant="secondary">The invoice sample is linked in the handoff.</ui-bubble>
+              </ui-bubble-group>
               <div class="example-message-footer"><span>Delivered to project room</span><ui-button type="button" size="xsmall" variant="quiet">Reply</ui-button></div>
             </div>
           </div>
           <div class="example-message-row example-message-row-end">
             <div class="example-message-main">
               <div class="example-message-meta"><strong>You</strong><ui-intl-formatter kind="time" value="2026-08-20T15:44:00Z" locale="en-US" time-zone="UTC"></ui-intl-formatter></div>
-              <ui-bubble alignment="end">Perfect. I will check the final invoice sample now.</ui-bubble>
+              <ui-bubble-group>
+                <ui-bubble alignment="end">Perfect. I will check the final invoice sample now.</ui-bubble>
+              </ui-bubble-group>
               <div class="example-message-footer"><span>Read</span><ui-button type="button" size="xsmall" variant="quiet">Copy</ui-button></div>
             </div>
             <ui-avatar size="small">You</ui-avatar>
@@ -3293,6 +3327,31 @@ export function MarkdownFrame({ html }: { html: string }) {
       { compositionOnly: true },
     ),
     example(
+      "Rearrange selected owners",
+      `
+        <section class="catalog-example example-chip-workspace" data-catalog-drag-boundary aria-label="Owner precedence">
+          <ui-combobox name="owners" label="Owners" multiple values='["maya","sam","alex","jo"]'>
+            <ui-icon slot="icon" name="action.search" label=""></ui-icon>
+            <ui-chip slot="chips" value="maya" data-catalog-drag-source="chip" data-catalog-drag-axis="x" data-catalog-label="Maya"><ui-button type="button" size="xsmall" variant="quiet" aria-label="Move Maya" data-catalog-drag-handle><ui-icon name="action.drag" label=""></ui-icon></ui-button>Maya</ui-chip>
+            <ui-chip slot="chips" value="sam" data-catalog-drag-source="chip" data-catalog-drag-axis="x" data-catalog-label="Sam"><ui-button type="button" size="xsmall" variant="quiet" aria-label="Move Sam" data-catalog-drag-handle><ui-icon name="action.drag" label=""></ui-icon></ui-button>Sam</ui-chip>
+            <ui-chip slot="chips" value="alex" data-catalog-drag-source="chip" data-catalog-drag-axis="x" data-catalog-label="Alex"><ui-button type="button" size="xsmall" variant="quiet" aria-label="Move Alex" data-catalog-drag-handle><ui-icon name="action.drag" label=""></ui-icon></ui-button>Alex</ui-chip>
+            <ui-chip slot="chips" value="jo" data-catalog-drag-source="chip" data-catalog-drag-axis="x" data-catalog-label="Jo"><ui-button type="button" size="xsmall" variant="quiet" aria-label="Move Jo" data-catalog-drag-handle><ui-icon name="action.drag" label=""></ui-icon></ui-button>Jo</ui-chip>
+            <ui-button slot="clear" type="button" size="small" variant="quiet" aria-label="Clear owners"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
+            <span slot="empty">No matching owners</span>
+            <ui-option value="maya" data-catalog-combobox-label="Maya">Maya<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="sam" data-catalog-combobox-label="Sam">Sam<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="alex" data-catalog-combobox-label="Alex">Alex<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+            <ui-option value="jo" data-catalog-combobox-label="Jo">Jo<ui-icon slot="indicator" name="action.confirm" label=""></ui-icon></ui-option>
+          </ui-combobox>
+          <output class="example-drag-status" data-catalog-chip-status>Owner precedence: Maya, Sam, Alex, Jo</output>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Draggable chip handles reorder selected values while the Combobox keeps the owned value collection and suggestion surface.",
+      },
+    ),
+    example(
       "Grouped disabled items",
       `
         <ui-field class="catalog-example example-field" label="Food" description="Groups stay authored in light DOM, including unavailable choices.">
@@ -3944,7 +4003,7 @@ export function MarkdownFrame({ html }: { html: string }) {
       "Nested compact leafing",
       `
         <div class="catalog-example example-menu-stage">
-          <ui-menu label="Project commands" density="compact">
+          <ui-menu label="Project commands" density="compact" sizing="fixed" open>
             <ui-button class="example-menu-trigger" slot="trigger" size="small" variant="secondary">
               Project
               <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
@@ -3953,17 +4012,17 @@ export function MarkdownFrame({ html }: { html: string }) {
             <ui-menu-item value="recent">
               Recent projects
               <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
-              <ui-menu slot="submenu" label="Recent projects" density="compact">
+              <ui-menu slot="submenu" label="Recent projects" density="compact" sizing="fixed" open>
                 <ui-menu-item value="billing">Billing migration</ui-menu-item>
                 <ui-menu-item value="invoice">Invoice reconciliation</ui-menu-item>
-                <ui-menu-item value="archive">Legacy ledger</ui-menu-item>
+                <ui-menu-item value="archive">Legacy ledger migration with archived receipt attachments</ui-menu-item>
               </ui-menu>
             </ui-menu-item>
             <ui-menu-item value="find">
               Find
               <ui-kbd slot="shortcut" command="project.find" shortcut="Primary+F"></ui-kbd>
               <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
-              <ui-menu slot="submenu" label="Find" density="compact">
+              <ui-menu slot="submenu" label="Find" density="compact" sizing="fixed">
                 <ui-menu-item value="find-next">Find Next<ui-kbd slot="shortcut" command="project.find-next" shortcut="Primary+G"></ui-kbd></ui-menu-item>
                 <ui-menu-item value="find-previous">Find Previous<ui-kbd slot="shortcut" command="project.find-previous" shortcut="Primary+Shift+G"></ui-kbd></ui-menu-item>
               </ui-menu>

@@ -8,7 +8,12 @@ import {
   type AnchoredPositionSnapshot,
 } from "./anchored-position.js";
 import { baseStyles } from "./base-styles.js";
-import { MotionLifecycleController } from "./motion-lifecycle.js";
+import {
+  PresenceLifecycleController,
+  type PresenceLifecycleContext,
+  type PresenceLifecycleEventDetail,
+  type PresenceState,
+} from "./presence-lifecycle.js";
 
 /** The user interaction that opens a portable overlay. */
 export type OverlayTriggerAction = "click" | "contextmenu" | "hover" | "manual";
@@ -38,6 +43,8 @@ export interface OverlayOpenChangeDetail {
   open: boolean;
   reason: OverlayChangeReason;
 }
+
+export type OverlayPresenceEventDetail = PresenceLifecycleEventDetail;
 
 type OverlayInitialFocus = "first" | "popup" | "none";
 
@@ -103,7 +110,7 @@ export abstract class UIOverlay extends LitElement {
   #movedFocusForOpen = false;
   #contextPoint: { x: number; y: number } | null = null;
   #interactionTimer: number | undefined;
-  readonly #motion: MotionLifecycleController<"entering" | "exiting">;
+  readonly #presence: PresenceLifecycleController<"entering" | "exiting">;
   readonly #positioner = new AnchoredPositionController(this, {
     anchor: () => this.positionAnchor(),
     popup: () => this.renderRoot.querySelector<HTMLElement>("[part='popup']"),
@@ -121,19 +128,17 @@ export abstract class UIOverlay extends LitElement {
     this.closeOnOutside = true;
     this.overlayPresent = false;
     this.overlayInternals = this.attachInternals();
-    this.#motion = new MotionLifecycleController(this, {
+    this.#presence = new PresenceLifecycleController(this, {
       target: () => this.renderRoot.querySelector<HTMLElement>("[part='popup']"),
-      onFinish: ({ value, interrupted }) => {
-        if (interrupted) return;
-        this.overlayInternals.states.delete(value);
-        if (value === "entering") {
-          this.overlayInternals.states.add("active");
-          return;
-        }
-        this.overlayInternals.states.delete("active");
-        this.overlayInternals.states.delete("present");
-        this.overlayPresent = false;
-        this.#positioner.stop();
+      present: () => this.overlayPresent,
+      setPresent: (present) => {
+        this.overlayPresent = present;
+      },
+      setState: (state, present) => this.#setPresenceState(state, present),
+      onStart: (context) => this.#emitPresenceEvent("mash-presence-start", context),
+      onFinish: (context) => this.#emitPresenceEvent("mash-presence-end", context),
+      onSettle: (phase) => {
+        if (phase === "absent") this.#positioner.stop();
       },
     });
     this.addEventListener("click", this.#onHostClick);
@@ -266,7 +271,7 @@ export abstract class UIOverlay extends LitElement {
 
   override disconnectedCallback(): void {
     this.#cancelInteractionChange();
-    this.#motion.destroy();
+    this.#presence.destroy();
     this.#positioner.stop();
     super.disconnectedCallback();
   }
@@ -365,11 +370,6 @@ export abstract class UIOverlay extends LitElement {
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("open")) {
       if (this.open) {
-        this.overlayInternals.states.add("present");
-        this.overlayInternals.states.add("open");
-        this.overlayInternals.states.delete("active");
-        this.overlayInternals.states.delete("exiting");
-        this.overlayInternals.states.add("entering");
         this.#positioner.start();
         const initialFocus =
           this.#initialFocus ?? (this.#openReason === "hover" ? "none" : "first");
@@ -387,23 +387,13 @@ export abstract class UIOverlay extends LitElement {
         }
         this.#openReason = null;
         this.#initialFocus = null;
-        this.#motion.play("entering");
+        this.#presence.enter("entering");
       } else {
-        this.overlayInternals.states.delete("open");
-        this.overlayInternals.states.delete("active");
         const previous = changed.get("open");
         if (this.#movedFocusForOpen && previous === true)
           queueMicrotask(() => this.#returnFocus?.focus());
         this.#movedFocusForOpen = false;
-        if (previous === true && this.overlayPresent) {
-          this.overlayInternals.states.delete("entering");
-          this.overlayInternals.states.add("exiting");
-          this.#motion.play("exiting");
-        } else {
-          this.overlayInternals.states.delete("present");
-          this.overlayPresent = false;
-          this.#positioner.stop();
-        }
+        this.#presence.exit("exiting", previous === true);
       }
     }
     if (changed.has("disabled")) {
@@ -413,6 +403,34 @@ export abstract class UIOverlay extends LitElement {
     if (this.open && this.positioningConfig() && changed.size > 0) {
       this.#positioner.queue();
     }
+  }
+
+  #setPresenceState(state: PresenceState, present: boolean): void {
+    if (present) this.overlayInternals.states.add(state);
+    else this.overlayInternals.states.delete(state);
+  }
+
+  #emitPresenceEvent(
+    type: "mash-presence-start" | "mash-presence-end",
+    context: PresenceLifecycleContext<"entering" | "exiting">,
+  ): void {
+    const eventInit: CustomEventInit<OverlayPresenceEventDetail> = {
+      bubbles: true,
+      composed: true,
+      detail: {
+        open: context.open,
+        phase: context.phase,
+        reducedMotion: context.reducedMotion,
+        interrupted: context.interrupted,
+      },
+    };
+    if (type === "mash-presence-start") {
+      this.dispatchEvent(
+        new CustomEvent<OverlayPresenceEventDetail>("mash-presence-start", eventInit),
+      );
+      return;
+    }
+    this.dispatchEvent(new CustomEvent<OverlayPresenceEventDetail>("mash-presence-end", eventInit));
   }
 
   #onHostClick = (event: MouseEvent): void => {
@@ -556,6 +574,13 @@ export abstract class UIOverlay extends LitElement {
         </div>
       </div>
     `;
+  }
+}
+
+declare global {
+  interface HTMLElementEventMap {
+    "mash-presence-start": CustomEvent<OverlayPresenceEventDetail>;
+    "mash-presence-end": CustomEvent<OverlayPresenceEventDetail>;
   }
 }
 

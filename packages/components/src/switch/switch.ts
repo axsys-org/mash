@@ -57,6 +57,7 @@ export type SwitchLabelSide = "left" | "right";
  * @mashnode name name control
  * @mashnode value value control
  * @mashnode size size control
+ * @mashaxis size control-size
  * @mashnode label-side label-side label
  * @mashrole slot default label label
  */

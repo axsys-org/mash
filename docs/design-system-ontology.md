@@ -35,6 +35,7 @@ different contracts, so every component must document which axis it means.
 | Density        | `mini`, `compact`, `regular`, optionally `spacious`.                                                                                                     | Menus, tables, lists, command rows, dense examples.                                   | Defines repeated-row rhythm and information density. It is not a button size.                                    |
 | Indicator size | Component-specific inner measures such as checkbox marks, switch thumbs, status dots, and glyph badges.                                                  | `ui-checkbox`, `ui-radio`, `ui-switch`, `ui-badge`, `ui-icon`.                        | May align to control size but remains internal anatomy.                                                          |
 | Glyph size     | Icon optical size.                                                                                                                                       | `ui-icon` and icon slots.                                                             | Does not imply badge, button, or label size.                                                                     |
+| Identity size  | Avatar and identity-token surface size.                                                                                                                  | `ui-avatar`.                                                                          | Does not imply text, badge, or control size.                                                                     |
 | Scrollbar size | Scrollbar affordance thickness.                                                                                                                          | `ui-scroll-area`.                                                                     | Belongs to viewport chrome, not content scale.                                                                   |
 | Layout size    | Numeric or bounded layout measure.                                                                                                                       | `ui-resizable-panel`, `ui-virtual-item`, panel/content/dialog bounds.                 | Data or layout constraint, never a semantic visual tier by itself.                                               |
 
@@ -57,46 +58,40 @@ Current consolidation direction:
 | `ui-label`   | Generated text, secondary segment, masking, highlighting, text alignment, type-preset sizing. | Action state, badge count, shortcut semantics, rich prose layout.      |
 | `ui-typeset` | Typography preset, tone, and flow over authored semantic HTML.                                | Markdown parsing, command execution, code editing, viewport scrolling. |
 | `ui-kbd`     | Display of a keyboard shortcut or command chord.                                              | Shortcut execution, generic labels, status pills.                      |
-| `ui-badge`   | Compact status, category, metadata, or count label.                                           | Actions, general text styling, icon glyph sizing.                      |
-| `ui-icon`    | Glyph identity, accessible label, and glyph scale.                                            | Badge status, button action, text label semantics.                     |
+| `ui-badge`   | Compact status, category, metadata, count, dot, icon indicator, and target annotation.        | Actions, general text styling, icon glyph sizing.                      |
+| `ui-icon`    | Glyph identity, accessible label, glyph scale, and optional authored overlay lane.            | Badge status, button action, text label semantics.                     |
 | `ui-button`  | Native button behavior, action activation, form behavior, loading/pressed/selected states.    | Navigation link semantics or product workflow state.                   |
 | `ui-link`    | Native anchor destination and current/disabled presentation roles.                            | Button form behavior.                                                  |
 | `ui-bubble`  | Conversation surface, alignment, variant, and reaction lane.                                  | Message records, sender identity, transcript virtualization.           |
 
-Badge extension note: the current badge is a display-only compact label. A
-future anchored indicator can support dot, icon, max-count, and child-overlay
-placement, but that should either extend badge anatomy deliberately or become a
-separate indicator primitive. It should not be smuggled into `ui-icon` layers or
-`ui-label` sizing.
+Badge indicators annotate a slotted target through `variant`, `count`, `max`,
+and `position`. `ui-icon` may expose an overlay slot for authored composition,
+but status/count meaning belongs to the slotted component, not the icon.
 
 ## Motion And Presence
 
-The system has one low-level animation waiter:
-`MotionLifecycleController`. It should remain visual-recipe agnostic.
+The system has one low-level animation waiter, `MotionLifecycleController`, and
+one shared presence state machine, `PresenceLifecycleController`. Both remain
+visual-recipe agnostic.
 
 Current roles:
 
 - `ui-motion` is a scene/lane primitive for arbitrary authored content.
-- `ui-reveal` owns measured disclosure presence: clipping, block/inline size,
-  `present`, `entering`, `active`, `exiting`, and reduced-motion state.
+- `ui-reveal` owns measured disclosure presence: clipping and block/inline size.
 - `ui-collapsible` and `ui-accordion-item` own disclosure trigger semantics and
   delegate body presence to `ui-reveal`.
 - Shared overlays own focus, dismissal, placement, and top-layer presence
   through the internal overlay engine.
+- `ui-toast` owns announcement, timer pause/resume, and shared exit presence.
 
 Next convergence moves:
 
-1. Extract an internal presence controller on top of `MotionLifecycleController`
-   for `present/open/entering/active/exiting/reduced-motion`, hidden gating, and
-   after-exit cleanup.
-2. Move `ui-reveal`, internal overlays, and `ui-toast` onto that presence
-   controller first.
-3. Keep interaction delays separate from motion durations. Hover intent,
+1. Keep interaction delays separate from motion durations. Hover intent,
    submenu grace, typeahead reset, and toast timers are behavior timing, not
    animation timing.
-4. Give select, combobox, and autocomplete popup presence without forcing them
+2. Give select, combobox, and autocomplete popup presence without forcing them
    into the overlay subclass hierarchy.
-5. Move drawer, menu, overlay, toast, and reveal CSS toward shared presence
+3. Move drawer, menu, overlay, toast, and reveal CSS toward shared presence
    recipe names while allowing family-specific transforms.
 
 ## Test Ontology

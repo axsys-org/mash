@@ -37,6 +37,11 @@ import {
  * @csspart close - The explicit dismiss binding.
  *
  * @cssstate open - Matches `:state(open)` while the calendar popup is visible.
+ * @cssstate present - Matches while the popup is rendered, including exit motion.
+ * @cssstate entering - Matches while the popup is entering.
+ * @cssstate active - Matches after enter motion settles.
+ * @cssstate exiting - Matches while the popup is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while the trigger is unavailable.
  *
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-date-picker-open-change - Reports a requested open-state change and why it occurred.
@@ -56,6 +61,11 @@ import {
  * @mashnode value value root
  * @mashnode label label root
  * @mashnode open open root
+ * @mashnode present present popup
+ * @mashnode entering entering popup
+ * @mashnode active active popup
+ * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
  * @mashnode disabled disabled root
  * @mashnode change change root
  * @mashrole part root control root

@@ -285,6 +285,7 @@ export class UIVirtualList extends LitElement {
  * @mashnode index index root
  * @mashnode set-size set-size root
  * @mashnode size size root
+ * @mashaxis size layout-size
  * @mashnode visible visible root
  * @mashrole part root item root
  * @mashrole slot default content content

@@ -56,6 +56,7 @@ export interface InputFocusChangeDetail {
  * @mashnode name name control
  * @mashnode type type control
  * @mashnode size size control
+ * @mashaxis size control-size
  * @mashnode placeholder placeholder control
  * @mashnode label label control
  * @mashnode autocomplete autocomplete control

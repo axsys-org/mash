@@ -42,6 +42,11 @@ import type { MenuDensity, MenuSizing } from "../menu/menu.js";
  * @csspart close - The authored close action realization.
  *
  * @cssstate open - Matches `:state(open)` while visible.
+ * @cssstate present - Matches while the popup is rendered, including exit motion.
+ * @cssstate entering - Matches while the popup is entering.
+ * @cssstate active - Matches after enter motion settles.
+ * @cssstate exiting - Matches while the popup is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while the trigger is unavailable.
  *
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-context-menu-open-change - Emitted after user interaction requests a new open state and reports why.
@@ -63,6 +68,11 @@ import type { MenuDensity, MenuSizing } from "../menu/menu.js";
  * @mashnode close close popup
  * @mashnode density density popup
  * @mashnode sizing sizing popup
+ * @mashnode present present popup
+ * @mashnode entering entering popup
+ * @mashnode active active popup
+ * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
  * @mashrole slot header header header
  * @mashrole slot default actions actions
  * @mashrole slot footer footer footer

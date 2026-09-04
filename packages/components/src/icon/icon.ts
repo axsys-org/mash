@@ -34,14 +34,14 @@ export type { IconSize, IconSource };
  *
  * @slot primary - Replaces the generated source glyph.
  * @slot secondary - Optional second glyph layer.
- * @slot badge - Optional compact status or count layer.
+ * @slot badge - Optional overlay layer; slotted content owns any status or count semantics.
  * @slot fallback - Authored fallback when `name` is unavailable.
  *
  * @csspart root - The accessible icon boundary.
  * @csspart glyph - The layered glyph stack.
  * @csspart primary - The generated or authored primary glyph.
  * @csspart secondary - The optional secondary glyph layer.
- * @csspart badge - The optional status layer.
+ * @csspart badge - The optional overlay layer.
  * @csspart fallback - The unavailable-glyph fallback.
  * @csspart source - The generated Carbon SVG source.
  *
@@ -52,6 +52,7 @@ export type { IconSize, IconSource };
  * @mashnode badge badge glyph
  * @mashnode name name root
  * @mashnode size size root
+ * @mashaxis size glyph-size
  * @mashnode label label root
  * @mashrole slot primary primary primary
  * @mashrole slot secondary secondary secondary

@@ -229,6 +229,7 @@ export class UIResizable extends LitElement {
  * @mashnode root panel
  * @mashnode content content root
  * @mashnode size size root
+ * @mashaxis size layout-size
  * @mashnode min min root
  * @mashnode max max root
  * @mashnode visible visible root

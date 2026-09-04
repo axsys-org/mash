@@ -452,6 +452,17 @@ function reorderChip(source: HTMLElement, pointer: { x: number; y: number }): vo
       closest.candidate.getBoundingClientRect().height / 4 &&
       pointer.x < closest.center.x);
   container.insertBefore(source, before ? closest.candidate : closest.candidate.nextSibling);
+  if (container.matches("ui-combobox")) {
+    const combobox = container as CatalogCombobox;
+    if (combobox.multiple) {
+      combobox.values = [
+        ...container.querySelectorAll<HTMLElement>(':scope > [data-catalog-drag-source="chip"]'),
+      ]
+        .map((chip) => chip.getAttribute("value") ?? "")
+        .filter(Boolean);
+      dispatchComboboxChange(combobox);
+    }
+  }
 }
 
 function pointerInside(bounds: DOMRect, pointer: { x: number; y: number }): boolean {

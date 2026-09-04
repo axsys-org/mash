@@ -828,22 +828,50 @@ describe("Control families", () => {
         <ui-option value="team">Team</ui-option>
       </ui-select>
     `);
+    const selectPresenceEvents: string[] = [];
+    select.addEventListener("mash-presence-start", (event) => {
+      const detail = event.detail as { open: boolean; phase: string };
+      selectPresenceEvents.push(`${event.type}:${detail.phase}:${detail.open}`);
+    });
+    select.addEventListener("mash-presence-end", (event) => {
+      const detail = event.detail as { open: boolean; phase: string };
+      selectPresenceEvents.push(`${event.type}:${detail.phase}:${detail.open}`);
+    });
     inShadow<HTMLButtonElement>(select, "[part~=trigger]").click();
     await settled(select.parentElement!);
     const selectPositioner = inShadow<HTMLElement>(select, "[part~=positioner]");
     expect(selectPositioner.style.position).toBe("fixed");
     expect(selectPositioner.dataset.side).toBeTruthy();
+    expect(select.matches(":state(open)")).toBe(true);
+    expect(select.matches(":state(present)")).toBe(true);
+    expect(select.matches(":state(active)")).toBe(true);
 
     document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, composed: true }));
     await settled(select.parentElement!);
     expect(select.hasAttribute("open")).toBe(false);
+    expect(select.matches(":state(present)")).toBe(false);
     expect(selectPositioner.getAttribute("style")).toBeNull();
+    expect(selectPresenceEvents).toEqual([
+      "mash-presence-start:entering:true",
+      "mash-presence-end:entering:true",
+      "mash-presence-start:exiting:false",
+      "mash-presence-end:exiting:false",
+    ]);
 
     const combobox = await fixture<HTMLElement>(`
       <ui-combobox label="Owner">
         <ui-option value="maya">Maya</ui-option>
       </ui-combobox>
     `);
+    const comboboxPresenceEvents: string[] = [];
+    combobox.addEventListener("mash-presence-start", (event) => {
+      const detail = event.detail as { open: boolean; phase: string };
+      comboboxPresenceEvents.push(`${event.type}:${detail.phase}:${detail.open}`);
+    });
+    combobox.addEventListener("mash-presence-end", (event) => {
+      const detail = event.detail as { open: boolean; phase: string };
+      comboboxPresenceEvents.push(`${event.type}:${detail.phase}:${detail.open}`);
+    });
     const input = inShadow<HTMLInputElement>(combobox, "input");
     input.value = "m";
     input.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
@@ -851,11 +879,21 @@ describe("Control families", () => {
     const comboboxPositioner = inShadow<HTMLElement>(combobox, "[part~=positioner]");
     expect(comboboxPositioner.style.position).toBe("fixed");
     expect(comboboxPositioner.dataset.side).toBeTruthy();
+    expect(combobox.matches(":state(open)")).toBe(true);
+    expect(combobox.matches(":state(present)")).toBe(true);
+    expect(combobox.matches(":state(active)")).toBe(true);
 
     document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, composed: true }));
     await settled(combobox.parentElement!);
     expect(combobox.hasAttribute("open")).toBe(false);
+    expect(combobox.matches(":state(present)")).toBe(false);
     expect(comboboxPositioner.getAttribute("style")).toBeNull();
+    expect(comboboxPresenceEvents).toEqual([
+      "mash-presence-start:entering:true",
+      "mash-presence-end:entering:true",
+      "mash-presence-start:exiting:false",
+      "mash-presence-end:exiting:false",
+    ]);
   });
 
   it("coordinates grouped single select values and one form entry", async () => {

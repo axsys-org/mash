@@ -59,4 +59,38 @@ describe("ui-toast", () => {
       inShadow<HTMLSlotElement>(toast, 'slot[name="actions"]').assignedElements()[0]?.textContent,
     ).toBe("Open");
   });
+
+  it("exposes shared presence lifecycle states and events", async () => {
+    const toast = await fixture<UIToast>(`<ui-toast duration="0">Saved</ui-toast>`);
+    const events: Array<{ name: string; detail: { open: boolean; phase: string } }> = [];
+    toast.addEventListener("mash-presence-start", (event) =>
+      events.push({ name: event.type, detail: event.detail }),
+    );
+    toast.addEventListener("mash-presence-end", (event) =>
+      events.push({ name: event.type, detail: event.detail }),
+    );
+
+    toast.open = true;
+    await settled(toast.parentElement!);
+
+    expect(toast.matches(":state(open)")).toBe(true);
+    expect(toast.matches(":state(present)")).toBe(true);
+    expect(toast.matches(":state(active)")).toBe(true);
+    expect(inShadow<HTMLElement>(toast, '[part="root"]').hidden).toBe(false);
+
+    toast.open = false;
+    await settled(toast.parentElement!);
+
+    expect(toast.matches(":state(open)")).toBe(false);
+    expect(toast.matches(":state(present)")).toBe(false);
+    expect(inShadow<HTMLElement>(toast, '[part="root"]').hidden).toBe(true);
+    expect(
+      events.map((event) => `${event.name}:${event.detail.phase}:${event.detail.open}`),
+    ).toEqual([
+      "mash-presence-start:entering:true",
+      "mash-presence-end:entering:true",
+      "mash-presence-start:exiting:false",
+      "mash-presence-end:exiting:false",
+    ]);
+  });
 });

@@ -78,6 +78,7 @@ export interface ClipboardErrorDetail {
  * @mashnode source source control
  * @mashnode variant variant control
  * @mashnode size size control
+ * @mashaxis size control-size
  * @mashnode tone tone control
  * @mashnode copied copied control
  * @mashnode copying copying control

@@ -108,27 +108,35 @@ test.describe("keyboard-only interaction", () => {
 
 test.describe("writing direction", () => {
   test("prefix spacing follows the writing direction", async ({ page }) => {
-    const gaps = await page.evaluate(() => {
-      const measure = (hostId: string, prefixId: string) => {
+    const metrics = await page.evaluate(() => {
+      const measure = (hostId: string) => {
         const host = document.querySelector(`[data-testid="${hostId}"]`)!;
-        const prefix = document.querySelector(`[data-testid="${prefixId}"]`)!;
-        const style = getComputedStyle(prefix);
+        const prefix = host.shadowRoot!.querySelector<HTMLElement>('[part~="prefix"]')!;
+        const label = host.shadowRoot!.querySelector<HTMLElement>('[part~="label"]')!;
+        const prefixRect = prefix.getBoundingClientRect();
+        const labelRect = label.getBoundingClientRect();
+        const hostDir = getComputedStyle(host).direction;
         return {
-          left: style.marginLeft,
-          right: style.marginRight,
-          hostDir: getComputedStyle(host).direction,
+          hostDir,
+          gap:
+            hostDir === "rtl"
+              ? Math.round(prefixRect.left - labelRect.right)
+              : Math.round(labelRect.left - prefixRect.right),
+          prefixIsInlineStart:
+            hostDir === "rtl"
+              ? prefixRect.left >= labelRect.right
+              : prefixRect.right <= labelRect.left,
         };
       };
-      return { ltr: measure("ltr-button", "ltr-prefix"), rtl: measure("rtl-button", "rtl-prefix") };
+      return { ltr: measure("ltr-button"), rtl: measure("rtl-button") };
     });
 
-    expect(gaps.ltr.hostDir).toBe("ltr");
-    expect(gaps.rtl.hostDir).toBe("rtl");
+    expect(metrics.ltr.hostDir).toBe("ltr");
+    expect(metrics.rtl.hostDir).toBe("rtl");
 
-    // The component uses margin-inline-end, so the physical side must flip.
-    expect(parseFloat(gaps.ltr.right)).toBeGreaterThan(0);
-    expect(parseFloat(gaps.ltr.left)).toBe(0);
-    expect(parseFloat(gaps.rtl.left)).toBeGreaterThan(0);
-    expect(parseFloat(gaps.rtl.right)).toBe(0);
+    expect(metrics.ltr.prefixIsInlineStart).toBe(true);
+    expect(metrics.rtl.prefixIsInlineStart).toBe(true);
+    expect(metrics.ltr.gap).toBeGreaterThan(0);
+    expect(metrics.rtl.gap).toBeGreaterThan(0);
   });
 });

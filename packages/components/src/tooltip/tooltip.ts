@@ -35,6 +35,11 @@ export type TooltipTrigger = "click" | "hover" | "manual";
  * @csspart description - The authored tooltip description.
  *
  * @cssstate open - Matches `:state(open)` while visible.
+ * @cssstate present - Matches while the popup is rendered, including exit motion.
+ * @cssstate entering - Matches while the tooltip is entering.
+ * @cssstate active - Matches after enter motion settles.
+ * @cssstate exiting - Matches while the tooltip is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while the trigger is unavailable.
  *
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-tooltip-open-change - Emitted after hover or focus requests a new open state and reports why.
@@ -48,6 +53,11 @@ export type TooltipTrigger = "click" | "hover" | "manual";
  * @mashnode collision-padding collision-padding positioner
  * @mashnode popup popup positioner
  * @mashnode description description popup
+ * @mashnode present present popup
+ * @mashnode entering entering popup
+ * @mashnode active active popup
+ * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
  * @mashrole slot default description description
  */
 export class UITooltip extends UIAnchoredOverlay {

@@ -38,6 +38,8 @@ export type AvatarSize = "small" | "medium" | "large";
  * @mashnode root root
  * @mashnode image image root
  * @mashnode fallback fallback root
+ * @mashnode size size root
+ * @mashaxis size identity-size
  * @mashrole slot default fallback fallback
  */
 export class UIAvatar extends LitElement {

@@ -351,7 +351,7 @@ function checkScope(scopeName, tokens, errors) {
   }
 }
 
-function checkThemeParity(themeTokens, errors) {
+function checkThemeCoverage(themeTokens, errors) {
   const names = [...themeTokens.keys()];
   if (names.length < 2) return;
 
@@ -428,7 +428,7 @@ export async function validateTokens() {
     checkScope(`theme:${theme} (reference + themes/${theme})`, [...reference, ...tokens], errors);
   }
 
-  checkThemeParity(byTheme, errors);
+  checkThemeCoverage(byTheme, errors);
 
   return {
     errors,

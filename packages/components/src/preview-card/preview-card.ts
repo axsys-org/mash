@@ -42,6 +42,11 @@ export type PreviewCardTrigger = "hover" | "manual";
  * @csspart content - The authored preview content.
  *
  * @cssstate open - Matches `:state(open)` while visible.
+ * @cssstate present - Matches while the popup is rendered, including exit motion.
+ * @cssstate entering - Matches while the preview is entering.
+ * @cssstate active - Matches after enter motion settles.
+ * @cssstate exiting - Matches while the preview is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while the trigger is unavailable.
  *
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-preview-card-open-change - Emitted after hover or focus requests a new open state and reports why.
@@ -58,6 +63,11 @@ export type PreviewCardTrigger = "hover" | "manual";
  * @mashnode title title popup
  * @mashnode description description popup
  * @mashnode content content popup
+ * @mashnode present present popup
+ * @mashnode entering entering popup
+ * @mashnode active active popup
+ * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
  * @mashrole attribute label title title
  * @mashfallback slot title bindings attribute:label
  */

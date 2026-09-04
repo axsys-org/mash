@@ -142,6 +142,42 @@ describe("overlay authored-slot realizations", () => {
     expect(contextMenu.hasAttribute("open")).toBe(false);
   });
 
+  it("publishes shared popup presence lifecycle events", async () => {
+    const dialog = await fixture<HTMLElement>(`
+      <ui-dialog label="Example">
+        <button slot="trigger">Open</button>
+        <span>Body</span>
+      </ui-dialog>
+    `);
+    const events: string[] = [];
+    dialog.addEventListener("mash-presence-start", (event) => {
+      const detail = event.detail as { open: boolean; phase: string };
+      events.push(`${event.type}:${detail.phase}:${detail.open}`);
+    });
+    dialog.addEventListener("mash-presence-end", (event) => {
+      const detail = event.detail as { open: boolean; phase: string };
+      events.push(`${event.type}:${detail.phase}:${detail.open}`);
+    });
+
+    dialog.querySelector<HTMLButtonElement>('[slot="trigger"]')!.click();
+    await settled(dialog.parentElement!);
+    expect(dialog.matches(":state(open)")).toBe(true);
+    expect(dialog.matches(":state(present)")).toBe(true);
+    expect(dialog.matches(":state(active)")).toBe(true);
+
+    dialog.querySelector<HTMLButtonElement>('[slot="trigger"]')!.click();
+    await settled(dialog.parentElement!);
+    expect(dialog.matches(":state(open)")).toBe(false);
+    expect(dialog.matches(":state(present)")).toBe(false);
+
+    expect(events).toEqual([
+      "mash-presence-start:entering:true",
+      "mash-presence-end:entering:true",
+      "mash-presence-start:exiting:false",
+      "mash-presence-end:exiting:false",
+    ]);
+  });
+
   it("contains modal Tab traversal and returns focus after Escape", async () => {
     const dialog = await fixture<HTMLElement>(`
       <ui-dialog label="Rename project">

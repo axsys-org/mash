@@ -123,6 +123,7 @@ function textChunks(text: string, ranges: TextRange[], secondaryStart: number | 
  * @mashnode highlight highlight value
  * @mashnode text text value
  * @mashnode size size root
+ * @mashaxis size type-preset
  * @mashnode align align root
  * @mashnode masked masked value
  * @mashnode highlight-match highlight-match highlight

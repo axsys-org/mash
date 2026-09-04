@@ -55,6 +55,7 @@ export type CheckboxSize =
  * @mashnode name name control
  * @mashnode value value control
  * @mashnode size size root
+ * @mashaxis size indicator-size
  * @mashrole slot default label label
  */
 export class UICheckbox extends UICheckable {
