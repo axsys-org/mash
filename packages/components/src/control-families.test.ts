@@ -72,6 +72,23 @@ function forceFinePointer(): () => void {
   return () => spy.mockRestore();
 }
 
+function stubMenuPositionSnapshot(
+  menu: UIMenu,
+  popup: DOMRect,
+  placement: "left" | "right" = "right",
+): void {
+  Object.defineProperty(menu, "positionSnapshot", {
+    configurable: true,
+    get: () => ({
+      placement,
+      align: "start",
+      left: popup.left,
+      top: popup.top,
+      popup,
+    }),
+  });
+}
+
 describe("Control families", () => {
   it("realizes authored collection and control slots as semantic parts", async () => {
     const cases: Array<{ markup: string; part: string }> = [
@@ -646,7 +663,7 @@ describe("Control families", () => {
           <button slot="trigger">Actions</button>
           <ui-menu-item value="share">
             Share
-            <ui-menu slot="submenu" label="Share with" submenu-open-delay="96">
+            <ui-menu slot="submenu" label="Share with" submenu-open-delay="64">
               <ui-menu-item value="email">Email</ui-menu-item>
             </ui-menu>
           </ui-menu-item>
@@ -666,7 +683,7 @@ describe("Control families", () => {
         }),
       );
 
-      await vi.advanceTimersByTimeAsync(47);
+      await vi.advanceTimersByTimeAsync(63);
       expect(submenu.open).toBe(false);
 
       await vi.advanceTimersByTimeAsync(1);
@@ -677,7 +694,7 @@ describe("Control families", () => {
     }
   });
 
-  it("waits out the hover-intent budget while the pointer sweeps vertically", async () => {
+  it("switches submenu branches after dwell when the pointer is not aimed into the active submenu", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const restoreFinePointer = forceFinePointer();
     try {
@@ -686,43 +703,54 @@ describe("Control families", () => {
           <button slot="trigger">Actions</button>
           <ui-menu-item value="share">
             Share
-            <ui-menu slot="submenu" label="Share with" submenu-open-delay="96">
+            <ui-menu slot="submenu" label="Share with" submenu-open-delay="64">
               <ui-menu-item value="email">Email</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+          <ui-menu-item value="export">
+            Export
+            <ui-menu slot="submenu" label="Export as" submenu-open-delay="64">
+              <ui-menu-item value="pdf">PDF</ui-menu-item>
             </ui-menu>
           </ui-menu-item>
         </ui-menu>
       `);
-      const branch = menu.querySelector<UIMenuItem>(":scope > ui-menu-item")!;
-      const submenu = branch.querySelector<UIMenu>(":scope > ui-menu")!;
-      const control = inShadow<HTMLButtonElement>(branch, "button");
+      const [share, exportItem] = [...menu.querySelectorAll<UIMenuItem>(":scope > ui-menu-item")];
+      const shareSubmenu = share!.querySelector<UIMenu>(":scope > ui-menu")!;
+      const exportSubmenu = exportItem!.querySelector<UIMenu>(":scope > ui-menu")!;
+      const shareControl = inShadow<HTMLButtonElement>(share!, "button");
+      const exportControl = inShadow<HTMLButtonElement>(exportItem!, "button");
 
-      control.dispatchEvent(
-        new PointerEvent("pointerenter", {
-          bubbles: true,
-          composed: true,
-          pointerType: "mouse",
-          clientX: 12,
-          clientY: 12,
-        }),
-      );
-      control.dispatchEvent(
+      share!.showSubmenu(false);
+      await settled(menu.parentElement!);
+      stubMenuPositionSnapshot(shareSubmenu, new DOMRect(150, 20, 120, 120));
+
+      shareControl.dispatchEvent(
         new PointerEvent("pointermove", {
           bubbles: true,
           composed: true,
           pointerType: "mouse",
-          clientX: 12,
+          clientX: 80,
           clientY: 20,
         }),
       );
+      exportControl.dispatchEvent(
+        new PointerEvent("pointerenter", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 88,
+          clientY: 120,
+        }),
+      );
 
-      await vi.advanceTimersByTimeAsync(48);
-      expect(submenu.open).toBe(false);
+      await vi.advanceTimersByTimeAsync(63);
+      expect(shareSubmenu.open).toBe(true);
+      expect(exportSubmenu.open).toBe(false);
 
-      await vi.advanceTimersByTimeAsync(24);
-      expect(submenu.open).toBe(false);
-
-      await vi.advanceTimersByTimeAsync(24);
-      expect(submenu.open).toBe(true);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(shareSubmenu.open).toBe(false);
+      expect(exportSubmenu.open).toBe(true);
     } finally {
       restoreFinePointer();
       vi.useRealTimers();
@@ -773,37 +801,85 @@ describe("Control families", () => {
     }
   });
 
-  it("dismisses sibling submenus as soon as another branch row is hovered", async () => {
-    const menu = await fixture<UIMenu>(`
-      <ui-menu label="Actions" open>
-        <button slot="trigger">Actions</button>
-        <ui-menu-item value="share">
-          Share
-          <ui-menu slot="submenu" label="Share with">
-            <ui-menu-item value="email">Email</ui-menu-item>
-          </ui-menu>
-        </ui-menu-item>
-        <ui-menu-item value="export">
-          Export
-          <ui-menu slot="submenu" label="Export as">
-            <ui-menu-item value="pdf">PDF</ui-menu-item>
-          </ui-menu>
-        </ui-menu-item>
-      </ui-menu>
-    `);
-    const [share, exportItem] = [...menu.querySelectorAll<UIMenuItem>(":scope > ui-menu-item")];
-    const shareSubmenu = share!.querySelector<UIMenu>(":scope > ui-menu")!;
-    const exportControl = inShadow<HTMLButtonElement>(exportItem!, "button");
+  it("preserves an active submenu while the pointer is aimed through a sibling branch", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const restoreFinePointer = forceFinePointer();
+    try {
+      const menu = await fixture<UIMenu>(`
+        <ui-menu label="Actions" open>
+          <button slot="trigger">Actions</button>
+          <ui-menu-item value="share">
+            Share
+            <ui-menu slot="submenu" label="Share with" submenu-open-delay="64">
+              <ui-menu-item value="email">Email</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+          <ui-menu-item value="export">
+            Export
+            <ui-menu slot="submenu" label="Export as" submenu-open-delay="64">
+              <ui-menu-item value="pdf">PDF</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+        </ui-menu>
+      `);
+      const [share, exportItem] = [...menu.querySelectorAll<UIMenuItem>(":scope > ui-menu-item")];
+      const shareSubmenu = share!.querySelector<UIMenu>(":scope > ui-menu")!;
+      const exportSubmenu = exportItem!.querySelector<UIMenu>(":scope > ui-menu")!;
+      const shareControl = inShadow<HTMLButtonElement>(share!, "button");
+      const exportControl = inShadow<HTMLButtonElement>(exportItem!, "button");
 
-    share!.showSubmenu(false);
-    await settled(menu.parentElement!);
-    expect(shareSubmenu.open).toBe(true);
+      share!.showSubmenu(false);
+      await settled(menu.parentElement!);
+      stubMenuPositionSnapshot(shareSubmenu, new DOMRect(150, 32, 120, 140));
 
-    exportControl.dispatchEvent(new PointerEvent("pointerover", { bubbles: true, composed: true }));
-    await settled(menu.parentElement!);
+      shareControl.dispatchEvent(
+        new PointerEvent("pointermove", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 100,
+          clientY: 80,
+        }),
+      );
+      exportControl.dispatchEvent(
+        new PointerEvent("pointerenter", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 126,
+          clientY: 96,
+        }),
+      );
+      exportControl.dispatchEvent(
+        new PointerEvent("pointermove", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 136,
+          clientY: 108,
+        }),
+      );
 
-    expect(shareSubmenu.open).toBe(false);
-    expect(share!.submenuOpen).toBe(false);
+      await vi.advanceTimersByTimeAsync(64);
+
+      expect(shareSubmenu.open).toBe(true);
+      expect(exportSubmenu.open).toBe(false);
+
+      exportControl.dispatchEvent(
+        new PointerEvent("pointerleave", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+        }),
+      );
+      await vi.advanceTimersByTimeAsync(80);
+
+      expect(shareSubmenu.open).toBe(true);
+      expect(exportSubmenu.open).toBe(false);
+    } finally {
+      restoreFinePointer();
+      vi.useRealTimers();
+    }
   });
 
   it("selects listbox options and filters editable combobox suggestions", async () => {

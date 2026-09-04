@@ -6,6 +6,7 @@ import {
   UIAnchoredOverlay,
 } from "../internal/overlay.js";
 import { MenuCollectionController } from "../internal/menu-collection.js";
+import type { UIMenuItem } from "../menu-item/menu-item.js";
 import type { MenuDensity, MenuSizing } from "../menu/menu.js";
 
 /**
@@ -99,6 +100,8 @@ export class UIContextMenu extends UIAnchoredOverlay {
     this.density = "compact";
     this.sizing = "content";
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
+    this.addEventListener("ui-menu-item-submenu-change", this.#onSubmenuChange);
+    this.addEventListener("pointerover", this.#onPointerOver);
   }
 
   override disconnectedCallback(): void {
@@ -141,6 +144,20 @@ export class UIContextMenu extends UIAnchoredOverlay {
       }),
     );
     this.requestOpenChange(false, "select");
+  };
+
+  #onSubmenuChange = (event: Event): void => {
+    const item = event.target as UIMenuItem;
+    const { open } = (event as CustomEvent<{ open: boolean }>).detail;
+    if (!open || item.parentElement !== this) return;
+    this.#collection.dismissSiblingSubmenus(item);
+  };
+
+  #onPointerOver = (event: PointerEvent): void => {
+    const item = this.#collection.itemFromEvent(event) as UIMenuItem | undefined;
+    if (!item || item.parentElement !== this) return;
+    if (item.hasSubmenu || item.shouldPreserveSiblingSubmenuForPointer(event)) return;
+    this.#collection.dismissSiblingSubmenus(item);
   };
 
   protected override handleOverlayKeydown(event: KeyboardEvent): boolean {

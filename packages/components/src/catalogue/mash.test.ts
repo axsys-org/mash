@@ -136,14 +136,20 @@ describe("Mash catalogue", () => {
     expect(motion.animationName).toBe("none");
     expect(motion.animationDuration).toBe("0s");
     expect(motion.transformOrigin).toBe("0px 0px");
+    expect(motion.willChange).not.toContain("opacity");
 
     menu.open = false;
     await menu.updateComplete;
     const exitMotion = getComputedStyle(popup);
+    const materialMotion = getComputedStyle(inShadow<HTMLElement>(menu, '[part="material"]'));
+    const viewportMotion = getComputedStyle(inShadow<HTMLElement>(menu, '[part="viewport"]'));
 
     expect(menu.matches(":state(exiting)")).toBe(true);
-    expect(exitMotion.animationName).toBe("mash-menu-closeout");
+    expect(exitMotion.animationName).toBe("mash-menu-presence-closeout");
     expect(exitMotion.animationDuration).toBe("0.12s");
+    expect(exitMotion.willChange).not.toContain("opacity");
+    expect(materialMotion.animationName).toBe("mash-menu-closeout");
+    expect(viewportMotion.animationName).toBe("mash-menu-closeout");
   });
 
   it("removes nested menu exits immediately during pointer leafing", async () => {

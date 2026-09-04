@@ -18,16 +18,51 @@ export interface MenuItemSelectDetail {
   kind: MenuItemKind;
 }
 
-const submenuHoverIntentInitialDelay = 48;
-const submenuHoverIntentResampleDelay = 24;
-const submenuHoverIntentStableDistance = 3;
-const submenuHoverIntentDirectionBias = 1.2;
+const submenuHoverIntentResampleDelay = 48;
+const submenuHoverIntentSampleLimit = 3;
+const submenuHoverIntentTolerance = 10;
 
-interface SubmenuHoverIntent {
-  entryX: number;
-  entryY: number;
+interface PointerSample {
   x: number;
   y: number;
+}
+
+interface SubmenuHoverIntent {
+  delayedX?: number;
+  delayedY?: number;
+}
+
+const submenuPointerSamples = new WeakMap<HTMLElement, PointerSample[]>();
+
+function pointerSlope(point: PointerSample, corner: PointerSample): number {
+  const dx = corner.x - point.x;
+  if (dx === 0) return corner.y > point.y ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+  return (corner.y - point.y) / dx;
+}
+
+function pointerAimsAtSubmenu(
+  previous: PointerSample,
+  current: PointerSample,
+  rect: DOMRect,
+  side: "left" | "right",
+): boolean {
+  if (rect.width <= 0 || rect.height <= 0) return false;
+  if (previous.x === current.x && previous.y === current.y) return false;
+
+  const edgeX =
+    side === "left"
+      ? rect.right + submenuHoverIntentTolerance
+      : rect.left - submenuHoverIntentTolerance;
+  const upper = { x: edgeX, y: rect.top - submenuHoverIntentTolerance };
+  const lower = { x: edgeX, y: rect.bottom + submenuHoverIntentTolerance };
+  const decreasingCorner = side === "left" ? lower : upper;
+  const increasingCorner = side === "left" ? upper : lower;
+  const decreasingSlope = pointerSlope(current, decreasingCorner);
+  const increasingSlope = pointerSlope(current, increasingCorner);
+  const previousDecreasingSlope = pointerSlope(previous, decreasingCorner);
+  const previousIncreasingSlope = pointerSlope(previous, increasingCorner);
+
+  return decreasingSlope < previousDecreasingSlope && increasingSlope > previousIncreasingSlope;
 }
 
 /**
@@ -227,67 +262,98 @@ export class UIMenuItem extends LitElement {
     this.#hoverIntent = null;
   }
 
-  #trackHoverIntent(event: PointerEvent): void {
-    if (!this.#hoverIntent) {
-      this.#hoverIntent = {
-        entryX: event.clientX,
-        entryY: event.clientY,
-        x: event.clientX,
-        y: event.clientY,
-      };
+  #collectionParent(): HTMLElement | null {
+    const parent = this.parentElement;
+    return parent?.localName === "ui-menu" || parent?.localName === "ui-context-menu"
+      ? parent
+      : null;
+  }
+
+  #recordPointerSample(event: PointerEvent): void {
+    if (event.pointerType === "touch" || !matchMedia("(hover: hover) and (pointer: fine)").matches)
       return;
+    const parent = this.#collectionParent();
+    if (!parent) return;
+    const samples = submenuPointerSamples.get(parent) ?? [];
+    const next = { x: event.clientX, y: event.clientY };
+    const previous = samples.at(-1);
+    if (!previous || previous.x !== next.x || previous.y !== next.y) {
+      samples.push(next);
+      while (samples.length > submenuHoverIntentSampleLimit) samples.shift();
     }
-    this.#hoverIntent.x = event.clientX;
-    this.#hoverIntent.y = event.clientY;
+    submenuPointerSamples.set(parent, samples);
   }
 
-  #hoverIntentDelay(elapsed: number, maximumDelay: number): number {
-    if (elapsed === 0) return Math.min(submenuHoverIntentInitialDelay, maximumDelay);
-    return Math.min(submenuHoverIntentResampleDelay, Math.max(0, maximumDelay - elapsed));
+  #pointerSamples(): [PointerSample, PointerSample] | null {
+    const parent = this.#collectionParent();
+    const samples = parent ? submenuPointerSamples.get(parent) : undefined;
+    const previous = samples?.at(-2);
+    const current = samples?.at(-1);
+    return previous && current ? [previous, current] : null;
   }
 
-  #hoverIntentReady(elapsed: number, maximumDelay: number): boolean {
-    if (elapsed >= maximumDelay) return true;
-    if (!this.#hoverIntent || !this.#submenu) return true;
-
-    const dx = this.#hoverIntent.x - this.#hoverIntent.entryX;
-    const dy = this.#hoverIntent.y - this.#hoverIntent.entryY;
-    if (Math.hypot(dx, dy) <= submenuHoverIntentStableDistance) return true;
-
-    const horizontal = Math.abs(dx);
-    const vertical = Math.abs(dy);
-    const movingTowardSubmenu =
-      this.#submenu.placement === "left"
-        ? dx < 0 && horizontal >= vertical * submenuHoverIntentDirectionBias
-        : dx > 0 && horizontal >= vertical * submenuHoverIntentDirectionBias;
-    return movingTowardSubmenu;
+  #activeSiblingSubmenu(): UIMenu | null {
+    const parent = this.#collectionParent();
+    if (!parent) return null;
+    for (const sibling of parent.querySelectorAll<UIMenuItem>(":scope > ui-menu-item")) {
+      if (sibling === this || !sibling.#submenu?.open) continue;
+      return sibling.#submenu;
+    }
+    return null;
   }
 
-  #queueHoverIntentOpen(elapsed: number, maximumDelay: number): void {
-    const delay = this.#hoverIntentDelay(elapsed, maximumDelay);
+  #pointerAimsAtActiveSiblingSubmenu(): boolean {
+    const submenu = this.#activeSiblingSubmenu();
+    const snapshot = submenu?.positionSnapshot;
+    const samples = this.#pointerSamples();
+    if (!snapshot || !samples) return false;
+    const [previous, current] = samples;
+    const side = snapshot.placement === "left" ? "left" : "right";
+    return pointerAimsAtSubmenu(previous, current, snapshot.popup, side);
+  }
+
+  #hoverIntentDelay(): number {
+    if (!this.#pointerAimsAtActiveSiblingSubmenu()) return 0;
+    const current = this.#pointerSamples()?.[1];
+    if (!current) return 0;
+    if (this.#hoverIntent?.delayedX === current.x && this.#hoverIntent.delayedY === current.y) {
+      return 0;
+    }
+    this.#hoverIntent = { delayedX: current.x, delayedY: current.y };
+    return submenuHoverIntentResampleDelay;
+  }
+
+  #queueHoverIntentOpen(delay: number): void {
     this.#openTimer = window.setTimeout(() => {
       this.#openTimer = undefined;
-      const nextElapsed = elapsed + delay;
-      if (this.#hoverIntentReady(nextElapsed, maximumDelay)) {
-        this.showSubmenu();
+      const nextDelay = this.#hoverIntentDelay();
+      if (nextDelay > 0) {
+        this.#queueHoverIntentOpen(nextDelay);
         return;
       }
-      this.#queueHoverIntentOpen(nextElapsed, maximumDelay);
+      this.showSubmenu();
     }, delay);
   }
 
-  #scheduleOpen(event: PointerEvent): void {
+  #scheduleOpen(): void {
     if (!this.#submenu || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     if (this.#closeTimer !== undefined) window.clearTimeout(this.#closeTimer);
     this.#closeTimer = undefined;
     if (this.#submenu.open || this.#openTimer !== undefined) return;
-    const maximumDelay = Math.max(0, this.#submenu.submenuOpenDelay);
-    if (maximumDelay === 0) {
+    const delay = Math.max(0, this.#submenu.submenuOpenDelay);
+    this.#hoverIntent = {};
+    const intentDelay = this.#hoverIntentDelay();
+    if (delay === 0 && intentDelay === 0) {
       this.showSubmenu();
       return;
     }
-    this.#trackHoverIntent(event);
-    this.#queueHoverIntentOpen(0, maximumDelay);
+    this.#queueHoverIntentOpen(delay === 0 ? intentDelay : delay);
+  }
+
+  /** Internal row-aim hook used by menu composites for leaf hover switches. */
+  shouldPreserveSiblingSubmenuForPointer(event: PointerEvent): boolean {
+    this.#recordPointerSample(event);
+    return event.pointerType !== "touch" && this.#pointerAimsAtActiveSiblingSubmenu();
   }
 
   #scheduleClose(): void {
@@ -385,13 +451,15 @@ export class UIMenuItem extends LitElement {
     this.#scheduleClose();
   };
 
-  #onPointerEnter = (event: PointerEvent): void => this.#scheduleOpen(event);
+  #onPointerEnter = (event: PointerEvent): void => {
+    this.#recordPointerSample(event);
+    this.#scheduleOpen();
+  };
 
   #onPointerLeave = (): void => this.#scheduleClose();
 
   #onPointerMove = (event: PointerEvent): void => {
-    if (this.#openTimer !== undefined && event.pointerType !== "touch")
-      this.#trackHoverIntent(event);
+    this.#recordPointerSample(event);
     if (!this.#submenu?.open || event.pointerType === "touch") return;
     const snapshot = this.#submenu.positionSnapshot;
     const safe = this.renderRoot.querySelector<HTMLElement>("[part~='safe-triangle']");

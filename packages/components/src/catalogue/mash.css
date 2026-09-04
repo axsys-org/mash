@@ -1604,13 +1604,30 @@
 
   :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(popup),
   :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(popup) {
-    animation: mash-menu-closeout var(--duration-transient) var(--easing-control) both;
+    animation: mash-menu-presence-closeout var(--duration-transient) var(--easing-control) both;
     pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(material),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(material),
+  :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(header),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(header),
+  :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(viewport),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(viewport),
+  :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(footer),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(footer) {
+    animation: mash-menu-closeout var(--duration-transient) var(--easing-control) both;
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu[nested]:state(exiting)::part(popup) {
     animation: none;
     pointer-events: none;
+  }
+
+  @keyframes mash-menu-presence-closeout {
+    to {
+      visibility: visible;
+    }
   }
 
   @keyframes mash-menu-closeout {
@@ -2190,9 +2207,6 @@
     background-color: transparent;
     color: var(--mash-material-label-primary, var(--color-text));
     transform-origin: var(--_mash-menu-transform-origin);
-    translate: var(--layout-dimension-zero) var(--layout-dimension-zero);
-    scale: var(--motion-scale-rest);
-    will-change: opacity, translate, scale;
     box-shadow:
       inset 0 0 0 var(--border-material) var(--_mash-component-boundary-strong),
       0 var(--space-menu-gap) calc(var(--space-menu-shell) * 2)

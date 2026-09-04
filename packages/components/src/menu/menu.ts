@@ -100,7 +100,7 @@ export class UIMenu extends UIAnchoredOverlay {
   declare sizing: MenuSizing;
   /** Whether a parent menu item owns this menu as a submenu. */
   declare nested: boolean;
-  /** Maximum fine-pointer hover-intent delay before a hovered submenu opens. */
+  /** Fine-pointer hover dwell before a branch submenu opens. */
   declare submenuOpenDelay: number;
   /** Pointer-corridor grace period before a submenu closes. */
   declare submenuCloseDelay: number;
@@ -116,7 +116,7 @@ export class UIMenu extends UIAnchoredOverlay {
     this.density = "compact";
     this.sizing = "content";
     this.nested = false;
-    this.submenuOpenDelay = 80;
+    this.submenuOpenDelay = 64;
     this.submenuCloseDelay = 280;
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
     this.addEventListener("ui-menu-item-submenu-change", this.#onSubmenuChange);
@@ -219,6 +219,7 @@ export class UIMenu extends UIAnchoredOverlay {
   #onPointerOver = (event: PointerEvent): void => {
     const item = this.#collection.itemFromEvent(event) as UIMenuItem | undefined;
     if (!item || item.parentElement !== this) return;
+    if (item.hasSubmenu || item.shouldPreserveSiblingSubmenuForPointer(event)) return;
     this.#collection.dismissSiblingSubmenus(item);
   };
 
