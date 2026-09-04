@@ -770,7 +770,7 @@ test.describe("catalog slot composition", () => {
     });
     expect(lightMaterial.background).toBe(lightMaterial.thickMaterial);
     expect(lightMaterial.materialImage).not.toBe("none");
-    expect(lightMaterial.materialBlendMode).toBe("color-dodge");
+    expect(lightMaterial.materialBlendMode).toBe("normal");
     expect(lightMaterial.active).toBe(true);
     expect(lightMaterial.animationDuration).toBe("0s");
     expect(lightMaterial.animationName).toBe("none");

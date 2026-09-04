@@ -51,6 +51,22 @@ test("keeps material thickness, backdrop tuning, and semantic vibrancy independe
   }
 
   assert.ok(tokens["effect.material.backdropSaturation.standard"]);
+  assert.equal(
+    tokens["effect.material.luminance.wideGamut"].aliasOf,
+    "effect.reference.material.luminance.wideGamut",
+  );
+  assert.equal(
+    tokens["effect.material.luminance.highDynamicRange"].aliasOf,
+    "effect.reference.material.luminance.highDynamicRange",
+  );
+  assert.equal(
+    tokens["effect.material.highlightAlpha.wideGamut"].aliasOf,
+    "effect.reference.material.highlightAlpha.wideGamut",
+  );
+  assert.equal(
+    tokens["effect.material.highlightAlpha.highDynamicRange"].aliasOf,
+    "effect.reference.material.highlightAlpha.highDynamicRange",
+  );
   assert.deepEqual(tokens["color.backgroundMaterialHighlight"].values, {
     light: "oklch(1.0000 0.0000 0.00 / 0.13)",
     dark: "oklch(1.0000 0.0000 0.00 / 0.13)",
@@ -186,6 +202,14 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
   );
   assert.match(
     css,
+    /\.material-thin\s*{.*?@supports.*?background-image: linear-gradient\(\s*to bottom,\s*var\(--mash-material-background-highlight, transparent\),\s*transparent 62%\s*\)/s,
+  );
+  assert.match(
+    css,
+    /\.material-thin\s*{.*?@supports \(dynamic-range-limit: constrained\)\s*{[^}]*dynamic-range-limit: var\(--mash-material-dynamic-range-limit, standard\)/s,
+  );
+  assert.match(
+    css,
     /\.material-thin\s*{[^}]*--mash-material-compositor: var\(--mash-vibrancy-blend-mode, normal\)/s,
   );
   assert.match(
@@ -210,9 +234,19 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
     /\.material-ultra-thick\s*{.*?var\(--color-background-material-ultra-thick\).*?var\(--blur-background-material-ultra-thick\)/s,
   );
   assert.match(css, /@property --mash-material-backdrop-saturation/);
+  assert.match(css, /@property --mash-material-luminance/);
+  assert.match(css, /@property --mash-material-highlight-alpha/);
   assert.match(
     css,
     /\[data-vibrancy="vibrant"\][^{]*{[^}]*var\(--effect-material-backdrop-saturation-enhanced\)/s,
+  );
+  assert.match(
+    css,
+    /@media \(color-gamut: p3\)\s*{[^}]*--mash-material-luminance: var\(--effect-material-luminance-wide-gamut\)[^}]*--mash-material-background-highlight: color\(display-p3 1 1 1 \/ var\(--mash-material-highlight-alpha\)\)[^}]*--mash-material-selection-background: color\(display-p3 0 0\.5333 1\)/s,
+  );
+  assert.match(
+    css,
+    /@media \(dynamic-range: high\)\s*{[^}]*--mash-material-luminance: var\(--effect-material-luminance-high-dynamic-range\)[^}]*--mash-material-dynamic-range-limit: constrained/s,
   );
   assert.match(css, /\[data-vibrancy="reduced"\][^{]*{[^}]*--mash-material-backdrop: none/s);
   assert.match(

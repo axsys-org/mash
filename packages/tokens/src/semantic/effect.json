@@ -17,6 +17,34 @@
           "$value": "{effect.reference.material.backdropSaturation.enhanced}",
           "$description": "Explicit stronger backdrop chroma for decorative material contexts with verified contrast."
         }
+      },
+      "luminance": {
+        "standard": {
+          "$value": "{effect.reference.material.luminance.standard}",
+          "$description": "Default SDR material brightness."
+        },
+        "wideGamut": {
+          "$value": "{effect.reference.material.luminance.wideGamut}",
+          "$description": "P3-capability material lift applied by renderers as a progressive enhancement."
+        },
+        "highDynamicRange": {
+          "$value": "{effect.reference.material.luminance.highDynamicRange}",
+          "$description": "HDR-capability material lift applied by renderers only behind dynamic-range support gates."
+        }
+      },
+      "highlightAlpha": {
+        "standard": {
+          "$value": "{effect.reference.material.highlightAlpha.standard}",
+          "$description": "Default material highlight opacity."
+        },
+        "wideGamut": {
+          "$value": "{effect.reference.material.highlightAlpha.wideGamut}",
+          "$description": "P3-capability material highlight opacity."
+        },
+        "highDynamicRange": {
+          "$value": "{effect.reference.material.highlightAlpha.highDynamicRange}",
+          "$description": "HDR-capability material highlight opacity."
+        }
       }
     }
   }

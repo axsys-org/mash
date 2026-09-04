@@ -381,7 +381,7 @@
             "components": [1, 1, 1],
             "alpha": 0.13
           },
-          "$description": "A 13% white highlight layer intended for renderer-isolated color-dodge treatment on material backgrounds."
+          "$description": "A 13% white highlight layer intended for renderer-isolated material edge lift."
         },
         "light": {
           "ultraThin": {

@@ -30,6 +30,38 @@
     --_mash-component-boundary-strong: var(--color-border-strong);
     --_mash-component-divider: var(--color-separator-opaque);
     --_mash-component-shadow: var(--color-shadow);
+    --mash-material-luminance: var(--effect-material-luminance-standard);
+    --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
+    --mash-material-selection-background: var(--color-menu-selection);
+    --mash-material-dynamic-range-limit: standard;
+  }
+
+  @supports (color: color(display-p3 1 1 1)) {
+    @media (color-gamut: p3) {
+      :where([data-mash-catalogue="mash"]:not([data-vibrancy="reduced"])),
+      :where([data-mash-catalogue="mash"])
+        :where([data-vibrancy="auto"], [data-vibrancy="vibrant"]) {
+        --mash-material-luminance: var(--effect-material-luminance-wide-gamut);
+        --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-wide-gamut);
+        --mash-material-background-highlight: color(
+          display-p3 1 1 1 / var(--mash-material-highlight-alpha)
+        );
+        --mash-material-selection-background: color(display-p3 0 0.5333 1);
+        --mash-material-accent-action: color(display-p3 0.0392 0.6 1);
+      }
+    }
+  }
+
+  @supports (dynamic-range-limit: constrained) {
+    @media (dynamic-range: high) {
+      :where([data-mash-catalogue="mash"]:not([data-vibrancy="reduced"])),
+      :where([data-mash-catalogue="mash"])
+        :where([data-vibrancy="auto"], [data-vibrancy="vibrant"]) {
+        --mash-material-luminance: var(--effect-material-luminance-high-dynamic-range);
+        --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-high-dynamic-range);
+        --mash-material-dynamic-range-limit: constrained;
+      }
+    }
   }
 
   /* Material utilities expose a renderer compositor through an inherited custom
@@ -2235,6 +2267,13 @@
     );
   }
 
+  @supports (dynamic-range-limit: constrained) {
+    :where([data-mash-catalogue="mash"]) ui-menu::part(popup),
+    :where([data-mash-catalogue="mash"]) ui-context-menu::part(popup) {
+      dynamic-range-limit: var(--mash-material-dynamic-range-limit, standard);
+    }
+  }
+
   :where([data-mash-catalogue="mash"]) ui-menu::part(material),
   :where([data-mash-catalogue="mash"]) ui-context-menu::part(material) {
     position: absolute;
@@ -2249,6 +2288,7 @@
       transparent 62%
     );
     background-blend-mode: normal;
+    filter: brightness(var(--mash-material-luminance, var(--effect-material-luminance-standard)));
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu::part(actions),
@@ -2313,13 +2353,12 @@
   }
 
   /* A regular translucent material disappears against the catalogue's white
-     canvas. Light menus use the content-bearing material tier plus an explicit
-     hairline and directional elevation; reduced transparency still wins via
-     --mash-material-background and resolves to the opaque raised surface. */
+     canvas. Light menus use the content-bearing material tier plus explicit
+     hairline and directional elevation; environmental headroom still flows
+     through --mash-material-luminance rather than a menu-only blend mode. */
   :where([data-mash-catalogue="mash"][data-theme="light"]) ui-menu::part(material),
   :where([data-mash-catalogue="mash"][data-theme="light"]) ui-context-menu::part(material) {
     background-color: var(--mash-material-background, var(--color-background-material-thick));
-    background-blend-mode: color-dodge;
   }
 
   :where([data-mash-catalogue="mash"][data-theme="light"]) ui-menu::part(popup),
@@ -2413,7 +2452,10 @@
 
   :where([data-mash-catalogue="mash"]) ui-menu-item {
     --_mash-menu-item-foreground: var(--mash-material-label-primary, var(--color-text));
-    --_mash-menu-item-selection-background: var(--color-menu-selection);
+    --_mash-menu-item-selection-background: var(
+      --mash-material-selection-background,
+      var(--color-menu-selection)
+    );
     --_mash-menu-item-selection-color: var(--color-on-menu-selection);
     --_mash-menu-item-submenu-background: var(--color-neutral-hover);
     --_mash-menu-item-submenu-color: var(--_mash-menu-item-foreground);

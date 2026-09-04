@@ -171,8 +171,18 @@ function renderMaterialUtilities(graph) {
 
   @supports ((-webkit-backdrop-filter: blur(0)) or (backdrop-filter: blur(0))) {
     background-color: var(--mash-material-background, var(--color-background-material-${kebab(role)}));
+    background-image: linear-gradient(
+      to bottom,
+      var(--mash-material-background-highlight, transparent),
+      transparent 62%
+    );
+    background-blend-mode: normal;
     -webkit-backdrop-filter: var(--mash-material-backdrop, blur(var(--blur-background-material-${kebab(role)})) saturate(var(--mash-material-backdrop-saturation, var(--effect-material-backdrop-saturation-standard))));
     backdrop-filter: var(--mash-material-backdrop, blur(var(--blur-background-material-${kebab(role)})) saturate(var(--mash-material-backdrop-saturation, var(--effect-material-backdrop-saturation-standard))));
+  }
+
+  @supports (dynamic-range-limit: constrained) {
+    dynamic-range-limit: var(--mash-material-dynamic-range-limit, standard);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -190,6 +200,18 @@ function renderVibrancyScope() {
   initial-value: 1;
 }
 
+@property --mash-material-luminance {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --mash-material-highlight-alpha {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.13;
+}
+
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
@@ -200,6 +222,10 @@ function renderVibrancyScope() {
   --mash-opaque-label-quaternary: rgb(from var(--mash-label-source, var(--color-text-quaternary-opaque)) r g b / var(--opacity-label-quaternary));
   --mash-opaque-label-quinary: rgb(from var(--mash-label-source, var(--color-text-quinary-opaque)) r g b / var(--opacity-label-quinary));
   --mash-opaque-label-seximal: rgb(from var(--mash-label-source, var(--color-text-seximal-opaque)) r g b / var(--opacity-label-seximal));
+  --mash-material-luminance: var(--effect-material-luminance-standard);
+  --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
+  --mash-material-selection-background: var(--color-menu-selection);
+  --mash-material-dynamic-range-limit: standard;
 }
 
 :root,
@@ -216,6 +242,8 @@ function renderVibrancyScope() {
 :root,
 [data-vibrancy="auto"] {
   --mash-material-backdrop-saturation: var(--effect-material-backdrop-saturation-standard);
+  --mash-material-luminance: var(--effect-material-luminance-standard);
+  --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
   --mash-material-background: initial;
   --mash-material-background-highlight: var(--color-background-material-highlight);
   --mash-material-backdrop: initial;
@@ -234,11 +262,15 @@ function renderVibrancyScope() {
   --mash-material-separator: var(--color-separator-vibrant);
   --mash-material-separator-strong: var(--color-separator-strong-vibrant);
   --mash-material-accent-action: var(--color-action-vibrant);
+  --mash-material-selection-background: var(--color-menu-selection);
+  --mash-material-dynamic-range-limit: standard;
   --mash-vibrancy-blend-mode: var(--mash-vibrancy-theme-blend-mode);
 }
 
 [data-vibrancy="vibrant"] {
   --mash-material-backdrop-saturation: var(--effect-material-backdrop-saturation-enhanced);
+  --mash-material-luminance: var(--effect-material-luminance-standard);
+  --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
   --mash-material-background: initial;
   --mash-material-background-highlight: var(--color-background-material-highlight);
   --mash-material-backdrop: initial;
@@ -257,11 +289,41 @@ function renderVibrancyScope() {
   --mash-material-separator: var(--color-separator-vibrant);
   --mash-material-separator-strong: var(--color-separator-strong-vibrant);
   --mash-material-accent-action: var(--color-action-vibrant);
+  --mash-material-selection-background: var(--color-menu-selection);
+  --mash-material-dynamic-range-limit: standard;
   --mash-vibrancy-blend-mode: var(--mash-vibrancy-theme-blend-mode);
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+  @media (color-gamut: p3) {
+    :root:not([data-vibrancy="reduced"]),
+    [data-vibrancy="auto"],
+    [data-vibrancy="vibrant"] {
+      --mash-material-luminance: var(--effect-material-luminance-wide-gamut);
+      --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-wide-gamut);
+      --mash-material-background-highlight: color(display-p3 1 1 1 / var(--mash-material-highlight-alpha));
+      --mash-material-selection-background: color(display-p3 0 0.5333 1);
+      --mash-material-accent-action: color(display-p3 0.0392 0.6 1);
+    }
+  }
+}
+
+@supports (dynamic-range-limit: constrained) {
+  @media (dynamic-range: high) {
+    :root:not([data-vibrancy="reduced"]),
+    [data-vibrancy="auto"],
+    [data-vibrancy="vibrant"] {
+      --mash-material-luminance: var(--effect-material-luminance-high-dynamic-range);
+      --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-high-dynamic-range);
+      --mash-material-dynamic-range-limit: constrained;
+    }
+  }
 }
 
 [data-vibrancy="reduced"] {
   --mash-material-backdrop-saturation: var(--effect-material-backdrop-saturation-reduced);
+  --mash-material-luminance: var(--effect-material-luminance-standard);
+  --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
   --mash-material-background: var(--color-surface-raised);
   --mash-material-background-highlight: transparent;
   --mash-material-backdrop: none;
@@ -281,6 +343,8 @@ function renderVibrancyScope() {
   --mash-material-separator-strong: var(--color-separator-strong-opaque);
   --mash-material-separator-source: var(--color-separator-strong-opaque);
   --mash-material-accent-action: var(--color-action-opaque);
+  --mash-material-selection-background: var(--color-menu-selection);
+  --mash-material-dynamic-range-limit: standard;
   --mash-vibrancy-blend-mode: normal;
 }
 
@@ -288,6 +352,8 @@ function renderVibrancyScope() {
   :root:not([data-vibrancy]),
   [data-vibrancy="auto"] {
     --mash-material-backdrop-saturation: var(--effect-material-backdrop-saturation-reduced);
+    --mash-material-luminance: var(--effect-material-luminance-standard);
+    --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
     --mash-material-background: var(--color-surface-raised);
     --mash-material-background-highlight: transparent;
     --mash-material-backdrop: none;
@@ -307,6 +373,8 @@ function renderVibrancyScope() {
     --mash-material-separator-strong: var(--color-separator-strong-opaque);
     --mash-material-separator-source: var(--color-separator-strong-opaque);
     --mash-material-accent-action: var(--color-action-opaque);
+    --mash-material-selection-background: var(--color-menu-selection);
+    --mash-material-dynamic-range-limit: standard;
     --mash-vibrancy-blend-mode: normal;
   }
 }
@@ -315,6 +383,8 @@ function renderVibrancyScope() {
   :root,
   [data-vibrancy] {
     --mash-material-backdrop-saturation: var(--effect-material-backdrop-saturation-reduced);
+    --mash-material-luminance: var(--effect-material-luminance-standard);
+    --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
     --mash-material-background: Canvas;
     --mash-material-background-highlight: transparent;
     --mash-material-backdrop: none;
@@ -333,6 +403,8 @@ function renderVibrancyScope() {
     --mash-material-separator-strong: CanvasText;
     --mash-material-separator-source: CanvasText;
     --mash-material-accent-action: LinkText;
+    --mash-material-selection-background: Highlight;
+    --mash-material-dynamic-range-limit: standard;
     --mash-vibrancy-blend-mode: normal;
   }
 }`;

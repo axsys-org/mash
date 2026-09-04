@@ -20,6 +20,8 @@ import "./mash.css";
 describe("Mash catalogue", () => {
   afterEach(() => {
     delete document.documentElement.dataset.mashCatalogue;
+    document.documentElement.style.removeProperty("--mash-material-luminance");
+    document.documentElement.style.removeProperty("--mash-material-selection-background");
   });
 
   it("applies a recipe outside component definitions", async () => {
@@ -221,6 +223,28 @@ describe("Mash catalogue", () => {
     );
     expect(focused?.matches(":state(checked)")).toBe(false);
     expect(checked?.matches(":state(checked)")).toBe(true);
+  });
+
+  it("routes menu material headroom and selection through shared runtime variables", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    document.documentElement.style.setProperty("--mash-material-luminance", "1.05");
+    document.documentElement.style.setProperty(
+      "--mash-material-selection-background",
+      "rgb(1, 2, 3)",
+    );
+    const menu = await fixture(`
+      <ui-menu label="Project commands" open>
+        <ui-menu-item value="open">Open project</ui-menu-item>
+      </ui-menu>
+    `);
+    const item = menu.querySelector("ui-menu-item")!;
+    const control = inShadow<HTMLButtonElement>(item, "button");
+    const material = inShadow<HTMLElement>(menu, '[part="material"]');
+
+    control.focus();
+
+    expect(getComputedStyle(control).backgroundColor).toBe("rgb(1, 2, 3)");
+    expect(getComputedStyle(material).filter).toContain("brightness(1.05)");
   });
 
   it("uses the filled critical state for focused destructive menu commands", async () => {

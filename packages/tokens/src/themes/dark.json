@@ -41,7 +41,7 @@
     },
     "backgroundMaterialHighlight": {
       "$value": "{color.reference.material.highlight}",
-      "$description": "Renderer-isolated highlight for color-dodge treatment on a material background."
+      "$description": "Renderer-isolated highlight for translucent material edge lift."
     },
     "backgroundMaterialShadow": {
       "$value": "{color.reference.shadow.backgroundMaterial}",

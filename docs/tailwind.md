@@ -129,6 +129,13 @@ to their vibrant ingredients and chooses the theme compositor (`multiply` in lig
 `plus-lighter` in dark mode). Backdrop chroma is independently tuned by
 `effect.material.backdropSaturation.standard`; saturation is not treated as vibrancy.
 
+On displays that report Display P3 support, `auto` and `vibrant` keep the same semantics but lift
+material edge light and the menu/action accent through `effect.material.luminance.wideGamut` and
+`effect.material.highlightAlpha.wideGamut`. Browsers that also support HDR range controls switch the
+runtime knobs to the `highDynamicRange` material effects and set the material dynamic-range limit to
+`constrained`. These are progressive enhancements only: SDR tokens remain the baseline, and reduced
+transparency or forced-colour policy wins over the richer path.
+
 Reduced transparency (where supported) or increased contrast replaces translucent materials with
 `color.surfaceRaised`, selects opaque semantic ingredients, disables blend compositing, and removes
 the backdrop filter. Forced-colour mode uses platform colours. `data-vibrancy="reduced"` selects the
