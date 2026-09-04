@@ -103,6 +103,15 @@ Current consolidation direction:
 - Catalogue controls may group aliases for demo UX, but that grouping is not the
   ontology.
 
+## Focus Ownership
+
+Visible focus belongs to the keyboard-reachable control that will act on the
+next key press. Overlay popups may receive programmatic focus for containment,
+Escape handling, pointer-open menus, and non-modal dismissal, but they should
+not paint a browser or operating-system ring themselves. Pointer-open overlays
+should not return focus to the trigger after selection; keyboard-open overlays
+should, because the trigger remains the user's navigation anchor.
+
 ## Component Boundaries
 
 | Component        | Owns                                                                                                 | Does not own                                                            |

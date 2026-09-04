@@ -138,6 +138,23 @@ test.describe("catalog slot composition", () => {
     expect(geometry.nestedBorder).toBe("0px");
   });
 
+  test("keeps command search as a composed input fragment", async ({ page }) => {
+    await page.goto("/components/ui-input?theme=dark&example=Command+search+fragment");
+
+    const preview = page.frameLocator("iframe.stage-frame");
+    const fragment = preview.locator(".example-input-command-fragment");
+    await expect(fragment.locator("ui-input-group ui-input")).toBeVisible();
+    await expect(fragment.locator("ui-menu")).toHaveCount(1);
+    await expect(fragment.locator(".example-input-command-results ui-link")).toHaveCount(3);
+
+    const input = fragment.locator("ui-input[data-catalog-input-events] input");
+    await input.fill("risk");
+    await expect(fragment.locator("[data-catalog-input-log]")).toHaveText("value: risk");
+
+    await input.press("Enter");
+    await expect(fragment.locator("[data-catalog-input-log]")).toHaveText("enter: risk");
+  });
+
   test("keeps the comment composer as authored textarea composition", async ({ page }) => {
     await page.goto("/components/ui-textarea?example=Comment+composer");
 
@@ -575,6 +592,24 @@ test.describe("catalog slot composition", () => {
     await expect(preview.locator("sh-myth sh-limb").first()).toBeVisible();
   });
 
+  test("keeps popover inspectors contextual and compositional", async ({ page }) => {
+    await page.goto("/components/ui-popover?theme=dark&example=Context+inspector");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const popover = preview.locator('ui-popover[label="Billing migration inspector"]');
+
+    await popover.getByRole("button", { name: "Inspect record" }).click();
+    await expect(popover.locator(".example-popover-content")).toBeVisible();
+    await expect(popover.locator("ui-input-group ui-input")).toBeVisible();
+    await expect(popover.locator("ui-toolbar ui-button")).toHaveCount(2);
+    await expect(popover.locator("ui-link")).toBeVisible();
+
+    const popupOutline = await popover.evaluate((node) => {
+      const popup = node.shadowRoot!.querySelector<HTMLElement>('[part="popup"]')!;
+      return getComputedStyle(popup).outlineStyle;
+    });
+    expect(popupOutline).toBe("none");
+  });
+
   test("keeps compact nested menus aligned and exposes progressive leaf overflow", async ({
     page,
   }) => {
@@ -664,9 +699,11 @@ test.describe("catalog slot composition", () => {
     });
 
     await page.goto("/components/ui-menu?theme=light&vibrancy=vibrant&example=Pull-down+commands");
+    await preview.getByRole("button", { name: "Edit" }).click();
     const lightPopup = preview.locator('ui-menu[label="Edit commands"] [part~="popup"]').first();
     const lightMaterial = await lightPopup.evaluate((element) => {
       const style = getComputedStyle(element);
+      const root = element.getRootNode();
       const materialElement = element.previousElementSibling as HTMLElement;
       const materialStyle = getComputedStyle(materialElement);
       const probe = document.createElement("span");
@@ -676,6 +713,8 @@ test.describe("catalog slot composition", () => {
         background: materialStyle.backgroundColor,
         materialImage: materialStyle.backgroundImage,
         materialBlendMode: materialStyle.backgroundBlendMode,
+        active: root instanceof ShadowRoot && root.activeElement === element,
+        outlineStyle: style.outlineStyle,
         thickMaterial: getComputedStyle(probe).backgroundColor,
         shadow: style.boxShadow,
       };
@@ -683,9 +722,26 @@ test.describe("catalog slot composition", () => {
     expect(lightMaterial.background).toBe(lightMaterial.thickMaterial);
     expect(lightMaterial.materialImage).not.toBe("none");
     expect(lightMaterial.materialBlendMode).toBe("color-dodge");
+    expect(lightMaterial.active).toBe(true);
+    expect(lightMaterial.outlineStyle).toBe("none");
     expect(lightMaterial.shadow).toContain("inset");
     expect(lightMaterial.shadow).toContain("0.5px inset");
     expect(lightMaterial.shadow).toContain("0.13");
+
+    await preview.getByRole("menuitem", { name: /Undo/ }).click();
+    const triggerAfterSelect = await preview
+      .locator('ui-menu[label="Edit commands"] ui-button[slot="trigger"]')
+      .evaluate((trigger) => {
+        const control = trigger.shadowRoot!.querySelector<HTMLElement>('[part="control"]')!;
+        return {
+          active: document.activeElement === trigger,
+          focusVisible: control.matches(":focus-visible"),
+          outlineStyle: getComputedStyle(control).outlineStyle,
+        };
+      });
+    expect(triggerAfterSelect.active).toBe(false);
+    expect(triggerAfterSelect.focusVisible).toBe(false);
+    expect(triggerAfterSelect.outlineStyle).toBe("none");
 
     await page.goto("/components/ui-menu?theme=light&vibrancy=reduced&example=Pull-down+commands");
     const reducedMaterial = await lightPopup.evaluate((element) => {

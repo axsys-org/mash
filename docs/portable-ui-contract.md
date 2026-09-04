@@ -168,6 +168,12 @@ focus entry, modal focus containment, and focus return. Concrete elements own
 their public event names and ARIA roles; the internal engine is deliberately
 not exported as a product API.
 
+The shared engine separates behavioural focus from visible focus indication.
+Popup surfaces may be focused so Escape, containment, and pointer-open menu
+state work consistently, but visible focus belongs to the actionable control
+that keyboard users are navigating. Pointer-open overlays do not return focus to
+their trigger after an item selection; keyboard-open overlays do.
+
 The Mash catalogue supplies visual treatment through exposed parts. It does
 not modify selection, form, overlay, or event meaning—so a React façade or
 native renderer can implement the same contracts without carrying the web

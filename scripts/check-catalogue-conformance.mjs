@@ -112,6 +112,50 @@ async function main() {
     );
   }
 
+  const inputSection = examples.match(/"ui-input": \[([\s\S]*?)\n  \],/);
+  if (
+    !inputSection ||
+    !inputSection[1].includes("example-input-command-fragment") ||
+    !inputSection[1].includes("<ui-input-group") ||
+    !inputSection[1].includes("<ui-menu") ||
+    !inputSection[1].includes("<ui-link") ||
+    !inputSection[1].includes("<ui-kbd") ||
+    !inputSection[1].includes("data-catalog-input-events")
+  ) {
+    problems.push(
+      `${EXAMPLES_PATH} ui-input needs a command-search fragment that composes neighboring contracts`,
+    );
+  }
+
+  const textareaSection = examples.match(/"ui-textarea": \[([\s\S]*?)\n  \],/);
+  if (
+    !textareaSection ||
+    !textareaSection[1].includes("example-comment-composer") ||
+    !textareaSection[1].includes("<ui-field") ||
+    !textareaSection[1].includes("<ui-toolbar") ||
+    !textareaSection[1].includes("<ui-menu") ||
+    !textareaSection[1].includes("data-catalog-composer-text") ||
+    !textareaSection[1].includes("data-catalog-composer-send")
+  ) {
+    problems.push(
+      `${EXAMPLES_PATH} ui-textarea needs a durable comment-composer fragment around the native control`,
+    );
+  }
+
+  const popoverSection = examples.match(/"ui-popover": \[([\s\S]*?)\n  \],/);
+  if (
+    !popoverSection ||
+    !popoverSection[1].includes("Context inspector") ||
+    !popoverSection[1].includes("example-popover-content") ||
+    !popoverSection[1].includes("<ui-input-group") ||
+    !popoverSection[1].includes("<ui-link") ||
+    !popoverSection[1].includes("<ui-toolbar")
+  ) {
+    problems.push(
+      `${EXAMPLES_PATH} ui-popover needs a contextual inspector fragment, not a bare action stub`,
+    );
+  }
+
   const virtualListSection = examples.match(/"ui-virtual-list": \[([\s\S]*?)\n  \],/);
   const hasVirtualRowTemplate =
     examples.includes('class="example-virtual-row"') &&
@@ -139,7 +183,7 @@ async function main() {
   }
 
   console.log(
-    `catalogue conformance: ok — ${iconNames.size} semantic icons, input groups, commands, gestures, virtual rows, and motion composition verified`,
+    `catalogue conformance: ok — ${iconNames.size} semantic icons, input groups, commands, gestures, input fragments, composer fragments, contextual popovers, virtual rows, and motion composition verified`,
   );
 }
 

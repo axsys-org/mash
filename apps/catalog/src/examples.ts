@@ -2884,11 +2884,24 @@ export function MarkdownFrame({ html }: { html: string }) {
       },
     ),
     example(
-      "Search, clear, and Enter",
+      "Command search fragment",
       `
-        <div class="catalog-example example-input-lab" data-catalog-input-lab>
-          <ui-field label="Search" description="Primary+K focuses the input; Escape clears editable text.">
-            <ui-input-group id="input-search-command" slot="control">
+        <section class="catalog-example example-input-command-fragment" aria-label="Command search" data-catalog-input-lab>
+          <header class="example-input-command-header">
+            <div class="example-link-heading">
+              <span class="example-eyebrow">Command scope</span>
+              <h2>Find project work</h2>
+              <p>Search records, owners, and saved views from one authored row.</p>
+            </div>
+            <ui-menu label="Search scope" density="compact" sizing="fixed">
+              <ui-button slot="trigger" type="button" size="small" variant="secondary">All<ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon></ui-button>
+              <ui-menu-item kind="radio" value="all" checked>All<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              <ui-menu-item kind="radio" value="records">Records<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              <ui-menu-item kind="radio" value="people">People<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+            </ui-menu>
+          </header>
+          <ui-field label="Search" description="Project index">
+            <ui-input-group id="input-search-command" class="example-input-command-search" slot="control">
               <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
               <ui-input slot="control" type="search" name="query" label="Search" value="release" autocomplete="off" clean-on-escape data-catalog-input-focus data-catalog-input-events></ui-input>
               <ui-button slot="suffix" type="button" size="small" variant="quiet" aria-label="Clear search" data-catalog-input-clear><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
@@ -2896,12 +2909,17 @@ export function MarkdownFrame({ html }: { html: string }) {
             </ui-input-group>
             <ui-gesture-binding for="input-search-command" gesture="key" shortcut="Primary+K" command="input.focus" prevent-default="recognized"></ui-gesture-binding>
           </ui-field>
+          <div class="example-input-command-results" role="list" aria-label="Search results">
+            <ui-link role="listitem" variant="quiet" href="#release-readiness"><ui-icon slot="prefix" name="object.document" label=""></ui-icon>Release readiness<ui-badge slot="suffix" size="small" tone="positive">Ready</ui-badge></ui-link>
+            <ui-link role="listitem" variant="quiet" href="#migration-room"><ui-icon slot="prefix" name="object.folder" label=""></ui-icon>Migration room<ui-badge slot="suffix" size="small">Room</ui-badge></ui-link>
+            <ui-link role="listitem" variant="quiet" href="#sam-ortiz"><ui-avatar slot="prefix" size="small">SO</ui-avatar>Sam Ortiz<ui-badge slot="suffix" size="small" tone="warning">Owner</ui-badge></ui-link>
+          </div>
           <output class="example-input-log" data-catalog-input-log>value: release</output>
-        </div>`,
+        </section>`,
       {
         compositionOnly: true,
         description:
-          "Prefix, suffix, shortcut hints, and clear commands compose through InputGroup; the input itself emits text, focus, and Enter events from the native control.",
+          "The query remains one native input; scope, shortcuts, clear actions, and results compose around it as a reusable fragment.",
       },
     ),
     example(
@@ -2966,39 +2984,45 @@ export function MarkdownFrame({ html }: { html: string }) {
       `
         <form class="catalog-example example-comment-composer" aria-label="Comment composer" data-catalog-composer>
           <div class="example-composer-header">
-            <ui-avatar size="small">RM</ui-avatar>
+            <ui-avatar size="medium">RM</ui-avatar>
             <div class="example-composer-author">
               <strong>Rina Malik</strong>
-              <span>Drafting a project comment</span>
+              <span>Billing migration</span>
             </div>
             <ui-badge size="small">Draft</ui-badge>
           </div>
-          <ui-field label="Comment" description="The fragment owns draft state; the textarea owns native multiline editing.">
-            <ui-textarea slot="control" name="comment" rows="4" maxlength="280" placeholder="Leave a concrete update…" data-catalog-composer-text></ui-textarea>
-          </ui-field>
-          <ui-toolbar label="Comment tools" class="example-composer-toolbar">
-            <ui-toggle size="small" aria-label="Bold"><strong>B</strong></ui-toggle>
-            <ui-toggle size="small" aria-label="Italic"><em>I</em></ui-toggle>
-            <ui-toggle size="small" aria-label="Inline code"><code>&lt;&gt;</code></ui-toggle>
-            <ui-menu label="Insert into comment" density="compact" sizing="fixed">
-              <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Insert content">
-                <ui-icon name="action.add" label=""></ui-icon>
-              </ui-button>
-              <ui-menu-item value="attachment"><ui-icon slot="prefix" name="object.document" label=""></ui-icon>Attachment</ui-menu-item>
-              <ui-menu-item value="link"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Link</ui-menu-item>
-            </ui-menu>
-            <ui-menu label="Comment visibility" density="compact" sizing="fixed">
-              <ui-button slot="trigger" type="button" size="small" variant="quiet">
-                Team
-                <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
-              </ui-button>
-              <ui-menu-item kind="radio" value="team" checked>Team<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
-              <ui-menu-item kind="radio" value="private">Private note<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
-            </ui-menu>
+          <div class="example-composer-editor">
+            <ui-field label="Comment" description="Project update for the migration room.">
+              <ui-textarea slot="control" name="comment" rows="5" maxlength="280" placeholder="Write a concrete update" data-catalog-composer-text></ui-textarea>
+            </ui-field>
+            <ui-toolbar label="Comment tools" class="example-composer-toolbar">
+              <ui-toggle size="small" aria-label="Bold"><strong>B</strong></ui-toggle>
+              <ui-toggle size="small" aria-label="Italic"><em>I</em></ui-toggle>
+              <ui-toggle size="small" aria-label="Inline code"><code>&lt;&gt;</code></ui-toggle>
+              <ui-separator orientation="vertical"></ui-separator>
+              <ui-menu label="Insert into comment" density="compact" sizing="fixed">
+                <ui-button slot="trigger" type="button" size="small" variant="quiet" aria-label="Insert content">
+                  <ui-icon name="action.add" label=""></ui-icon>
+                </ui-button>
+                <ui-menu-item value="attachment"><ui-icon slot="prefix" name="object.document" label=""></ui-icon>Attachment</ui-menu-item>
+                <ui-menu-item value="link"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Link</ui-menu-item>
+                <ui-menu-item value="code"><ui-icon slot="prefix" name="object.terminal" label=""></ui-icon>Code block</ui-menu-item>
+              </ui-menu>
+              <ui-menu label="Comment visibility" density="compact" sizing="fixed">
+                <ui-button slot="trigger" type="button" size="small" variant="quiet">
+                  Team
+                  <ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon>
+                </ui-button>
+                <ui-menu-item kind="radio" value="team" checked>Team<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                <ui-menu-item kind="radio" value="private">Private note<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              </ui-menu>
+            </ui-toolbar>
+          </div>
+          <div class="example-composer-footer">
+            <output class="example-composer-status" data-catalog-composer-status>Draft is empty.</output>
             <span class="example-composer-count" data-catalog-composer-count>0 / 280</span>
             <ui-button type="submit" size="small" data-catalog-composer-send disabled>Comment</ui-button>
-          </ui-toolbar>
-          <output class="example-composer-status" data-catalog-composer-status>Draft is empty.</output>
+          </div>
         </form>`,
       {
         compositionOnly: true,
@@ -3855,6 +3879,7 @@ export function MarkdownFrame({ html }: { html: string }) {
         compositionOnly: true,
         description:
           "The toolbar remains a semantic command group; the catalogue composes selection detection, floating placement, nested menus, and gesture bindings around it.",
+        stageLayout: "fill",
       },
     ),
     example(
@@ -3987,17 +4012,34 @@ export function MarkdownFrame({ html }: { html: string }) {
   ],
   "ui-popover": [
     example(
-      "Project actions",
+      "Context inspector",
       `
-        <div class="catalog-example example-stack">
-          <ui-popover label="Project actions">
-            <ui-button slot="trigger" variant="secondary">Actions</ui-button>
+        <div class="catalog-example example-popover-stage">
+          <ui-popover label="Billing migration inspector" placement="bottom" align="start" offset="8">
+            <ui-button slot="trigger" variant="secondary">Inspect record<ui-icon slot="suffix" name="navigation.chevron-down" label=""></ui-icon></ui-button>
             <strong slot="title">Billing migration</strong>
             <p slot="description">Last edited 14 minutes ago.</p>
-            <ui-button slot="close" variant="quiet">Done</ui-button>
+            <div class="example-popover-content">
+              <div class="example-popover-row"><span>Status</span><ui-badge tone="positive">Active</ui-badge></div>
+              <div class="example-popover-row"><span>Owner</span><span class="example-popover-person"><ui-avatar size="small">MC</ui-avatar>Maya Chen</span></div>
+              <ui-input-group class="example-popover-search">
+                <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
+                <ui-input slot="control" type="search" label="Find related records" placeholder="Find related records"></ui-input>
+              </ui-input-group>
+              <ui-link href="#billing-migration" variant="quiet"><ui-icon slot="prefix" name="action.launch" label=""></ui-icon>Open full record</ui-link>
+            </div>
+            <ui-toolbar slot="actions" label="Inspector actions" class="example-popover-toolbar">
+              <ui-button type="button" size="small" variant="secondary">Follow</ui-button>
+              <ui-button type="button" size="small">Open</ui-button>
+            </ui-toolbar>
+            <ui-button slot="close" type="button" size="small" variant="quiet" aria-label="Close inspector"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button>
           </ui-popover>
         </div>`,
-      { compositionOnly: true },
+      {
+        compositionOnly: true,
+        description:
+          "Popover owns anchored disclosure and dismissal; the inspector body remains an authored fragment of fields, links, status, and actions.",
+      },
     ),
   ],
   "ui-menu": [

@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { fixture, inShadow, settled } from "./test-support/fixture.js";
 import "./alert-dialog/register.js";
+import "./button/register.js";
 import "./context-menu/register.js";
 import "./dialog/register.js";
 import "./drawer/register.js";
 import "./menu/register.js";
+import "./menu-item/register.js";
 import "./popover/register.js";
 import "./preview-card/register.js";
 import "./tooltip/register.js";
@@ -86,6 +88,83 @@ describe("overlay authored-slot realizations", () => {
     expect(inShadow(alert, '[part="actions"]').contains(inShadow(alert, '[part="confirm"]'))).toBe(
       true,
     );
+  });
+
+  it("parks pointer-open menu focus on the popup without a native focus outline", async () => {
+    const menu = await fixture<HTMLElement>(`
+      <ui-menu label="Actions">
+        <button slot="trigger">Actions</button>
+        <ui-menu-item value="open">Open</ui-menu-item>
+      </ui-menu>
+    `);
+    const trigger = menu.querySelector<HTMLButtonElement>('[slot="trigger"]')!;
+
+    trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, detail: 1 }));
+    await settled(menu.parentElement!);
+
+    const popup = inShadow<HTMLElement>(menu, '[part="popup"]');
+    expect(menu.shadowRoot?.activeElement).toBe(popup);
+    expect(getComputedStyle(popup).outlineStyle).toBe("none");
+  });
+
+  it("does not let dialog popup surfaces paint a native focus outline", async () => {
+    const dialog = await fixture<HTMLElement>(`
+      <ui-alert-dialog label="Archive project">
+        <button slot="trigger">Archive</button>
+        <button slot="cancel">Keep active</button>
+        <button slot="confirm">Archive</button>
+      </ui-alert-dialog>`);
+    const trigger = dialog.querySelector<HTMLButtonElement>('[slot="trigger"]')!;
+
+    trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, detail: 1 }));
+    await settled(dialog.parentElement!);
+
+    expect(getComputedStyle(inShadow<HTMLElement>(dialog, '[part="popup"]')).outlineStyle).toBe(
+      "none",
+    );
+  });
+
+  it("does not return pointer-open menu selection to the trigger", async () => {
+    const menu = await fixture<HTMLElement>(`
+      <ui-menu label="Actions">
+        <button slot="trigger">Actions</button>
+        <ui-menu-item value="open">Open</ui-menu-item>
+      </ui-menu>
+    `);
+    const trigger = menu.querySelector<HTMLButtonElement>('[slot="trigger"]')!;
+    const item = menu.querySelector<HTMLElement>("ui-menu-item")!;
+
+    trigger.focus();
+    trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, detail: 1 }));
+    await settled(menu.parentElement!);
+
+    inShadow<HTMLButtonElement>(item, "button").click();
+    await settled(menu.parentElement!);
+
+    expect(menu.hasAttribute("open")).toBe(false);
+    expect(document.activeElement).not.toBe(trigger);
+  });
+
+  it("clears delegated trigger focus after pointer-open menu selection", async () => {
+    const menu = await fixture<HTMLElement>(`
+      <ui-menu label="Actions">
+        <ui-button slot="trigger">Actions</ui-button>
+        <ui-menu-item value="open">Open</ui-menu-item>
+      </ui-menu>
+    `);
+    const trigger = menu.querySelector<HTMLElement>('[slot="trigger"]')!;
+    const control = inShadow<HTMLElement>(trigger, '[part="control"]');
+    const item = menu.querySelector<HTMLElement>("ui-menu-item")!;
+
+    trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true, detail: 1 }));
+    await settled(menu.parentElement!);
+
+    inShadow<HTMLButtonElement>(item, "button").click();
+    await settled(menu.parentElement!);
+
+    expect(menu.hasAttribute("open")).toBe(false);
+    expect(document.activeElement).not.toBe(trigger);
+    expect(control.matches(":focus-visible")).toBe(false);
   });
 
   it("preserves click, hover, and context-menu trigger paths through the wrappers", async () => {

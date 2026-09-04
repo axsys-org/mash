@@ -108,6 +108,7 @@ export abstract class UIOverlay extends LitElement {
   #openReason: OverlayChangeReason | null = null;
   #initialFocus: OverlayInitialFocus | null = null;
   #movedFocusForOpen = false;
+  #returnFocusForOpen = false;
   #contextPoint: { x: number; y: number } | null = null;
   #interactionTimer: number | undefined;
   readonly #presence: PresenceLifecycleController<"entering" | "exiting">;
@@ -169,6 +170,10 @@ export abstract class UIOverlay extends LitElement {
       [part="close"] {
         display: contents;
       }
+
+      [part="popup"] {
+        outline: none;
+      }
     `,
   ];
 
@@ -202,6 +207,7 @@ export abstract class UIOverlay extends LitElement {
   /** Allows non-modal composites to close while native Tab navigation continues. */
   protected releaseFocusReturn(): void {
     this.#movedFocusForOpen = false;
+    this.#returnFocusForOpen = false;
     this.#returnFocus = null;
   }
 
@@ -225,11 +231,13 @@ export abstract class UIOverlay extends LitElement {
     open: boolean,
     reason: OverlayChangeReason = "imperative",
     initialFocus: OverlayInitialFocus | null = null,
+    returnFocus = true,
   ): void {
     if ((this.disabled && open) || this.open === open) return;
     if (open) {
       this.#openReason = reason;
       this.#initialFocus = initialFocus;
+      this.#returnFocusForOpen = returnFocus;
     }
     this.open = open;
     this.emitOpenChange(open, reason);
@@ -363,6 +371,18 @@ export abstract class UIOverlay extends LitElement {
     this.renderRoot.querySelector<HTMLElement>("[part='popup']")?.focus();
   }
 
+  #clearPointerCloseFocus(): void {
+    const active = document.activeElement;
+    if (!(active instanceof HTMLElement)) return;
+    const triggers = this.#triggerElements();
+    const shouldBlur =
+      active === this || triggers.some((trigger) => active === trigger || trigger.contains(active));
+    if (!shouldBlur) return;
+    const delegated = active.shadowRoot?.activeElement;
+    if (delegated instanceof HTMLElement) delegated.blur();
+    active.blur();
+  }
+
   protected override willUpdate(changed: PropertyValues<this>): void {
     if (changed.has("open") && this.open) this.overlayPresent = true;
   }
@@ -377,7 +397,8 @@ export abstract class UIOverlay extends LitElement {
           this.movesFocus && this.#openReason !== null && initialFocus !== "none";
         this.#movedFocusForOpen = shouldMoveFocus;
         if (shouldMoveFocus) {
-          this.#rememberFocus();
+          if (this.#returnFocusForOpen) this.#rememberFocus();
+          else this.#returnFocus = null;
           queueMicrotask(() => {
             if (initialFocus === "popup") this.#focusPopup();
             else this.#focusFirst();
@@ -390,9 +411,14 @@ export abstract class UIOverlay extends LitElement {
         this.#presence.enter("entering");
       } else {
         const previous = changed.get("open");
-        if (this.#movedFocusForOpen && previous === true)
+        if (this.#movedFocusForOpen && this.#returnFocusForOpen && previous === true)
           queueMicrotask(() => this.#returnFocus?.focus());
+        else if (this.#movedFocusForOpen && !this.#returnFocusForOpen && previous === true) {
+          queueMicrotask(() => this.#clearPointerCloseFocus());
+          requestAnimationFrame(() => this.#clearPointerCloseFocus());
+        }
         this.#movedFocusForOpen = false;
+        this.#returnFocusForOpen = false;
         this.#presence.exit("exiting", previous === true);
       }
     }
@@ -442,10 +468,12 @@ export abstract class UIOverlay extends LitElement {
     }
     if (this.interactionTriggerAction() === "click" && this.#eventIsWithinTrigger(event)) {
       event.preventDefault();
+      const isPointerActivation = event.detail > 0;
       this.requestOpenChange(
         !this.open,
         "trigger",
-        event.detail > 0 ? this.pointerOpenFocus : "first",
+        isPointerActivation ? this.pointerOpenFocus : "first",
+        !isPointerActivation,
       );
     }
   };
@@ -480,7 +508,7 @@ export abstract class UIOverlay extends LitElement {
       return;
     event.preventDefault();
     this.#contextPoint = { x: event.clientX, y: event.clientY };
-    this.requestOpenChange(true, "contextmenu");
+    this.requestOpenChange(true, "contextmenu", null, false);
   };
 
   #onBackdropPointerDown = (event: PointerEvent): void => {
