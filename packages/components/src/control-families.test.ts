@@ -656,7 +656,7 @@ describe("Control families", () => {
     expect(leaf.shadowRoot?.activeElement).toBeNull();
   });
 
-  it("opens hovered submenus after a tiny stable intent interval", async () => {
+  it("opens hovered submenus after the pointer rests on a branch", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const restoreFinePointer = forceFinePointer();
     try {
@@ -681,6 +681,19 @@ describe("Control families", () => {
           composed: true,
           pointerType: "mouse",
           clientX: 12,
+          clientY: 12,
+        }),
+      );
+
+      await vi.advanceTimersByTimeAsync(63);
+      expect(submenu.open).toBe(false);
+
+      control.dispatchEvent(
+        new PointerEvent("pointermove", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 20,
           clientY: 12,
         }),
       );

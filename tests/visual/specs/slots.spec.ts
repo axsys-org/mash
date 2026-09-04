@@ -688,6 +688,25 @@ test.describe("catalog slot composition", () => {
     expect(Math.abs(submenuGeometry.popupTopDelta)).toBeLessThanOrEqual(4);
     expect(Math.abs(submenuGeometry.firstRowTopDelta)).toBeLessThanOrEqual(1);
 
+    const submenuMaterial = await submenu.evaluate((node) => {
+      const materialElement = node.shadowRoot!.querySelector<HTMLElement>('[part~="material"]')!;
+      const materialStyle = getComputedStyle(materialElement);
+      const probe = document.createElement("span");
+      probe.style.backgroundColor = "var(--color-background-material-thick)";
+      document.body.append(probe);
+      const state = {
+        background: materialStyle.backgroundColor,
+        materialImage: materialStyle.backgroundImage,
+        materialBlendMode: materialStyle.backgroundBlendMode,
+        thickMaterial: getComputedStyle(probe).backgroundColor,
+      };
+      probe.remove();
+      return state;
+    });
+    expect(submenuMaterial.background).toBe(submenuMaterial.thickMaterial);
+    expect(submenuMaterial.materialImage).not.toBe("none");
+    expect(submenuMaterial.materialBlendMode).toBe("normal");
+
     const branchState = await branchControl.evaluate((control) => {
       const probe = document.createElement("span");
       probe.style.backgroundColor = "var(--color-neutral-hover)";

@@ -247,6 +247,40 @@ describe("Mash catalogue", () => {
     expect(getComputedStyle(material).filter).toContain("brightness(1.05)");
   });
 
+  it("uses the dense material tier for dark nested menus", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const host = await fixture<HTMLElement>(`
+      <div data-theme="dark" data-vibrancy="vibrant">
+        <ui-menu label="Project commands" open>
+          <ui-menu-item value="recent">
+            Recent projects
+            <ui-menu slot="submenu" label="Recent projects" open>
+              <ui-menu-item value="billing">Billing migration</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+        </ui-menu>
+      </div>
+    `);
+    const submenu = host.querySelector<HTMLElement & { updateComplete: Promise<unknown> }>(
+      "ui-menu[slot='submenu']",
+    )!;
+    await submenu.updateComplete;
+    const material = inShadow<HTMLElement>(submenu, '[part="material"]');
+    const probe = document.createElement("span");
+    probe.style.backgroundColor = "var(--color-background-material-thick)";
+    host.append(probe);
+
+    const materialStyle = getComputedStyle(material);
+    const probeStyle = getComputedStyle(probe);
+
+    expect(submenu.hasAttribute("nested")).toBe(true);
+    expect(materialStyle.backgroundColor).toBe(probeStyle.backgroundColor);
+    expect(materialStyle.backgroundImage).toContain("linear-gradient");
+    expect(materialStyle.backgroundBlendMode).toBe("normal");
+
+    probe.remove();
+  });
+
   it("uses the filled critical state for focused destructive menu commands", async () => {
     document.documentElement.dataset.mashCatalogue = "mash";
     const menu = await fixture(`

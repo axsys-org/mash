@@ -21,6 +21,7 @@ export interface MenuItemSelectDetail {
 const submenuHoverIntentResampleDelay = 48;
 const submenuHoverIntentSampleLimit = 3;
 const submenuHoverIntentTolerance = 10;
+const submenuHoverRestTolerance = 2;
 
 interface PointerSample {
   x: number;
@@ -30,6 +31,8 @@ interface PointerSample {
 interface SubmenuHoverIntent {
   delayedX?: number;
   delayedY?: number;
+  restX?: number;
+  restY?: number;
 }
 
 const submenuPointerSamples = new WeakMap<HTMLElement, PointerSample[]>();
@@ -264,9 +267,13 @@ export class UIMenuItem extends LitElement {
   }
 
   #clearOpenTimer(): void {
+    this.#clearOpenTimerHandle();
+    this.#hoverIntent = null;
+  }
+
+  #clearOpenTimerHandle(): void {
     if (this.#openTimer !== undefined) window.clearTimeout(this.#openTimer);
     this.#openTimer = undefined;
-    this.#hoverIntent = null;
   }
 
   #collectionParent(): HTMLElement | null {
@@ -326,7 +333,7 @@ export class UIMenuItem extends LitElement {
     if (this.#hoverIntent?.delayedX === current.x && this.#hoverIntent.delayedY === current.y) {
       return 0;
     }
-    this.#hoverIntent = { delayedX: current.x, delayedY: current.y };
+    this.#hoverIntent = { ...this.#hoverIntent, delayedX: current.x, delayedY: current.y };
     return submenuHoverIntentResampleDelay;
   }
 
@@ -342,19 +349,44 @@ export class UIMenuItem extends LitElement {
     }, delay);
   }
 
-  #scheduleOpen(): void {
+  #scheduleOpen(event: PointerEvent): void {
     if (!this.#submenu || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     if (this.#closeTimer !== undefined) window.clearTimeout(this.#closeTimer);
     this.#closeTimer = undefined;
     if (this.#submenu.open || this.#openTimer !== undefined) return;
     const delay = Math.max(0, this.#submenu.submenuOpenDelay);
-    this.#hoverIntent = {};
+    this.#hoverIntent = { restX: event.clientX, restY: event.clientY };
     const intentDelay = this.#hoverIntentDelay();
     if (delay === 0 && intentDelay === 0) {
       this.showSubmenu();
       return;
     }
     this.#queueHoverIntentOpen(delay === 0 ? intentDelay : delay);
+  }
+
+  #rescheduleOpenForPointerRest(event: PointerEvent): void {
+    if (
+      !this.#submenu ||
+      this.#submenu.open ||
+      this.#openTimer === undefined ||
+      !this.#hoverIntent ||
+      event.pointerType === "touch"
+    ) {
+      return;
+    }
+    const restX = this.#hoverIntent.restX;
+    const restY = this.#hoverIntent.restY;
+    if (restX === undefined || restY === undefined) {
+      this.#hoverIntent.restX = event.clientX;
+      this.#hoverIntent.restY = event.clientY;
+      return;
+    }
+    const delta = Math.hypot(event.clientX - restX, event.clientY - restY);
+    if (delta <= submenuHoverRestTolerance) return;
+    this.#hoverIntent.restX = event.clientX;
+    this.#hoverIntent.restY = event.clientY;
+    this.#clearOpenTimerHandle();
+    this.#queueHoverIntentOpen(Math.max(0, this.#submenu.submenuOpenDelay));
   }
 
   /** Internal row-aim hook used by menu composites for leaf hover switches. */
@@ -460,7 +492,7 @@ export class UIMenuItem extends LitElement {
 
   #onPointerEnter = (event: PointerEvent): void => {
     this.#recordPointerSample(event);
-    this.#scheduleOpen();
+    this.#scheduleOpen(event);
   };
 
   #onPointerLeave = (): void => {
@@ -470,6 +502,7 @@ export class UIMenuItem extends LitElement {
 
   #onPointerMove = (event: PointerEvent): void => {
     this.#recordPointerSample(event);
+    this.#rescheduleOpenForPointerRest(event);
     if (!this.#submenu?.open || event.pointerType === "touch") return;
     const snapshot = this.#submenu.positionSnapshot;
     const safe = this.renderRoot.querySelector<HTMLElement>("[part~='safe-triangle']");

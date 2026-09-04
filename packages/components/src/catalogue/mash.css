@@ -2281,11 +2281,17 @@
     inset: 0;
     border-radius: var(--radius-menu);
     pointer-events: none;
-    background-color: var(--mash-material-background, var(--color-background-material-regular));
+    background-color: var(
+      --_mash-menu-material-background,
+      var(--mash-material-background, var(--color-background-material-regular))
+    );
     background-image: linear-gradient(
       to bottom,
-      var(--mash-material-background-highlight, var(--color-background-material-highlight)),
-      transparent 62%
+      var(
+        --_mash-menu-material-highlight,
+        var(--mash-material-background-highlight, var(--color-background-material-highlight))
+      ),
+      transparent var(--_mash-menu-material-highlight-stop, 62%)
     );
     background-blend-mode: normal;
     filter: brightness(var(--mash-material-luminance, var(--effect-material-luminance-standard)));
@@ -2345,15 +2351,6 @@
     scrollbar-gutter: stable;
   }
 
-  /* A regular translucent material disappears against the catalogue's white
-     canvas. Light menus use the content-bearing material tier plus explicit
-     hairline and directional elevation; environmental headroom still flows
-     through --mash-material-luminance rather than a menu-only blend mode. */
-  :where([data-mash-catalogue="mash"][data-theme="light"]) ui-menu::part(material),
-  :where([data-mash-catalogue="mash"][data-theme="light"]) ui-context-menu::part(material) {
-    background-color: var(--mash-material-background, var(--color-background-material-thick));
-  }
-
   :where([data-mash-catalogue="mash"][data-theme="light"]) ui-menu::part(popup),
   :where([data-mash-catalogue="mash"][data-theme="light"]) ui-context-menu::part(popup) {
     box-shadow:
@@ -2368,6 +2365,18 @@
     --_mash-menu-transform-origin: top left;
     --_mash-menu-enter-x: var(--layout-dimension-zero);
     --_mash-menu-enter-y: calc(-1 * var(--space-menu-gap));
+    --_mash-menu-material-background: var(
+      --mash-material-background,
+      var(--color-background-material-regular)
+    );
+    --_mash-menu-material-highlight: color-mix(
+      in srgb,
+      var(--mash-material-background-highlight, var(--color-background-material-highlight)) 56%,
+      transparent
+    );
+    --_mash-menu-material-highlight-stop: calc(
+      var(--space-menu-shell) + var(--_mash-menu-row-size)
+    );
     --_mash-menu-density-inline-size: var(--layout-menu-inline-regular);
     --_mash-menu-inline-size: max-content;
     --_mash-menu-min-inline-size: var(--layout-menu-inline-mini);
@@ -2375,6 +2384,39 @@
     --_mash-menu-row-size: var(--layout-menu-row-regular);
     --_mash-menu-selection-lane: var(--layout-dimension-zero);
     --_mash-menu-prefix-lane: var(--layout-dimension-zero);
+  }
+
+  /* Menu material uses the shared material tiers, then scopes optical tuning
+     to this catalogue recipe so other components do not inherit menu-specific
+     highlight geometry. */
+  :where([data-mash-catalogue="mash"][data-theme="light"]) :is(ui-menu, ui-context-menu),
+  :where([data-mash-catalogue="mash"]) :where([data-theme="light"]) :is(ui-menu, ui-context-menu) {
+    --_mash-menu-material-background: var(
+      --mash-material-background,
+      var(--color-background-material-thick)
+    );
+    --_mash-menu-material-highlight: color-mix(
+      in srgb,
+      var(--mash-material-background-highlight, var(--color-background-material-highlight)) 64%,
+      transparent
+    );
+  }
+
+  :where([data-mash-catalogue="mash"][data-theme="dark"]) :is(ui-menu, ui-context-menu),
+  :where([data-mash-catalogue="mash"]) :where([data-theme="dark"]) :is(ui-menu, ui-context-menu) {
+    --_mash-menu-material-highlight: color-mix(
+      in srgb,
+      var(--mash-material-background-highlight, var(--color-background-material-highlight)) 38%,
+      transparent
+    );
+  }
+
+  :where([data-mash-catalogue="mash"][data-theme="dark"]) ui-menu[nested],
+  :where([data-mash-catalogue="mash"]) :where([data-theme="dark"]) ui-menu[nested] {
+    --_mash-menu-material-background: var(
+      --mash-material-background,
+      var(--color-background-material-thick)
+    );
   }
 
   :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[placement="top"] {
