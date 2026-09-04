@@ -83,6 +83,15 @@ type CatalogMenu = HTMLElement & {
   toggle?: (reason?: string) => void;
 };
 
+type CatalogVirtualListAlignment = "start" | "center" | "end" | "nearest";
+
+type CatalogVirtualList = HTMLElement & {
+  scrollToBottom?: () => void;
+  scrollToItem?: (index: number, alignment?: CatalogVirtualListAlignment) => void;
+  updateComplete?: Promise<unknown>;
+  visibleRange?: readonly [number, number];
+};
+
 type CatalogValueControl = HTMLElement & {
   value?: string;
 };
@@ -386,11 +395,37 @@ function syncDragSources(): void {
   }
 }
 
+function syncCatalogVirtualList(list: CatalogVirtualList): void {
+  const demo = list.closest<HTMLElement>("[data-catalog-virtual-demo]");
+  const output = demo?.querySelector<HTMLOutputElement>("[data-catalog-virtual-range]");
+  if (!output) return;
+
+  const total = list.querySelectorAll(":scope > ui-virtual-item").length;
+  const [start = 0, end = 0] = list.visibleRange ?? [];
+  if (total === 0 || end <= start) {
+    output.value = "Range pending";
+    return;
+  }
+
+  output.value = `${start + 1}-${Math.min(end, total)} of ${total} rendered`;
+}
+
+function syncCatalogVirtualLists(): void {
+  for (const list of document.querySelectorAll<CatalogVirtualList>(
+    "[data-catalog-virtual-list]:not([data-catalog-virtual-initialized])",
+  )) {
+    list.dataset.catalogVirtualInitialized = "true";
+    void list.updateComplete?.then(() => syncCatalogVirtualList(list));
+    window.requestAnimationFrame(() => syncCatalogVirtualList(list));
+  }
+}
+
 function syncStageContent(): void {
   syncDragSources();
   syncCatalogComboboxDemos();
   syncToolbarSelectionDemos();
   syncLinearWorkspaces();
+  syncCatalogVirtualLists();
 }
 
 new MutationObserver(syncStageContent).observe(document.body, { childList: true, subtree: true });
@@ -3267,6 +3302,12 @@ document.addEventListener("ui-menu-open-change", (event) => {
   if (output) output.value = `open: ${detail.open} (${detail.reason})`;
 });
 
+document.addEventListener("ui-visible-range-change", (event) => {
+  const list = event.target;
+  if (!(list instanceof HTMLElement) || !list.matches("[data-catalog-virtual-list]")) return;
+  syncCatalogVirtualList(list as CatalogVirtualList);
+});
+
 document.addEventListener("ui-toggle-change", (event) => {
   const toggle = event.target;
   if (!(toggle instanceof HTMLElement) || !toggle.matches("[data-catalog-password-toggle]")) return;
@@ -3315,6 +3356,39 @@ document.addEventListener("ui-input-enter", (event) => {
   const detail = (event as CustomEvent<{ value: string; secondary: boolean }>).detail;
   if (output)
     output.value = `enter: ${detail.value || "empty"}${detail.secondary ? " secondary" : ""}`;
+});
+
+document.addEventListener("click", (event) => {
+  const action = event
+    .composedPath()
+    .find(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement &&
+        node.matches("[data-catalog-virtual-target], [data-catalog-virtual-bottom]"),
+    );
+  if (!action) return;
+
+  const demo = action.closest<HTMLElement>("[data-catalog-virtual-demo]");
+  const list = demo?.querySelector<CatalogVirtualList>("[data-catalog-virtual-list]");
+  if (!list) return;
+
+  const target = action.dataset.catalogVirtualTarget;
+  if (target !== undefined) {
+    const index = Number.parseInt(target, 10);
+    const alignment = action.dataset.catalogVirtualAlign;
+    if (Number.isFinite(index)) {
+      list.scrollToItem?.(
+        index,
+        alignment === "start" || alignment === "center" || alignment === "end"
+          ? alignment
+          : "nearest",
+      );
+    }
+  } else {
+    list.scrollToBottom?.();
+  }
+
+  window.requestAnimationFrame(() => syncCatalogVirtualList(list));
 });
 
 document.addEventListener("ui-input-focus-change", (event) => {

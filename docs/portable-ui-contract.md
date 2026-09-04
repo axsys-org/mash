@@ -51,6 +51,14 @@ semantics. A fragment may arrange fields, toolbars, bubbles, menus, and
 enhancement hooks; it becomes a Mash primitive only when the interaction state
 machine itself needs a shared renderer-neutral contract.
 
+Editor-like products should be assembled from tiers instead of flattened into
+one component namespace. A primitive owns one portable interaction contract; an
+anatomy child belongs to that primitive family; a durable fragment composes
+several primitives in authored HTML; a contextual widget binds a fragment to a
+host, selection, or model lifecycle; and a preset/editor names a larger assembly
+of those pieces. Mash should make each tier easy to author without turning
+host-specific records, update streams, or app services into CSS parts.
+
 ## Translating Interactions Into Mash
 
 Mash does not reproduce another renderer's API one custom element per external

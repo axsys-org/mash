@@ -369,6 +369,38 @@ test.describe("catalog slot composition", () => {
     expect(treeOverflow.viewportMask).not.toBe("none");
   });
 
+  test("keeps virtualized rows authored as rich fragments", async ({ page }) => {
+    await page.goto("/components/ui-virtual-list?theme=dark&vibrancy=vibrant");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const list = preview.locator("[data-catalog-virtual-list]");
+
+    await expect(preview.locator(".example-virtual-workspace")).toBeVisible();
+    await expect(list.locator("ui-avatar").first()).toBeVisible();
+    await expect(list.locator("ui-link").first()).toBeVisible();
+    await expect(list.locator("ui-badge").first()).toBeVisible();
+
+    const initial = await list.evaluate((node) => ({
+      total: node.querySelectorAll(":scope > ui-virtual-item").length,
+      visible: node.querySelectorAll(":scope > ui-virtual-item[visible]").length,
+      range: (node as HTMLElement & { visibleRange: readonly [number, number] }).visibleRange,
+    }));
+    expect(initial.total).toBeGreaterThan(24);
+    expect(initial.visible).toBeGreaterThan(0);
+    expect(initial.visible).toBeLessThan(initial.total);
+    expect(initial.range[0]).toBe(0);
+
+    await preview.getByRole("button", { name: "Latest" }).click();
+    await expect
+      .poll(() =>
+        list.evaluate(
+          (node) =>
+            (node as HTMLElement & { visibleRange: readonly [number, number] }).visibleRange[0],
+        ),
+      )
+      .toBeGreaterThan(12);
+    await expect(preview.locator("[data-catalog-virtual-range]")).toContainText("of 36 rendered");
+  });
+
   test("keeps tree rows aligned and controlled pagination live", async ({ page }) => {
     await page.goto("/components/ui-tree?theme=dark");
     const preview = page.frameLocator("iframe.stage-frame");

@@ -70,6 +70,73 @@ const scrollCanvasRows = Array.from({ length: 12 }, (_rowValue, rowIndex) => {
   return `<section class="example-scroll-canvas-row" data-scroll-id="row-${row}">${cards}</section>`;
 }).join("");
 
+const virtualFeedSeed = [
+  {
+    key: "MAS-142",
+    title: "Preserve filter state in shared views",
+    area: "Views",
+    actor: "Maya Chen",
+    initials: "MC",
+    status: "In progress",
+    tone: "positive",
+  },
+  {
+    key: "MAS-138",
+    title: "Ship keyboard navigation for issue lists",
+    area: "Accessibility",
+    actor: "Sam Ortiz",
+    initials: "SO",
+    status: "Review",
+    tone: "warning",
+  },
+  {
+    key: "MAS-133",
+    title: "Add cycle progress to team overview",
+    area: "Cycles",
+    actor: "Alex Rivera",
+    initials: "AR",
+    status: "Planned",
+    tone: "neutral",
+  },
+  {
+    key: "MAS-129",
+    title: "Clarify archived project permissions",
+    area: "Projects",
+    actor: "Priya Jain",
+    initials: "PJ",
+    status: "Blocked",
+    tone: "critical",
+  },
+  {
+    key: "MAS-121",
+    title: "Normalize compact density tokens",
+    area: "Foundations",
+    actor: "Rina Malik",
+    initials: "RM",
+    status: "Done",
+    tone: "positive",
+  },
+] as const;
+
+const virtualFeedItems = Array.from({ length: 36 }, (_value, index) => {
+  const item = virtualFeedSeed[index % virtualFeedSeed.length]!;
+  const cycle = Math.floor(index / virtualFeedSeed.length) + 1;
+  const logicalKey = `${item.key}-${cycle}`;
+  const size = index % 5 === 1 ? 84 : index % 3 === 0 ? 76 : 68;
+
+  return `
+    <ui-virtual-item size="${size}" data-catalog-virtual-item="${index}">
+      <article class="example-virtual-row">
+        <ui-avatar size="small">${item.initials}</ui-avatar>
+        <span class="example-virtual-copy">
+          <span class="example-virtual-meta"><ui-badge size="small">${logicalKey}</ui-badge><span>${item.area}</span><span>${item.actor}</span></span>
+          <ui-link variant="quiet" href="#${logicalKey.toLocaleLowerCase()}">${item.title}</ui-link>
+        </span>
+        <ui-badge size="small" tone="${item.tone}">${item.status}</ui-badge>
+      </article>
+    </ui-virtual-item>`;
+}).join("");
+
 const displayTheme = "light";
 
 const escapeHtml = (value: string): string =>
@@ -4545,6 +4612,39 @@ export function MarkdownFrame({ html }: { html: string }) {
         description:
           "resizePanel and resetPanel are demonstrated as consumer-owned actions rather than additional visual component variants.",
         stageLayout: "start",
+      },
+    ),
+  ],
+  "ui-virtual-list": [
+    example(
+      "Document activity fragment",
+      `
+        <section class="catalog-example example-virtual-workspace" data-catalog-virtual-demo>
+          <header class="example-virtual-header">
+            <div class="example-link-heading">
+              <span class="example-eyebrow">Virtualized fragment</span>
+              <h2>Document activity stays authored</h2>
+              <p>The list owns range math and scroll targeting; each row remains ordinary Mash markup with links, identity, status, and metadata.</p>
+            </div>
+            <ui-toolbar class="example-virtual-actions" label="Activity navigation">
+              <ui-button type="button" size="small" variant="secondary" data-catalog-virtual-target="0">Top</ui-button>
+              <ui-button type="button" size="small" variant="secondary" data-catalog-virtual-target="17" data-catalog-virtual-align="center">Current</ui-button>
+              <ui-button type="button" size="small" variant="quiet" data-catalog-virtual-bottom>Latest</ui-button>
+            </ui-toolbar>
+          </header>
+          <ui-virtual-list class="example-virtual-feed" label="Document activity feed" overscan="3" data-catalog-virtual-list>
+            ${virtualFeedItems}
+          </ui-virtual-list>
+          <footer class="example-virtual-footer">
+            <output data-catalog-virtual-range>Range pending</output>
+            <ui-kbd command="activity.jump" shortcut="J/K"></ui-kbd>
+          </footer>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "VirtualList exposes visible range and item scrolling while the surrounding fragment owns navigation controls and the rich item contents.",
+        stageLayout: "fill",
       },
     ),
   ],

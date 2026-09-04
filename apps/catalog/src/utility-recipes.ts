@@ -572,6 +572,20 @@ const stageRecipes: UtilityRecipes = {
     "h-[14rem] min-h-0! overflow-hidden rounded-container border border-border bg-surface [&::part(root)]:h-full",
   "example-resizable-actions": "flex flex-wrap items-center gap-control-gap",
   "example-resizable-output": "type-code text-text-muted",
+  "example-virtual-workspace":
+    "grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto] gap-container-block bg-surface px-container-inline py-container-block",
+  "example-virtual-header":
+    "grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-container-gap max-[45rem]:grid-cols-1",
+  "example-virtual-actions": "flex flex-wrap items-center justify-end gap-control-gap",
+  "example-virtual-feed":
+    "h-full! min-h-0! w-full! [&::part(root)]:h-full [&::part(root)]:min-h-0 [&::part(viewport)]:h-full! [&::part(viewport)]:rounded-control! [&::part(viewport)]:bg-surface-sunken!",
+  "example-virtual-row":
+    "grid h-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap",
+  "example-virtual-copy": "grid min-w-0 gap-[var(--border-hairline)]",
+  "example-virtual-meta":
+    "flex min-w-0 flex-wrap items-center gap-control-gap type-label-small text-text-muted",
+  "example-virtual-footer":
+    "flex min-w-0 flex-wrap items-center justify-between gap-control-gap type-label-small text-text-muted",
   "example-kanban-board":
     "relative grid h-full min-h-[24rem] w-full grid-rows-[auto_minmax(0,1fr)_auto] gap-container-gap overflow-hidden bg-surface-sunken px-container-inline py-container-block",
   "example-kanban-heading": "flex items-center justify-between gap-control-gap",
@@ -1140,6 +1154,13 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     "[&::part(root)]:shadow-[0_0_0_var(--border-hairline)_var(--color-surface)]",
   ],
   [".example-slider-matrix ui-field", "flex-[1_1_var(--layout-dimension-panel)]"],
+  [".example-virtual-header .example-link-heading", "min-w-0"],
+  [
+    ".example-virtual-row ui-link",
+    "min-w-0 [&::part(control)]:w-full [&::part(control)]:justify-start [&::part(label)]:truncate",
+  ],
+  [".example-virtual-row > ui-badge", "justify-self-end"],
+  [".example-virtual-meta > span", "truncate"],
   [".example-sidebar-navigation ui-collapsible", "grid gap-control-gap"],
   [".example-activity ol", "grid gap-group-inline ps-[calc(var(--space-group-inline)*2)]"],
   [

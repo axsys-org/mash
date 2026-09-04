@@ -18,10 +18,28 @@ tokens, catalogue recipes, and examples evolve in different threads.
 | Catalogue recipe     | Opt-in visual pronunciation of public parts, states, and semantic tokens.        | `packages/*/src/catalogue/mash.css`.                                               | Headless component behavior or a second token system.           |
 | Tailwind adapter     | Generated utility and variant vocabulary over tokens, slots, parts, and states.  | `scripts/build-tailwind-components.mjs` and token build output.                    | Hand-authored component contract.                               |
 | Example utility      | Catalogue demo layout and product-like scaffolding.                              | `apps/catalog/src/utility-recipes.ts`.                                             | Reusable design-system requirement.                             |
+| Fragment preset      | Reusable authored HTML arrangement over several primitives.                      | Curated examples, docs, and future Foil fragment registries.                       | A new primitive or a product workflow in disguise.              |
 
 `custom-elements.json` is machine-readable contract output, not prose to edit by
 hand. Regenerate it from source JSDoc after any anatomy, event, state, or doc
 change.
+
+## Composition Tiers
+
+Use the smallest tier that owns the actual repeated contract.
+
+| Tier              | Owns                                                                 | Examples                                                                                 | Escalate when                                                                 |
+| ----------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Primitive         | A reusable behavior, accessibility, state, event, and anatomy model. | `ui-input`, `ui-toolbar`, `ui-menu`, `ui-virtual-list`, `ui-reveal`.                     | The same interaction machine must work across renderers.                      |
+| Anatomy child     | A required child role within one primitive family.                   | `ui-tab`, `ui-option`, `ui-table-row`, `ui-virtual-item`.                                | It needs to stand alone outside the parent family.                            |
+| Durable fragment  | Authored composition of primitives and native HTML.                  | Comment composer, command scope, message thread, issue-list toolbar, code-block toolbar. | State, validation, or focus policy recurs beyond one authored arrangement.    |
+| Contextual widget | A fragment bound to an external host, selection, or model lifecycle. | Floating format bar, drag handle, slash menu, outline rail, provider surface.            | The host binding needs a reusable renderer-neutral lifecycle or event schema. |
+| Preset/editor     | A named assembly of fragments, widgets, and primitives.              | Page editor, canvas editor, issue workspace, settings console.                           | Multiple products need the same assembly as a versioned contract.             |
+
+DOM slots are authored placement points. Event slots, streams, observers, and
+model update channels are integration mechanisms. Do not call them the same
+surface in Mash docs: DOM slots belong to markup and styling anatomy; event
+channels belong to state synchronization.
 
 ## Durable HTML Fragments
 
@@ -51,6 +69,11 @@ focus policy, keyboard navigation, form submission, measured presence,
 virtualization, selection, validation, or event detail. Keep ordinary app
 arrangements such as comment composers, search rows, message shells, and
 settings groups as authored fragments until that threshold is crossed.
+
+Catalogue examples should therefore prove composition before they prove chrome.
+A primitive-only matrix is useful for API inspection, but every mature component
+family should also have at least one fragment example that combines neighboring
+contracts without private selectors or copied token values.
 
 ## Sizing Axes
 

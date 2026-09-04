@@ -112,6 +112,26 @@ async function main() {
     );
   }
 
+  const virtualListSection = examples.match(/"ui-virtual-list": \[([\s\S]*?)\n  \],/);
+  const hasVirtualRowTemplate =
+    examples.includes('class="example-virtual-row"') &&
+    examples.includes("<ui-avatar") &&
+    examples.includes("<ui-link") &&
+    examples.includes("<ui-badge") &&
+    examples.includes("data-catalog-virtual-item");
+  if (
+    !virtualListSection ||
+    !virtualListSection[1].includes("<ui-toolbar") ||
+    !virtualListSection[1].includes("${virtualFeedItems}") ||
+    !virtualListSection[1].includes("data-catalog-virtual-list") ||
+    !hasVirtualRowTemplate ||
+    !stage.includes("ui-visible-range-change")
+  ) {
+    problems.push(
+      `${EXAMPLES_PATH} ui-virtual-list needs a composed fragment with authored rows and range wiring`,
+    );
+  }
+
   if (problems.length > 0) {
     console.error("catalogue composition conformance failed:\n");
     for (const problem of problems) console.error(`  ${problem}`);
@@ -119,7 +139,7 @@ async function main() {
   }
 
   console.log(
-    `catalogue conformance: ok — ${iconNames.size} semantic icons, input groups, commands, gestures, and motion composition verified`,
+    `catalogue conformance: ok — ${iconNames.size} semantic icons, input groups, commands, gestures, virtual rows, and motion composition verified`,
   );
 }
 
