@@ -20,12 +20,17 @@ const catalogRecipes: UtilityRecipes = {
   "build-ref": "",
   "build-sha":
     "rounded-control border border-border px-control-inline-small py-control-block-small text-inherit no-underline hover:border-action hover:text-action",
-  "component-jump":
-    "w-full min-w-0 rounded-control border border-border bg-canvas px-control-inline py-control-block-small type-label-small text-text focus-visible:focus-ring",
+  "component-jump": "block w-full min-w-0",
+  "picker-menu": "block min-w-0",
+  "picker-trigger":
+    "w-full min-w-0 [&::part(control)]:w-full [&::part(control)]:justify-between [&::part(control)]:gap-control-gap [&::part(control)]:border-border! [&::part(control)]:bg-canvas! [&::part(control)]:text-text!",
+  "picker-value": "min-w-0 truncate text-start",
+  "picker-chevron": "shrink-0 text-text-muted",
+  "inspector-picker": "w-full",
   layout:
-    "grid min-h-[calc(100dvh_-_3.5rem)] grid-cols-[var(--layout-dimension-panel)_minmax(0,1fr)] items-start max-[56rem]:grid-cols-1",
+    "grid min-h-[calc(100dvh_-_3.5rem)] grid-cols-[var(--layout-dimension-panel)_minmax(0,1fr)] items-start max-[72rem]:grid-cols-1",
   sidebar:
-    "sticky top-[3.5rem] grid h-[calc(100dvh_-_3.5rem)] min-w-0 grid-rows-[auto_minmax(0,1fr)] border-e border-border bg-canvas px-container-gap py-container-block max-[56rem]:hidden",
+    "sticky top-[3.5rem] grid h-[calc(100dvh_-_3.5rem)] min-w-0 grid-rows-[auto_minmax(0,1fr)] border-e border-border bg-canvas px-container-gap py-container-block max-[72rem]:hidden",
   "sidebar-top": "grid gap-control-gap bg-canvas pb-container-block",
   "sidebar-scroll": "min-h-0 overflow-y-auto",
   "sidebar-heading": "m-0 type-label text-text",
@@ -41,7 +46,7 @@ const catalogRecipes: UtilityRecipes = {
   "family-description": "mt-control-block-small mb-0 type-label-small text-text-muted",
   "sidebar-list": "m-0 mt-control-gap grid list-none gap-[var(--border-hairline)] p-0",
   "nav-item":
-    "block w-full cursor-pointer rounded-control border border-transparent bg-transparent px-control-inline py-control-block-small text-start type-code text-text-muted hover:bg-surface-sunken hover:text-text focus-visible:focus-ring",
+    "block w-full cursor-pointer rounded-control border border-transparent bg-transparent px-control-inline py-control-block-small text-start type-label-small text-text-muted hover:bg-surface-sunken hover:text-text focus-visible:focus-ring",
   "is-selected":
     "border-action! bg-action! text-on-action! hover:border-action! hover:bg-action! hover:text-on-action!",
   "is-active":
@@ -75,8 +80,6 @@ const catalogRecipes: UtilityRecipes = {
     "min-h-[var(--layout-dimension-control-xsmall)] cursor-pointer rounded-control border border-transparent bg-transparent px-control-inline py-control-block-small type-label-small text-text-muted hover:bg-surface hover:text-text focus-visible:focus-ring",
   toggle: "inline-flex cursor-pointer items-center gap-control-gap type-label-small",
   "slot-toggles": "flex flex-wrap gap-inline",
-  "select-input":
-    "w-full min-w-0 rounded-control border border-border bg-canvas px-control-inline py-control-block-small type-label-small text-text focus-visible:focus-ring",
   "text-input":
     "w-full min-w-0 rounded-control border border-border bg-canvas px-control-inline py-control-block-small type-label-small text-text focus-visible:focus-ring",
   "reference-sections":

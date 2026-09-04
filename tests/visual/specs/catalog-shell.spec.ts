@@ -4,7 +4,8 @@ test.describe("catalog shell", () => {
   test("filters desktop navigation and jumps between components", async ({ page }) => {
     await page.goto("/components/ui-input-group?example=Tailwind+anatomy+overrides");
 
-    await expect(page.locator(".component-jump")).toHaveValue("ui-input-group");
+    await expect(page.locator("select")).toHaveCount(0);
+    await expect(page.locator(".component-jump ui-button")).toContainText("ui-input-group");
     await expect(page.locator(".sidebar")).toBeVisible();
     await expect(page.locator(".sidebar-search")).toBeVisible();
 
@@ -14,7 +15,8 @@ test.describe("catalog shell", () => {
       "ui-toast-stack",
     ]);
 
-    await page.locator(".component-jump").selectOption("ui-button");
+    await page.locator(".component-jump ui-button").click();
+    await page.locator('.component-jump ui-menu-item[value="ui-button"]').click();
     await expect(page).toHaveURL(/\/components\/ui-button/);
     await expect(page.locator(".component-title")).toHaveText("ui-button");
   });
@@ -24,9 +26,23 @@ test.describe("catalog shell", () => {
     await page.goto("/components/ui-input-group?example=Tailwind+anatomy+overrides");
 
     await expect(page.locator(".component-jump")).toBeVisible();
-    await expect(page.locator(".component-jump")).toHaveValue("ui-input-group");
+    await expect(page.locator(".component-jump ui-button")).toContainText("ui-input-group");
     await expect(page.locator(".sidebar")).toBeHidden();
     await expect(page.locator(".component-title")).toHaveText("ui-input-group");
     await expect(page.locator("iframe.stage-frame")).toBeVisible();
+  });
+
+  test("keeps medium-width previews out of the sidebar rail", async ({ page }) => {
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await page.goto("/components/sh-slot");
+
+    await expect(page.locator(".sidebar")).toBeHidden();
+    await expect(page.locator(".component-jump ui-button")).toContainText("sh-slot");
+
+    const stage = page.locator("iframe.stage-frame");
+    await expect(stage).toBeVisible();
+    await expect
+      .poll(() => stage.boundingBox().then((box) => Math.round(box?.width ?? 0)))
+      .toBeGreaterThan(1000);
   });
 });

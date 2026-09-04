@@ -794,7 +794,7 @@ test.describe("catalog slot composition", () => {
       preview.locator('[data-linear-list-row][data-linear-issue="MAS-151"]'),
     ).toHaveCount(1);
 
-    await page.setViewportSize({ width: 900, height: 844 });
+    await page.setViewportSize({ width: 680, height: 844 });
     await page.goto("/components/ui-table?example=Issue%20tracker%20workspace");
     await expect(preview.locator(".example-linear-sidebar")).toBeHidden();
     const compactGeometry = await preview.locator(".example-linear-table").evaluate((node) => ({

@@ -6,9 +6,19 @@ type Child = Node | string | null | undefined | false;
 
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
+  props?: Partial<Record<string, unknown>>,
+  ...children: Child[]
+): HTMLElementTagNameMap[K];
+export function el(
+  tag: string,
+  props?: Partial<Record<string, unknown>>,
+  ...children: Child[]
+): HTMLElement;
+export function el(
+  tag: string,
   props: Partial<Record<string, unknown>> = {},
   ...children: Child[]
-): HTMLElementTagNameMap[K] {
+): HTMLElement {
   const node = document.createElement(tag);
   if (tag === "code" || tag === "pre") node.className = "type-code";
 

@@ -339,6 +339,77 @@ function attributeTable(component: ComponentSchema): HTMLElement {
 // Controls
 // ---------------------------------------------------------------------------
 
+interface PickerOption {
+  value: string;
+  label: string;
+  group?: string;
+}
+
+function pickerMenu(options: {
+  label: string;
+  value: string;
+  entries: PickerOption[];
+  onSelect(value: string): void;
+  className?: string;
+}): HTMLElement {
+  const current = options.entries.find((entry) => entry.value === options.value);
+  const nodes: HTMLElement[] = [];
+  let group: string | undefined;
+
+  for (const entry of options.entries) {
+    if (entry.group && entry.group !== group) {
+      group = entry.group;
+      nodes.push(el("ui-menu-label", { text: group }));
+    }
+
+    nodes.push(
+      el(
+        "ui-menu-item",
+        {
+          value: entry.value,
+          kind: "radio",
+          checked: entry.value === options.value,
+        },
+        entry.label,
+        el("ui-icon", { slot: "selection", name: "action.confirm", label: "" }),
+      ),
+    );
+  }
+
+  const menu = el(
+    "ui-menu",
+    {
+      class: options.className ?? "picker-menu",
+      label: options.label,
+      density: "compact",
+      sizing: "fixed",
+      placement: "bottom",
+      align: "start",
+      offset: "6",
+    },
+    el(
+      "ui-button",
+      {
+        slot: "trigger",
+        type: "button",
+        size: "small",
+        variant: "secondary",
+        class: "picker-trigger",
+      },
+      el("span", { class: "picker-value", text: current?.label ?? options.value }),
+      el("ui-icon", { class: "picker-chevron", name: "navigation.disclosure", label: "" }),
+    ),
+    ...nodes,
+  );
+
+  menu.addEventListener("ui-menu-select", (event: Event) => {
+    const value = (event as CustomEvent<{ value: string }>).detail.value;
+    if (value !== options.value) options.onSelect(value);
+  });
+
+  return menu;
+}
+
 function controlField(
   control: Control,
   state: State,
@@ -355,21 +426,13 @@ function controlField(
         "div",
         { class: "control" },
         label,
-        el(
-          "select",
-          {
-            class: "select-input",
-            onchange: (event: Event) =>
-              onChange(control.attribute, (event.target as HTMLSelectElement).value),
-          },
-          ...control.options.map((option) =>
-            el("option", {
-              value: option,
-              selected: state.attrs[control.attribute] === option,
-              text: option,
-            }),
-          ),
-        ),
+        pickerMenu({
+          label: control.attribute,
+          value: String(state.attrs[control.attribute] ?? ""),
+          entries: control.options.map((option) => ({ value: option, label: option })),
+          onSelect: (value) => onChange(control.attribute, value),
+          className: "picker-menu inspector-picker",
+        }),
         hint,
       );
     }
@@ -616,37 +679,16 @@ function controlsPanel(
             "div",
             { class: "control" },
             el("span", { class: "control-label", text: "example" }),
-            el(
-              "select",
-              {
-                class: "select-input",
-                onchange: (event: Event) => {
-                  const value = (event.target as HTMLSelectElement).value;
-                  callbacks.update({ example: value === "__controls" ? null : value });
-                },
-              },
-              ...examples.map((example) =>
-                el("option", {
-                  value: example.name,
-                  selected: state.example === example.name,
-                  text: example.name,
-                }),
-              ),
-              ...(canShowControls
-                ? [
-                    el("option", {
-                      value: "__controls",
-                      selected: state.example === null,
-                      text: "controls",
-                    }),
-                  ]
-                : []),
-            ),
-            el("span", {
-              class: "control-hint",
-              text: canShowControls
-                ? "Examples show intended composition; controls render this element in isolation."
-                : "This is composition-only: its children are part of the component contract.",
+            pickerMenu({
+              label: "Example",
+              value: state.example ?? "__controls",
+              entries: [
+                ...examples.map((example) => ({ value: example.name, label: example.name })),
+                ...(canShowControls ? [{ value: "__controls", label: "controls" }] : []),
+              ],
+              onSelect: (value) =>
+                callbacks.update({ example: value === "__controls" ? null : value }),
+              className: "picker-menu inspector-picker",
             }),
           )
         : null,
@@ -654,14 +696,7 @@ function controlsPanel(
       // Attribute controls drive the synthesized preview. An example is fixed
       // markup, so showing them alongside it would imply they do something.
       ...(showingExample
-        ? [
-            el("p", {
-              class: "note",
-              text: canShowControls
-                ? "Showing an authored example. Switch to controls to drive the component's attributes and slots directly."
-                : "The example provides the required child elements and slot relationships.",
-            }),
-          ]
+        ? []
         : [
             ...controlsFor(component).map((control) =>
               controlField(control, state, callbacks.setAttr),
@@ -710,10 +745,6 @@ function controlsPanel(
             }),
           ),
         ),
-        el("span", {
-          class: "control-hint",
-          text: "Applied to the catalog and preview roots; nested components can still override it.",
-        }),
       ),
       el(
         "div",
@@ -731,10 +762,6 @@ function controlsPanel(
             }),
           ),
         ),
-        el("span", {
-          class: "control-hint",
-          text: "Auto follows reduced-transparency and increased-contrast preferences; explicit modes stay shareable in the URL.",
-        }),
       ),
     ),
   );
@@ -832,27 +859,19 @@ function buildSidebar(state: State, callbacks: AppCallbacks): HTMLElement {
 }
 
 function componentJump(state: State, callbacks: AppCallbacks): HTMLElement {
-  return el(
-    "select",
-    {
-      class: "component-jump",
-      "aria-label": "Jump to component",
-      onchange: (event: Event) => callbacks.select((event.target as HTMLSelectElement).value),
-    },
-    ...familiesFor(components).map((family) =>
-      el(
-        "optgroup",
-        { label: family.title },
-        ...family.components.map((entry) =>
-          el("option", {
-            value: entry.tagName,
-            selected: entry.tagName === state.tagName,
-            text: entry.tagName,
-          }),
-        ),
-      ),
+  return pickerMenu({
+    label: "Component",
+    value: state.tagName,
+    entries: familiesFor(components).flatMap((family) =>
+      family.components.map((entry) => ({
+        value: entry.tagName,
+        label: entry.tagName,
+        group: family.title,
+      })),
     ),
-  );
+    onSelect: callbacks.select,
+    className: "picker-menu component-jump",
+  });
 }
 
 /** Everything below the stage: usage, API tables, token provenance. */
