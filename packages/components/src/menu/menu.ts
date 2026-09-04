@@ -100,7 +100,7 @@ export class UIMenu extends UIAnchoredOverlay {
   declare sizing: MenuSizing;
   /** Whether a parent menu item owns this menu as a submenu. */
   declare nested: boolean;
-  /** Fine-pointer delay before a hovered submenu opens. */
+  /** Maximum fine-pointer hover-intent delay before a hovered submenu opens. */
   declare submenuOpenDelay: number;
   /** Pointer-corridor grace period before a submenu closes. */
   declare submenuCloseDelay: number;

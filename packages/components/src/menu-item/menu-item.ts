@@ -18,6 +18,18 @@ export interface MenuItemSelectDetail {
   kind: MenuItemKind;
 }
 
+const submenuHoverIntentInitialDelay = 48;
+const submenuHoverIntentResampleDelay = 24;
+const submenuHoverIntentStableDistance = 3;
+const submenuHoverIntentDirectionBias = 1.2;
+
+interface SubmenuHoverIntent {
+  entryX: number;
+  entryY: number;
+  x: number;
+  y: number;
+}
+
 /**
  * A selectable command or submenu branch inside `ui-menu` or `ui-context-menu`.
  *
@@ -128,6 +140,7 @@ export class UIMenuItem extends LitElement {
 
   readonly #internals: ElementInternals;
   #submenu: UIMenu | null = null;
+  #hoverIntent: SubmenuHoverIntent | null = null;
   #openTimer: number | undefined;
   #closeTimer: number | undefined;
 
@@ -203,30 +216,83 @@ export class UIMenuItem extends LitElement {
   }
 
   #clearTimers(): void {
-    if (this.#openTimer !== undefined) window.clearTimeout(this.#openTimer);
+    this.#clearOpenTimer();
     if (this.#closeTimer !== undefined) window.clearTimeout(this.#closeTimer);
-    this.#openTimer = undefined;
     this.#closeTimer = undefined;
   }
 
-  #scheduleOpen(): void {
+  #clearOpenTimer(): void {
+    if (this.#openTimer !== undefined) window.clearTimeout(this.#openTimer);
+    this.#openTimer = undefined;
+    this.#hoverIntent = null;
+  }
+
+  #trackHoverIntent(event: PointerEvent): void {
+    if (!this.#hoverIntent) {
+      this.#hoverIntent = {
+        entryX: event.clientX,
+        entryY: event.clientY,
+        x: event.clientX,
+        y: event.clientY,
+      };
+      return;
+    }
+    this.#hoverIntent.x = event.clientX;
+    this.#hoverIntent.y = event.clientY;
+  }
+
+  #hoverIntentDelay(elapsed: number, maximumDelay: number): number {
+    if (elapsed === 0) return Math.min(submenuHoverIntentInitialDelay, maximumDelay);
+    return Math.min(submenuHoverIntentResampleDelay, Math.max(0, maximumDelay - elapsed));
+  }
+
+  #hoverIntentReady(elapsed: number, maximumDelay: number): boolean {
+    if (elapsed >= maximumDelay) return true;
+    if (!this.#hoverIntent || !this.#submenu) return true;
+
+    const dx = this.#hoverIntent.x - this.#hoverIntent.entryX;
+    const dy = this.#hoverIntent.y - this.#hoverIntent.entryY;
+    if (Math.hypot(dx, dy) <= submenuHoverIntentStableDistance) return true;
+
+    const horizontal = Math.abs(dx);
+    const vertical = Math.abs(dy);
+    const movingTowardSubmenu =
+      this.#submenu.placement === "left"
+        ? dx < 0 && horizontal >= vertical * submenuHoverIntentDirectionBias
+        : dx > 0 && horizontal >= vertical * submenuHoverIntentDirectionBias;
+    return movingTowardSubmenu;
+  }
+
+  #queueHoverIntentOpen(elapsed: number, maximumDelay: number): void {
+    const delay = this.#hoverIntentDelay(elapsed, maximumDelay);
+    this.#openTimer = window.setTimeout(() => {
+      this.#openTimer = undefined;
+      const nextElapsed = elapsed + delay;
+      if (this.#hoverIntentReady(nextElapsed, maximumDelay)) {
+        this.showSubmenu();
+        return;
+      }
+      this.#queueHoverIntentOpen(nextElapsed, maximumDelay);
+    }, delay);
+  }
+
+  #scheduleOpen(event: PointerEvent): void {
     if (!this.#submenu || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     if (this.#closeTimer !== undefined) window.clearTimeout(this.#closeTimer);
     this.#closeTimer = undefined;
     if (this.#submenu.open || this.#openTimer !== undefined) return;
-    this.#openTimer = window.setTimeout(
-      () => {
-        this.#openTimer = undefined;
-        this.showSubmenu();
-      },
-      Math.max(0, this.#submenu.submenuOpenDelay),
-    );
+    const maximumDelay = Math.max(0, this.#submenu.submenuOpenDelay);
+    if (maximumDelay === 0) {
+      this.showSubmenu();
+      return;
+    }
+    this.#trackHoverIntent(event);
+    this.#queueHoverIntentOpen(0, maximumDelay);
   }
 
   #scheduleClose(): void {
+    this.#clearOpenTimer();
     if (!this.#submenu?.open) return;
-    if (this.#openTimer !== undefined) window.clearTimeout(this.#openTimer);
-    this.#openTimer = undefined;
     if (this.#closeTimer !== undefined) window.clearTimeout(this.#closeTimer);
     this.#closeTimer = window.setTimeout(
       () => {
@@ -319,11 +385,13 @@ export class UIMenuItem extends LitElement {
     this.#scheduleClose();
   };
 
-  #onPointerEnter = (): void => this.#scheduleOpen();
+  #onPointerEnter = (event: PointerEvent): void => this.#scheduleOpen(event);
 
   #onPointerLeave = (): void => this.#scheduleClose();
 
   #onPointerMove = (event: PointerEvent): void => {
+    if (this.#openTimer !== undefined && event.pointerType !== "touch")
+      this.#trackHoverIntent(event);
     if (!this.#submenu?.open || event.pointerType === "touch") return;
     const snapshot = this.#submenu.positionSnapshot;
     const safe = this.renderRoot.querySelector<HTMLElement>("[part~='safe-triangle']");

@@ -1,5 +1,5 @@
 import { userEvent } from "vitest/browser";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { fixture, inShadow, settled } from "./test-support/fixture.js";
 import type { UIAccordionItem } from "./accordion-item/accordion-item.js";
@@ -53,6 +53,24 @@ import "./toast/register.js";
 import "./toolbar/register.js";
 import "./tree/register.js";
 import "./tooltip/register.js";
+
+function forceFinePointer(): () => void {
+  const original = window.matchMedia.bind(window);
+  const spy = vi.spyOn(window, "matchMedia").mockImplementation((query: string) => {
+    if (query !== "(hover: hover) and (pointer: fine)") return original(query);
+    return {
+      matches: true,
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    } as MediaQueryList;
+  });
+  return () => spy.mockRestore();
+}
 
 describe("Control families", () => {
   it("realizes authored collection and control slots as semantic parts", async () => {
@@ -617,6 +635,142 @@ describe("Control families", () => {
 
     expect(submenu.open).toBe(true);
     expect(leaf.shadowRoot?.activeElement).toBeNull();
+  });
+
+  it("opens hovered submenus after a tiny stable intent interval", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const restoreFinePointer = forceFinePointer();
+    try {
+      const menu = await fixture<UIMenu>(`
+        <ui-menu label="Actions" open>
+          <button slot="trigger">Actions</button>
+          <ui-menu-item value="share">
+            Share
+            <ui-menu slot="submenu" label="Share with" submenu-open-delay="96">
+              <ui-menu-item value="email">Email</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+        </ui-menu>
+      `);
+      const branch = menu.querySelector<UIMenuItem>(":scope > ui-menu-item")!;
+      const submenu = branch.querySelector<UIMenu>(":scope > ui-menu")!;
+      const control = inShadow<HTMLButtonElement>(branch, "button");
+
+      control.dispatchEvent(
+        new PointerEvent("pointerenter", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 12,
+          clientY: 12,
+        }),
+      );
+
+      await vi.advanceTimersByTimeAsync(47);
+      expect(submenu.open).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(submenu.open).toBe(true);
+    } finally {
+      restoreFinePointer();
+      vi.useRealTimers();
+    }
+  });
+
+  it("waits out the hover-intent budget while the pointer sweeps vertically", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const restoreFinePointer = forceFinePointer();
+    try {
+      const menu = await fixture<UIMenu>(`
+        <ui-menu label="Actions" open>
+          <button slot="trigger">Actions</button>
+          <ui-menu-item value="share">
+            Share
+            <ui-menu slot="submenu" label="Share with" submenu-open-delay="96">
+              <ui-menu-item value="email">Email</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+        </ui-menu>
+      `);
+      const branch = menu.querySelector<UIMenuItem>(":scope > ui-menu-item")!;
+      const submenu = branch.querySelector<UIMenu>(":scope > ui-menu")!;
+      const control = inShadow<HTMLButtonElement>(branch, "button");
+
+      control.dispatchEvent(
+        new PointerEvent("pointerenter", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 12,
+          clientY: 12,
+        }),
+      );
+      control.dispatchEvent(
+        new PointerEvent("pointermove", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 12,
+          clientY: 20,
+        }),
+      );
+
+      await vi.advanceTimersByTimeAsync(48);
+      expect(submenu.open).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(24);
+      expect(submenu.open).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(24);
+      expect(submenu.open).toBe(true);
+    } finally {
+      restoreFinePointer();
+      vi.useRealTimers();
+    }
+  });
+
+  it("cancels pending submenu intent when the pointer leaves the branch", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const restoreFinePointer = forceFinePointer();
+    try {
+      const menu = await fixture<UIMenu>(`
+        <ui-menu label="Actions" open>
+          <button slot="trigger">Actions</button>
+          <ui-menu-item value="share">
+            Share
+            <ui-menu slot="submenu" label="Share with" submenu-open-delay="96">
+              <ui-menu-item value="email">Email</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+        </ui-menu>
+      `);
+      const branch = menu.querySelector<UIMenuItem>(":scope > ui-menu-item")!;
+      const submenu = branch.querySelector<UIMenu>(":scope > ui-menu")!;
+      const control = inShadow<HTMLButtonElement>(branch, "button");
+
+      control.dispatchEvent(
+        new PointerEvent("pointerenter", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 12,
+          clientY: 12,
+        }),
+      );
+      control.dispatchEvent(
+        new PointerEvent("pointerleave", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+        }),
+      );
+
+      await vi.advanceTimersByTimeAsync(120);
+      expect(submenu.open).toBe(false);
+    } finally {
+      restoreFinePointer();
+      vi.useRealTimers();
+    }
   });
 
   it("dismisses sibling submenus as soon as another branch row is hovered", async () => {
