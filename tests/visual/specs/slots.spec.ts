@@ -707,6 +707,8 @@ test.describe("catalog slot composition", () => {
     expect(submenuMaterial.materialImage).not.toBe("none");
     expect(submenuMaterial.materialBlendMode).toBe("normal");
 
+    await branchControl.hover();
+
     const branchState = await branchControl.evaluate((control) => {
       const probe = document.createElement("span");
       probe.style.backgroundColor = "var(--color-neutral-hover)";

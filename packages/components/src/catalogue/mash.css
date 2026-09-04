@@ -2538,8 +2538,11 @@
   }
 
   :where([data-mash-catalogue="mash"])
-    ui-menu-item:not([disabled]):not(:state(hover-suppressed))::part(control):hover,
-  :where([data-mash-catalogue="mash"]) ui-menu-item:not([disabled])::part(control):focus-visible {
+    ui-menu-item:not([disabled]):not(:state(hover-suppressed)):not(:state(submenu-open))::part(
+      control
+    ):hover,
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):not(:state(submenu-open))::part(control):focus-visible {
     background: var(--_mash-menu-item-selection-background);
     color: var(--_mash-menu-item-selection-color);
   }
@@ -2560,6 +2563,14 @@
 
   :where([data-mash-catalogue="mash"])
     ui-menu-item:not([disabled]):state(submenu-open)::part(control) {
+    background: var(--_mash-menu-item-submenu-background);
+    color: var(--_mash-menu-item-submenu-color);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):state(submenu-open)::part(control):hover,
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):state(submenu-open)::part(control):focus-visible {
     background: var(--_mash-menu-item-submenu-background);
     color: var(--_mash-menu-item-submenu-color);
   }
