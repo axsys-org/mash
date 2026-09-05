@@ -649,7 +649,12 @@ export abstract class UIAnchoredOverlay extends UIOverlay {
   }
 
   protected override positioningConfig(): AnchoredPositionConfig {
-    return this;
+    return {
+      placement: this.placement,
+      align: this.align,
+      offset: this.offset,
+      collisionPadding: this.collisionPadding,
+    };
   }
 
   /**

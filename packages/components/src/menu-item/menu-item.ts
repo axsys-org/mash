@@ -432,7 +432,7 @@ export class UIMenuItem extends LitElement {
       this.#submenu.removeEventListener("pointerenter", this.#cancelClose);
       this.#submenu.removeEventListener("pointerleave", this.#onSubmenuPointerLeave);
       this.#submenu.anchorElement = null;
-      this.#submenu.removeAttribute("nested");
+      this.#submenu.nested = false;
     }
     this.#submenu = submenu;
     this._hasSubmenu = Boolean(submenu);
@@ -441,7 +441,7 @@ export class UIMenuItem extends LitElement {
       return;
     }
     submenu.anchorElement = this.renderRoot.querySelector<HTMLElement>("[part~='control']");
-    submenu.setAttribute("nested", "");
+    submenu.nested = true;
     submenu.placement = "right";
     submenu.align = "start";
     submenu.offset = 0;

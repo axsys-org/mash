@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { resolveAnchoredPosition } from "./internal/anchored-position.js";
 import { fixture, inShadow, settled } from "./test-support/fixture.js";
 import "./alert-dialog/register.js";
 import "./button/register.js";
@@ -334,6 +335,27 @@ describe("overlay authored-slot realizations", () => {
     expect(positioner.style.position).toBe("fixed");
     expect(positioner.style.insetInlineStart).toBe("24px");
     expect(positioner.style.insetBlockStart).toBe(`${window.innerHeight - 98}px`);
+  });
+
+  it("applies cross-axis anchored offsets without changing side distance", () => {
+    const position = resolveAnchoredPosition(
+      new DOMRect(120, 80, 90, 24),
+      new DOMRect(0, 0, 180, 96),
+      { width: 800, height: 600 },
+      {
+        placement: "right",
+        align: "start",
+        offset: 6,
+        crossAxisOffset: -4,
+        collisionPadding: 4,
+      },
+    );
+
+    expect(position).toEqual({
+      placement: "right",
+      left: 216,
+      top: 76,
+    });
   });
 
   it("reports close reasons and honors escape and outside dismissal policy", async () => {

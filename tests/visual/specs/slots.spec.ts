@@ -661,6 +661,9 @@ test.describe("catalog slot composition", () => {
       return result;
     });
     expect(branchPadding.actual).toBe(branchPadding.token);
+
+    await expect(branchControl).toHaveAttribute("aria-expanded", "false");
+    await branchControl.hover();
     await expect(branchControl).toHaveAttribute("aria-expanded", "true");
 
     const submenuGeometry = await menu.evaluate((node) => {
@@ -678,14 +681,18 @@ test.describe("catalog slot composition", () => {
       const branchBox = branchControlElement.getBoundingClientRect();
       const popupBox = submenuPopupElement.getBoundingClientRect();
       const firstBox = firstControl.getBoundingClientRect();
+      const shell = Number.parseFloat(getComputedStyle(submenuPopupElement).paddingBlockStart);
       return {
         inlineGap: popupBox.left - branchBox.right,
         popupTopDelta: popupBox.top - branchBox.top,
+        firstRowInset: firstBox.top - popupBox.top,
         firstRowTopDelta: firstBox.top - branchBox.top,
+        shell,
       };
     });
     expect(Math.abs(submenuGeometry.inlineGap)).toBeLessThanOrEqual(3);
-    expect(Math.abs(submenuGeometry.popupTopDelta)).toBeLessThanOrEqual(4);
+    expect(Math.abs(submenuGeometry.popupTopDelta + submenuGeometry.shell)).toBeLessThanOrEqual(1);
+    expect(Math.abs(submenuGeometry.firstRowInset - submenuGeometry.shell)).toBeLessThanOrEqual(1);
     expect(Math.abs(submenuGeometry.firstRowTopDelta)).toBeLessThanOrEqual(1);
 
     const submenuMaterial = await submenu.evaluate((node) => {
@@ -706,8 +713,6 @@ test.describe("catalog slot composition", () => {
     expect(submenuMaterial.background).toBe(submenuMaterial.thickMaterial);
     expect(submenuMaterial.materialImage).not.toBe("none");
     expect(submenuMaterial.materialBlendMode).toBe("normal");
-
-    await branchControl.hover();
 
     const branchState = await branchControl.evaluate((control) => {
       const probe = document.createElement("span");

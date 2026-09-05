@@ -225,6 +225,41 @@ describe("Mash catalogue", () => {
     expect(checked?.matches(":state(checked)")).toBe(true);
   });
 
+  it("keeps submenu branch focus on the neutral branch affordance", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const menu = await fixture(`
+      <ui-menu label="Project commands" open>
+        <ui-menu-item value="open">Open project</ui-menu-item>
+        <ui-menu-item value="recent">
+          Recent projects
+          <ui-menu slot="submenu" label="Recent projects">
+            <ui-menu-item value="billing">Billing migration</ui-menu-item>
+          </ui-menu>
+        </ui-menu-item>
+      </ui-menu>
+    `);
+    const leaf = menu.querySelector<HTMLElement>('ui-menu-item[value="open"]')!;
+    const branch = menu.querySelector<HTMLElement>('ui-menu-item[value="recent"]')!;
+    const leafControl = inShadow<HTMLButtonElement>(leaf, "button");
+    const branchControl = inShadow<HTMLButtonElement>(branch, "button");
+
+    leafControl.focus();
+    const leafBackground = getComputedStyle(leafControl).backgroundColor;
+    branchControl.focus();
+
+    const probe = document.createElement("span");
+    probe.style.backgroundColor = "var(--color-neutral-hover)";
+    menu.append(probe);
+    const branchBackground = getComputedStyle(branchControl).backgroundColor;
+    const neutralBackground = getComputedStyle(probe).backgroundColor;
+
+    expect(branch.matches(":state(has-submenu)")).toBe(true);
+    expect(branchBackground).toBe(neutralBackground);
+    expect(branchBackground).not.toBe(leafBackground);
+
+    probe.remove();
+  });
+
   it("routes menu material headroom and selection through shared runtime variables", async () => {
     document.documentElement.dataset.mashCatalogue = "mash";
     document.documentElement.style.setProperty("--mash-material-luminance", "1.05");

@@ -7,6 +7,7 @@ export interface AnchoredPositionConfig {
   placement: AnchoredPlacement;
   align: AnchoredAlign;
   offset: number;
+  crossAxisOffset?: number;
   collisionPadding: number;
 }
 
@@ -39,6 +40,10 @@ export function resolveAnchoredPosition(
     Number.isFinite(config.collisionPadding) ? config.collisionPadding : 4,
   );
   const offset = Math.max(0, Number.isFinite(config.offset) ? config.offset : 0);
+  const crossAxisOffset =
+    typeof config.crossAxisOffset === "number" && Number.isFinite(config.crossAxisOffset)
+      ? config.crossAxisOffset
+      : 0;
   const available = {
     top: Math.max(0, anchor.top - margin),
     bottom: Math.max(0, viewport.height - margin - anchor.bottom),
@@ -93,13 +98,13 @@ export function resolveAnchoredPosition(
       ? anchor.left - popup.width - offset
       : placement === "right"
         ? anchor.right + offset
-        : alignedX;
+        : alignedX + crossAxisOffset;
   let top =
     placement === "top"
       ? anchor.top - popup.height - offset
       : placement === "bottom"
         ? anchor.bottom + offset
-        : alignedY;
+        : alignedY + crossAxisOffset;
   left = Math.min(Math.max(margin, left), Math.max(margin, viewport.width - margin - popup.width));
   top = Math.min(Math.max(margin, top), Math.max(margin, viewport.height - margin - popup.height));
   return { placement, left, top };

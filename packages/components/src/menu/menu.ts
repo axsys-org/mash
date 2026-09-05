@@ -5,6 +5,7 @@ import {
   type OverlayOpenChangeDetail,
   UIAnchoredOverlay,
 } from "../internal/overlay.js";
+import type { AnchoredPositionConfig } from "../internal/anchored-position.js";
 import { MenuCollectionController } from "../internal/menu-collection.js";
 import type { UIMenuItem } from "../menu-item/menu-item.js";
 
@@ -164,6 +165,19 @@ export class UIMenu extends UIAnchoredOverlay {
 
   protected override renderPopupMaterial(): TemplateResult {
     return html`<span part="material" aria-hidden="true"></span>`;
+  }
+
+  protected override positioningConfig(): AnchoredPositionConfig {
+    const config = super.positioningConfig();
+    const nested = this.nested || this.hasAttribute("nested");
+    if (!nested || (this.placement !== "left" && this.placement !== "right")) return config;
+    const popup = this.renderRoot.querySelector<HTMLElement>("[part='popup']");
+    const shell = Number.parseFloat(
+      popup
+        ? getComputedStyle(popup).paddingBlockStart
+        : getComputedStyle(this).getPropertyValue("--space-menu-shell"),
+    );
+    return Number.isFinite(shell) ? { ...config, crossAxisOffset: -shell } : config;
   }
 
   #setChromeState(name: "header" | "footer", active: boolean): void {

@@ -4140,7 +4140,7 @@ export function MarkdownFrame({ html }: { html: string }) {
             <ui-menu-item value="recent">
               Recent projects
               <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
-              <ui-menu slot="submenu" label="Recent projects" density="compact" sizing="fixed" open>
+              <ui-menu slot="submenu" label="Recent projects" density="compact" sizing="fixed">
                 <ui-menu-item value="billing">Billing migration</ui-menu-item>
                 <ui-menu-item value="invoice">Invoice reconciliation</ui-menu-item>
                 <ui-menu-item value="archive">Legacy ledger migration with archived receipt attachments</ui-menu-item>

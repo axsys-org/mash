@@ -2483,7 +2483,6 @@
 
   :where([data-mash-catalogue="mash"]) ui-menu[nested]::part(popup) {
     pointer-events: auto;
-    margin-block-start: calc(-1 * var(--space-menu-shell));
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu-item {
@@ -2538,11 +2537,13 @@
   }
 
   :where([data-mash-catalogue="mash"])
-    ui-menu-item:not([disabled]):not(:state(hover-suppressed)):not(:state(submenu-open))::part(
-      control
-    ):hover,
+    ui-menu-item:not([disabled]):not(:state(hover-suppressed)):not(:state(has-submenu)):not(
+      :state(submenu-open)
+    )::part(control):hover,
   :where([data-mash-catalogue="mash"])
-    ui-menu-item:not([disabled]):not(:state(submenu-open))::part(control):focus-visible {
+    ui-menu-item:not([disabled]):not(:state(has-submenu)):not(:state(submenu-open))::part(
+      control
+    ):focus-visible {
     background: var(--_mash-menu-item-selection-background);
     color: var(--_mash-menu-item-selection-color);
   }
@@ -2562,15 +2563,11 @@
   }
 
   :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):state(has-submenu)::part(control):hover,
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):state(has-submenu)::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"])
     ui-menu-item:not([disabled]):state(submenu-open)::part(control) {
-    background: var(--_mash-menu-item-submenu-background);
-    color: var(--_mash-menu-item-submenu-color);
-  }
-
-  :where([data-mash-catalogue="mash"])
-    ui-menu-item:not([disabled]):state(submenu-open)::part(control):hover,
-  :where([data-mash-catalogue="mash"])
-    ui-menu-item:not([disabled]):state(submenu-open)::part(control):focus-visible {
     background: var(--_mash-menu-item-submenu-background);
     color: var(--_mash-menu-item-submenu-color);
   }
