@@ -797,6 +797,46 @@ describe("Control families", () => {
     }
   });
 
+  it("applies submenu hover intent inside context menus", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const restoreFinePointer = forceFinePointer();
+    try {
+      const contextMenu = await fixture<HTMLElement>(`
+        <ui-context-menu label="Actions" open>
+          <span slot="trigger">Project row</span>
+          <ui-menu-item value="share">
+            Share
+            <ui-menu slot="submenu" label="Share with">
+              <ui-menu-item value="email">Email</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+        </ui-context-menu>
+      `);
+      const branch = contextMenu.querySelector<UIMenuItem>(":scope > ui-menu-item")!;
+      const submenu = branch.querySelector<UIMenu>(":scope > ui-menu")!;
+      const control = inShadow<HTMLButtonElement>(branch, "button");
+
+      control.dispatchEvent(
+        new PointerEvent("pointerenter", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 16,
+          clientY: 16,
+        }),
+      );
+
+      await vi.advanceTimersByTimeAsync(174);
+      expect(submenu.open).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(submenu.open).toBe(true);
+    } finally {
+      restoreFinePointer();
+      vi.useRealTimers();
+    }
+  });
+
   it("switches submenu branches after dwell when the pointer is not aimed into the active submenu", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const restoreFinePointer = forceFinePointer();

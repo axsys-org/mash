@@ -849,6 +849,70 @@ test.describe("catalog slot composition", () => {
     expect(reducedMaterial.background).toBe(reducedMaterial.raisedSurface);
   });
 
+  test("keeps context-menu submenus delayed and aligned", async ({ page }) => {
+    await page.goto("/components/ui-context-menu?theme=dark&vibrancy=vibrant");
+    const preview = page.frameLocator("iframe.stage-frame");
+    const contextMenu = preview.locator('ui-context-menu[label="Project actions"]');
+    const trigger = contextMenu.locator('ui-card[slot="trigger"]');
+    const branch = contextMenu.locator(':scope > ui-menu-item[value="share"]');
+    const branchControl = branch.getByRole("menuitem", { name: "Share", exact: true });
+    const submenu = branch.locator('ui-menu[label="Share project"]');
+
+    await trigger.click({ button: "right", position: { x: 160, y: 70 } });
+    await expect(contextMenu).toHaveAttribute("open", "");
+    await expect(branchControl).toHaveAttribute("aria-expanded", "false");
+
+    await branchControl.hover();
+    await page.waitForTimeout(120);
+    const beforeDwell = await submenu.evaluate((node) => ({
+      delay: (node as HTMLElement & { submenuOpenDelay: number }).submenuOpenDelay,
+      open: node.hasAttribute("open"),
+    }));
+    expect(beforeDwell).toEqual({ delay: 175, open: false });
+
+    await page.waitForTimeout(90);
+    await expect(branchControl).toHaveAttribute("aria-expanded", "true");
+
+    const submenuGeometry = await contextMenu.evaluate((node) => {
+      const branchItem = node.querySelector<HTMLElement>('ui-menu-item[value="share"]')!;
+      const submenuElement = branchItem.querySelector<HTMLElement>(
+        'ui-menu[label="Share project"]',
+      )!;
+      const branchControlElement =
+        branchItem.shadowRoot!.querySelector<HTMLElement>('[part~="control"]')!;
+      const submenuPopupElement =
+        submenuElement.shadowRoot!.querySelector<HTMLElement>('[part~="popup"]')!;
+      const positionerElement =
+        submenuElement.shadowRoot!.querySelector<HTMLElement>('[part~="positioner"]')!;
+      const firstControl = submenuElement
+        .querySelector<HTMLElement>('ui-menu-item[value="copy-link"]')!
+        .shadowRoot!.querySelector<HTMLElement>('[part~="control"]')!;
+      const branchBox = branchControlElement.getBoundingClientRect();
+      const popupBox = submenuPopupElement.getBoundingClientRect();
+      const firstBox = firstControl.getBoundingClientRect();
+      const shell = Number.parseFloat(getComputedStyle(submenuPopupElement).paddingBlockStart);
+      return {
+        side: positionerElement.dataset.side,
+        align: positionerElement.dataset.align,
+        inlineGap: popupBox.left - branchBox.right,
+        popupTopDelta: popupBox.top - branchBox.top,
+        firstRowInset: firstBox.top - popupBox.top,
+        firstRowTopDelta: firstBox.top - branchBox.top,
+        popupRadius: getComputedStyle(submenuPopupElement).borderTopLeftRadius,
+        firstRadius: getComputedStyle(firstControl).borderTopLeftRadius,
+        shell,
+      };
+    });
+    expect(submenuGeometry.side).toBe("right");
+    expect(submenuGeometry.align).toBe("start");
+    expect(Math.abs(submenuGeometry.inlineGap)).toBeLessThanOrEqual(1);
+    expect(Math.abs(submenuGeometry.popupTopDelta + submenuGeometry.shell)).toBeLessThanOrEqual(1);
+    expect(Math.abs(submenuGeometry.firstRowInset - submenuGeometry.shell)).toBeLessThanOrEqual(1);
+    expect(Math.abs(submenuGeometry.firstRowTopDelta)).toBeLessThanOrEqual(1);
+    expect(submenuGeometry.popupRadius).toBe("13px");
+    expect(submenuGeometry.firstRadius).toBe("8px");
+  });
+
   test("composes scroll-target actions from buttons and a scroll area", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/components/ui-scroll-area?example=Scroll%20target%20action&theme=dark");
