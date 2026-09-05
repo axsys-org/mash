@@ -2563,7 +2563,9 @@
   }
 
   :where([data-mash-catalogue="mash"])
-    ui-menu-item:not([disabled]):state(has-submenu)::part(control):hover,
+    ui-menu-item:not([disabled]):state(has-submenu):not(:state(hover-suppressed))::part(
+      control
+    ):hover,
   :where([data-mash-catalogue="mash"])
     ui-menu-item:not([disabled]):state(has-submenu)::part(control):focus-visible,
   :where([data-mash-catalogue="mash"])

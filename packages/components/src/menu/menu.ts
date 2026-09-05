@@ -119,7 +119,7 @@ export class UIMenu extends UIAnchoredOverlay {
     this.density = "compact";
     this.sizing = "content";
     this.nested = false;
-    this.submenuOpenDelay = 64;
+    this.submenuOpenDelay = 175;
     this.submenuCloseDelay = 280;
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
     this.addEventListener("ui-menu-item-submenu-change", this.#onSubmenuChange);

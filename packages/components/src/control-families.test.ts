@@ -665,7 +665,7 @@ describe("Control families", () => {
           <button slot="trigger">Actions</button>
           <ui-menu-item value="share">
             Share
-            <ui-menu slot="submenu" label="Share with" submenu-open-delay="64">
+            <ui-menu slot="submenu" label="Share with">
               <ui-menu-item value="email">Email</ui-menu-item>
             </ui-menu>
           </ui-menu-item>
@@ -674,6 +674,8 @@ describe("Control families", () => {
       const branch = menu.querySelector<UIMenuItem>(":scope > ui-menu-item")!;
       const submenu = branch.querySelector<UIMenu>(":scope > ui-menu")!;
       const control = inShadow<HTMLButtonElement>(branch, "button");
+
+      expect(submenu.submenuOpenDelay).toBe(175);
 
       control.dispatchEvent(
         new PointerEvent("pointerenter", {
@@ -685,7 +687,7 @@ describe("Control families", () => {
         }),
       );
 
-      await vi.advanceTimersByTimeAsync(63);
+      await vi.advanceTimersByTimeAsync(174);
       expect(submenu.open).toBe(false);
 
       control.dispatchEvent(
@@ -698,11 +700,97 @@ describe("Control families", () => {
         }),
       );
 
-      await vi.advanceTimersByTimeAsync(63);
+      await vi.advanceTimersByTimeAsync(174);
       expect(submenu.open).toBe(false);
 
       await vi.advanceTimersByTimeAsync(1);
       expect(submenu.open).toBe(true);
+    } finally {
+      restoreFinePointer();
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps rapid pointer sweeps across submenu branches quiet", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const restoreFinePointer = forceFinePointer();
+    try {
+      const menu = await fixture<UIMenu>(`
+        <ui-menu label="Actions" open>
+          <button slot="trigger">Actions</button>
+          <ui-menu-item value="share">
+            Share
+            <ui-menu slot="submenu" label="Share with">
+              <ui-menu-item value="email">Email</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+          <ui-menu-item value="export">
+            Export
+            <ui-menu slot="submenu" label="Export as">
+              <ui-menu-item value="pdf">PDF</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+          <ui-menu-item value="move">
+            Move
+            <ui-menu slot="submenu" label="Move to">
+              <ui-menu-item value="inbox">Inbox</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+        </ui-menu>
+      `);
+      const branches = [...menu.querySelectorAll<UIMenuItem>(":scope > ui-menu-item")];
+      const submenus = branches.map((branch) => branch.querySelector<UIMenu>(":scope > ui-menu")!);
+      const controls = branches.map((branch) => inShadow<HTMLButtonElement>(branch, "button"));
+
+      controls[0]!.dispatchEvent(
+        new PointerEvent("pointerenter", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 16,
+          clientY: 16,
+        }),
+      );
+      await vi.advanceTimersByTimeAsync(70);
+      controls[0]!.dispatchEvent(
+        new PointerEvent("pointerleave", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+        }),
+      );
+      controls[1]!.dispatchEvent(
+        new PointerEvent("pointerenter", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 16,
+          clientY: 40,
+        }),
+      );
+      await vi.advanceTimersByTimeAsync(70);
+      controls[1]!.dispatchEvent(
+        new PointerEvent("pointerleave", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+        }),
+      );
+      controls[2]!.dispatchEvent(
+        new PointerEvent("pointerenter", {
+          bubbles: true,
+          composed: true,
+          pointerType: "mouse",
+          clientX: 16,
+          clientY: 64,
+        }),
+      );
+
+      await vi.advanceTimersByTimeAsync(174);
+      expect(submenus.map((submenu) => submenu.open)).toEqual([false, false, false]);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(submenus.map((submenu) => submenu.open)).toEqual([false, false, true]);
     } finally {
       restoreFinePointer();
       vi.useRealTimers();
@@ -718,13 +806,13 @@ describe("Control families", () => {
           <button slot="trigger">Actions</button>
           <ui-menu-item value="share">
             Share
-            <ui-menu slot="submenu" label="Share with" submenu-open-delay="64">
+            <ui-menu slot="submenu" label="Share with">
               <ui-menu-item value="email">Email</ui-menu-item>
             </ui-menu>
           </ui-menu-item>
           <ui-menu-item value="export">
             Export
-            <ui-menu slot="submenu" label="Export as" submenu-open-delay="64">
+            <ui-menu slot="submenu" label="Export as">
               <ui-menu-item value="pdf">PDF</ui-menu-item>
             </ui-menu>
           </ui-menu-item>
@@ -769,7 +857,7 @@ describe("Control families", () => {
       );
       expect(exportItem!.matches(":state(hover-suppressed)")).toBe(false);
 
-      await vi.advanceTimersByTimeAsync(63);
+      await vi.advanceTimersByTimeAsync(174);
       expect(shareSubmenu.open).toBe(true);
       expect(exportSubmenu.open).toBe(false);
 
@@ -791,7 +879,7 @@ describe("Control families", () => {
           <button slot="trigger">Actions</button>
           <ui-menu-item value="share">
             Share
-            <ui-menu slot="submenu" label="Share with" submenu-open-delay="96">
+            <ui-menu slot="submenu" label="Share with">
               <ui-menu-item value="email">Email</ui-menu-item>
             </ui-menu>
           </ui-menu-item>
@@ -818,7 +906,7 @@ describe("Control families", () => {
         }),
       );
 
-      await vi.advanceTimersByTimeAsync(120);
+      await vi.advanceTimersByTimeAsync(200);
       expect(submenu.open).toBe(false);
     } finally {
       restoreFinePointer();
@@ -835,13 +923,13 @@ describe("Control families", () => {
           <button slot="trigger">Actions</button>
           <ui-menu-item value="share">
             Share
-            <ui-menu slot="submenu" label="Share with" submenu-open-delay="64">
+            <ui-menu slot="submenu" label="Share with">
               <ui-menu-item value="email">Email</ui-menu-item>
             </ui-menu>
           </ui-menu-item>
           <ui-menu-item value="export">
             Export
-            <ui-menu slot="submenu" label="Export as" submenu-open-delay="64">
+            <ui-menu slot="submenu" label="Export as">
               <ui-menu-item value="pdf">PDF</ui-menu-item>
             </ui-menu>
           </ui-menu-item>
@@ -897,7 +985,7 @@ describe("Control families", () => {
       );
       expect(exportItem!.matches(":state(hover-suppressed)")).toBe(true);
 
-      await vi.advanceTimersByTimeAsync(64);
+      await vi.advanceTimersByTimeAsync(175);
 
       expect(shareSubmenu.open).toBe(true);
       expect(exportSubmenu.open).toBe(false);
