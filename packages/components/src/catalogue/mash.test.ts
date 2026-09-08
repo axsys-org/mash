@@ -262,24 +262,47 @@ describe("Mash catalogue", () => {
 
   it("routes menu material headroom and selection through shared runtime variables", async () => {
     document.documentElement.dataset.mashCatalogue = "mash";
-    document.documentElement.style.setProperty("--mash-material-luminance", "1.05");
-    document.documentElement.style.setProperty(
-      "--mash-material-selection-background",
-      "rgb(1, 2, 3)",
-    );
-    const menu = await fixture(`
-      <ui-menu label="Project commands" open>
-        <ui-menu-item value="open">Open project</ui-menu-item>
-      </ui-menu>
+    const host = await fixture<HTMLElement>(`
+      <div data-theme="dark">
+        <ui-menu label="Project commands" open>
+          <ui-menu-item value="open">Open project</ui-menu-item>
+        </ui-menu>
+      </div>
     `);
+    host.style.setProperty("--mash-material-luminance", "1.05");
+    host.style.setProperty("--mash-material-selection-background", "rgb(1, 2, 3)");
+    const menu = host.querySelector("ui-menu")!;
     const item = menu.querySelector("ui-menu-item")!;
     const control = inShadow<HTMLButtonElement>(item, "button");
     const material = inShadow<HTMLElement>(menu, '[part="material"]');
+    const popup = inShadow<HTMLElement>(menu, '[part="popup"]');
 
     control.focus();
 
     expect(getComputedStyle(control).backgroundColor).toBe("rgb(1, 2, 3)");
-    expect(getComputedStyle(material).filter).toContain("brightness(1.05)");
+    expect(getComputedStyle(popup).backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+    expect(getComputedStyle(material).backdropFilter).toContain("brightness(1.05)");
+    expect(getComputedStyle(material).filter).toBe("none");
+  });
+
+  it("preserves light menu luminance outside the backdrop chain", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const host = await fixture<HTMLElement>(`
+      <div data-theme="light">
+        <ui-menu label="Project commands" open>
+          <ui-menu-item value="open">Open project</ui-menu-item>
+        </ui-menu>
+      </div>
+    `);
+    host.style.setProperty("--mash-material-luminance", "1.05");
+    const menu = host.querySelector("ui-menu")!;
+    const material = inShadow<HTMLElement>(menu, '[part="material"]');
+    const popup = inShadow<HTMLElement>(menu, '[part="popup"]');
+    const materialStyle = getComputedStyle(material);
+
+    expect(getComputedStyle(popup).backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+    expect(materialStyle.backdropFilter).toContain("brightness(1)");
+    expect(materialStyle.filter).toContain("brightness(1.05)");
   });
 
   it("uses the dense material tier for dark nested menus", async () => {
@@ -311,9 +334,46 @@ describe("Mash catalogue", () => {
     expect(submenu.hasAttribute("nested")).toBe(true);
     expect(materialStyle.backgroundColor).toBe(probeStyle.backgroundColor);
     expect(materialStyle.backgroundImage).toContain("linear-gradient");
+    expect(materialStyle.backdropFilter).toContain("blur(");
     expect(materialStyle.backgroundBlendMode).toBe("normal");
 
     probe.remove();
+  });
+
+  it("keeps context-menu submenus on the same frosted material plane", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const host = await fixture<HTMLElement>(`
+      <div data-theme="dark" data-vibrancy="vibrant">
+        <ui-context-menu label="Project actions" open>
+          <button slot="trigger">Project</button>
+          <ui-menu-item value="share">
+            Share
+            <ui-menu slot="submenu" label="Share project" open>
+              <ui-menu-item value="copy-link">Copy link</ui-menu-item>
+            </ui-menu>
+          </ui-menu-item>
+        </ui-context-menu>
+      </div>
+    `);
+    const submenu = host.querySelector<HTMLElement & { updateComplete: Promise<unknown> }>(
+      "ui-menu[slot='submenu']",
+    )!;
+    const contextMenu = host.querySelector<HTMLElement>("ui-context-menu")!;
+    await submenu.updateComplete;
+    const contextPopup = inShadow<HTMLElement>(contextMenu, '[part="popup"]');
+    const popup = inShadow<HTMLElement>(submenu, '[part="popup"]');
+    const material = inShadow<HTMLElement>(submenu, '[part="material"]');
+    const contextPopupStyle = getComputedStyle(contextPopup);
+    const popupStyle = getComputedStyle(popup);
+    const materialStyle = getComputedStyle(material);
+
+    expect(submenu.hasAttribute("nested")).toBe(true);
+    expect(contextPopupStyle.isolation).toBe("auto");
+    expect(popupStyle.backdropFilter).toBe("none");
+    expect(materialStyle.backdropFilter).toContain("blur(");
+    expect(materialStyle.backdropFilter).toContain("brightness(");
+    expect(materialStyle.filter).toBe("none");
+    expect(materialStyle.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
   });
 
   it("uses the filled critical state for focused destructive menu commands", async () => {

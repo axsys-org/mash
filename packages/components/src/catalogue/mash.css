@@ -2235,8 +2235,9 @@
     border: 0;
     border-radius: var(--radius-menu);
     position: relative;
-    isolation: isolate;
-    background-color: transparent;
+    /* Nested fixed-position materials must sample through the parent popup. */
+    isolation: auto;
+    background-color: var(--_mash-menu-content-scrim, transparent);
     color: var(--mash-material-label-primary, var(--color-text));
     transform-origin: var(--_mash-menu-transform-origin);
     box-shadow:
@@ -2245,26 +2246,6 @@
         color-mix(in srgb, var(--color-background-material-shadow) 65%, transparent),
       0 calc(var(--space-control-gap) + var(--space-menu-shell)) calc(var(--space-region) * 2)
         color-mix(in srgb, var(--color-background-material-shadow) 58%, transparent);
-    -webkit-backdrop-filter: var(
-      --mash-material-backdrop,
-      blur(var(--blur-menu))
-        saturate(
-          var(
-            --mash-material-backdrop-saturation,
-            var(--effect-material-backdrop-saturation-standard)
-          )
-        )
-    );
-    backdrop-filter: var(
-      --mash-material-backdrop,
-      blur(var(--blur-menu))
-        saturate(
-          var(
-            --mash-material-backdrop-saturation,
-            var(--effect-material-backdrop-saturation-standard)
-          )
-        )
-    );
   }
 
   @supports (dynamic-range-limit: constrained) {
@@ -2294,7 +2275,29 @@
       transparent var(--_mash-menu-material-highlight-stop, 62%)
     );
     background-blend-mode: normal;
-    filter: brightness(var(--mash-material-luminance, var(--effect-material-luminance-standard)));
+    -webkit-backdrop-filter: var(
+      --mash-material-backdrop,
+      blur(var(--blur-menu))
+        saturate(
+          var(
+            --mash-material-backdrop-saturation,
+            var(--effect-material-backdrop-saturation-standard)
+          )
+        )
+        var(--_mash-menu-material-backdrop-luminance)
+    );
+    backdrop-filter: var(
+      --mash-material-backdrop,
+      blur(var(--blur-menu))
+        saturate(
+          var(
+            --mash-material-backdrop-saturation,
+            var(--effect-material-backdrop-saturation-standard)
+          )
+        )
+        var(--_mash-menu-material-backdrop-luminance)
+    );
+    filter: var(--_mash-menu-material-luminance-filter);
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu::part(actions),
@@ -2377,6 +2380,15 @@
     --_mash-menu-material-highlight-stop: calc(
       var(--space-menu-shell) + var(--_mash-menu-row-size)
     );
+    --_mash-menu-material-backdrop-luminance: brightness(1);
+    --_mash-menu-material-luminance-filter: brightness(
+      var(--mash-material-luminance, var(--effect-material-luminance-standard))
+    );
+    --_mash-menu-content-scrim: color-mix(
+      in srgb,
+      var(--_mash-component-surface-raised) 86%,
+      transparent
+    );
     --_mash-menu-density-inline-size: var(--layout-menu-inline-regular);
     --_mash-menu-inline-size: max-content;
     --_mash-menu-min-inline-size: var(--layout-menu-inline-mini);
@@ -2404,6 +2416,15 @@
 
   :where([data-mash-catalogue="mash"][data-theme="dark"]) :is(ui-menu, ui-context-menu),
   :where([data-mash-catalogue="mash"]) :where([data-theme="dark"]) :is(ui-menu, ui-context-menu) {
+    --_mash-menu-content-scrim: color-mix(
+      in srgb,
+      var(--_mash-component-surface-raised) 96%,
+      transparent
+    );
+    --_mash-menu-material-backdrop-luminance: brightness(
+      var(--mash-material-luminance, var(--effect-material-luminance-standard))
+    );
+    --_mash-menu-material-luminance-filter: none;
     --_mash-menu-material-highlight: color-mix(
       in srgb,
       var(--mash-material-background-highlight, var(--color-background-material-highlight)) 38%,
