@@ -16,13 +16,6 @@ import { fileURLToPath } from "node:url";
 
 const execFileAsync = promisify(execFile);
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const BLOCKED_TERMS = [
-  ["g", "pui"].join(""),
-  ["g", "pui-kit"].join(""),
-  ["pa", "rity"].join(""),
-  ["base", "-ui"].join(""),
-  ["Base", " UI"].join(""),
-];
 const TEXT_FILE_EXTENSIONS = new Set([
   ".css",
   ".html",
@@ -46,10 +39,6 @@ const SIZE_AXES = new Set([
   "type-preset",
 ]);
 
-function lineAt(source, index) {
-  return source.slice(0, index).split("\n").length;
-}
-
 async function trackedFiles() {
   const { stdout } = await execFileAsync("git", ["ls-files"], { cwd: ROOT });
   return stdout
@@ -58,18 +47,6 @@ async function trackedFiles() {
     .filter(Boolean)
     .filter((file) => !IGNORED_FILES.has(file))
     .filter((file) => TEXT_FILE_EXTENSIONS.has(path.extname(file)));
-}
-
-async function checkBlockedTerms(files, problems) {
-  for (const file of files) {
-    const source = await readFile(path.join(ROOT, file), "utf8");
-    for (const term of BLOCKED_TERMS) {
-      const expression = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
-      for (const match of source.matchAll(expression)) {
-        problems.push(`${file}:${lineAt(source, match.index ?? 0)} contains blocked term`);
-      }
-    }
-  }
 }
 
 async function checkSizeAxes(files, problems) {
@@ -122,7 +99,6 @@ async function main() {
   const problems = [];
   const files = await trackedFiles();
 
-  await checkBlockedTerms(files, problems);
   await checkSizeAxes(files, problems);
   await checkDimensionTokenFamilies(problems);
 

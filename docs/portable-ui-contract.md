@@ -1,8 +1,13 @@
 # Portable UI Contract
 
-Mash components are behaviour and accessibility primitives, not visual
-imitations of another toolkit. Every renderer shares one semantic-node contract
-and can have multiple visual catalogues.
+Mash components separate behaviour and accessibility from their visual recipe.
+GPUI Kit's component examples are the visual target for the initial Mash
+catalogue. Matching that target does not require copying its Rust API or making
+DOM topology the portable semantic contract. Every renderer shares one
+semantic-node contract and can have multiple visual catalogues.
+
+The [GPUI parity audit](gpui-parity-audit.md) records the current inventory,
+conflicting legacy assumptions, and the order of the base-library cleanup.
 
 Coverage claims are intentionally scoped: they must name the Mash contract
 surface, the renderer binding, and the behaviour snapshot that was checked.
