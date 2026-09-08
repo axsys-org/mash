@@ -124,6 +124,10 @@
       "types": "./dist/gesture/gesture.d.ts",
       "import": "./dist/gesture/gesture.js"
     },
+    "./command": {
+      "types": "./dist/command/command.d.ts",
+      "import": "./dist/command/command.js"
+    },
     "./gesture-binding": {
       "types": "./dist/gesture-binding/gesture-binding.d.ts",
       "import": "./dist/gesture-binding/gesture-binding.js"
@@ -691,6 +695,10 @@
     "./reveal/register": {
       "types": "./dist/reveal/register.d.ts",
       "import": "./dist/reveal/register.js"
+    },
+    "./selection": {
+      "types": "./dist/selection/selection.d.ts",
+      "import": "./dist/selection/selection.js"
     },
     "./custom-elements.json": "./custom-elements.json",
     "./package.json": "./package.json"

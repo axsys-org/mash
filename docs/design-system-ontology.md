@@ -5,24 +5,50 @@ tokens, catalogue recipes, and examples evolve in different threads.
 
 ## Contract Surfaces
 
-| Surface              | Meaning                                                                          | Source of truth                                                                    | Not this                                                        |
-| -------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Semantic node        | Renderer-neutral identity, role, and parent relationship for meaningful anatomy. | Component JSDoc `@mashnode` / `@mashrole`, emitted through `custom-elements.json`. | A CSS selector, DOM requirement, or token name.                 |
-| Attribute / property | Public configuration or reflected state.                                         | Component class `properties` and tests.                                            | A styling hook invented only for a recipe.                      |
-| Slot                 | Authored light-DOM content owned by the caller.                                  | `@slot` docs and rendered shadow slots.                                            | Shadow anatomy or a guaranteed layout wrapper.                  |
-| CSS part             | Renderer-owned shadow anatomy that a catalogue may style.                        | `@csspart` docs and `part` attributes.                                             | New behavior, state, or product meaning.                        |
-| Custom state         | Behavior state exposed through `ElementInternals.states`.                        | Component internals and `@cssstate` docs.                                          | A presentational class or replacement for an attribute.         |
-| Event                | Output or request from the component contract.                                   | Typed `CustomEvent` detail and tests.                                              | Analytics, routing, or app workflow state.                      |
-| Reference token      | Primitive raw value such as a spacing step or color ramp entry.                  | `packages/tokens/src/reference`.                                                   | Something application or catalogue CSS should consume directly. |
-| Semantic token       | Public role value such as control padding, body type, or focus ring color.       | `packages/tokens/src/semantic` and themes.                                         | Component API state.                                            |
-| Catalogue recipe     | Opt-in visual pronunciation of public parts, states, and semantic tokens.        | `packages/*/src/catalogue/mash.css`.                                               | Headless component behavior or a second token system.           |
-| Tailwind adapter     | Generated utility and variant vocabulary over tokens, slots, parts, and states.  | `scripts/build-tailwind-components.mjs` and token build output.                    | Hand-authored component contract.                               |
-| Example utility      | Catalogue demo layout and product-like scaffolding.                              | `apps/catalog/src/utility-recipes.ts`.                                             | Reusable design-system requirement.                             |
-| Fragment preset      | Reusable authored HTML arrangement over several primitives.                      | Curated examples, docs, and future Foil fragment registries.                       | A new primitive or a product workflow in disguise.              |
+| Surface              | Meaning                                                                           | Source of truth                                                                                     | Not this                                                        |
+| -------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Semantic node        | Renderer-neutral identity, role, and parent relationship for meaningful anatomy.  | Component JSDoc `@mashnode` / `@mashrole`, emitted as `declaration.mash` in `custom-elements.json`. | A CSS selector, DOM requirement, or token name.                 |
+| Attribute / property | Public configuration or reflected state.                                          | Component class `properties` and tests.                                                             | A styling hook invented only for a recipe.                      |
+| Slot                 | Authored light-DOM content owned by the caller.                                   | `@slot` docs and rendered shadow slots.                                                             | Shadow anatomy or a guaranteed layout wrapper.                  |
+| CSS part             | Renderer-owned shadow anatomy that a catalogue may style.                         | `@csspart` docs and `part` attributes.                                                              | New behavior, state, or product meaning.                        |
+| Custom state         | Behavior state exposed through `ElementInternals.states`.                         | Component internals and `@cssstate` docs.                                                           | A presentational class or replacement for an attribute.         |
+| Event                | Output or request from the component contract.                                    | Typed `CustomEvent` detail and tests.                                                               | Analytics, routing, or app workflow state.                      |
+| Reference token      | Primitive raw value such as a spacing step or color ramp entry.                   | `packages/tokens/src/reference`.                                                                    | Something application or catalogue CSS should consume directly. |
+| Semantic token       | Public role value such as control padding, body type, or focus ring color.        | `packages/tokens/src/semantic` and themes.                                                          | Component API state.                                            |
+| Catalogue recipe     | Opt-in visual pronunciation of public parts, states, and semantic tokens.         | `packages/*/src/catalogue/mash.css`.                                                                | Headless component behavior or a second token system.           |
+| Tailwind adapter     | Generated utility and variant vocabulary over tokens, slots, parts, and states.   | `scripts/build-tailwind-components.mjs` and token build output.                                     | Hand-authored component contract.                               |
+| Example utility      | Catalogue demo layout and product-like scaffolding.                               | `apps/catalog/src/utility-recipes.ts`.                                                              | Reusable design-system requirement.                             |
+| Fragment preset      | Reusable authored HTML arrangement over several primitives.                       | Curated examples, docs, and future Foil fragment registries.                                        | A new primitive or a product workflow in disguise.              |
+| Command              | Named semantic action independent of toolbar, menu, gesture, or keyboard trigger. | `CommandRegistry` modules and completed `mash-command` events.                                      | A button instance or direct editor mutation.                    |
+| Selection            | Normalized contextual state supplied by a platform or editor adapter.             | `SelectionManager` records and adapter contracts.                                                   | Browser focus or a document model.                              |
+| Service              | Narrow imperative capability owned by one host scope.                             | Contextual host integration code.                                                                   | A styling primitive, global singleton, or dependency bag.       |
+| Extension / profile  | Registration contribution and a named environment bundle of contributions.        | Host packages and preset composition.                                                               | Theme, density, size, or component variant.                     |
 
 `custom-elements.json` is machine-readable contract output, not prose to edit by
 hand. Regenerate it from source JSDoc after any anatomy, event, state, or doc
 change.
+
+The versioned extension grammar, addressing, sizing axes, and validation rules
+are defined in [`mash-contract.md`](mash-contract.md). Runtime commands and
+selections are deliberately adjacent to, but not embedded inside, one custom
+element's anatomy tree.
+
+## Contextual Runtime
+
+Contextual UI follows one directional contract:
+
+```text
+editor/platform state -> adapter snapshot -> selection/capability context
+                       -> command resolution -> toolbar/menu/gesture projection
+user action            -> mash-command -> host execution -> transaction/history
+```
+
+The host owns records, permissions, mutations, transactions, undo history,
+persistence, and collaboration. Mash owns action descriptions, normalized
+selection channels, accessible interaction primitives, composed command events,
+semantic topology, tokens, and catalogue recipes. A contextual widget may retain
+a selection while focus moves into its controls, but it must not infer or mutate
+an editor's private model.
 
 ## Composition Tiers
 

@@ -84,6 +84,20 @@ export type {
   MashCommandDetail,
 } from "./gesture/gesture.js";
 export { UIGestureBinding } from "./gesture-binding/gesture-binding.js";
+export { CommandRegistry } from "./command/command.js";
+export type {
+  CommandCondition,
+  CommandDefinition,
+  CommandExecutionInput,
+  CommandExecutionPolicy,
+  CommandHostOptions,
+  CommandModule,
+  CommandPlacement,
+  CommandRegistration,
+  CommandRunInput,
+  CommandSearchOptions,
+  ResolvedCommand,
+} from "./command/command.js";
 export { UIInput } from "./input/input.js";
 export type {
   InputEnterDetail,
@@ -180,6 +194,15 @@ export type {
   ScrollTargetAlignment,
   ScrollToTargetOptions,
 } from "./scroll-area/scroll-area.js";
+export { DOMTextSelectionAdapter, SelectionManager } from "./selection/selection.js";
+export type {
+  DOMTextSelectionAdapterOptions,
+  DOMTextSelectionData,
+  DOMTextSelectionRecord,
+  SelectionChange,
+  SelectionRecord,
+  SelectionSubscription,
+} from "./selection/selection.js";
 export { UISelect } from "./select/select.js";
 export { UISeparator } from "./separator/separator.js";
 export type { SeparatorOrientation } from "./separator/separator.js";
