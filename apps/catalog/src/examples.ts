@@ -2696,6 +2696,55 @@ export function MarkdownFrame({ html }: { html: string }) {
       { compositionOnly: true },
     ),
   ],
+  "ui-file-upload": [
+    example(
+      "Image asset field",
+      `
+        <section class="catalog-example example-file-upload-panel" data-catalog-file-upload-demo>
+          <header class="example-file-upload-heading">
+            <ui-icon name="object.image" label=""></ui-icon>
+            <div class="example-file-upload-copy"><strong>Project cover</strong><span>Workspace header and shared previews</span></div>
+            <ui-badge size="small" tone="warning" data-catalog-file-upload-count>Empty</ui-badge>
+          </header>
+          <ui-file-upload class="example-file-upload" name="cover" accept="image/png,image/jpeg,image/webp" max-size="12582912" required label="Choose a project cover" data-catalog-file-upload>
+            <ui-icon slot="prefix" name="action.upload" label=""></ui-icon>
+            Choose image
+            <span slot="description">PNG, JPEG, or WebP · 12 MB maximum</span>
+            <output slot="selection" class="example-file-upload-selection" aria-live="polite" data-catalog-file-upload-output>No files selected</output>
+          </ui-file-upload>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "The form-associated picker owns native activation, drag state, file policy, and validity while the application retains preview and persistence policy.",
+        stageLayout: "start",
+      },
+    ),
+    example(
+      "Mixed media queue",
+      `
+        <section class="catalog-example example-file-upload-panel" data-catalog-file-upload-demo>
+          <header class="example-file-upload-heading">
+            <ui-icon name="object.video" label=""></ui-icon>
+            <div class="example-file-upload-copy"><strong>Media handoff</strong><span>Reference footage, audio, and stills</span></div>
+            <ui-button type="button" size="xsmall" variant="quiet" data-catalog-file-upload-clear>Clear</ui-button>
+          </header>
+          <ui-file-upload class="example-file-upload" name="media" accept="image/*,audio/*,video/*" multiple max-files="4" max-size="104857600" label="Choose project media" data-catalog-file-upload>
+            <ui-icon slot="prefix" name="action.upload" label=""></ui-icon>
+            Add media
+            <span slot="description">Up to four files · 100 MB each</span>
+            <output slot="selection" class="example-file-upload-selection" aria-live="polite" data-catalog-file-upload-output>No files selected</output>
+          </ui-file-upload>
+          <ol class="example-file-upload-queue" aria-label="Selected media" data-catalog-file-upload-queue></ol>
+        </section>`,
+      {
+        compositionOnly: true,
+        description:
+          "Multiple selection reports one immutable accepted set plus typed rejections; this authored queue is a replaceable consumer of that event.",
+        stageLayout: "start",
+      },
+    ),
+  ],
   "ui-intl-formatter": [
     example(
       "Localized project metrics",
@@ -3826,67 +3875,161 @@ export function MarkdownFrame({ html }: { html: string }) {
       `
         <section class="catalog-example example-editing-playground" data-catalog-editing-playground>
           <header class="example-editing-header">
-            <ui-path size="small" path="/workspace/migrations/billing"><span slot="title">Billing migration</span></ui-path>
+            <ui-path size="small" path="/studio/systems/agent-workbench"><span slot="title">Agent workbench</span></ui-path>
             <span class="example-editing-presence"><span class="example-editing-presence-dot"></span>Saved</span>
             <ui-toolbar class="example-editing-history" label="Document history">
               <ui-button type="button" size="xsmall" variant="quiet" compact aria-label="Undo" title="Undo" data-editing-command="history.undo"><ui-icon name="navigation.back" label=""></ui-icon></ui-button>
               <ui-button type="button" size="xsmall" variant="quiet" compact aria-label="Redo" title="Redo" data-editing-command="history.redo"><ui-icon name="action.refresh" label=""></ui-icon></ui-button>
             </ui-toolbar>
             <ui-avatar size="small">AM</ui-avatar>
-            <ui-button type="button" size="small" variant="secondary">Share</ui-button>
+            <ui-button type="button" size="small" variant="primary">Publish</ui-button>
             <ui-button type="button" size="small" variant="quiet" compact aria-label="More document actions"><ui-icon name="navigation.more.horizontal" label=""></ui-icon></ui-button>
           </header>
           <div class="example-editing-workspace">
             <aside class="example-editing-outline" aria-label="Document outline">
-              <div class="example-editing-panel-heading"><strong>Outline</strong><ui-badge size="small">4</ui-badge></div>
+              <div class="example-editing-panel-heading"><strong>Outline</strong><ui-badge size="small">6</ui-badge></div>
               <nav class="example-editing-outline-list" aria-label="Headings">
-                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="title">Migration brief</ui-button>
-                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="summary">Summary</ui-button>
-                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="priority">Priorities</ui-button>
-                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="decision">Decision</ui-button>
+                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="title">Adaptive workbench</ui-button>
+                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="architecture">Architecture</ui-button>
+                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="workstreams">Workstreams</ui-button>
+                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="release">Release gates</ui-button>
+                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="media">Media handoff</ui-button>
+                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="signoff">Sign-off</ui-button>
               </nav>
               <div class="example-editing-panel-meta">
                 <ui-icon name="status.information" label=""></ui-icon>
-                <span>Finance workspace</span>
+                <span>Systems studio</span>
               </div>
             </aside>
             <main class="example-editing-canvas">
-              <article id="editing-playground-surface" class="example-editing-document" aria-label="Migration brief" data-editing-surface>
+              <article id="editing-playground-surface" class="example-editing-document" aria-label="Adaptive workbench brief" data-editing-surface>
+                <section data-editing-block="cover" data-editing-block-kind="image">
+                  <div data-editing-block-content>
+                    <figure class="example-editing-media example-editing-cover" data-editing-component="image" data-editing-upload-container="image">
+                      <ui-image class="example-editing-image-preview" src="/assets/editor-workbench-cover.png" alt="Material samples and interface diagrams arranged on a studio worktable" width="1672" height="941" loading="eager">
+                        <span slot="placeholder">Decoding cover</span>
+                        <span slot="error">Cover unavailable</span>
+                      </ui-image>
+                      <figcaption class="example-editing-media-caption">
+                        <div><span contenteditable="true" spellcheck="true" data-editing-text>Material studies for a portable interface grammar.</span><small>Systems studio · September 2026</small></div>
+                        <ui-file-upload class="example-editing-upload-compact" accept="image/*" label="Replace cover image" max-size="104857600" data-editing-upload="image"><ui-icon slot="prefix" name="object.image" label=""></ui-icon>Replace<span slot="description">Images up to 100 MB</span></ui-file-upload>
+                      </figcaption>
+                    </figure>
+                  </div>
+                </section>
                 <section data-editing-block="meta" data-editing-block-kind="caption">
-                  <div data-editing-block-content><p class="example-editing-kicker" contenteditable="true" spellcheck="true" data-editing-text>MIGRATION PLAN · SEPTEMBER 7</p></div>
+                  <div data-editing-block-content>
+                    <div class="example-editing-document-meta">
+                      <p class="example-editing-kicker" contenteditable="true" spellcheck="true" data-editing-text>WORKING BRIEF · SEPTEMBER 7</p>
+                      <div><ui-badge size="small" tone="positive">On track</ui-badge><ui-badge size="small" tone="accent">v0.4</ui-badge><ui-avatar size="small">AM</ui-avatar><ui-avatar size="small">SK</ui-avatar></div>
+                    </div>
+                  </div>
                 </section>
                 <section data-editing-block="title" data-editing-block-kind="title">
-                  <div data-editing-block-content><h1 contenteditable="true" spellcheck="true" data-editing-text>Migration brief</h1></div>
+                  <div data-editing-block-content><h1 contenteditable="true" spellcheck="true" data-editing-text>Adaptive workbench</h1></div>
                 </section>
                 <section data-editing-block="summary" data-editing-block-kind="body">
-                  <div data-editing-block-content><p contenteditable="true" spellcheck="true" data-editing-text>The billing migration should keep invoice review fast while the team replaces brittle one-off approval states.</p></div>
+                  <div data-editing-block-content><p class="example-editing-lead" contenteditable="true" spellcheck="true" data-editing-text>One document can hold prose, data, controls, media, and future agent output without surrendering its meaning to a single framework.</p></div>
                 </section>
-                <section data-editing-block="priority" data-editing-block-kind="heading">
-                  <div data-editing-block-content><h2 contenteditable="true" spellcheck="true" data-editing-text>Priorities</h2></div>
-                </section>
-                <section data-editing-block="priority-copy" data-editing-block-kind="body">
-                  <div data-editing-block-content><p contenteditable="true" spellcheck="true" data-editing-text>Prioritize <span data-editing-initial>international reconciliation</span> before pushing the final customer notice. Keep the operational handoff legible for support and finance.</p></div>
+                <section data-editing-block="metrics" data-editing-block-kind="metrics">
+                  <div data-editing-block-content>
+                    <dl class="example-editing-metrics" data-editing-component="metrics">
+                      <div class="example-editing-metric"><dt>Block contracts</dt><dd>24</dd><ui-badge size="small" tone="positive">+9 this pass</ui-badge></div>
+                      <div class="example-editing-metric"><dt>Renderer coverage</dt><dd>91%</dd><ui-badge size="small" tone="accent">Web baseline</ui-badge></div>
+                      <div class="example-editing-metric"><dt>Open decisions</dt><dd>3</dd><ui-badge size="small" tone="warning">Needs review</ui-badge></div>
+                    </dl>
+                  </div>
                 </section>
                 <section data-editing-block="decision" data-editing-block-kind="callout">
                   <div data-editing-block-content>
                     <ui-card class="example-editing-callout" data-editing-component="callout">
-                      <strong slot="header">Decision</strong>
-                      <p slot="content" contenteditable="true" spellcheck="true" data-editing-text>Ship the ledger adapter behind a measured rollout and preserve the existing export path.</p>
+                      <strong slot="header">Design decision</strong>
+                      <p slot="content" contenteditable="true" spellcheck="true" data-editing-text>Stream stable block records; keep files, collaboration, persistence, and rendering adapters replaceable.</p>
+                      <ui-badge slot="meta" size="small" tone="accent">Accepted</ui-badge>
                     </ui-card>
                   </div>
+                </section>
+                <section data-editing-block="architecture" data-editing-block-kind="heading">
+                  <div data-editing-block-content><h2 contenteditable="true" spellcheck="true" data-editing-text>Architecture</h2></div>
+                </section>
+                <section data-editing-block="architecture-copy" data-editing-block-kind="body">
+                  <div data-editing-block-content><p contenteditable="true" spellcheck="true" data-editing-text>The document record carries stable IDs, versions, JSON props, and ordered operations. A renderer adapter turns each record into durable HTML, while <span data-editing-initial>selection and commands remain shared context</span> across toolbars, menus, keyboard gestures, and agent insertions.</p></div>
+                </section>
+                <section data-editing-block="architecture-tabs" data-editing-block-kind="tabs">
+                  <div data-editing-block-content>
+                    <ui-tabs class="example-editing-tabs" label="Architecture views" value="document" data-editing-component="tabs">
+                      <ui-tab slot="tab" value="document">Document</ui-tab>
+                      <ui-tab slot="tab" value="agents">Agents</ui-tab>
+                      <ui-tab slot="tab" value="handoff">Handoff</ui-tab>
+                      <ui-tab-panel slot="panel" value="document"><p contenteditable="true" spellcheck="true" data-editing-text>Authored HTML remains readable before the editor runtime upgrades it.</p></ui-tab-panel>
+                      <ui-tab-panel slot="panel" value="agents"><p contenteditable="true" spellcheck="true" data-editing-text>Monotonic frames make partial output deterministic, replayable, and rejectable.</p></ui-tab-panel>
+                      <ui-tab-panel slot="panel" value="handoff"><p contenteditable="true" spellcheck="true" data-editing-text>Local file handles become asset IDs only when an application chooses storage.</p></ui-tab-panel>
+                    </ui-tabs>
+                  </div>
+                </section>
+                <section data-editing-block="workstreams" data-editing-block-kind="heading">
+                  <div data-editing-block-content><h2 contenteditable="true" spellcheck="true" data-editing-text>Workstreams</h2></div>
+                </section>
+                <section data-editing-block="workstream-table" data-editing-block-kind="table">
+                  <div data-editing-block-content>
+                    <ui-table label="Release workstreams" row-count="4" column-count="4" data-editing-component="table">
+                      <ui-table-header><ui-table-row row-index="1"><ui-table-head column-index="1"><span contenteditable="true">Workstream</span></ui-table-head><ui-table-head column-index="2"><span contenteditable="true">Status</span></ui-table-head><ui-table-head column-index="3"><span contenteditable="true">Owner</span></ui-table-head><ui-table-head column-index="4"><span contenteditable="true">Window</span></ui-table-head></ui-table-row></ui-table-header>
+                      <ui-table-body>
+                        <ui-table-row row-index="2"><ui-table-cell column-index="1"><span contenteditable="true">Interface schema</span></ui-table-cell><ui-table-cell column-index="2"><ui-badge size="small" tone="warning">In review</ui-badge></ui-table-cell><ui-table-cell column-index="3"><span contenteditable="true">Platform</span></ui-table-cell><ui-table-cell column-index="4">Sep 09</ui-table-cell></ui-table-row>
+                        <ui-table-row row-index="3"><ui-table-cell column-index="1"><span contenteditable="true">Media pipeline</span></ui-table-cell><ui-table-cell column-index="2"><ui-badge size="small" tone="positive">Ready</ui-badge></ui-table-cell><ui-table-cell column-index="3"><span contenteditable="true">Studio</span></ui-table-cell><ui-table-cell column-index="4">Sep 11</ui-table-cell></ui-table-row>
+                        <ui-table-row row-index="4"><ui-table-cell column-index="1"><span contenteditable="true">Agent renderer</span></ui-table-cell><ui-table-cell column-index="2"><ui-badge size="small" tone="accent">Building</ui-badge></ui-table-cell><ui-table-cell column-index="3"><span contenteditable="true">Systems</span></ui-table-cell><ui-table-cell column-index="4">Sep 14</ui-table-cell></ui-table-row>
+                      </ui-table-body>
+                    </ui-table>
+                  </div>
+                </section>
+                <section data-editing-block="release" data-editing-block-kind="heading">
+                  <div data-editing-block-content><h2 contenteditable="true" spellcheck="true" data-editing-text>Release gates</h2></div>
+                </section>
+                <section data-editing-block="release-progress" data-editing-block-kind="progress">
+                  <div data-editing-block-content><div class="example-editing-progress" data-editing-component="progress"><div class="example-editing-progress-heading"><strong>Release confidence</strong><ui-badge size="small" tone="positive">82%</ui-badge></div><ui-progress value="82" label="Release confidence"></ui-progress></div></div>
+                </section>
+                <section data-editing-block="release-tasks" data-editing-block-kind="task-list">
+                  <div data-editing-block-content><div class="example-editing-task-list" data-editing-component="task-list"><ui-checkbox checked><span contenteditable="true" spellcheck="true" data-editing-text>Lock the semantic block envelope</span></ui-checkbox><ui-checkbox checked><span contenteditable="true" spellcheck="true" data-editing-text>Exercise image and media handoff</span></ui-checkbox><ui-checkbox><span contenteditable="true" spellcheck="true" data-editing-text>Run the cross-renderer fixture matrix</span></ui-checkbox></div></div>
+                </section>
+                <section data-editing-block="stream-code" data-editing-block-kind="code">
+                  <div data-editing-block-content><ui-typeset class="example-editing-code" preset="code" data-editing-component="code"><pre><code contenteditable="true" spellcheck="false" data-editing-text>await stream.append({
+  type: "callout",
+  props: { tone: "accent", text: delta }
+});</code></pre></ui-typeset></div>
+                </section>
+                <section data-editing-block="media" data-editing-block-kind="heading">
+                  <div data-editing-block-content><h2 contenteditable="true" spellcheck="true" data-editing-text>Media handoff</h2></div>
+                </section>
+                <section data-editing-block="media-copy" data-editing-block-kind="body">
+                  <div data-editing-block-content><p contenteditable="true" spellcheck="true" data-editing-text>Drop a recording into this document. The picker validates locally and emits files; the editor owns temporary previews, and a future workspace adapter can exchange them for persistent asset IDs.</p></div>
+                </section>
+                <section data-editing-block="media-upload" data-editing-block-kind="media">
+                  <div data-editing-block-content><figure class="example-editing-media" data-editing-component="media" data-editing-upload-container="media"><ui-file-upload class="example-editing-upload" accept="audio/*,video/*" label="Choose audio or video" max-size="104857600" data-editing-upload="media"><ui-icon slot="prefix" name="action.upload" label=""></ui-icon>Upload audio or video<span slot="description">MP3, WAV, MP4, WebM, or MOV up to 100 MB</span></ui-file-upload></figure></div>
+                </section>
+                <section data-editing-block="signoff" data-editing-block-kind="heading">
+                  <div data-editing-block-content><h2 contenteditable="true" spellcheck="true" data-editing-text>Sign-off</h2></div>
+                </section>
+                <section data-editing-block="approval" data-editing-block-kind="approval">
+                  <div data-editing-block-content><ui-form class="example-editing-approval" data-editing-component="approval"><ui-field label="Review note"><ui-input slot="control" name="review-note" placeholder="Optional context"></ui-input></ui-field><ui-switch name="notify-team" checked>Notify the workspace</ui-switch><div class="example-editing-approval-actions"><ui-button type="button" variant="secondary">Request changes</ui-button><ui-button type="button" variant="primary" data-editing-demo-button>Approve brief</ui-button></div></ui-form></div>
+                </section>
+                <section data-editing-block="notes" data-editing-block-kind="details">
+                  <div data-editing-block-content><ui-collapsible open data-editing-component="collapsible"><span slot="trigger">Implementation notes</span><p contenteditable="true" spellcheck="true" data-editing-text>Overlay blocks will project through explicit triggers and placement policy; they do not become arbitrary floating DOM merely because an agent asks for one.</p></ui-collapsible></div>
+                </section>
+                <section data-editing-block="quote" data-editing-block-kind="quote">
+                  <div data-editing-block-content><blockquote contenteditable="true" spellcheck="true" data-editing-text>A durable interface keeps its meaning when its host changes.</blockquote></div>
                 </section>
               </article>
             </main>
             <aside class="example-editing-comments" aria-label="Document comments">
-              <div class="example-editing-panel-heading"><strong>Comments</strong><ui-badge size="small" data-editing-comment-count>1</ui-badge></div>
-              <ui-bubble variant="secondary">Confirm the reconciliation owner before the rollout window.</ui-bubble>
+              <div class="example-editing-panel-heading"><strong>Comments</strong><ui-badge size="small" data-editing-comment-count>3</ui-badge></div>
+              <div class="example-editing-comment-thread"><ui-bubble variant="secondary">The upload boundary finally reads like a platform primitive, not an app service.</ui-bubble><ui-bubble>Can the stream reject a stale sequence before it mutates the view?</ui-bubble><ui-bubble variant="secondary">Yes. Keep that error visible to the host adapter.</ui-bubble></div>
               <p class="example-editing-comment-latest" data-editing-comment-latest hidden></p>
-              <div class="example-editing-comment-author"><ui-avatar size="small">SK</ui-avatar><span>Sam · Finance</span></div>
+              <div class="example-editing-comment-author"><ui-avatar size="small">SK</ui-avatar><span>Sam · Systems</span></div>
             </aside>
           </div>
           <footer class="example-editing-footer">
             <output data-editing-status>Ready</output>
-            <span>Edited just now</span>
+            <span><span data-editing-block-count>22</span> blocks · edited just now</span>
           </footer>
           <ui-toolbar class="example-editing-block-bar" data-editing-block-toolbar hidden label="Block actions">
             <ui-button type="button" size="xsmall" variant="quiet" compact aria-label="Insert block below" title="Insert block below" data-editing-add-block><ui-icon name="action.add" label=""></ui-icon></ui-button>

@@ -6,6 +6,7 @@ import {
   type CommandDefinition,
   type CommandRegistration,
   type DOMTextSelectionRecord,
+  type FileUploadChangeDetail,
   type ResolvedCommand,
 } from "@mash/ui";
 import {
@@ -20,6 +21,7 @@ import {
   editableSelector,
   insertGroups,
   placeCaretAtEnd,
+  renderUploadedFile,
   setAttributes,
   textOffsetRange,
   type BlockDefinition,
@@ -59,6 +61,7 @@ type EditingResolvedCommand = ResolvedCommand<
 type OpenableElement = HTMLElement & { open: boolean };
 
 const editingPlaygrounds = new Map<HTMLElement, EditingPlayground>();
+const flowingTextBlockKinds = new Set(["body", "heading", "quote", "title"]);
 
 function elementForNode(node: Node): Element | null {
   return node instanceof Element ? node : node.parentElement;
@@ -137,7 +140,9 @@ class EditingPlayground {
   #slashCommands: readonly EditingResolvedCommand[] = [];
   #slashIndex = 0;
   #draggedBlock: HTMLElement | null = null;
-  #commentCount = 1;
+  #commentCount = 3;
+  #assetCount = 0;
+  readonly #assetUrls = new Map<string, string>();
   #positionFrame = 0;
 
   constructor(root: HTMLElement) {
@@ -192,6 +197,7 @@ class EditingPlayground {
     surface.addEventListener("dragover", this.#onDragOver);
     surface.addEventListener("drop", this.#onDrop);
     surface.addEventListener("dragend", this.#onDragEnd);
+    surface.addEventListener("ui-file-upload-change", this.#onFileUploadChange);
     this.#selectInitialText();
     this.#sync();
   }
@@ -209,10 +215,13 @@ class EditingPlayground {
     this.#surface.removeEventListener("dragover", this.#onDragOver);
     this.#surface.removeEventListener("drop", this.#onDrop);
     this.#surface.removeEventListener("dragend", this.#onDragEnd);
+    this.#surface.removeEventListener("ui-file-upload-change", this.#onFileUploadChange);
     this.#selectionAdapter.destroy();
     this.#history.destroy();
     this.#toolbarResize.disconnect();
     for (const registration of this.#registrations) registration.destroy();
+    for (const url of this.#assetUrls.values()) URL.revokeObjectURL(url);
+    this.#assetUrls.clear();
     if (this.#positionFrame) cancelAnimationFrame(this.#positionFrame);
   }
 
@@ -395,7 +404,7 @@ class EditingPlayground {
     }));
 
     const insertionCommands: EditingCommand[] = blockDefinitions.map((block, order) => ({
-      id: `block.insert.${block.kind}`,
+      id: `block.insert.${block.type}`,
       label: block.label,
       description: block.description,
       group: block.group,
@@ -529,6 +538,10 @@ class EditingPlayground {
     if (!block.dataset.editingBlock) {
       block.dataset.editingBlock = allocateBlockId();
     }
+    const kind = block.dataset.editingBlockKind ?? "body";
+    block.dataset.editingBlockVersion ??= String(
+      blockDefinitions.find((definition) => definition.type === kind)?.version ?? 1,
+    );
     if (!block.querySelector(":scope > [data-editing-block-rail]")) {
       const rail = document.createElement("div");
       rail.dataset.editingBlockRail = "";
@@ -564,8 +577,7 @@ class EditingPlayground {
 
   #onHistoryChange(restored: boolean): void {
     if (restored) {
-      document.getSelection()?.removeAllRanges();
-      this.#selectionManager.clear("text");
+      this.#selectionAdapter.clear();
       this.#selectedBlockIds.clear();
       this.#ensureBlockAnatomy();
       if (!this.#activeBlock())
@@ -644,8 +656,7 @@ class EditingPlayground {
     block.dataset.editingBlockKind = kind;
     applyStageUtilityRecipes(block);
     this.#activeBlockId = block.dataset.editingBlock ?? null;
-    this.#selectionManager.clear("text");
-    document.getSelection()?.removeAllRanges();
+    this.#selectionAdapter.clear();
     this.#history.commit();
     this.#focusBlock(block);
     this.#sync(`${blockKindLabels[kind]} block`);
@@ -656,7 +667,7 @@ class EditingPlayground {
     const anchor = session?.anchorBlock ?? context.activeBlock ?? this.#blocks().at(-1) ?? null;
     if (session?.triggerRange) session.triggerRange.deleteContents();
     const historyCheckpoint = session?.triggerRange ? session.historyIndex : null;
-    const block = createBlock(definition.kind, definition.create());
+    const block = createBlock(definition.type, definition.create());
     this.#ensureAnatomyForBlock(block);
 
     const replaceAnchor = Boolean(
@@ -748,8 +759,7 @@ class EditingPlayground {
   }
 
   #openInsertionMenu(anchorBlock: HTMLElement, rect: DOMRectReadOnly): void {
-    document.getSelection()?.removeAllRanges();
-    this.#selectionManager.clear("text");
+    this.#selectionAdapter.clear();
     this.#slashSession = {
       anchorBlock,
       historyIndex: this.#history.index,
@@ -763,6 +773,11 @@ class EditingPlayground {
   }
 
   #updateSlashFromEditable(editable: HTMLElement): void {
+    const block = editable.closest<HTMLElement>(blockSelector);
+    if (!block || !flowingTextBlockKinds.has(block.dataset.editingBlockKind ?? "")) {
+      this.#closeSlash();
+      return;
+    }
     const selection = document.getSelection();
     if (!selection?.rangeCount) {
       this.#closeSlash();
@@ -785,7 +800,7 @@ class EditingPlayground {
     const query = match[1] ?? "";
     const start = text.length - query.length - 1;
     const triggerRange = textOffsetRange(editable, start, text.length);
-    const anchorBlock = editable.closest<HTMLElement>(blockSelector);
+    const anchorBlock = block;
     if (!triggerRange || !anchorBlock) {
       this.#closeSlash();
       return;
@@ -968,8 +983,7 @@ class EditingPlayground {
       this.#selectionAnchorId = id;
     }
     this.#activeBlockId = id;
-    document.getSelection()?.removeAllRanges();
-    this.#selectionManager.clear("text");
+    this.#selectionAdapter.clear();
     this.#sync(`${this.#selectedBlockIds.size} block selected`);
   }
 
@@ -1020,6 +1034,8 @@ class EditingPlayground {
     }
 
     const words = this.#surface.textContent?.trim().split(/\s+/).filter(Boolean).length ?? 0;
+    const blockCount = this.#root.querySelector<HTMLElement>("[data-editing-block-count]");
+    if (blockCount) blockCount.textContent = String(this.#blocks().length);
     const status =
       feedback ?? (selection?.data.text ? selectionStatus(selection.data.text) : `${words} words`);
     if (this.#output) this.#output.value = status;
@@ -1175,6 +1191,30 @@ class EditingPlayground {
     this.#sync();
   };
 
+  #onFileUploadChange = (event: Event): void => {
+    const detail = (event as CustomEvent<FileUploadChangeDetail>).detail;
+    const upload = elementFromPath(event, "[data-editing-upload]");
+    const container = upload?.closest<HTMLElement>("[data-editing-upload-container]");
+    const file = detail?.accepted[0];
+    if (!upload || !container || !file) {
+      const reason = detail?.rejected[0]?.reason;
+      if (reason === "max-size") this.#sync("That file is larger than 100 MB");
+      else if (reason === "accept") this.#sync("That file type is not supported here");
+      return;
+    }
+    const assetId = `local-asset-${++this.#assetCount}`;
+    const url = URL.createObjectURL(file);
+    this.#assetUrls.set(assetId, url);
+    this.#selectionAdapter.clear();
+    this.#selectedBlockIds.clear();
+    renderUploadedFile(container, file, url, assetId);
+    const block = container.closest<HTMLElement>(blockSelector);
+    if (block) this.#activeBlockId = block.dataset.editingBlock ?? null;
+    applyStageUtilityRecipes(container);
+    this.#history.commit();
+    this.#sync(`${file.name} added`);
+  };
+
   #onKeydown = (event: KeyboardEvent): void => {
     if (event.isComposing) return;
     if (this.#slashSession) {
@@ -1223,19 +1263,23 @@ class EditingPlayground {
       !event.shiftKey &&
       !event.metaKey &&
       !event.ctrlKey &&
-      block?.dataset.editingBlockKind !== "code"
+      flowingTextBlockKinds.has(block?.dataset.editingBlockKind ?? "")
     ) {
       event.preventDefault();
       this.#splitBlock(editable);
       return;
     }
-    if (editable && event.key === "Backspace" && this.#removeEmptyBlockBackward(editable)) {
+    if (
+      editable &&
+      flowingTextBlockKinds.has(block?.dataset.editingBlockKind ?? "") &&
+      event.key === "Backspace" &&
+      this.#removeEmptyBlockBackward(editable)
+    ) {
       event.preventDefault();
       return;
     }
     if (event.key !== "Escape") return;
-    document.getSelection()?.removeAllRanges();
-    this.#selectionManager.clear("text");
+    this.#selectionAdapter.clear();
     this.#selectedBlockIds.clear();
     block?.focus({ preventScroll: true });
     this.#sync();
@@ -1244,6 +1288,8 @@ class EditingPlayground {
   #onFocusIn = (event: FocusEvent): void => {
     const focusTarget = elementFromPath(event, "[data-editing-focus-block]");
     if (focusTarget) {
+      this.#selectionAdapter.clear();
+      this.#selectedBlockIds.clear();
       const block = this.#surface.querySelector<HTMLElement>(
         `${blockSelector}[data-editing-block="${CSS.escape(focusTarget.dataset.editingFocusBlock ?? "")}"]`,
       );

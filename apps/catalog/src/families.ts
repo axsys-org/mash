@@ -51,6 +51,7 @@ const families: ComponentFamily[] = [
       "ui-field",
       "ui-fieldset",
       "ui-form",
+      "ui-file-upload",
       "ui-input-group",
       "ui-input",
       "ui-textarea",

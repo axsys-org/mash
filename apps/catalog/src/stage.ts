@@ -41,6 +41,7 @@ import {
   type LinearWorkspaceSnapshot,
 } from "./linear-workspace-state.js";
 import "./editing-playground.js";
+import "./file-upload-examples.js";
 
 // Tells the parent the frame is ready without it having to poll for the
 // registry being populated.

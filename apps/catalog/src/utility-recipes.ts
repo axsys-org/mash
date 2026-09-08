@@ -300,10 +300,20 @@ const stageRecipes: UtilityRecipes = {
   "example-switch-copy": "grid min-w-0 gap-[var(--border-hairline)]",
   "example-switch-matrix":
     "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
+  "example-file-upload-panel":
+    "grid w-[min(100%,var(--layout-dimension-content))] gap-container-gap rounded-container border border-border bg-surface px-container-inline py-container-block shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-file-upload-heading":
+    "grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap",
+  "example-file-upload-copy": "grid min-w-0 gap-[var(--border-hairline)] [&>span]:text-text-muted",
+  "example-file-upload": "w-full",
+  "example-file-upload-selection": "block min-w-0 truncate",
+  "example-file-upload-queue": "m-0 grid list-none gap-control-block p-0",
+  "example-file-upload-queue-item":
+    "grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-baseline gap-control-gap rounded-control bg-surface-sunken px-control-inline py-control-block type-label-small [&>strong]:truncate [&>span]:truncate [&>span]:text-text-muted max-[32rem]:grid-cols-1",
   "example-editing-playground":
-    "relative grid h-full min-h-[32rem] w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-canvas text-text",
+    "relative grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-canvas text-text",
   "example-editing-header":
-    "grid min-h-[3.25rem] grid-cols-[minmax(0,1fr)_auto_auto_auto_auto] items-center gap-control-gap border-b border-border bg-surface px-container-inline py-control-block-small max-[42rem]:grid-cols-[minmax(0,1fr)_auto_auto]",
+    "grid min-h-[3.25rem] grid-cols-[minmax(0,1fr)_auto_auto_auto_auto_auto] items-center gap-control-gap border-b border-border bg-surface px-container-inline py-control-block-small max-[42rem]:grid-cols-[minmax(0,1fr)_auto_auto_auto] max-[28rem]:grid-cols-[minmax(0,1fr)_auto_auto] [&>ui-avatar]:max-[28rem]:hidden",
   "example-editing-presence":
     "inline-flex items-center gap-control-block-small type-label-small text-text-muted max-[42rem]:hidden",
   "example-editing-presence-dot": "size-[0.4375rem] rounded-pill bg-positive",
@@ -322,11 +332,40 @@ const stageRecipes: UtilityRecipes = {
   "example-editing-canvas":
     "min-h-0 overflow-auto bg-surface-sunken px-region py-region max-[38rem]:px-container-inline max-[38rem]:py-container-block",
   "example-editing-document":
-    "mx-auto grid min-h-full w-[min(100%,44rem)] content-start gap-control-block-small border border-border bg-surface px-region py-region type-body leading-relaxed shadow-[0_2px_12px_var(--color-shadow)] max-[38rem]:px-container-inline",
+    "mx-auto grid min-h-full w-[min(100%,52rem)] content-start gap-control-block border border-border bg-surface px-region py-region type-body leading-relaxed shadow-[0_2px_12px_var(--color-shadow)] max-[38rem]:px-container-inline",
   "example-editing-kicker": "type-caption1 text-text-muted",
+  "example-editing-cover": "mb-container-block",
+  "example-editing-image-preview":
+    "w-full [&::part(root)]:aspect-[16/9] [&::part(image)]:h-full [&::part(image)]:w-full",
+  "example-editing-document-meta":
+    "flex min-w-0 items-center justify-between gap-control-gap max-[32rem]:items-start",
+  "example-editing-lead": "type-heading text-text-muted",
   "example-editing-callout": "w-full",
   "example-editing-code":
     "block w-full overflow-auto rounded-control border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-editing-metrics":
+    "grid grid-cols-3 border-y border-border py-control-block max-[34rem]:grid-cols-1",
+  "example-editing-metric":
+    "grid min-w-0 gap-control-block-small border-r border-border px-container-inline last:border-r-0 max-[34rem]:border-r-0 max-[34rem]:border-b max-[34rem]:py-container-block max-[34rem]:last:border-b-0",
+  "example-editing-tabs": "block w-full",
+  "example-editing-progress":
+    "grid gap-control-gap rounded-control border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-editing-progress-heading": "flex items-center justify-between gap-control-gap",
+  "example-editing-task-list": "grid gap-control-block",
+  "example-editing-media": "m-0 grid min-w-0 gap-control-block-small",
+  "example-editing-media-caption":
+    "grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-control-gap type-caption1 text-text-muted max-[30rem]:grid-cols-1",
+  "example-editing-upload": "w-full",
+  "example-editing-upload-compact":
+    "justify-self-end [&::part(root)]:gap-0! [&::part(trigger)]:min-h-[var(--layout-dimension-control-xsmall)]! [&::part(trigger)]:w-auto! [&::part(trigger)]:grid-cols-[auto_auto]! [&::part(trigger)]:rounded-control! [&::part(trigger)]:border-solid! [&::part(trigger)]:px-control-inline-small! [&::part(trigger)]:py-control-block-small! [&::part(description)]:hidden! [&::part(suffix)]:hidden!",
+  "example-editing-audio-preview":
+    "grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-container-gap rounded-container border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-editing-video-preview":
+    "aspect-video w-full rounded-container border border-border bg-black object-contain",
+  "example-editing-approval":
+    "grid grid-cols-[minmax(0,1fr)_auto] items-end gap-container-gap border-y border-border py-container-block max-[34rem]:grid-cols-1",
+  "example-editing-approval-actions": "flex flex-wrap justify-end gap-control-gap",
+  "example-editing-comment-thread": "grid content-start gap-control-gap",
   "example-editing-comment-latest":
     "m-0 rounded-control border border-action-border bg-action-wash px-control-inline py-control-block type-label-small text-action",
   "example-editing-comment-author":
@@ -1152,7 +1191,8 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-switch-copy span", "type-label-small text-text-muted"],
   [".example-switch-matrix ui-switch", "justify-self-start"],
   [".example-editing-header ui-path", "min-w-0"],
-  [".example-editing-header > ui-button:last-child", "max-[42rem]:hidden"],
+  [".example-editing-document-meta > div", "flex shrink-0 items-center gap-control-block-small"],
+  [".example-editing-document-meta ui-avatar + ui-avatar", "-ml-control-gap"],
   [
     ".example-editing-outline-list ui-button",
     "w-full [&::part(control)]:w-full! [&::part(control)]:justify-start!",
@@ -1179,6 +1219,21 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     "text-text-muted [&::part(control)]:min-h-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:min-w-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:border-0! [&::part(control)]:px-control-block-small!",
   ],
   [".example-editing-document [data-editing-text]", "min-h-[1lh] min-w-0 outline-none"],
+  [".example-editing-cover ui-image::part(root)", "rounded-[var(--radius-container)]"],
+  [".example-editing-media-caption > div", "grid min-w-0 gap-[var(--border-hairline)]"],
+  [".example-editing-media-caption small", "truncate type-caption1 text-text-muted"],
+  [".example-editing-metrics, .example-editing-metrics dd, .example-editing-metrics dt", "m-0"],
+  [".example-editing-metric dt", "truncate type-caption1 text-text-muted"],
+  [".example-editing-metric dd", "type-title2 text-text"],
+  [".example-editing-metric ui-badge", "justify-self-start"],
+  [".example-editing-tabs ui-tab-panel", "block pt-container-block text-text-muted"],
+  [".example-editing-progress-heading strong", "type-label-small"],
+  [".example-editing-task-list ui-checkbox", "w-full"],
+  [".example-editing-audio-preview > div", "grid min-w-0 gap-[var(--border-hairline)]"],
+  [".example-editing-audio-preview > div span", "truncate type-caption1 text-text-muted"],
+  [".example-editing-audio-preview audio", "col-span-2 w-full"],
+  [".example-editing-approval ui-field", "w-full"],
+  [".example-editing-approval ui-switch", "self-center"],
   [
     ".example-editing-document [data-editing-block-kind='title'] [data-editing-text]",
     "type-title1",
