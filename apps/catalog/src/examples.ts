@@ -1,4 +1,5 @@
 import { components, tokens, valueOf, type ComponentSchema, type Example } from "./schema.js";
+import { blocksuitePlaygroundMarkup } from "./blocksuite-playground-markup.js";
 
 /**
  * A catalog example is deliberately more specific than an `@example` JSDoc
@@ -4102,6 +4103,12 @@ export function MarkdownFrame({ html }: { html: string }) {
         stageLayout: "fill",
       },
     ),
+    example("BlockSuite editor factory", blocksuitePlaygroundMarkup, {
+      compositionOnly: true,
+      description:
+        "The real BlockSuite document engine, page editor, edgeless canvas, and native widgets mounted inside a Mash-owned application shell.",
+      stageLayout: "fill",
+    }),
     example(
       "Docked editor tools",
       `

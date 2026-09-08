@@ -368,6 +368,23 @@ const stageRecipes: UtilityRecipes = {
   "example-editing-comment-thread": "grid content-start gap-control-gap",
   "example-editing-comment-latest":
     "m-0 rounded-control border border-action-border bg-action-wash px-control-inline py-control-block type-label-small text-action",
+  "example-blocksuite-playground":
+    "relative grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-canvas text-text",
+  "example-blocksuite-header":
+    "grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-container-gap border-b border-border bg-surface-raised px-container-inline py-control-block max-[42rem]:grid-cols-[minmax(0,1fr)_auto]",
+  "example-blocksuite-identity": "flex min-w-0 items-center gap-control-gap",
+  "example-blocksuite-mark":
+    "grid size-[2rem] shrink-0 place-items-center rounded-control bg-action type-label-large text-on-action",
+  "example-blocksuite-mash-toolbar":
+    "justify-self-center bg-surface-sunken p-[var(--border-hairline)]",
+  "example-blocksuite-license": "justify-self-end max-[42rem]:hidden",
+  "example-blocksuite-editor-shell":
+    "relative min-h-0 min-w-0 overflow-hidden bg-surface [isolation:isolate]",
+  "example-blocksuite-loading":
+    "absolute [inset:0] grid place-content-center justify-items-center gap-control-gap bg-surface text-text-muted",
+  "example-blocksuite-editor": "block h-full min-h-0 w-full overflow-hidden bg-surface",
+  "example-blocksuite-footer":
+    "flex min-w-0 items-center gap-container-gap border-t border-border bg-surface-raised px-container-inline py-control-block-small type-caption1 text-text-muted",
   "example-editing-comment-author":
     "flex items-center gap-control-gap border-t border-border pt-control-block type-label-small text-text-muted",
   "example-editing-footer":
@@ -1210,6 +1227,29 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
     '.example-toolbar-dock ui-toolbar[data-catalog-toolbar-dock="right"]',
     "[inset-block:calc(var(--layout-dimension-control)+var(--space-container-block)+var(--space-container-block)+var(--space-control-block))] [inset-inline-end:var(--space-container-inline)]",
   ],
+  [".example-blocksuite-identity > span:last-child", "grid min-w-0 gap-[var(--border-hairline)]"],
+  [".example-blocksuite-identity strong", "truncate type-label-large"],
+  [".example-blocksuite-identity small", "truncate type-caption1 text-text-muted"],
+  [
+    ".example-blocksuite-mash-toolbar ui-toggle, .example-blocksuite-mash-toolbar ui-button",
+    "shrink-0 [&::part(control)]:min-h-[var(--layout-dimension-control-small)]! [&::part(control)]:border-0!",
+  ],
+  [".example-blocksuite-mash-toolbar ui-toggle span", "max-[36rem]:hidden"],
+  [
+    ".example-blocksuite-mash-toolbar ui-separator",
+    "mx-control-block-small h-[calc(var(--layout-dimension-control-small)-var(--space-control-block))] bg-border",
+  ],
+  [
+    ".example-blocksuite-playground[data-blocksuite-state='ready'] .example-blocksuite-loading",
+    "hidden",
+  ],
+  [
+    ".example-blocksuite-playground[data-blocksuite-state='error'] .example-blocksuite-loading",
+    "text-critical",
+  ],
+  [".example-blocksuite-footer output", "min-w-0 flex-1 truncate"],
+  [".example-blocksuite-footer > span", "shrink-0 max-[48rem]:hidden"],
+  [".example-blocksuite-editor > .affine-page-viewport", "h-full"],
   [".example-switch-copy strong", "type-label-large"],
   [".example-switch-copy span", "type-label-small text-text-muted"],
   [".example-switch-matrix ui-switch", "justify-self-start"],
