@@ -1,5 +1,8 @@
 import { components, tokens, valueOf, type ComponentSchema, type Example } from "./schema.js";
 import { blocksuitePlaygroundMarkup } from "./blocksuite-playground-markup.js";
+import { edgelessPlaygroundMarkup } from "./edgeless-playground-markup.js";
+import { familiesFor } from "./families.js";
+import { studyWorkspaceMarkup } from "./study-workspace-markup.js";
 
 /**
  * A catalog example is deliberately more specific than an `@example` JSDoc
@@ -146,6 +149,42 @@ const escapeHtml = (value: string): string =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+
+const tinycastCatalogueFamilies = familiesFor(components);
+const tinycastCatalogueCount = tinycastCatalogueFamilies.reduce(
+  (count, family) => count + family.components.length,
+  0,
+);
+const tinycastCatalogueItems = tinycastCatalogueFamilies
+  .map((family) => {
+    const group = family.title.toLocaleLowerCase().replaceAll(/[^a-z0-9]+/g, "-");
+    const items = family.components
+      .map((component) => {
+        const tagName = escapeHtml(component.tagName);
+        const searchText = escapeHtml(
+          [component.tagName, component.summary, component.description, family.title]
+            .filter(Boolean)
+            .join(" "),
+        );
+        const mark = escapeHtml(component.tagName.replace(/^(?:ui-|sh-|shrine-)/, "")[0] ?? "M");
+        const isCurrent = component.tagName === "ui-menu";
+        const selected = isCurrent ? " data-tinycast-default data-tinycast-selected" : "";
+        const tone =
+          component.packageName === "@mash/shrine"
+            ? "bg-positive text-on-positive"
+            : "bg-action text-on-action";
+
+        return `<ui-menu-item data-tinycast-group="${group}" data-tinycast-search-text="${searchText}" value="${tagName}"${selected}>
+          <span class="example-tinycast-app-icon ${tone}" slot="prefix" aria-hidden="true">${mark.toLocaleUpperCase()}</span>
+          ${tagName}
+          <span class="example-tinycast-kind" slot="shortcut">${escapeHtml(component.packageName)}</span>
+        </ui-menu-item>`;
+      })
+      .join("\n");
+
+    return `<ui-menu-label data-tinycast-group-label="${group}">${escapeHtml(family.title)}</ui-menu-label>\n${items}`;
+  })
+  .join("\n");
 
 const motionRecipes = [
   {
@@ -3871,6 +3910,12 @@ export function MarkdownFrame({ html }: { html: string }) {
     ),
   ],
   "ui-toolbar": [
+    example("Spaced repetition studio", studyWorkspaceMarkup, {
+      compositionOnly: true,
+      description:
+        "A keyboard-first study workspace composes review, scheduling feedback, deck navigation, browsing, cloze authoring, media attachment, local persistence, and undo without turning those workflows into one component.",
+      stageLayout: "fill",
+    }),
     example(
       "Editing playground",
       `
@@ -4103,6 +4148,12 @@ export function MarkdownFrame({ html }: { html: string }) {
         stageLayout: "fill",
       },
     ),
+    example("Edgeless block canvas", edgelessPlaygroundMarkup, {
+      compositionOnly: true,
+      description:
+        "The same insertable block catalogue projects onto a pan-and-zoom scene with scale-correct dragging, marquee selection, connectors, frames, layers, comments, and property controls.",
+      stageLayout: "fill",
+    }),
     example("BlockSuite editor factory", blocksuitePlaygroundMarkup, {
       compositionOnly: true,
       description:
@@ -4271,76 +4322,30 @@ export function MarkdownFrame({ html }: { html: string }) {
   ],
   "ui-menu": [
     example(
-      "Tinycast launcher",
+      "Tinycast catalogue navigator",
       `
         <div class="example-tinycast-stage">
           <div class="example-tinycast-wallpaper" aria-hidden="true">
             <span class="example-tinycast-wallpaper-plane example-tinycast-wallpaper-plane-a"></span>
             <span class="example-tinycast-wallpaper-plane example-tinycast-wallpaper-plane-b"></span>
           </div>
-          <ui-menu class="example-tinycast-menu" data-tinycast-menu label="Tinycast apps and commands" density="compact" sizing="fixed" placement="bottom" align="center" offset="0" close-on-outside="false" open>
+          <ui-menu class="example-tinycast-menu" data-tinycast-menu data-catalog-navigator label="Mash components" density="compact" sizing="fixed" placement="bottom" align="center" offset="0" close-on-outside="false" open>
             <ui-button class="example-tinycast-trigger" slot="trigger" size="xsmall" variant="secondary">
               <span class="example-tinycast-mark" slot="prefix" aria-hidden="true">T</span>
-              Tinycast
-              <ui-kbd slot="suffix" command="launcher.open" shortcut="Primary+Space"></ui-kbd>
+              Browse components
+              <ui-kbd slot="suffix" command="catalogue.open" shortcut="Primary+Space"></ui-kbd>
             </ui-button>
             <ui-input-group class="example-tinycast-search" slot="header">
               <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
-              <ui-input slot="control" data-tinycast-search type="search" size="large" label="Search for apps and commands" placeholder="Search for apps and commands..." autocomplete="off"></ui-input>
+              <ui-input slot="control" data-tinycast-search type="search" size="large" label="Search Mash components" placeholder="Search ${tinycastCatalogueCount} components..." autocomplete="off"></ui-input>
             </ui-input-group>
-            <ui-menu-label data-tinycast-group-label="favorites">Favorites</ui-menu-label>
-            <ui-menu-item data-tinycast-group="favorites" data-tinycast-search-text="ghostty terminal" data-tinycast-default data-tinycast-selected value="ghostty">
-              <span class="example-tinycast-app-icon bg-action text-on-action" slot="prefix" aria-hidden="true">G</span>
-              Ghostty
-              <span class="example-tinycast-kind" slot="shortcut">Application</span>
-            </ui-menu-item>
-            <ui-menu-item data-tinycast-group="favorites" data-tinycast-search-text="zed editor" value="zed">
-              <span class="example-tinycast-app-icon bg-surface-raised text-text" slot="prefix" aria-hidden="true">Z</span>
-              Zed
-              <span class="example-tinycast-kind" slot="shortcut">Application</span>
-            </ui-menu-item>
-            <ui-menu-item data-tinycast-group="favorites" data-tinycast-search-text="code visual studio editor" value="code">
-              <span class="example-tinycast-app-icon bg-positive text-on-positive" slot="prefix" aria-hidden="true">C</span>
-              Code
-              <span class="example-tinycast-kind" slot="shortcut">Application</span>
-            </ui-menu-item>
-            <ui-menu-item data-tinycast-group="favorites" data-tinycast-search-text="helium browser" value="helium">
-              <span class="example-tinycast-app-icon bg-warning text-on-warning" slot="prefix" aria-hidden="true">H</span>
-              Helium
-              <span class="example-tinycast-kind" slot="shortcut">Application</span>
-            </ui-menu-item>
-            <ui-menu-item data-tinycast-group="favorites" data-tinycast-search-text="orbstack containers" value="orbstack">
-              <span class="example-tinycast-app-icon bg-critical text-on-critical" slot="prefix" aria-hidden="true">O</span>
-              OrbStack
-              <span class="example-tinycast-kind" slot="shortcut">Application</span>
-            </ui-menu-item>
-            <ui-menu-label data-tinycast-group-label="applications">Applications</ui-menu-label>
-            <ui-menu-item data-tinycast-group="applications" data-tinycast-search-text="activity monitor system" value="activity-monitor">
-              <span class="example-tinycast-app-icon bg-positive-subtle text-positive" slot="prefix" aria-hidden="true">A</span>
-              Activity Monitor
-              <span class="example-tinycast-kind" slot="shortcut">Application</span>
-            </ui-menu-item>
-            <ui-menu-item data-tinycast-group="applications" data-tinycast-search-text="alacritty terminal" value="alacritty">
-              <span class="example-tinycast-app-icon bg-surface-raised text-warning" slot="prefix" aria-hidden="true">A</span>
-              Alacritty
-              <span class="example-tinycast-kind" slot="shortcut">Application</span>
-            </ui-menu-item>
-            <ui-menu-item data-tinycast-group="applications" data-tinycast-search-text="app store software" value="app-store">
-              <span class="example-tinycast-app-icon bg-action-subtle text-action" slot="prefix" aria-hidden="true">A</span>
-              App Store
-              <span class="example-tinycast-kind" slot="shortcut">Application</span>
-            </ui-menu-item>
-            <ui-menu-item data-tinycast-group="applications" data-tinycast-search-text="appcleaner uninstall cleanup" value="appcleaner">
-              <span class="example-tinycast-app-icon bg-surface-raised text-critical" slot="prefix" aria-hidden="true">A</span>
-              AppCleaner
-              <span class="example-tinycast-kind" slot="shortcut">Application</span>
-            </ui-menu-item>
-            <p class="example-tinycast-empty" data-tinycast-empty role="status" aria-live="polite" hidden>No apps or commands found.</p>
+            ${tinycastCatalogueItems}
+            <p class="example-tinycast-empty" data-tinycast-empty role="status" aria-live="polite" hidden>No components found.</p>
             <div class="example-tinycast-footer" slot="footer">
-              <ui-button type="button" size="xsmall" variant="secondary" aria-label="Tinycast menu"><ui-icon name="navigation.menu" label=""></ui-icon></ui-button>
+              <output class="example-tinycast-count" data-tinycast-count aria-live="polite">${tinycastCatalogueCount} components</output>
               <span class="example-tinycast-actions">
-                <ui-button type="button" size="small" variant="quiet">Open Application<ui-kbd slot="suffix" command="launcher.open-selection" shortcut="Enter"></ui-kbd></ui-button>
-                <ui-button type="button" size="small" variant="quiet">Actions<ui-kbd slot="suffix" command="launcher.actions" shortcut="Primary+K"></ui-kbd></ui-button>
+                <span>Navigate <ui-kbd command="catalogue.previous" shortcut="ArrowUp"></ui-kbd><ui-kbd command="catalogue.next" shortcut="ArrowDown"></ui-kbd></span>
+                <span>Open <ui-kbd command="catalogue.open-selection" shortcut="Enter"></ui-kbd></span>
               </span>
             </div>
           </ui-menu>
@@ -4348,7 +4353,7 @@ export function MarkdownFrame({ html }: { html: string }) {
       {
         compositionOnly: true,
         description:
-          "A Mash reconstruction of Tinycast's expanded launcher: persistent search and action chrome frame grouped, keyboard-navigable application commands. Reference: github.com/abue-ammar/tinycast.",
+          "A functional Mash component navigator inspired by Tinycast: search the generated catalogue, move through matching commands with the keyboard, and select one to navigate. Reference: github.com/abue-ammar/tinycast.",
         stageLayout: "fill",
       },
     ),

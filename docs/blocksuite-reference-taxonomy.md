@@ -5,6 +5,10 @@ which boundaries must remain outside a portable component system. It examines
 the local checkout at commit `5cb5cb68471ca692f3c162258f0087cb22fcb82d`
 (2025-07-07).
 
+The resulting Mash ownership model, projection contracts, fragment vocabulary,
+drag architecture, and implementation sequence live in
+[`document-workspace-architecture.md`](document-workspace-architecture.md).
+
 BlockSuite is not mainly a Web Component library. It is a collaborative block
 editor kernel, an extension runtime, and an AFFiNE editor implementation whose
 views happen to use Lit. Its useful lesson for Mash is the contribution grammar,

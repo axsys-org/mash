@@ -65,6 +65,8 @@ export class UITabs extends LitElement {
     this.value = "";
     this.label = "Tabs";
     this.orientation = "horizontal";
+    this.addEventListener("ui-tab-select", this.#onTabSelect as EventListener);
+    this.addEventListener("click", this.#onClick);
   }
 
   static override styles = baseStyles;
@@ -121,6 +123,13 @@ export class UITabs extends LitElement {
     this.#select(value);
   };
 
+  #onClick = (event: MouseEvent): void => {
+    const tab = event
+      .composedPath()
+      .find((node): node is UITab => node instanceof HTMLElement && node.localName === "ui-tab");
+    if (tab && !tab.disabled) this.#select(tab.value);
+  };
+
   #onKeydown = (event: KeyboardEvent): void => {
     const rtl = getComputedStyle(this).direction === "rtl";
     const previous =
@@ -154,7 +163,6 @@ export class UITabs extends LitElement {
         aria-label=${this.label}
         aria-orientation=${this.orientation}
         @keydown=${this.#onKeydown}
-        @ui-tab-select=${this.#onTabSelect}
       >
         <slot part="tab" name="tab" @slotchange=${this.#onSlotChange}></slot>
       </div>

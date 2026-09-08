@@ -1,14 +1,14 @@
 type TinycastSearchControl = HTMLElement & { value?: string };
 
 function syncTinycastSearch(menu: HTMLElement, value: string): void {
-  const query = value.trim().toLocaleLowerCase();
+  const terms = value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const items = [
     ...menu.querySelectorAll<HTMLElement>(":scope > ui-menu-item[data-tinycast-group]"),
   ];
 
   for (const item of items) {
     const searchText = item.dataset.tinycastSearchText?.toLocaleLowerCase() ?? "";
-    item.hidden = Boolean(query) && !searchText.includes(query);
+    item.hidden = !terms.every((term) => searchText.includes(term));
     item.removeAttribute("data-tinycast-selected");
   }
 
@@ -18,13 +18,17 @@ function syncTinycastSearch(menu: HTMLElement, value: string): void {
   }
 
   const visibleItems = items.filter((item) => !item.hidden);
-  const selected = query
-    ? visibleItems[0]
-    : items.find((item) => item.dataset.tinycastDefault !== undefined);
+  const selected =
+    terms.length > 0
+      ? visibleItems[0]
+      : items.find((item) => item.dataset.tinycastDefault !== undefined);
   selected?.setAttribute("data-tinycast-selected", "");
 
   const empty = menu.querySelector<HTMLElement>("[data-tinycast-empty]");
   if (empty) empty.hidden = visibleItems.length > 0;
+  const count = menu.querySelector<HTMLOutputElement>("[data-tinycast-count]");
+  if (count)
+    count.value = `${visibleItems.length} ${visibleItems.length === 1 ? "component" : "components"}`;
 }
 
 function syncTinycastSearchFromEvent(event: Event): void {
@@ -43,3 +47,13 @@ function syncTinycastSearchFromEvent(event: Event): void {
 
 document.addEventListener("input", syncTinycastSearchFromEvent);
 document.addEventListener("keyup", syncTinycastSearchFromEvent);
+
+document.addEventListener("ui-menu-select", (event) => {
+  const menu = event.target;
+  if (!(menu instanceof HTMLElement) || !menu.matches("[data-catalog-navigator]")) return;
+  const { value: tagName } = (event as CustomEvent<{ value: string }>).detail;
+  globalThis.parent.postMessage(
+    { type: "mash-catalog-navigate", tagName },
+    globalThis.location.origin,
+  );
+});

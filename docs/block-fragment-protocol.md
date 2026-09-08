@@ -8,6 +8,24 @@ Keeping the layers separate lets a paragraph, table, upload, or agent-produced
 status group retain one stable record while Web, native, static HTML, and future
 Foil renderers realize it differently.
 
+## Fragment Vocabulary
+
+Mash reserves **durable fragment** for authored native HTML and custom-element
+composition. Nearby platform and editor terms describe separate contracts:
+
+| Term                   | Meaning                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------- |
+| Durable fragment       | Portable authored markup that remains readable without an editor runtime.                   |
+| Workspace accessory    | Independently mounted document view such as outline, comments, controls, frames, or assets. |
+| Contextual widget      | Transient UI bound to a projection, selection, anchor, or interaction lifecycle.            |
+| Block slice            | Serializable partial block tree used for clipboard, duplicate, drag, and import.            |
+| DOM `DocumentFragment` | Native browser node container with no Mash document semantics.                              |
+
+BlockSuite uses "fragment" for the workspace-accessory role. Mash does not adopt
+that naming because it would collide with Foil-facing authored fragments. The
+full target architecture is defined in
+[`document-workspace-architecture.md`](document-workspace-architecture.md).
+
 ## Record Envelope
 
 `@mash/ui/block` exports the renderer-neutral contract:

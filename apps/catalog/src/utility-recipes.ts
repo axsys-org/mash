@@ -368,6 +368,154 @@ const stageRecipes: UtilityRecipes = {
   "example-editing-comment-thread": "grid content-start gap-control-gap",
   "example-editing-comment-latest":
     "m-0 rounded-control border border-action-border bg-action-wash px-control-inline py-control-block type-label-small text-action",
+  "example-study-workspace":
+    "relative grid h-full min-h-0 w-full grid-cols-[13.5rem_minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] overflow-hidden bg-canvas text-text outline-none max-[46rem]:grid-cols-1",
+  "example-study-sidebar":
+    "grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_auto] gap-control-gap border-r border-border bg-surface px-control-inline py-container-block max-[46rem]:hidden",
+  "example-study-sidebar-heading":
+    "flex min-w-0 items-center justify-between gap-control-gap px-control-block-small [&>div]:grid [&>div]:min-w-0",
+  "example-study-eyebrow": "type-caption1 text-text-muted",
+  "example-study-search": "w-full",
+  "example-study-decks": "grid min-h-0 content-start gap-[var(--border-hairline)] overflow-auto",
+  "example-study-deck":
+    "grid min-h-[var(--layout-dimension-control-small)] w-full cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-control-gap rounded-control border-0 bg-transparent px-control-inline py-control-block-small text-start type-label-small text-text-muted hover:bg-neutral-hover hover:text-text focus-visible:focus-ring [&[aria-current=page]]:bg-action-wash [&[aria-current=page]]:text-action",
+  "example-study-deck-count":
+    "min-w-[1.5rem] rounded-pill bg-surface-sunken px-control-block-small py-[var(--border-hairline)] text-center type-caption1 text-text-muted",
+  "example-study-sidebar-footer":
+    "flex items-center justify-between gap-control-gap border-t border-border pt-control-gap type-caption1 text-text-muted [&>span]:inline-flex [&>span]:items-center [&>span]:gap-control-block-small",
+  "example-study-sync-dot": "size-[0.375rem] rounded-pill bg-positive",
+  "example-study-main": "grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)]",
+  "example-study-topbar":
+    "grid min-h-[3.5rem] grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-control-gap border-b border-border bg-surface px-container-inline py-control-block-small max-[40rem]:grid-cols-[minmax(0,1fr)_auto_auto]",
+  "example-study-title-group": "grid min-w-0 [&>h3]:m-0 [&>h3]:truncate [&>h3]:type-label",
+  "example-study-mode": "",
+  "example-study-history": "max-[34rem]:hidden",
+  "example-study-new-card":
+    "max-[40rem]:[&>span]:hidden max-[40rem]:[&::part(control)]:min-w-[var(--layout-dimension-control-small)]! max-[40rem]:[&::part(control)]:px-control-block!",
+  "example-study-review-view":
+    "grid min-h-0 min-w-0 grid-cols-[minmax(0,1fr)_15rem] bg-surface-sunken max-[58rem]:grid-cols-1",
+  "example-study-review-column":
+    "flex min-h-0 min-w-0 flex-col gap-container-gap overflow-auto px-region py-container-gap max-[40rem]:grid max-[40rem]:grid-rows-[auto_minmax(0,1fr)_auto] max-[40rem]:overflow-hidden max-[40rem]:px-container-inline max-[40rem]:py-container-block",
+  "example-study-queue-heading":
+    "mx-auto grid w-[min(100%,48rem)] grid-cols-[minmax(0,1fr)_minmax(8rem,14rem)] items-center gap-container-gap max-[34rem]:grid-cols-1",
+  "example-study-queue-copy": "grid min-w-0 type-label-small [&>span+span]:text-text-muted",
+  "example-study-card":
+    "mx-auto grid min-h-0 w-[min(100%,48rem)] content-start self-center overflow-hidden rounded-container border border-border bg-surface shadow-[0_8px_28px_var(--color-shadow)] min-[40rem]:min-h-[20rem] max-[40rem]:h-full max-[40rem]:self-stretch max-[40rem]:overflow-auto",
+  "example-study-card-meta":
+    "flex min-w-0 items-center justify-between gap-control-gap border-b border-border px-container-inline py-control-block [&>div]:flex [&>div]:items-center [&>div]:gap-control-gap [&>div>span]:type-caption1 [&>div>span]:text-text-muted",
+  "example-study-prompt":
+    "grid min-h-[12rem] content-center gap-container-gap px-region py-region max-[34rem]:min-h-[10rem] max-[34rem]:px-container-inline",
+  "example-study-card-label": "type-caption1 uppercase text-text-muted",
+  "example-study-card-copy": "max-w-[34ch] type-title3 leading-normal",
+  "example-study-tags": "flex flex-wrap gap-control-block-small",
+  "example-study-answer-reveal": "border-t border-border bg-surface-sunken",
+  "example-study-answer":
+    "grid gap-control-gap px-region py-container-gap max-[34rem]:px-container-inline",
+  "example-study-note": "m-0 max-w-[60ch] type-label-small text-text-muted",
+  "example-study-cloze":
+    "rounded-control bg-action-wash px-control-block-small text-action no-underline",
+  "example-study-review-controls": "mx-auto w-[min(100%,48rem)] shrink-0",
+  "example-study-rating-grid":
+    "grid grid-cols-4 gap-control-gap max-[38rem]:gap-control-block-small",
+  "example-study-rating-copy":
+    "grid min-w-0 gap-[var(--border-hairline)] [&>strong]:type-label-small [&>small]:type-caption1 [&>small]:text-text-muted",
+  "example-study-complete":
+    "mx-auto grid w-[min(100%,32rem)] place-items-center content-center gap-control-gap self-center text-center [&>h4]:m-0 [&>h4]:type-title3 [&>p]:m-0 [&>p]:text-text-muted",
+  "example-study-session":
+    "grid min-h-0 content-start gap-container-gap overflow-auto border-l border-border bg-surface px-container-inline py-container-block max-[58rem]:hidden",
+  "example-study-session-heading":
+    "flex items-center justify-between gap-control-gap type-label-small",
+  "example-study-queue-stats":
+    "m-0 grid gap-control-block [&>div]:grid [&>div]:grid-cols-[minmax(0,1fr)_auto] [&>div]:items-center [&>div]:gap-control-gap [&_dt]:flex [&_dt]:items-center [&_dt]:gap-control-gap [&_dt]:type-label-small [&_dt]:text-text-muted [&_dd]:m-0 [&_dd]:type-label",
+  "example-study-legend": "size-[0.5rem] rounded-pill",
+  "example-study-legend-new": "bg-action",
+  "example-study-legend-learning": "bg-warning",
+  "example-study-legend-review": "bg-positive",
+  "example-study-retention":
+    "grid gap-control-gap [&>div]:flex [&>div]:items-baseline [&>div]:justify-between [&>div]:gap-control-gap [&_span]:type-label-small [&_span]:text-text-muted",
+  "example-study-session-metrics":
+    "grid grid-cols-3 gap-control-gap [&>div]:grid [&>div]:gap-control-block-small [&_span]:type-caption1 [&_span]:text-text-muted [&_strong]:type-label",
+  "example-study-shortcuts":
+    "grid grid-cols-2 gap-control-gap type-caption1 text-text-muted [&>span]:flex [&>span]:items-center [&>span]:gap-control-block-small",
+  "example-study-browse-view":
+    "grid min-h-0 min-w-0 grid-cols-[minmax(18rem,0.85fr)_minmax(22rem,1.15fr)] max-[58rem]:grid-cols-1 max-[58rem]:overflow-auto",
+  "example-study-browser":
+    "grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] border-r border-border bg-surface max-[58rem]:min-h-[20rem] max-[58rem]:border-r-0 max-[58rem]:border-b",
+  "example-study-browser-toolbar":
+    "grid grid-cols-[minmax(0,1fr)_minmax(10rem,16rem)] items-center gap-container-gap border-b border-border px-container-inline py-container-block [&>div]:grid [&>div>span]:type-caption1 [&>div>span]:text-text-muted max-[34rem]:grid-cols-1",
+  "example-study-card-list": "min-h-0 overflow-auto p-control-gap",
+  "example-study-card-row":
+    "grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-container-gap rounded-control border-0 bg-transparent px-control-inline py-control-block text-start text-text hover:bg-neutral-hover focus-visible:focus-ring [&[aria-selected=true]]:bg-action-wash",
+  "example-study-card-row-body":
+    "grid min-w-0 gap-control-block-small [&>strong]:truncate [&>strong]:type-label-small [&>small]:truncate [&>small]:type-caption1 [&>small]:text-text-muted",
+  "example-study-card-row-state": "type-caption1 text-text-muted",
+  "example-study-empty": "m-container-inline type-label-small text-text-muted",
+  "example-study-editor":
+    "grid min-h-0 content-start gap-container-gap overflow-auto bg-canvas px-region py-container-gap max-[58rem]:overflow-visible max-[40rem]:px-container-inline",
+  "example-study-editor-heading":
+    "flex items-center justify-between gap-container-gap [&>div]:grid",
+  "example-study-editor-grid": "grid grid-cols-2 gap-container-gap max-[34rem]:grid-cols-1",
+  "example-study-media-upload": "w-full",
+  "example-study-editor-actions":
+    "grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-control-gap border-t border-border pt-container-block max-[34rem]:grid-cols-[auto_minmax(0,1fr)_auto] max-[34rem]:[&>*:nth-last-child(2)]:hidden",
+  "example-study-footer":
+    "col-span-full flex min-w-0 items-center justify-between gap-container-gap border-t border-border bg-surface px-container-inline py-control-block-small type-caption1 text-text-muted max-[46rem]:col-span-1 max-[40rem]:[&>span]:hidden",
+  "example-edgeless-playground":
+    "relative grid h-full min-h-0 w-full grid-rows-[minmax(0,1fr)_auto] overflow-hidden bg-canvas text-text outline-none",
+  "example-edgeless-workspace":
+    "grid min-h-0 grid-cols-[12rem_minmax(0,1fr)_16rem] max-[52rem]:grid-cols-[10rem_minmax(0,1fr)] max-[46rem]:grid-cols-1",
+  "example-edgeless-layers":
+    "grid min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] gap-control-gap overflow-hidden border-r border-border bg-surface px-control-inline py-container-block max-[46rem]:hidden",
+  "example-edgeless-panel-title": "flex min-w-0 items-center gap-control-gap",
+  "example-edgeless-canvas-shell": "relative min-h-0 min-w-0 overflow-hidden bg-surface-sunken",
+  "example-edgeless-viewport":
+    "absolute [inset:0] overflow-hidden outline-none [background-image:linear-gradient(to_right,var(--color-border)_var(--border-hairline),transparent_var(--border-hairline)),linear-gradient(to_bottom,var(--color-border)_var(--border-hairline),transparent_var(--border-hairline))]",
+  "example-edgeless-scene":
+    "absolute [inset-block-start:0] [inset-inline-start:0] h-[56.25rem] w-[90rem] origin-top-left will-change-transform",
+  "example-edgeless-connectors":
+    "pointer-events-none absolute [inset:0] h-full w-full overflow-visible",
+  "example-edgeless-connector-line": "fill-none stroke-border-strong [stroke-width:2]",
+  "example-edgeless-connector-end": "fill-action stroke-surface [stroke-width:2]",
+  "example-edgeless-marquee":
+    "pointer-events-none absolute z-raised border border-action bg-action-wash",
+  "example-edgeless-minimap":
+    "pointer-events-none absolute bottom-container-block right-container-inline z-raised h-[4.5rem] w-[7.5rem] overflow-hidden rounded-control border border-border bg-surface-raised shadow-[0_2px_8px_var(--color-shadow)]",
+  "example-edgeless-minimap-node":
+    "absolute min-h-[2px] min-w-[2px] rounded-[1px] bg-text-muted opacity-[0.6]",
+  "example-edgeless-minimap-view": "absolute border border-action bg-action-wash",
+  "example-edgeless-tools":
+    "absolute left-container-inline top-container-block z-overlay bg-surface-raised px-control-block py-control-block shadow-[0_2px_10px_var(--color-shadow)]",
+  "example-edgeless-selection-bar":
+    "absolute z-overlay bg-surface-raised px-control-block py-control-block shadow-[0_2px_10px_var(--color-shadow)]",
+  "example-edgeless-zoom":
+    "absolute bottom-container-block left-container-inline z-overlay bg-surface-raised px-control-block py-control-block shadow-[0_2px_10px_var(--color-shadow)]",
+  "example-edgeless-menu-header":
+    "flex min-w-0 items-center justify-between gap-container-gap px-control-inline py-control-block type-label-small",
+  "example-edgeless-menu-footer":
+    "flex min-w-0 items-center justify-between gap-container-gap px-control-inline py-control-block-small type-caption1 text-text-muted",
+  "example-edgeless-node":
+    "absolute [inset-block-start:0] [inset-inline-start:0] overflow-visible rounded-container border border-border bg-surface shadow-[0_2px_10px_var(--color-shadow)] outline-none will-change-transform [&::part(root)]:h-full",
+  "example-edgeless-node-handle":
+    "w-full cursor-grab rounded-t-container border-b border-border bg-surface-raised active:cursor-grabbing",
+  "example-edgeless-node-content":
+    "h-[calc(100%_-_2rem)] min-h-0 overflow-auto p-container-block selection:bg-action-emphasis selection:text-on-action",
+  "example-edgeless-resize-handle":
+    "absolute bottom-[-0.25rem] right-[-0.25rem] z-raised hidden size-[0.75rem] cursor-nwse-resize rounded-[2px] border border-surface bg-action p-0 outline-none focus-visible:focus-ring",
+  "example-edgeless-frame-content":
+    "pointer-events-none grid content-start gap-control-block-small p-container-inline text-text-muted",
+  "example-edgeless-seed-image": "h-full overflow-hidden",
+  "example-edgeless-inspector":
+    "min-h-0 overflow-hidden border-l border-border bg-surface px-control-inline py-container-block max-[52rem]:hidden",
+  "example-edgeless-inspector-tabs": "grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)]",
+  "example-edgeless-inspector-heading":
+    "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-control-gap",
+  "example-edgeless-control-grid": "grid grid-cols-2 gap-control-gap",
+  "example-edgeless-inspector-actions": "grid grid-cols-2 gap-control-gap",
+  "example-edgeless-selection-meta":
+    "grid grid-cols-[minmax(0,1fr)_auto] gap-y-control-block-small gap-x-control-gap type-caption1 text-text-muted",
+  "example-edgeless-comment-thread": "grid content-start gap-control-gap",
+  "example-edgeless-footer":
+    "flex min-w-0 items-center gap-container-gap border-t border-border bg-surface px-container-inline py-control-block-small type-caption1 text-text-muted",
   "example-blocksuite-playground":
     "relative grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-canvas text-text",
   "example-blocksuite-header":
@@ -766,9 +914,10 @@ const stageRecipes: UtilityRecipes = {
   "example-tinycast-kind": "type-label-small text-text-muted",
   "example-tinycast-empty":
     "m-0 px-control-inline py-container-block text-center type-label-small text-text-muted",
+  "example-tinycast-count": "type-caption1 text-text-muted",
   "example-tinycast-footer": "flex w-full min-w-0 items-center justify-between gap-control-gap",
   "example-tinycast-actions":
-    "inline-flex min-w-0 items-center gap-[var(--border-hairline)] rounded-pill bg-surface-raised p-control-block-small shadow-[0_1px_4px_var(--color-shadow)]",
+    "inline-flex min-w-0 items-center gap-control-gap type-caption1 text-text-muted [&>span]:inline-flex [&>span]:items-center [&>span]:gap-control-block-small",
   "example-menu-stage":
     "relative min-h-[18rem] w-[min(100%,var(--layout-dimension-content))] px-control-inline py-control-block",
   "example-menu-trigger": "[&::part(control)]:justify-between [&::part(control)]:gap-control-gap",
@@ -1230,6 +1379,144 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [
     '.example-toolbar-dock ui-toolbar[data-catalog-toolbar-dock="right"]',
     "[inset-block:calc(var(--layout-dimension-control)+var(--space-container-block)+var(--space-container-block)+var(--space-control-block))] [inset-inline-end:var(--space-container-inline)]",
+  ],
+  [
+    ".example-study-mode",
+    "[&::part(root)]:gap-0! [&::part(root)]:rounded-control! [&::part(root)]:bg-surface-sunken! [&::part(root)]:p-[var(--border-hairline)]!",
+  ],
+  [
+    ".example-study-mode ui-toggle",
+    "[&::part(control)]:min-h-[var(--layout-dimension-control-small)]! [&::part(control)]:rounded-control! [&::part(control)]:border-0! [&::part(control)]:px-control-inline!",
+  ],
+  [
+    ".example-study-review-controls > ui-button",
+    "w-full [&::part(control)]:w-full! [&::part(control)]:justify-center!",
+  ],
+  [
+    ".example-study-rating-grid ui-button",
+    "min-w-0 [&::part(control)]:h-auto! [&::part(control)]:min-h-[4.25rem]! [&::part(control)]:w-full! [&::part(control)]:text-start! [&::part(label)]:min-w-0! [&::part(label)]:flex-1! max-[38rem]:[&::part(control)]:min-h-[3.25rem]!",
+  ],
+  [".example-study-rating-grid ui-kbd", "max-[38rem]:hidden"],
+  [".example-study-queue-heading ui-progress", "w-full"],
+  [
+    ".example-study-editor ui-field, .example-study-editor ui-input, .example-study-editor ui-textarea, .example-study-editor ui-select",
+    "w-full min-w-0",
+  ],
+  [".example-edgeless-layers ui-tree", "block min-h-0 overflow-auto [&::part(root)]:min-h-0"],
+  [
+    ".example-edgeless-layers ui-tree-item",
+    "w-full [&::part(control)]:w-full! [&::part(control)]:rounded-control!",
+  ],
+  [
+    ".example-edgeless-tools ui-toggle, .example-edgeless-tools ui-button, .example-edgeless-selection-bar ui-button, .example-edgeless-zoom ui-button",
+    "shrink-0 [&::part(control)]:min-h-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:min-w-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:border-0! [&::part(control)]:px-control-block!",
+  ],
+  [
+    ".example-edgeless-tools > ui-separator, .example-edgeless-selection-bar > ui-separator",
+    "mx-control-block-small h-[calc(var(--layout-dimension-control-xsmall)-var(--space-control-block-small))] bg-border",
+  ],
+  [".example-edgeless-zoom output", "min-w-[3rem] text-center type-code text-text-muted"],
+  [
+    ".example-edgeless-insert-menu",
+    "[&::part(viewport)]:max-h-[min(24rem,calc(100dvh-var(--space-region)*2))]",
+  ],
+  [
+    ".example-edgeless-node-handle",
+    "[&::part(root)]:min-h-[2rem] [&::part(root)]:w-full [&::part(root)]:justify-start [&::part(root)]:gap-control-gap [&::part(root)]:rounded-t-container [&::part(root)]:rounded-b-none [&::part(root)]:border-0 [&::part(root)]:bg-transparent [&::part(root)]:px-control-inline [&::part(root)]:py-control-block-small",
+  ],
+  [".example-edgeless-node-handle > span", "min-w-0 flex-1 truncate type-label-small"],
+  [".example-edgeless-node-handle ui-badge", "shrink-0"],
+  [
+    ".example-edgeless-node[data-edgeless-selected]",
+    "border-action shadow-[0_0_0_var(--border-selected)_var(--color-action),0_4px_16px_var(--color-shadow)]",
+  ],
+  [
+    ".example-edgeless-node[data-edgeless-connector-source]",
+    "border-positive shadow-[0_0_0_var(--border-selected)_var(--color-positive)]",
+  ],
+  [
+    ".example-edgeless-node[data-edgeless-dragging], .example-edgeless-node[data-edgeless-resizing]",
+    "opacity-[0.85] shadow-[0_8px_24px_var(--color-shadow)]",
+  ],
+  [".example-edgeless-node[data-edgeless-selected] > .example-edgeless-resize-handle", "block"],
+  [
+    ".example-edgeless-node[data-edgeless-frame]",
+    "border-dashed border-border-strong bg-action-subtle opacity-[0.72] shadow-none",
+  ],
+  [
+    ".example-edgeless-node[data-edgeless-frame] .example-edgeless-node-handle",
+    "border-b-0 bg-transparent",
+  ],
+  [".example-edgeless-frame-content > span:first-child", "type-caption1 uppercase text-action"],
+  [".example-edgeless-frame-content > strong", "type-heading text-text"],
+  [".example-edgeless-frame-content > span:last-child", "type-caption1"],
+  [".example-edgeless-node-content [data-editing-block]", "h-full min-h-0 min-w-0 outline-none"],
+  [
+    ".example-edgeless-node-content [data-editing-block-content]",
+    "grid h-full min-h-0 min-w-0 content-start [&>*]:min-w-0",
+  ],
+  [".example-edgeless-node-content :is(h1, h2, p, blockquote, ul, pre, figure, dl)", "m-0"],
+  [
+    ".example-edgeless-node-content [data-editing-block-kind='title'] [data-editing-text]",
+    "type-title2",
+  ],
+  [
+    ".example-edgeless-node-content [data-editing-block-kind='heading'] [data-editing-text]",
+    "type-heading",
+  ],
+  [
+    ".example-edgeless-node-content [data-editing-block-kind='body'] [data-editing-text]",
+    "type-body",
+  ],
+  [".example-edgeless-node-content [contenteditable]", "outline-none"],
+  [
+    ".example-edgeless-seed-image ui-image",
+    "[&::part(root)]:aspect-[16/9] [&::part(root)]:max-h-[9rem] [&::part(root)]:rounded-control",
+  ],
+  [
+    ".example-edgeless-inspector-tabs",
+    "[&::part(list)]:grid [&::part(list)]:grid-cols-2 [&::part(list)]:gap-[var(--border-hairline)] [&::part(list)]:rounded-control [&::part(list)]:border-0! [&::part(list)]:bg-surface-sunken [&::part(list)]:p-[var(--border-hairline)]",
+  ],
+  [
+    ".example-edgeless-inspector-tabs ui-tab",
+    "[&::part(control)]:min-h-[var(--layout-dimension-control-small)] [&::part(control)]:w-full [&::part(control)]:justify-center [&::part(control)]:rounded-control [&::part(control)]:border-0! [&::part(control)]:px-control-inline-small [&::part(control)]:py-control-block-small [&[selected]::part(control)]:bg-surface-raised! [&[selected]::part(control)]:text-text! [&[selected]::part(control)]:shadow-[0_0_0_var(--border-hairline)_var(--color-border),0_1px_3px_var(--color-shadow)]",
+  ],
+  [
+    ".example-edgeless-inspector-tabs ui-tab-panel",
+    "grid min-h-0 overflow-auto pt-container-block",
+  ],
+  [
+    ".example-edgeless-inspector-tabs ui-tab-panel[value='controls']",
+    "content-start gap-container-gap",
+  ],
+  [
+    ".example-edgeless-inspector-tabs ui-tab-panel[value='comments']",
+    "content-start gap-container-gap",
+  ],
+  [".example-edgeless-inspector-heading > div", "grid min-w-0 gap-[var(--border-hairline)]"],
+  [".example-edgeless-inspector-heading span", "truncate type-caption1 text-text-muted"],
+  [".example-edgeless-control-grid ui-field", "w-full min-w-0"],
+  [".example-edgeless-inspector-actions ui-button", "w-full [&::part(control)]:w-full"],
+  [".example-edgeless-comment-thread ui-bubble", "max-w-full"],
+  [".example-edgeless-inspector ui-field", "w-full"],
+  [".example-edgeless-footer output", "min-w-0 flex-1 truncate"],
+  [".example-edgeless-footer > span", "shrink-0"],
+  [".example-edgeless-minimap-node[data-edgeless-selected]", "bg-action"],
+  [
+    ".example-edgeless-playground[data-edgeless-tool='select'] .example-edgeless-viewport",
+    "cursor-crosshair",
+  ],
+  [
+    ".example-edgeless-playground[data-edgeless-tool='hand'] .example-edgeless-viewport",
+    "cursor-grab",
+  ],
+  [
+    ".example-edgeless-playground[data-edgeless-panning] .example-edgeless-viewport",
+    "cursor-grabbing",
+  ],
+  [
+    ".example-edgeless-playground[data-edgeless-tool='frame'] .example-edgeless-viewport, .example-edgeless-playground[data-edgeless-tool='text'] .example-edgeless-viewport, .example-edgeless-playground[data-edgeless-tool='connector'] .example-edgeless-viewport",
+    "cursor-crosshair",
   ],
   [".example-blocksuite-identity > span:last-child", "grid min-w-0 gap-[var(--border-hairline)]"],
   [".example-blocksuite-identity strong", "truncate type-label-large"],

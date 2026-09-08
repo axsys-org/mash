@@ -42,8 +42,10 @@ import {
 } from "./linear-workspace-state.js";
 import "./tinycast-search.js";
 import "./editing-playground.js";
+import "./edgeless-playground.js";
 import "./blocksuite-playground-loader.js";
 import "./file-upload-examples.js";
+import "./study-workspace.js";
 
 // Tells the parent the frame is ready without it having to poll for the
 // registry being populated.

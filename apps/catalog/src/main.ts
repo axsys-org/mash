@@ -86,10 +86,23 @@ globalThis.addEventListener("popstate", () => {
 globalThis.addEventListener("message", (event) => {
   if (event.origin !== location.origin || event.source === window) return;
   const data: unknown = event.data;
+  if (typeof data !== "object" || data === null || !("type" in data)) return;
+  const stageWindow = root.querySelector<HTMLIFrameElement>(
+    'iframe[src="/stage.html"]',
+  )?.contentWindow;
+  if (!stageWindow || event.source !== stageWindow) return;
+
+  if (data.type === "mash-catalog-navigate") {
+    if (
+      "tagName" in data &&
+      typeof data.tagName === "string" &&
+      components.some((component) => component.tagName === data.tagName)
+    )
+      callbacks.select(data.tagName);
+    return;
+  }
+
   if (
-    typeof data !== "object" ||
-    data === null ||
-    !("type" in data) ||
     data.type !== "mash-catalog-example-state" ||
     !("key" in data) ||
     typeof data.key !== "string" ||

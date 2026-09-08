@@ -54,18 +54,23 @@ an editor's private model.
 
 Use the smallest tier that owns the actual repeated contract.
 
-| Tier              | Owns                                                                 | Examples                                                                                 | Escalate when                                                                 |
-| ----------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Primitive         | A reusable behavior, accessibility, state, event, and anatomy model. | `ui-input`, `ui-toolbar`, `ui-menu`, `ui-virtual-list`, `ui-reveal`.                     | The same interaction machine must work across renderers.                      |
-| Anatomy child     | A required child role within one primitive family.                   | `ui-tab`, `ui-option`, `ui-table-row`, `ui-virtual-item`.                                | It needs to stand alone outside the parent family.                            |
-| Durable fragment  | Authored composition of primitives and native HTML.                  | Comment composer, command scope, message thread, issue-list toolbar, code-block toolbar. | State, validation, or focus policy recurs beyond one authored arrangement.    |
-| Contextual widget | A fragment bound to an external host, selection, or model lifecycle. | Floating format bar, drag handle, slash menu, outline rail, provider surface.            | The host binding needs a reusable renderer-neutral lifecycle or event schema. |
-| Preset/editor     | A named assembly of fragments, widgets, and primitives.              | Page editor, canvas editor, issue workspace, settings console.                           | Multiple products need the same assembly as a versioned contract.             |
+| Tier                | Owns                                                                             | Examples                                                                                 | Escalate when                                                                |
+| ------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Primitive           | A reusable behavior, accessibility, state, event, and anatomy model.             | `ui-input`, `ui-toolbar`, `ui-menu`, `ui-virtual-list`, `ui-reveal`.                     | The same interaction machine must work across renderers.                     |
+| Anatomy child       | A required child role within one primitive family.                               | `ui-tab`, `ui-option`, `ui-table-row`, `ui-virtual-item`.                                | It needs to stand alone outside the parent family.                           |
+| Durable fragment    | Authored composition of primitives and native HTML.                              | Comment composer, command scope, message thread, issue-list toolbar, code-block toolbar. | State, validation, or focus policy recurs beyond one authored arrangement.   |
+| Contextual widget   | Transient UI bound to a projection, selection, anchor, or interaction lifecycle. | Floating format bar, drag handle, slash menu, drop indicator.                            | The interaction needs a reusable renderer-neutral lifecycle or event schema. |
+| Workspace accessory | An independently mounted view over a document session.                           | Outline, comments, controls, frames, assets, export panel.                               | Several accessories and projections recur as one named environment.          |
+| Preset/editor       | A named assembly of fragments, widgets, accessories, and primitives.             | Page editor, canvas editor, issue workspace, settings console.                           | Multiple products need the same assembly as a versioned contract.            |
 
 DOM slots are authored placement points. Event slots, streams, observers, and
 model update channels are integration mechanisms. Do not call them the same
 surface in Mash docs: DOM slots belong to markup and styling anatomy; event
 channels belong to state synchronization.
+
+The document, projection, block-slice, contextual-widget, and
+workspace-accessory boundaries are specified in
+[`document-workspace-architecture.md`](document-workspace-architecture.md).
 
 ## Durable HTML Fragments
 
