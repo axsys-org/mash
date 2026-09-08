@@ -729,6 +729,29 @@ const stageRecipes: UtilityRecipes = {
   "example-popover-person": "inline-flex min-w-0 items-center gap-control-gap",
   "example-popover-search": "w-full",
   "example-popover-toolbar": "contents",
+  "example-tinycast-stage":
+    "relative isolate h-full w-full overflow-hidden bg-surface-sunken px-container-inline pt-container-block",
+  "example-tinycast-wallpaper": "pointer-events-none absolute inset-0 z-0 overflow-hidden",
+  "example-tinycast-wallpaper-plane": "absolute block rounded-[30%] opacity-80 blur-[2px]",
+  "example-tinycast-wallpaper-plane-a":
+    "-start-[12%] top-[30%] h-[55%] w-[78%] -rotate-12 bg-surface-raised",
+  "example-tinycast-wallpaper-plane-b":
+    "-end-[8%] -top-[18%] h-[75%] w-[58%] rotate-[24deg] bg-action-wash",
+  "example-tinycast-menu":
+    "relative z-10 block [&::part(popup)]:w-[min(42rem,calc(100vw-3rem))]! [&::part(popup)]:min-w-0! [&::part(popup)]:max-w-none! [&::part(viewport)]:max-h-[20rem]! [&>ui-menu-item::part(control)]:h-[2rem]! [&>ui-menu-item::part(control)]:min-h-[2rem]!",
+  "example-tinycast-trigger": "relative z-10 mx-auto [&::part(control)]:gap-control-gap",
+  "example-tinycast-mark":
+    "grid size-glyph place-items-center rounded-control bg-action type-label-small text-on-action",
+  "example-tinycast-search":
+    "w-full [&::part(root)]:border-0 [&::part(root)]:bg-transparent [&::part(root)]:outline-none",
+  "example-tinycast-selected":
+    "[&::part(control)]:bg-menu-selection [&::part(control)]:text-on-menu-selection",
+  "example-tinycast-app-icon":
+    "grid size-glyph place-items-center rounded-control border border-border type-label-small font-semibold shadow-[0_1px_2px_var(--color-shadow)]",
+  "example-tinycast-kind": "type-label-small text-text-muted",
+  "example-tinycast-footer": "flex w-full min-w-0 items-center justify-between gap-control-gap",
+  "example-tinycast-actions":
+    "inline-flex min-w-0 items-center gap-[var(--border-hairline)] rounded-pill bg-surface-raised p-control-block-small shadow-[0_1px_4px_var(--color-shadow)]",
   "example-menu-stage":
     "relative min-h-[18rem] w-[min(100%,var(--layout-dimension-content))] px-control-inline py-control-block",
   "example-menu-trigger": "[&::part(control)]:justify-between [&::part(control)]:gap-control-gap",

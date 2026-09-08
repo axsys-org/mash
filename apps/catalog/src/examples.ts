@@ -4264,6 +4264,87 @@ export function MarkdownFrame({ html }: { html: string }) {
   ],
   "ui-menu": [
     example(
+      "Tinycast launcher",
+      `
+        <div class="example-tinycast-stage">
+          <div class="example-tinycast-wallpaper" aria-hidden="true">
+            <span class="example-tinycast-wallpaper-plane example-tinycast-wallpaper-plane-a"></span>
+            <span class="example-tinycast-wallpaper-plane example-tinycast-wallpaper-plane-b"></span>
+          </div>
+          <ui-menu class="example-tinycast-menu" label="Tinycast apps and commands" density="compact" sizing="fixed" placement="bottom" align="center" offset="0" close-on-outside="false" open>
+            <ui-button class="example-tinycast-trigger" slot="trigger" size="xsmall" variant="secondary">
+              <span class="example-tinycast-mark" slot="prefix" aria-hidden="true">T</span>
+              Tinycast
+              <ui-kbd slot="suffix" command="launcher.open" shortcut="Primary+Space"></ui-kbd>
+            </ui-button>
+            <ui-input-group class="example-tinycast-search" slot="header">
+              <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
+              <ui-input slot="control" type="search" size="large" label="Search for apps and commands" placeholder="Search for apps and commands..."></ui-input>
+            </ui-input-group>
+            <ui-menu-label>Favorites</ui-menu-label>
+            <ui-menu-item class="example-tinycast-selected" value="ghostty">
+              <span class="example-tinycast-app-icon bg-action text-on-action" slot="prefix" aria-hidden="true">G</span>
+              Ghostty
+              <span class="example-tinycast-kind" slot="shortcut">Application</span>
+            </ui-menu-item>
+            <ui-menu-item value="zed">
+              <span class="example-tinycast-app-icon bg-surface-raised text-text" slot="prefix" aria-hidden="true">Z</span>
+              Zed
+              <span class="example-tinycast-kind" slot="shortcut">Application</span>
+            </ui-menu-item>
+            <ui-menu-item value="code">
+              <span class="example-tinycast-app-icon bg-positive text-on-positive" slot="prefix" aria-hidden="true">C</span>
+              Code
+              <span class="example-tinycast-kind" slot="shortcut">Application</span>
+            </ui-menu-item>
+            <ui-menu-item value="helium">
+              <span class="example-tinycast-app-icon bg-warning text-on-warning" slot="prefix" aria-hidden="true">H</span>
+              Helium
+              <span class="example-tinycast-kind" slot="shortcut">Application</span>
+            </ui-menu-item>
+            <ui-menu-item value="orbstack">
+              <span class="example-tinycast-app-icon bg-critical text-on-critical" slot="prefix" aria-hidden="true">O</span>
+              OrbStack
+              <span class="example-tinycast-kind" slot="shortcut">Application</span>
+            </ui-menu-item>
+            <ui-menu-label>Applications</ui-menu-label>
+            <ui-menu-item value="activity-monitor">
+              <span class="example-tinycast-app-icon bg-positive-subtle text-positive" slot="prefix" aria-hidden="true">A</span>
+              Activity Monitor
+              <span class="example-tinycast-kind" slot="shortcut">Application</span>
+            </ui-menu-item>
+            <ui-menu-item value="alacritty">
+              <span class="example-tinycast-app-icon bg-surface-raised text-warning" slot="prefix" aria-hidden="true">A</span>
+              Alacritty
+              <span class="example-tinycast-kind" slot="shortcut">Application</span>
+            </ui-menu-item>
+            <ui-menu-item value="app-store">
+              <span class="example-tinycast-app-icon bg-action-subtle text-action" slot="prefix" aria-hidden="true">A</span>
+              App Store
+              <span class="example-tinycast-kind" slot="shortcut">Application</span>
+            </ui-menu-item>
+            <ui-menu-item value="appcleaner">
+              <span class="example-tinycast-app-icon bg-surface-raised text-critical" slot="prefix" aria-hidden="true">A</span>
+              AppCleaner
+              <span class="example-tinycast-kind" slot="shortcut">Application</span>
+            </ui-menu-item>
+            <div class="example-tinycast-footer" slot="footer">
+              <ui-button type="button" size="xsmall" variant="secondary" aria-label="Tinycast menu"><ui-icon name="navigation.menu" label=""></ui-icon></ui-button>
+              <span class="example-tinycast-actions">
+                <ui-button type="button" size="small" variant="quiet">Open Application<ui-kbd slot="suffix" command="launcher.open-selection" shortcut="Enter"></ui-kbd></ui-button>
+                <ui-button type="button" size="small" variant="quiet">Actions<ui-kbd slot="suffix" command="launcher.actions" shortcut="Primary+K"></ui-kbd></ui-button>
+              </span>
+            </div>
+          </ui-menu>
+        </div>`,
+      {
+        compositionOnly: true,
+        description:
+          "A Mash reconstruction of Tinycast's expanded launcher: persistent search and action chrome frame grouped, keyboard-navigable application commands. Reference: github.com/abue-ammar/tinycast.",
+        stageLayout: "fill",
+      },
+    ),
+    example(
       "Labelled command groups",
       `
         <div class="catalog-example example-menu-stage">
