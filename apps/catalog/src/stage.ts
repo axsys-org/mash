@@ -40,6 +40,7 @@ import {
   type LinearFilterPreset,
   type LinearWorkspaceSnapshot,
 } from "./linear-workspace-state.js";
+import "./tinycast-search.js";
 import "./editing-playground.js";
 import "./blocksuite-playground-loader.js";
 import "./file-upload-examples.js";

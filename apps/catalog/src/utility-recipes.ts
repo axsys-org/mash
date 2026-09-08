@@ -761,11 +761,11 @@ const stageRecipes: UtilityRecipes = {
     "grid size-glyph place-items-center rounded-control bg-action type-label-small text-on-action",
   "example-tinycast-search":
     "w-full [&::part(root)]:border-0 [&::part(root)]:bg-transparent [&::part(root)]:outline-none",
-  "example-tinycast-selected":
-    "[&::part(control)]:bg-menu-selection [&::part(control)]:text-on-menu-selection",
   "example-tinycast-app-icon":
     "grid size-glyph place-items-center rounded-control border border-border type-label-small font-semibold shadow-[0_1px_2px_var(--color-shadow)]",
   "example-tinycast-kind": "type-label-small text-text-muted",
+  "example-tinycast-empty":
+    "m-0 px-control-inline py-container-block text-center type-label-small text-text-muted",
   "example-tinycast-footer": "flex w-full min-w-0 items-center justify-between gap-control-gap",
   "example-tinycast-actions":
     "inline-flex min-w-0 items-center gap-[var(--border-hairline)] rounded-pill bg-surface-raised p-control-block-small shadow-[0_1px_4px_var(--color-shadow)]",
@@ -910,6 +910,10 @@ const stageRecipes: UtilityRecipes = {
 };
 
 const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
+  [
+    ".example-tinycast-menu > ui-menu-item[data-tinycast-selected]",
+    "[&::part(control)]:bg-menu-selection [&::part(control)]:text-on-menu-selection",
+  ],
   [
     ".demo.button-showcase-row, .demo.button-showcase-heading",
     "h-auto border-0 bg-transparent p-0",

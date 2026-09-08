@@ -24,7 +24,9 @@ export class MenuCollectionController {
   }
 
   items(): MenuCollectionItem[] {
-    return [...this.#host.querySelectorAll<MenuCollectionItem>(":scope > ui-menu-item")];
+    return [
+      ...this.#host.querySelectorAll<MenuCollectionItem>(":scope > ui-menu-item:not([hidden])"),
+    ];
   }
 
   itemFromEvent(event: Event): MenuCollectionItem | undefined {

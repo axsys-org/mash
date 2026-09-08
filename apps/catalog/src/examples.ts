@@ -4278,7 +4278,7 @@ export function MarkdownFrame({ html }: { html: string }) {
             <span class="example-tinycast-wallpaper-plane example-tinycast-wallpaper-plane-a"></span>
             <span class="example-tinycast-wallpaper-plane example-tinycast-wallpaper-plane-b"></span>
           </div>
-          <ui-menu class="example-tinycast-menu" label="Tinycast apps and commands" density="compact" sizing="fixed" placement="bottom" align="center" offset="0" close-on-outside="false" open>
+          <ui-menu class="example-tinycast-menu" data-tinycast-menu label="Tinycast apps and commands" density="compact" sizing="fixed" placement="bottom" align="center" offset="0" close-on-outside="false" open>
             <ui-button class="example-tinycast-trigger" slot="trigger" size="xsmall" variant="secondary">
               <span class="example-tinycast-mark" slot="prefix" aria-hidden="true">T</span>
               Tinycast
@@ -4286,55 +4286,56 @@ export function MarkdownFrame({ html }: { html: string }) {
             </ui-button>
             <ui-input-group class="example-tinycast-search" slot="header">
               <ui-icon slot="prefix" name="action.search" label=""></ui-icon>
-              <ui-input slot="control" type="search" size="large" label="Search for apps and commands" placeholder="Search for apps and commands..."></ui-input>
+              <ui-input slot="control" data-tinycast-search type="search" size="large" label="Search for apps and commands" placeholder="Search for apps and commands..." autocomplete="off"></ui-input>
             </ui-input-group>
-            <ui-menu-label>Favorites</ui-menu-label>
-            <ui-menu-item class="example-tinycast-selected" value="ghostty">
+            <ui-menu-label data-tinycast-group-label="favorites">Favorites</ui-menu-label>
+            <ui-menu-item data-tinycast-group="favorites" data-tinycast-search-text="ghostty terminal" data-tinycast-default data-tinycast-selected value="ghostty">
               <span class="example-tinycast-app-icon bg-action text-on-action" slot="prefix" aria-hidden="true">G</span>
               Ghostty
               <span class="example-tinycast-kind" slot="shortcut">Application</span>
             </ui-menu-item>
-            <ui-menu-item value="zed">
+            <ui-menu-item data-tinycast-group="favorites" data-tinycast-search-text="zed editor" value="zed">
               <span class="example-tinycast-app-icon bg-surface-raised text-text" slot="prefix" aria-hidden="true">Z</span>
               Zed
               <span class="example-tinycast-kind" slot="shortcut">Application</span>
             </ui-menu-item>
-            <ui-menu-item value="code">
+            <ui-menu-item data-tinycast-group="favorites" data-tinycast-search-text="code visual studio editor" value="code">
               <span class="example-tinycast-app-icon bg-positive text-on-positive" slot="prefix" aria-hidden="true">C</span>
               Code
               <span class="example-tinycast-kind" slot="shortcut">Application</span>
             </ui-menu-item>
-            <ui-menu-item value="helium">
+            <ui-menu-item data-tinycast-group="favorites" data-tinycast-search-text="helium browser" value="helium">
               <span class="example-tinycast-app-icon bg-warning text-on-warning" slot="prefix" aria-hidden="true">H</span>
               Helium
               <span class="example-tinycast-kind" slot="shortcut">Application</span>
             </ui-menu-item>
-            <ui-menu-item value="orbstack">
+            <ui-menu-item data-tinycast-group="favorites" data-tinycast-search-text="orbstack containers" value="orbstack">
               <span class="example-tinycast-app-icon bg-critical text-on-critical" slot="prefix" aria-hidden="true">O</span>
               OrbStack
               <span class="example-tinycast-kind" slot="shortcut">Application</span>
             </ui-menu-item>
-            <ui-menu-label>Applications</ui-menu-label>
-            <ui-menu-item value="activity-monitor">
+            <ui-menu-label data-tinycast-group-label="applications">Applications</ui-menu-label>
+            <ui-menu-item data-tinycast-group="applications" data-tinycast-search-text="activity monitor system" value="activity-monitor">
               <span class="example-tinycast-app-icon bg-positive-subtle text-positive" slot="prefix" aria-hidden="true">A</span>
               Activity Monitor
               <span class="example-tinycast-kind" slot="shortcut">Application</span>
             </ui-menu-item>
-            <ui-menu-item value="alacritty">
+            <ui-menu-item data-tinycast-group="applications" data-tinycast-search-text="alacritty terminal" value="alacritty">
               <span class="example-tinycast-app-icon bg-surface-raised text-warning" slot="prefix" aria-hidden="true">A</span>
               Alacritty
               <span class="example-tinycast-kind" slot="shortcut">Application</span>
             </ui-menu-item>
-            <ui-menu-item value="app-store">
+            <ui-menu-item data-tinycast-group="applications" data-tinycast-search-text="app store software" value="app-store">
               <span class="example-tinycast-app-icon bg-action-subtle text-action" slot="prefix" aria-hidden="true">A</span>
               App Store
               <span class="example-tinycast-kind" slot="shortcut">Application</span>
             </ui-menu-item>
-            <ui-menu-item value="appcleaner">
+            <ui-menu-item data-tinycast-group="applications" data-tinycast-search-text="appcleaner uninstall cleanup" value="appcleaner">
               <span class="example-tinycast-app-icon bg-surface-raised text-critical" slot="prefix" aria-hidden="true">A</span>
               AppCleaner
               <span class="example-tinycast-kind" slot="shortcut">Application</span>
             </ui-menu-item>
+            <p class="example-tinycast-empty" data-tinycast-empty role="status" aria-live="polite" hidden>No apps or commands found.</p>
             <div class="example-tinycast-footer" slot="footer">
               <ui-button type="button" size="xsmall" variant="secondary" aria-label="Tinycast menu"><ui-icon name="navigation.menu" label=""></ui-icon></ui-button>
               <span class="example-tinycast-actions">

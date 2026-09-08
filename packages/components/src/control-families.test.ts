@@ -502,6 +502,32 @@ describe("Control families", () => {
     expect(document.activeElement).not.toBe(trigger);
   });
 
+  it("skips hidden menu items during keyboard navigation and typeahead", async () => {
+    const menu = await fixture<UIMenu>(`
+      <ui-menu label="Actions" open>
+        <button slot="trigger">Actions</button>
+        <ui-menu-item value="open">Open project</ui-menu-item>
+        <ui-menu-item value="search" hidden>Search project</ui-menu-item>
+        <ui-menu-item value="share">Share project</ui-menu-item>
+      </ui-menu>
+    `);
+    const items = [...menu.querySelectorAll<UIMenuItem>("ui-menu-item")];
+    const firstButton = inShadow<HTMLButtonElement>(items[0]!, "button");
+    const lastButton = inShadow<HTMLButtonElement>(items[2]!, "button");
+
+    firstButton.focus();
+    firstButton.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
+    );
+    expect(items[2]?.shadowRoot?.activeElement).toBe(lastButton);
+
+    lastButton.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "s", bubbles: true, composed: true }),
+    );
+    expect(items[2]?.shadowRoot?.activeElement).toBe(lastButton);
+    expect(items[1]?.shadowRoot?.activeElement).toBeNull();
+  });
+
   it("keeps menu header and footer chrome outside the scrollable command viewport", async () => {
     for (const tag of ["ui-menu", "ui-context-menu"]) {
       const menu = await fixture<HTMLElement>(`
