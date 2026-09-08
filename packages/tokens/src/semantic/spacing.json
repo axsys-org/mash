@@ -2,26 +2,30 @@
   "space": {
     "$type": "dimension",
     "$description": "Theme-independent spacing semantics. These names describe the *role* a gap plays, so a component can ask for 'the inline padding of a control' without knowing which step of the scale that currently is.",
-
     "controlInline": {
-      "$value": "{space.reference.3}",
+      "$value": "{space.reference.2p5}",
       "$description": "Inline (left/right) padding inside an interactive control at the default size."
     },
     "controlBlock": {
-      "$value": "{space.reference.2}",
+      "$value": "{space.reference.1}",
       "$description": "Block (top/bottom) padding inside an interactive control at the default size."
     },
-
-    "controlInlineSmall": { "$value": "{space.reference.2}" },
-    "controlBlockSmall": { "$value": "{space.reference.1}" },
-    "controlInlineLarge": { "$value": "{space.reference.4}" },
-    "controlBlockLarge": { "$value": "{space.reference.3}" },
-
+    "controlInlineSmall": {
+      "$value": "{space.reference.2}"
+    },
+    "controlBlockSmall": {
+      "$value": "{space.reference.0p5}"
+    },
+    "controlInlineLarge": {
+      "$value": "{space.reference.4}"
+    },
+    "controlBlockLarge": {
+      "$value": "{space.reference.2}"
+    },
     "controlGap": {
       "$value": "{space.reference.2}",
       "$description": "Gap between a control's own parts, e.g. between a button's icon and its label."
     },
-
     "buttonInlineXSmall": {
       "$value": "{space.reference.1}",
       "$description": "4px inline padding for xsmall buttons."
@@ -54,12 +58,10 @@
       "$value": "{space.reference.2}",
       "$description": "8px compact inline padding for large buttons."
     },
-
     "switchInset": {
       "$value": "{space.reference.0p5}",
       "$description": "2px inset between a switch thumb and track."
     },
-
     "bubbleInline": {
       "$value": "{space.reference.3}",
       "$description": "12px inline padding for regular bubble content."
@@ -92,7 +94,6 @@
       "$value": "{space.reference.5}",
       "$description": "20px outside offset for top or bottom bubble reactions."
     },
-
     "menuShell": {
       "$value": "{space.reference.1}",
       "$description": "4px inset around a popup menu item stack."
@@ -113,20 +114,18 @@
       "$value": "{space.reference.1p5}",
       "$description": "6px block padding for persistent popup menu header and footer chrome."
     },
-
     "containerInline": {
-      "$value": "{space.reference.5}",
+      "$value": "{space.reference.4}",
       "$description": "Inline padding inside a surface container such as a card."
     },
     "containerBlock": {
-      "$value": "{space.reference.5}",
+      "$value": "{space.reference.4}",
       "$description": "Block padding inside a surface container such as a card."
     },
     "containerGap": {
       "$value": "{space.reference.4}",
       "$description": "Gap between sibling regions inside a container, e.g. a card's header and its content."
     },
-
     "stack": {
       "$value": "{space.reference.4}",
       "$description": "Default vertical rhythm between stacked blocks."
@@ -148,7 +147,7 @@
       "$description": "Block-axis spacing between related controls or content groups."
     },
     "region": {
-      "$value": "{space.reference.5}",
+      "$value": "{space.reference.6}",
       "$description": "Separation between distinct regions in a larger Web surface."
     }
   }

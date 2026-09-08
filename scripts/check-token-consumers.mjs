@@ -14,6 +14,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { cssVarName } from "../packages/tokens/config/layers.mjs";
+import { catalogueFiles } from "./lib/catalogue-css.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const TOKEN_SOURCE_ROOT = path.join(ROOT, "packages/tokens/src");
@@ -123,7 +124,7 @@ async function main() {
     .map((filePath) => path.relative(ROOT, filePath))
     .filter((filePath) => filePath.startsWith("apps/catalog/src/"));
   for (const filePath of catalogueStyles) {
-    if (filePath !== CATALOG_SYSTEM_ENTRY) {
+    if (filePath !== CATALOG_SYSTEM_ENTRY && filePath !== "apps/catalog/src/fixture-stage.css") {
       unresolved.push(
         `${filePath} is application styling; compose semantic utilities in utility-recipes.ts instead`,
       );
@@ -138,11 +139,23 @@ async function main() {
     );
   }
 
+  // Imported recipe modules share one cascade and may consume each other's
+  // private roles. Unimported files retain only their own local declarations.
+  const recipeVariables = new Map();
+  for (const root of CONSUMER_ROOTS.filter((entry) => entry.startsWith("packages/"))) {
+    const files = await catalogueFiles(path.join(ROOT, root, "mash.css"));
+    const variables = files.flatMap(({ source }) =>
+      [...source.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]),
+    );
+    for (const { file } of files) recipeVariables.set(file, variables);
+  }
+
   for (const filePath of cssFiles) {
     const source = await readFile(filePath, "utf8");
     const relativePath = path.relative(ROOT, filePath);
     const localVariables = new Set(
-      [...source.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]),
+      recipeVariables.get(filePath) ??
+        [...source.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]),
     );
 
     if (relativePath.startsWith("packages/") && relativePath.includes("/src/catalogue/")) {

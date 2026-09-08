@@ -6,6 +6,20 @@ from resolved token values.
 
 ## Unreleased
 
+### Component rebuild
+
+- Rebased the shared palette, typography, spacing, and corners onto Mash's
+  neutral light/dark foundations. `check:foundations` verifies the reviewed
+  semantic aliases.
+- Added inherited control sizing and public row, stack, grid, and panel layouts.
+  The default button is bordered; filled actions use `variant="primary"`.
+- Replaced eight control pages with focused examples and a stage that loads
+  only their displayed imports. Removed the toolbar application demos and
+  their automatic runtime imports from the base stage.
+- Added blocking production-catalog tests for example dependencies, theme
+  restoration, alignment, and keyboard behavior. The remaining rebuild work
+  and migration notes are in `docs/component-rebuild.md`.
+
 ### Paper foundation sync
 
 - Added the reviewed Interzone foundation contract at

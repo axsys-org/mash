@@ -1,0 +1,41 @@
+/** Public authored layout. Parents own spacing; children own their control frame. */
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]).mash-row,
+  :where([data-mash-catalogue="mash"]) .mash-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-group-related);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]).mash-stack,
+  :where([data-mash-catalogue="mash"]) .mash-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-group-block);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]).mash-grid,
+  :where([data-mash-catalogue="mash"]) .mash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--layout-dimension-panel)), 1fr));
+    gap: var(--space-group-block);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]).mash-wrap,
+  :where([data-mash-catalogue="mash"]) .mash-wrap {
+    flex-wrap: wrap;
+  }
+  :where([data-mash-catalogue="mash"]).mash-fill,
+  :where([data-mash-catalogue="mash"]) .mash-fill {
+    flex: 1 1 0;
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]).mash-panel,
+  :where([data-mash-catalogue="mash"]) .mash-panel {
+    padding: var(--space-container-block) var(--space-container-inline);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    background: var(--_mash-component-surface);
+  }
+}

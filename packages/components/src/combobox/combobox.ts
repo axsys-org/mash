@@ -19,7 +19,7 @@ import type { UIOption } from "../option/option.js";
 let comboboxListId = 0;
 
 export type ComboboxFilter = "contains" | "none" | "starts-with";
-export type ComboboxSize = "small" | "medium" | "large";
+export type ComboboxSize = "inherit" | "small" | "medium" | "large";
 
 function optionLabel(option: UIOption): string {
   return [...option.childNodes]
@@ -188,7 +188,7 @@ export class UICombobox extends LitElement {
   declare multiple: boolean;
   /** Uses grid roles and two-dimensional option-row navigation. */
   declare grid: boolean;
-  /** Physical scale of the editable control. */
+  /** Physical scale of the editable control; inherit follows data-mash-size. */
   declare size: ComboboxSize;
   /** Form key used for submission. */
   declare name: string;
@@ -246,7 +246,7 @@ export class UICombobox extends LitElement {
     this.values = [];
     this.multiple = false;
     this.grid = false;
-    this.size = "medium";
+    this.size = "inherit";
     this.name = "";
     this.label = "Search options";
     this.placeholder = "";

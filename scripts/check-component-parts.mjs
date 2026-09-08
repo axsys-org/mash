@@ -12,6 +12,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { catalogueFiles } from "./lib/catalogue-css.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const PACKAGES = [
@@ -50,7 +51,7 @@ async function main() {
     const cataloguePath = path.join(ROOT, entry.catalogue);
     const tailwindPath = path.join(ROOT, entry.tailwind);
     const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-    const catalogue = await readFile(cataloguePath, "utf8");
+    const catalogue = (await catalogueFiles(cataloguePath)).map(({ source }) => source).join("\n");
     const tailwind = await readFile(tailwindPath, "utf8");
     const components = new Map();
 

@@ -1,73 +1,27 @@
 {
   "type": {
-    "$description": "Theme-independent typography semantics derived from the Paper Text Styles and Dynamic Type reference. Each role remains a group of independently addressable DTCG tokens so size, weight, family, and leading retain their own provenance.",
-
+    "$description": "Mash UI typography uses a 16px root with 12/14/16px control text; public roles preserve semantic meaning across themes.",
     "caption2": {
-      "$description": "Smallest dynamic label role: 10px/13px medium.",
+      "$description": "UI caption2 role.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
       },
-      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.50}" },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.100}"
+      },
       "fontWeight": {
         "$type": "fontWeight",
         "$value": "{fontWeight.reference.medium}"
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.caption}"
+        "$value": "{lineHeight.reference.normal}"
       }
     },
     "caption1": {
-      "$description": "Compact caption role: 10px/13px regular.",
-      "fontFamily": {
-        "$type": "fontFamily",
-        "$value": "{fontFamily.reference.sans}"
-      },
-      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.50}" },
-      "fontWeight": {
-        "$type": "fontWeight",
-        "$value": "{fontWeight.reference.regular}"
-      },
-      "lineHeight": {
-        "$type": "number",
-        "$value": "{lineHeight.reference.caption}"
-      }
-    },
-    "footnote": {
-      "$description": "Footnote role: 10px/13px regular.",
-      "fontFamily": {
-        "$type": "fontFamily",
-        "$value": "{fontFamily.reference.sans}"
-      },
-      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.50}" },
-      "fontWeight": {
-        "$type": "fontWeight",
-        "$value": "{fontWeight.reference.regular}"
-      },
-      "lineHeight": {
-        "$type": "number",
-        "$value": "{lineHeight.reference.caption}"
-      }
-    },
-    "subheadline": {
-      "$description": "Subheadline role: 11px/14px regular.",
-      "fontFamily": {
-        "$type": "fontFamily",
-        "$value": "{fontFamily.reference.sans}"
-      },
-      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.75}" },
-      "fontWeight": {
-        "$type": "fontWeight",
-        "$value": "{fontWeight.reference.regular}"
-      },
-      "lineHeight": {
-        "$type": "number",
-        "$value": "{lineHeight.reference.subheadline}"
-      }
-    },
-    "callout": {
-      "$description": "Callout role: 12px/15px regular.",
+      "$description": "UI caption1 role.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
@@ -82,18 +36,18 @@
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.callout}"
+        "$value": "{lineHeight.reference.normal}"
       }
     },
-    "body": {
-      "$description": "Default running text: 13px/16px regular.",
+    "footnote": {
+      "$description": "UI footnote role.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
       },
       "fontSize": {
         "$type": "dimension",
-        "$value": "{fontSize.reference.150}"
+        "$value": "{fontSize.reference.100}"
       },
       "fontWeight": {
         "$type": "fontWeight",
@@ -101,26 +55,83 @@
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.body}"
+        "$value": "{lineHeight.reference.normal}"
       }
     },
-    "headline": {
-      "$description": "Headline role: 13px/16px bold.",
+    "subheadline": {
+      "$description": "UI subheadline role.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
       },
       "fontSize": {
         "$type": "dimension",
-        "$value": "{fontSize.reference.150}"
+        "$value": "{fontSize.reference.200}"
       },
       "fontWeight": {
         "$type": "fontWeight",
-        "$value": "{fontWeight.reference.bold}"
+        "$value": "{fontWeight.reference.regular}"
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.body}"
+        "$value": "{lineHeight.reference.normal}"
+      }
+    },
+    "callout": {
+      "$description": "UI callout role.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.200}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.normal}"
+      }
+    },
+    "body": {
+      "$description": "UI body role.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.200}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.normal}"
+      }
+    },
+    "headline": {
+      "$description": "UI headline role.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.200}"
+      },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.semibold}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.normal}"
       }
     },
     "bubble": {
@@ -218,70 +229,72 @@
         "$value": "{lineHeight.reference.largeTitle}"
       }
     },
-
     "label": {
-      "$description": "Compatibility role for control labels; maps to the 13px/16px medium menu and control treatment.",
+      "$description": "UI label role.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
       },
       "fontSize": {
         "$type": "dimension",
-        "$value": "{fontSize.reference.150}"
+        "$value": "{fontSize.reference.200}"
       },
       "fontWeight": {
         "$type": "fontWeight",
-        "$value": "{fontWeight.reference.medium}"
+        "$value": "{fontWeight.reference.regular}"
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.body}"
+        "$value": "{lineHeight.reference.normal}"
       }
     },
     "labelSmall": {
-      "$description": "Compatibility role for compact controls; maps to 10px/13px medium.",
+      "$description": "UI labelSmall role.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
       },
-      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.50}" },
+      "fontSize": {
+        "$type": "dimension",
+        "$value": "{fontSize.reference.100}"
+      },
       "fontWeight": {
         "$type": "fontWeight",
-        "$value": "{fontWeight.reference.medium}"
+        "$value": "{fontWeight.reference.regular}"
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.caption}"
+        "$value": "{lineHeight.reference.normal}"
       }
     },
     "labelLarge": {
-      "$description": "Compatibility role for prominent controls; maps to 15px/20px medium.",
+      "$description": "UI labelLarge role.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
       },
       "fontSize": {
         "$type": "dimension",
-        "$value": "{fontSize.reference.250}"
+        "$value": "{fontSize.reference.300}"
       },
       "fontWeight": {
         "$type": "fontWeight",
-        "$value": "{fontWeight.reference.medium}"
+        "$value": "{fontWeight.reference.regular}"
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.title3}"
+        "$value": "{lineHeight.reference.normal}"
       }
     },
     "heading": {
-      "$description": "Compatibility role for section headings; maps to 22px/26px semibold.",
+      "$description": "UI heading role.",
       "fontFamily": {
         "$type": "fontFamily",
         "$value": "{fontFamily.reference.sans}"
       },
       "fontSize": {
         "$type": "dimension",
-        "$value": "{fontSize.reference.500}"
+        "$value": "{fontSize.reference.400}"
       },
       "fontWeight": {
         "$type": "fontWeight",
@@ -289,7 +302,7 @@
       },
       "lineHeight": {
         "$type": "number",
-        "$value": "{lineHeight.reference.title1}"
+        "$value": "{lineHeight.reference.normal}"
       }
     },
     "code": {

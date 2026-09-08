@@ -28,7 +28,13 @@ function location(file, source, index) {
 }
 
 async function main() {
-  const examples = await readFile(path.join(ROOT, EXAMPLES_PATH), "utf8");
+  const examples = (
+    await Promise.all(
+      [EXAMPLES_PATH, "apps/catalog/src/examples/controls.ts"].map((file) =>
+        readFile(path.join(ROOT, file), "utf8"),
+      ),
+    )
+  ).join("\n");
   const stage = await readFile(path.join(ROOT, STAGE_PATH), "utf8");
   const utilityRecipes = await readFile(path.join(ROOT, UTILITY_RECIPES_PATH), "utf8");
   const icons = await readFile(path.join(ROOT, ICONS_PATH), "utf8");
@@ -112,21 +118,6 @@ async function main() {
     );
   }
 
-  const inputSection = examples.match(/"ui-input": \[([\s\S]*?)\n  \],/);
-  if (
-    !inputSection ||
-    !inputSection[1].includes("example-input-command-fragment") ||
-    !inputSection[1].includes("<ui-input-group") ||
-    !inputSection[1].includes("<ui-menu") ||
-    !inputSection[1].includes("<ui-link") ||
-    !inputSection[1].includes("<ui-kbd") ||
-    !inputSection[1].includes("data-catalog-input-events")
-  ) {
-    problems.push(
-      `${EXAMPLES_PATH} ui-input needs a command-search fragment that composes neighboring contracts`,
-    );
-  }
-
   const textareaSection = examples.match(/"ui-textarea": \[([\s\S]*?)\n  \],/);
   if (
     !textareaSection ||
@@ -183,7 +174,7 @@ async function main() {
   }
 
   console.log(
-    `catalogue conformance: ok — ${iconNames.size} semantic icons, input groups, commands, gestures, input fragments, composer fragments, contextual popovers, virtual rows, and motion composition verified`,
+    `catalogue conformance: ok — ${iconNames.size} semantic icons, input groups, commands, gestures, composer fragments, contextual popovers, virtual rows, and motion composition verified`,
   );
 }
 

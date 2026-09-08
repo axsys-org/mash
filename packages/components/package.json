@@ -19,7 +19,7 @@
     "./dist/**/register.js",
     "./dist/register.js",
     "./dist/tailwind.css",
-    "./src/catalogue/mash.css"
+    "./src/catalogue/*.css"
   ],
   "exports": {
     ".": {

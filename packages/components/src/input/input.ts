@@ -10,7 +10,7 @@ export type InputMode =
   "decimal" | "email" | "none" | "numeric" | "search" | "tel" | "text" | "url";
 
 /** The physical scale of an input control. */
-export type InputSize = "small" | "medium" | "large";
+export type InputSize = "inherit" | "small" | "medium" | "large";
 
 /** Fired when Enter is pressed while the native input owns focus. */
 export interface InputEnterDetail {
@@ -110,7 +110,7 @@ export class UIInput extends LitElement {
   declare name: string;
   /** Native text-entry mode. */
   declare type: InputType;
-  /** Physical scale. */
+  /** Physical scale; inherit follows the nearest data-mash-size context. */
   declare size: InputSize;
   /** Hint shown when the field is empty. */
   declare placeholder: string;
@@ -146,7 +146,7 @@ export class UIInput extends LitElement {
     this.value = "";
     this.name = "";
     this.type = "text";
-    this.size = "medium";
+    this.size = "inherit";
     this.placeholder = "";
     this.label = "";
     this.autocomplete = "";

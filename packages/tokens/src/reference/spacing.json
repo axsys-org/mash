@@ -3,60 +3,132 @@
     "$type": "dimension",
     "reference": {
       "$description": "A 4px-based spacing scale, authored in rem against a 16px root so that spacing scales with the user's font size preference. The numeric key is the step, not the pixel value: step 3 is 0.75rem / 12px. Named half-steps exist only where component geometry needs an intermediate value.",
-
-      "0": { "$value": { "value": 0, "unit": "rem" }, "$description": "0px" },
+      "0": {
+        "$value": {
+          "value": 0,
+          "unit": "rem"
+        },
+        "$description": "0px"
+      },
       "0p5": {
-        "$value": { "value": 0.125, "unit": "rem" },
+        "$value": {
+          "value": 0.125,
+          "unit": "rem"
+        },
         "$description": "2px"
       },
       "1": {
-        "$value": { "value": 0.25, "unit": "rem" },
+        "$value": {
+          "value": 0.25,
+          "unit": "rem"
+        },
         "$description": "4px"
       },
       "1p5": {
-        "$value": { "value": 0.375, "unit": "rem" },
+        "$value": {
+          "value": 0.375,
+          "unit": "rem"
+        },
         "$description": "6px"
       },
-      "2": { "$value": { "value": 0.5, "unit": "rem" }, "$description": "8px" },
+      "2": {
+        "$value": {
+          "value": 0.5,
+          "unit": "rem"
+        },
+        "$description": "8px"
+      },
       "2p5": {
-        "$value": { "value": 0.625, "unit": "rem" },
+        "$value": {
+          "value": 0.625,
+          "unit": "rem"
+        },
         "$description": "10px"
       },
       "3": {
-        "$value": { "value": 0.75, "unit": "rem" },
+        "$value": {
+          "value": 0.75,
+          "unit": "rem"
+        },
         "$description": "12px"
       },
       "3p5": {
-        "$value": { "value": 0.875, "unit": "rem" },
+        "$value": {
+          "value": 0.875,
+          "unit": "rem"
+        },
         "$description": "14px"
       },
-      "4": { "$value": { "value": 1, "unit": "rem" }, "$description": "16px" },
+      "4": {
+        "$value": {
+          "value": 1,
+          "unit": "rem"
+        },
+        "$description": "16px"
+      },
       "4p5": {
-        "$value": { "value": 1.125, "unit": "rem" },
+        "$value": {
+          "value": 1.125,
+          "unit": "rem"
+        },
         "$description": "18px"
       },
       "5": {
-        "$value": { "value": 1.25, "unit": "rem" },
+        "$value": {
+          "value": 1.25,
+          "unit": "rem"
+        },
         "$description": "20px"
       },
       "6": {
-        "$value": { "value": 1.5, "unit": "rem" },
+        "$value": {
+          "value": 1.5,
+          "unit": "rem"
+        },
         "$description": "24px"
       },
       "7": {
-        "$value": { "value": 1.75, "unit": "rem" },
+        "$value": {
+          "value": 1.75,
+          "unit": "rem"
+        },
         "$description": "28px"
       },
-      "8": { "$value": { "value": 2, "unit": "rem" }, "$description": "32px" },
+      "8": {
+        "$value": {
+          "value": 2,
+          "unit": "rem"
+        },
+        "$description": "32px"
+      },
       "9": {
-        "$value": { "value": 2.25, "unit": "rem" },
+        "$value": {
+          "value": 2.25,
+          "unit": "rem"
+        },
         "$description": "36px"
       },
       "10": {
-        "$value": { "value": 2.5, "unit": "rem" },
+        "$value": {
+          "value": 2.5,
+          "unit": "rem"
+        },
         "$description": "40px"
       },
-      "12": { "$value": { "value": 3, "unit": "rem" }, "$description": "48px" }
+      "12": {
+        "$value": {
+          "value": 3,
+          "unit": "rem"
+        },
+        "$description": "48px"
+      },
+      "11": {
+        "$value": {
+          "value": 2.75,
+          "unit": "rem"
+        },
+        "$description": "44px"
+      }
     }
   }
 }

@@ -111,6 +111,7 @@ export default defineConfig({
       input: {
         index: resolve(import.meta.dirname, "index.html"),
         stage: resolve(import.meta.dirname, "stage.html"),
+        fixture: resolve(import.meta.dirname, "fixture.html"),
       },
     },
   },

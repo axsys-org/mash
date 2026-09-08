@@ -18,7 +18,7 @@ import type { UIOption } from "../option/option.js";
 let selectListId = 0;
 
 export type SelectFilter = "contains" | "none" | "starts-with";
-export type SelectSize = "small" | "medium" | "large";
+export type SelectSize = "inherit" | "small" | "medium" | "large";
 
 function optionLabel(option: UIOption): string {
   return [...option.childNodes]
@@ -173,7 +173,7 @@ export class UISelect extends LitElement {
 
   /** Value of the selected option. */
   declare value: string;
-  /** Physical scale of the select trigger. */
+  /** Physical scale of the select trigger; inherit follows data-mash-size. */
   declare size: SelectSize;
   /** Shows an inline search field inside the option popup. */
   declare searchable: boolean;
@@ -229,7 +229,7 @@ export class UISelect extends LitElement {
   constructor() {
     super();
     this.value = "";
-    this.size = "medium";
+    this.size = "inherit";
     this.searchable = false;
     this.filter = "contains";
     this.searchPlaceholder = "Search options";

@@ -1,0 +1,62 @@
+{
+  "source": {
+    "name": "Mash foundations",
+    "reviewedAt": "2026-09-08"
+  },
+  "aliases": {
+    "light": {
+      "color.canvas": "color.reference.neutral.0",
+      "color.surface": "color.reference.neutral.0",
+      "color.surfaceRaised": "color.reference.neutral.0",
+      "color.surfaceSunken": "color.reference.neutral.100",
+      "color.text": "color.reference.neutral.950",
+      "color.textMuted": "color.reference.neutral.500",
+      "color.border": "color.reference.neutral.200",
+      "color.borderStrong": "color.reference.neutral.200",
+      "color.focusRing": "color.reference.neutral.400",
+      "color.action": "color.reference.neutral.900",
+      "color.actionHover": "color.reference.neutral.800",
+      "color.actionPressed": "color.reference.neutral.950",
+      "color.onAction": "color.reference.neutral.50",
+      "color.neutral": "color.reference.neutral.200",
+      "color.neutralHover": "color.reference.neutral.200",
+      "color.neutralPressed": "color.reference.neutral.300",
+      "color.onNeutral": "color.reference.neutral.900",
+      "color.positive": "color.reference.green.500",
+      "color.onPositive": "color.reference.neutral.50",
+      "color.warning": "color.reference.yellow.500",
+      "color.onWarning": "color.reference.neutral.50",
+      "color.critical": "color.reference.red.500",
+      "color.onCritical": "color.reference.neutral.50",
+      "color.info": "color.reference.cyan.500",
+      "color.onInfo": "color.reference.neutral.50"
+    },
+    "dark": {
+      "color.canvas": "color.reference.neutral.950",
+      "color.surface": "color.reference.neutral.950",
+      "color.surfaceRaised": "color.reference.neutral.950",
+      "color.surfaceSunken": "color.reference.neutral.800",
+      "color.text": "color.reference.neutral.50",
+      "color.textMuted": "color.reference.neutral.400",
+      "color.border": "color.reference.neutral.800",
+      "color.borderStrong": "color.reference.neutral.850",
+      "color.focusRing": "color.reference.neutral.500",
+      "color.action": "color.reference.neutral.50",
+      "color.actionHover": "color.reference.neutral.100",
+      "color.actionPressed": "color.reference.neutral.200",
+      "color.onAction": "color.reference.neutral.900",
+      "color.neutral": "color.reference.neutral.800",
+      "color.neutralHover": "color.reference.gray.41",
+      "color.neutralPressed": "color.reference.gray.33",
+      "color.onNeutral": "color.reference.neutral.50",
+      "color.positive": "color.reference.green.400",
+      "color.onPositive": "color.reference.green.600",
+      "color.warning": "color.reference.yellow.400",
+      "color.onWarning": "color.reference.yellow.600",
+      "color.critical": "color.reference.red.400",
+      "color.onCritical": "color.reference.red.600",
+      "color.info": "color.reference.cyan.400",
+      "color.onInfo": "color.reference.cyan.600"
+    }
+  }
+}

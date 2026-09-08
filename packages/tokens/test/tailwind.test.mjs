@@ -88,7 +88,7 @@ test("keeps material thickness, backdrop tuning, and semantic vibrancy independe
     light: 0.5,
     dark: 0.55,
   });
-  assert.equal(tokens["type.body.fontSize"].value, "0.8125rem");
+  assert.equal(tokens["type.body.fontSize"].value, "0.875rem");
   assert.equal(tokens["type.largeTitle.lineHeight"].value, 1.230769);
   assert.equal(
     Object.keys(tokens).some((id) => id.startsWith("effect.vibrancy.")),
@@ -96,33 +96,25 @@ test("keeps material thickness, backdrop tuning, and semantic vibrancy independe
   );
 });
 
-test("keeps legacy neutral consumers on contextual Apple fill tiers", async () => {
+test("keeps opaque control foundations separate from opt-in material fills", async () => {
   const { tokens } = JSON.parse(await readFile(path.join(DIST_DIR, "tokens.json"), "utf8"));
-
-  assert.deepEqual(tokens["color.surfaceSunken"].aliasOf, {
-    light: "color.reference.fill.light.opaque.quaternary",
-    dark: "color.reference.fill.dark.opaque.quaternary",
-  });
-  assert.deepEqual(tokens["color.neutral"].values, {
-    light: "oklch(0.0000 0.0000 0.00 / 0.05)",
-    dark: "oklch(1.0000 0.0000 0.00 / 0.05)",
-  });
-  assert.deepEqual(tokens["color.neutralPressed"].values, {
-    light: "oklch(0.0000 0.0000 0.00 / 0.15)",
-    dark: "oklch(1.0000 0.0000 0.00 / 0.15)",
-  });
-  assert.deepEqual(tokens["color.onNeutral"].aliasOf, {
-    light: "color.reference.label.light.opaque.primary",
-    dark: "color.reference.label.dark.opaque.primary",
-  });
-  assert.deepEqual(tokens["color.border"].aliasOf, {
-    light: "color.reference.fill.light.opaque.tertiary",
-    dark: "color.reference.fill.dark.opaque.tertiary",
-  });
-  assert.deepEqual(tokens["color.borderStrong"].aliasOf, {
-    light: "color.reference.fill.light.opaque.primary",
-    dark: "color.reference.fill.dark.opaque.primary",
-  });
+  for (const theme of ["light", "dark"]) {
+    for (const id of [
+      "color.surface",
+      "color.surfaceSunken",
+      "color.neutral",
+      "color.neutralPressed",
+      "color.border",
+    ]) {
+      assert.doesNotMatch(tokens[id].values[theme], /\//, `${id} must be opaque in ${theme}`);
+      assert.match(tokens[id].aliasOf[theme], /color\.reference\.(neutral|gray)\./);
+    }
+    assert.notEqual(tokens["color.action"].values[theme], tokens["color.onAction"].values[theme]);
+    assert.notEqual(
+      tokens["color.neutral"].values[theme],
+      tokens["color.neutralPressed"].values[theme],
+    );
+  }
 });
 
 test("automatically adapts typed layout dimensions and stacking layers", () => {

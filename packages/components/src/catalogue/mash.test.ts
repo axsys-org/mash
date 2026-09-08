@@ -56,7 +56,7 @@ describe("Mash catalogue", () => {
     const highlight = inShadow<HTMLElement>(label, '[part~="highlight"]');
     const content = inShadow<HTMLElement>(bubble, '[part="content"]');
 
-    expect(getComputedStyle(labelRoot).fontSize).toBe("15px");
+    expect(getComputedStyle(labelRoot).fontSize).toBe("16px");
     expect(getComputedStyle(highlight).color).not.toBe("rgba(0, 0, 0, 0)");
     expect(getComputedStyle(content).borderTopWidth).toBe("1px");
     expect(getComputedStyle(content).borderRadius).toBe("16px");
@@ -434,14 +434,14 @@ describe("Mash catalogue", () => {
     expect(getComputedStyle(popup).inlineSize).toBe("210px");
     expect(getComputedStyle(popup).minInlineSize).toBe("210px");
     expect(getComputedStyle(popup).maxInlineSize).toBe("210px");
-    expect(getComputedStyle(popup).borderTopLeftRadius).toBe("13px");
+    expect(getComputedStyle(popup).borderTopLeftRadius).toBe("6px");
     expect(getComputedStyle(actions).rowGap).toBe("0px");
     expect(menu.matches(":state(has-header)")).toBe(false);
     expect(menu.matches(":state(has-footer)")).toBe(false);
     expect(getComputedStyle(header).display).toBe("contents");
     expect(getComputedStyle(footer).display).toBe("contents");
     expect(getComputedStyle(itemControl).blockSize).toBe("20px");
-    expect(getComputedStyle(itemControl).borderTopLeftRadius).toBe("8px");
+    expect(getComputedStyle(itemControl).borderTopLeftRadius).toBe("4px");
     expect(getComputedStyle(itemControl).fontWeight).toBe("400");
     expect(getComputedStyle(labelRoot).paddingInlineStart).toBe("8px");
     expect(getComputedStyle(separator).blockSize).toBe("8px");

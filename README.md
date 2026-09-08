@@ -169,14 +169,13 @@ of `part="prefix"`, `slot="prefix"`, or `:state(has-prefix)` therefore yields th
 `part-prefix:*`, `slot-prefix:*`, and `state-has-prefix:*` without maintaining a second anatomy
 list. See [docs/tailwind.md](docs/tailwind.md) for the utility contract and component boundary.
 
-### Paper synchronization
+### Foundation contract
 
-The Interzone Paper foundation is tracked by the reviewed contract at
-`packages/tokens/src/paper-contract.json`. It records the Paper content hash and
-the semantic aliases Mash is expected to preserve. `pnpm run check:paper` compares
-that contract with the generated token graph and fails when a Paper-aligned alias
-drifts. See `docs/paper-sync.md` for the supervised design-to-code workflow and
-the PR preview handoff; synchronized changes are recorded in `CHANGELOG.md`.
+Mash's reviewed foundation aliases live in `docs/reference/foundations.json`.
+`pnpm run check:foundations` compares them with the generated token graph. Palette,
+type, geometry, and component recipes are rebuilt together on the component rebuild
+branch. See [the rebuild contract](docs/component-rebuild.md) for composition,
+example requirements, migration notes, and the remaining family work.
 
 ## The component layer
 

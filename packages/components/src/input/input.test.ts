@@ -15,7 +15,7 @@ describe("ui-input", () => {
 
     expect(input).toBeInstanceOf(UIInput);
     expect(input.type).toBe("text");
-    expect(input.size).toBe("medium");
+    expect(input.size).toBe("inherit");
     expect(control.localName).toBe("input");
     expect(control.placeholder).toBe("Search");
     expect(control.getAttribute("aria-label")).toBe("Search");

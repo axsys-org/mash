@@ -47,8 +47,8 @@ describe("ui-button: attribute and property reflection", () => {
   it("applies documented defaults", async () => {
     const button = await fixture<UIButton>(`<ui-button>Go</ui-button>`);
 
-    expect(button.variant).toBe("primary");
-    expect(button.size).toBe("medium");
+    expect(button.variant).toBe("default");
+    expect(button.size).toBe("inherit");
     expect(button.tone).toBe("accent");
     expect(button.disabled).toBe(false);
     expect(button.loading).toBe(false);
@@ -414,7 +414,7 @@ describe("ui-button: Mash recipe", () => {
 
   it("paints its background from --color-action, not from a hardcoded value", async () => {
     const button = await fixture<UIButton>(
-      `<ui-button style="--color-action: rgb(1 2 3); --color-action-hover: rgb(1 2 3); --color-action-pressed: rgb(1 2 3); --duration-control: 0ms">Go</ui-button>`,
+      `<ui-button variant="primary" style="--color-action: rgb(1 2 3); --color-action-hover: rgb(1 2 3); --color-action-pressed: rgb(1 2 3); --duration-control: 0ms">Go</ui-button>`,
     );
     const probe = await fixture<HTMLElement>(`<div style="background-color: rgb(1 2 3)"></div>`);
 

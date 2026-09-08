@@ -16,8 +16,9 @@ export type ButtonVariant =
   | "link"
   | "text";
 
-/** The button's physical scale. */
-export type ButtonSize = "xs" | "xsmall" | "sm" | "small" | "md" | "medium" | "lg" | "large";
+/** The button's physical scale. Inherit uses the surrounding data-mash-size context. */
+export type ButtonSize =
+  "inherit" | "xs" | "xsmall" | "sm" | "small" | "md" | "medium" | "lg" | "large";
 
 /** What the button's action *means*. Orthogonal to {@link ButtonVariant}. */
 export type ButtonTone = "accent" | "neutral" | "info" | "positive" | "warning" | "critical";
@@ -49,69 +50,21 @@ export type ButtonType = "button" | "submit" | "reset";
  * @tag ui-button
  * @summary Triggers an action. The primary interactive control of the system.
  *
- * @example Variant matrix
- * <div class="demo button-showcase">
- *   <div class="button-showcase-heading">
- *     <strong>Variant × tone</strong>
- *     <span>Status aliases compose with Mash semantic tones.</span>
- *   </div>
- *   <div class="button-showcase-grid">
- *     <span class="button-showcase-label">variants</span>
- *     <ui-button variant="default" size="small">Default</ui-button>
- *     <ui-button size="small">Primary</ui-button>
- *     <ui-button variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button variant="ghost" size="small">Ghost</ui-button>
- *     <span class="button-showcase-label">status</span>
- *     <ui-button variant="danger" size="small">Danger</ui-button>
- *     <ui-button variant="warning" size="small">Warning</ui-button>
- *     <ui-button variant="success" size="small">Success</ui-button>
- *     <ui-button variant="info" size="small">Info</ui-button>
- *     <span class="button-showcase-label">quiet</span>
- *     <ui-button variant="quiet" tone="critical" size="small">Quiet</ui-button>
- *     <ui-button variant="ghost" tone="warning" size="small">Ghost</ui-button>
- *     <ui-button variant="secondary" tone="positive" size="small">Success</ui-button>
- *     <ui-button variant="secondary" tone="info" size="small">Info</ui-button>
- *     <span class="button-showcase-label">inline</span>
- *     <ui-button variant="link" size="small">Link</ui-button>
- *     <ui-button variant="text" size="small">Text</ui-button>
- *     <ui-button variant="secondary" outline size="small">Outline</ui-button>
- *     <ui-button variant="secondary" compact size="small">Compact</ui-button>
- *   </div>
- *   <div class="button-showcase-rule"></div>
- *   <div class="button-showcase-heading">
- *     <strong>Size</strong>
- *     <span>Buttons accept xs/xsmall, sm/small, md/medium, and lg/large.</span>
- *   </div>
- *   <div class="button-showcase-row">
- *     <ui-button size="xs">XS</ui-button>
- *     <ui-button size="sm">Small</ui-button>
- *     <ui-button size="md">Medium</ui-button>
- *     <ui-button size="lg">Large</ui-button>
- *   </div>
+ * @example Variants
+ * <div data-mash-catalogue="mash" class="mash-row mash-wrap" data-mash-size="small">
+ *   <ui-button>Default</ui-button>
+ *   <ui-button variant="primary">Primary</ui-button>
+ *   <ui-button variant="secondary">Secondary</ui-button>
+ *   <ui-button variant="ghost">Ghost</ui-button>
+ *   <ui-button variant="link">Link</ui-button>
  * </div>
  *
- * @example Content variants
- * <div class="demo button-showcase button-showcase-compact">
- *   <div class="button-showcase-heading">
- *     <strong>Content is a slot</strong>
- *     <span>Prefix, suffix, loading and dropdown affordances share one rhythm.</span>
- *   </div>
- *   <div class="button-showcase-row">
- *     <ui-button><ui-icon slot="prefix" name="action.search" size="small" label=""></ui-icon>Search</ui-button>
- *     <ui-button variant="secondary" dropdown-caret>Options</ui-button>
- *     <ui-button variant="ghost"><ui-icon slot="suffix" name="navigation.forward" size="small" label=""></ui-icon>Details</ui-button>
- *   </div>
- *   <div class="button-showcase-rule"></div>
- *   <div class="button-showcase-heading">
- *     <strong>States</strong>
- *     <span>Inert states preserve the same geometry and hierarchy.</span>
- *   </div>
- *   <div class="button-showcase-row">
- *     <ui-button disabled>Disabled</ui-button>
- *     <ui-button loading>Loading</ui-button>
- *     <ui-button selected>Selected</ui-button>
- *     <ui-button tone="critical" variant="secondary" outline>Delete</ui-button>
- *   </div>
+ * @example Meaning
+ * <div data-mash-catalogue="mash" class="mash-row mash-wrap" data-mash-size="small">
+ *   <ui-button tone="positive">Success</ui-button>
+ *   <ui-button tone="warning">Warning</ui-button>
+ *   <ui-button tone="critical">Danger</ui-button>
+ *   <ui-button tone="info">Information</ui-button>
  * </div>
  *
  * @slot - The button's label.
@@ -189,7 +142,7 @@ export class UIButton extends LitElement {
 
   /** Visual emphasis. */
   declare variant: ButtonVariant;
-  /** Physical scale. */
+  /** Physical scale; inherit follows the nearest data-mash-size context. */
   declare size: ButtonSize;
   /** Semantic meaning of the action. */
   declare tone: ButtonTone;
@@ -218,8 +171,8 @@ export class UIButton extends LitElement {
 
   constructor() {
     super();
-    this.variant = "primary";
-    this.size = "medium";
+    this.variant = "default";
+    this.size = "inherit";
     this.tone = "accent";
     this.disabled = false;
     this.loading = false;

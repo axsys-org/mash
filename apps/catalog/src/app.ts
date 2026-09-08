@@ -144,6 +144,34 @@ function selectorMatchesInstance(node: Element, selector: string): boolean {
   }
 }
 
+/** Commas inside :is(), :where(), and attribute values are not list separators. */
+function selectorList(source: string): string[] {
+  const selectors: string[] = [];
+  let depth = 0;
+  let quote = "";
+  let start = 0;
+  for (let i = 0; i < source.length; i++) {
+    const char = source[i]!;
+    if (char === "\\") {
+      i++;
+      continue;
+    }
+    if (quote) {
+      if (char === quote) quote = "";
+      continue;
+    }
+    if (char === '"' || char === "'") quote = char;
+    else if (char === "(" || char === "[") depth++;
+    else if (char === ")" || char === "]") depth--;
+    else if (char === "," && depth === 0) {
+      selectors.push(source.slice(start, i));
+      start = i + 1;
+    }
+  }
+  selectors.push(source.slice(start));
+  return selectors;
+}
+
 /** Tokens referenced by active component and opt-in catalogue rules. */
 function tokensUsedBy(nodes: Element[]): string[] {
   const componentCss = nodes
@@ -165,9 +193,10 @@ function tokensUsedBy(nodes: Element[]): string[] {
   const rules = (cssRules: CSSRuleList | CSSRule[]): CSSRule[] =>
     [...cssRules].flatMap((rule) => {
       const nested = "cssRules" in rule ? rules((rule as CSSGroupingRule).cssRules) : [];
-      return [rule, ...nested];
+      const imported = "styleSheet" in rule && (rule as CSSImportRule).styleSheet;
+      return [rule, ...nested, ...(imported ? rules(imported.cssRules) : [])];
     });
-  const recipeCss = nodes[0]
+  const styleRules = nodes[0]
     ? [...nodes[0].ownerDocument.styleSheets]
         .flatMap((sheet) => {
           try {
@@ -176,25 +205,54 @@ function tokensUsedBy(nodes: Element[]): string[] {
             return [];
           }
         })
-        .filter(
-          (rule): rule is CSSStyleRule =>
-            "selectorText" in rule &&
-            tagPattern.test((rule as CSSStyleRule).selectorText) &&
-            (rule as CSSStyleRule).selectorText
-              .split(",")
-              .some((selector) => nodes.some((node) => selectorMatchesInstance(node, selector))),
-        )
-        .map((rule) => rule.cssText)
-        .join("\n")
-    : "";
+        .filter((rule): rule is CSSStyleRule => "selectorText" in rule)
+    : [];
+  const recipeCss = styleRules
+    .filter(
+      (rule) =>
+        tagPattern.test(rule.selectorText) &&
+        selectorList(rule.selectorText).some((selector) =>
+          nodes.some((node) => selectorMatchesInstance(node, selector)),
+        ),
+    )
+    .map((rule) => rule.cssText)
+    .join("\n");
+
+  const ancestry = new Set<Element>(nodes);
+  for (const node of nodes)
+    for (let parent = node.parentElement; parent; parent = parent.parentElement)
+      ancestry.add(parent);
+  const privateRoles = new Map<string, string[]>();
+  for (const rule of styleRules) {
+    if (
+      !selectorList(rule.selectorText).some((selector) =>
+        [...ancestry].some((node) => selectorMatchesInstance(node, selector)),
+      )
+    )
+      continue;
+    for (const name of rule.style) {
+      if (!name.startsWith("--_mash-")) continue;
+      privateRoles.set(name, [
+        ...(privateRoles.get(name) ?? []),
+        rule.style.getPropertyValue(name),
+      ]);
+    }
+  }
 
   const cssText = [componentCss, recipeCss].join("\n");
 
   const found = new Set<string>();
-  for (const match of cssText.matchAll(/var\((--[\w-]+)/g)) {
-    const name = match[1];
-    if (name && tokenByCssVar.has(name)) found.add(name);
-  }
+  const visited = new Set<string>();
+  const collect = (text: string) => {
+    for (const match of text.matchAll(/var\(\s*(--[\w-]+)/g)) {
+      const name = match[1]!;
+      if (visited.has(name)) continue;
+      visited.add(name);
+      if (tokenByCssVar.has(name)) found.add(name);
+      else for (const value of privateRoles.get(name) ?? []) collect(value);
+    }
+  };
+  collect(cssText);
   return [...found].sort();
 }
 
@@ -510,8 +568,25 @@ function controlField(
  */
 const STAGE_URL = "/stage.html";
 
+function exampleComponents(component: ComponentSchema, state: State): ComponentSchema[] {
+  const tags = new Set(
+    [...markupFor(component, state).matchAll(/<(ui-[\w-]+|sh-[\w-]+)\b/g)].map((match) => match[1]),
+  );
+  tags.add(component.tagName);
+  return components.filter((candidate) => tags.has(candidate.tagName));
+}
+
+function stageUrl(component: ComponentSchema, state: State): string {
+  if (!exampleNamed(component, state.example)?.portable) return STAGE_URL;
+  const tags = exampleComponents(component, state)
+    .map((entry) => entry.tagName)
+    .sort();
+  return `/fixture.html?tags=${encodeURIComponent(tags.join(","))}`;
+}
+
 function frameDocument(frame: HTMLIFrameElement): Promise<Document> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    const started = Date.now();
     const ready = () => {
       const doc = frame.contentDocument;
       // stage.ts sets this after registering components, so this resolves only
@@ -526,6 +601,12 @@ function frameDocument(frame: HTMLIFrameElement): Promise<Document> {
     }
 
     const poll = globalThis.setInterval(() => {
+      const error = frame.contentDocument?.documentElement?.dataset.stageError;
+      if (!frame.isConnected || error || Date.now() - started > 30000) {
+        globalThis.clearInterval(poll);
+        reject(new Error(error ?? "Component preview did not finish loading."));
+        return;
+      }
       const doc = ready();
       if (doc) {
         globalThis.clearInterval(poll);
@@ -538,6 +619,7 @@ function frameDocument(frame: HTMLIFrameElement): Promise<Document> {
 interface Mounted {
   root: HTMLElement;
   tagName: string;
+  stageUrl: string;
   above: HTMLElement;
   inspector: HTMLElement;
   below: HTMLElement;
@@ -565,7 +647,7 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
   } else {
     doc.body.replaceChildren(buildPreview(doc, component, state));
   }
-  applyStageUtilityRecipes(doc.body);
+  if (!example?.portable) applyStageUtilityRecipes(doc.body);
 
   const nodes = [...doc.querySelectorAll(component.tagName)];
   const node = nodes[0];
@@ -588,7 +670,7 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
   const anchored = component.attributes.some((attribute) => attribute.name === "placement");
   const layout = example?.stageLayout ?? (anchored ? "anchor" : fills ? "fill" : "center");
   doc.documentElement.dataset.layout = layout;
-  applyStageLayout(doc, layout);
+  if (!example?.portable) applyStageLayout(doc, layout);
 
   const used = tokensUsedBy(nodes);
   current.tokenList.replaceChildren(
@@ -891,7 +973,9 @@ function belowStage(
         { class: "code" },
         el("code", {
           text: [
-            `import "${importSpecifier(component)}";`,
+            ...exampleComponents(component, state).map(
+              (entry) => `import "${importSpecifier(entry)}";`,
+            ),
             `import "@mash/tokens/tokens.css";`,
             `import "${recipeSpecifier(component)}";`,
           ].join("\n"),
@@ -951,10 +1035,12 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
   const inspector = el("aside", { class: "inspector" });
   const below = el("div", { class: "reference-sections" });
   const tokenList = el("ul", { class: "token-list" });
+  const component = components.find((entry) => entry.tagName === state.tagName)!;
+  const source = stageUrl(component, state);
 
   const frame = el("iframe", {
     class: "stage-frame",
-    src: STAGE_URL,
+    src: source,
     title: "Component preview",
   }) as HTMLIFrameElement;
 
@@ -1002,6 +1088,7 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
   return {
     root,
     tagName: state.tagName,
+    stageUrl: source,
     above,
     inspector,
     below,
@@ -1022,7 +1109,12 @@ export function render(root: HTMLElement, state: State, callbacks: AppCallbacks)
   document.documentElement.dataset.theme = state.theme;
   document.documentElement.dataset.vibrancy = state.vibrancy;
 
-  if (!mounted || mounted.root !== root || mounted.tagName !== state.tagName) {
+  if (
+    !mounted ||
+    mounted.root !== root ||
+    mounted.tagName !== state.tagName ||
+    mounted.stageUrl !== stageUrl(component, state)
+  ) {
     mounted = mountShell(root, state, callbacks);
   }
 
@@ -1032,7 +1124,11 @@ export function render(root: HTMLElement, state: State, callbacks: AppCallbacks)
   mounted.inspector.replaceChildren(controlsPanel(component, state, callbacks));
   mounted.below.replaceChildren(...belowStage(component, state, mounted.tokenList).filter(present));
 
-  void syncStage(mounted, component, state);
+  const current = mounted;
+  void syncStage(current, component, state).catch((error: unknown) => {
+    if (mounted !== current) return;
+    current.tokenList.replaceChildren(el("li", { class: "note", text: String(error) }));
+  });
 }
 
 export { components, valueOf };

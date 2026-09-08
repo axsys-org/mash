@@ -2,22 +2,21 @@
   "color": {
     "$type": "color",
     "$description": "The semantic colour layer for the light theme.\n\nSemantic colour lives in the theme files rather than in semantic/, because every semantic colour is theme-dependent by definition — there is no theme-neutral value for `color.canvas`. Splitting it into a semantic file plus per-theme overrides would mean writing each name twice and inventing precedence rules. Instead each theme states the whole colour contract once. The token build enforces that every theme defines exactly the same set of names, so the two files cannot drift.",
-
     "canvas": {
-      "$value": "{color.reference.neutral.50}",
-      "$description": "The page behind everything. Never put text directly on it without a surface."
+      "$value": "{color.reference.neutral.0}",
+      "$description": "Mash background; light theme."
     },
     "surface": {
       "$value": "{color.reference.neutral.0}",
-      "$description": "Default raised content surface: cards, panels, sheets."
+      "$description": "Mash background; light theme."
     },
     "surfaceRaised": {
       "$value": "{color.reference.neutral.0}",
-      "$description": "A surface above another surface. In the light theme elevation reads through shadow, so this matches `surface`; in the dark theme it steps lighter instead."
+      "$description": "Mash popover.background; light theme."
     },
     "surfaceSunken": {
-      "$value": "{color.reference.fill.light.opaque.quaternary}",
-      "$description": "A contextual 3% recessed fill inside a surface: code blocks, inset lists, and track backgrounds."
+      "$value": "{color.reference.neutral.100}",
+      "$description": "Mash muted.background; light theme."
     },
     "backgroundMaterialUltraThin": {
       "$value": "{color.reference.material.light.ultraThin}",
@@ -47,29 +46,29 @@
       "$value": "{color.reference.shadow.backgroundMaterial}",
       "$description": "Thirteen-percent elevation shadow for floating material backgrounds."
     },
-
     "labelSource": {
       "$value": "{color.reference.neutral.1000}",
       "$description": "Black foreground source from which adaptive opaque label tiers are composed."
     },
     "text": {
-      "$value": "{color.reference.label.light.opaque.primary}",
-      "$description": "Primary body and heading text, expressed as black at the primary semantic label strength."
+      "$value": "{color.reference.neutral.950}",
+      "$description": "Mash foreground; light theme."
     },
     "textMuted": {
-      "$value": "{color.reference.label.light.opaque.secondary}",
-      "$description": "Secondary text: captions, help text, metadata. The translucent source lets the containing surface participate in the result."
+      "$value": "{color.reference.neutral.500}",
+      "$description": "Mash muted.foreground; light theme."
     },
     "textDisabled": {
-      "$value": "{color.reference.label.light.opaque.tertiary}",
-      "$description": "Tertiary-strength text for disabled controls. Deliberately low contrast; disabled content is exempt and the hierarchy is the affordance."
+      "$value": "{color.reference.neutral.400}"
     },
-    "textOpaque": { "$value": "{color.reference.label.light.opaque.primary}" },
+    "textOpaque": {
+      "$value": "{color.reference.neutral.950}"
+    },
     "textVibrant": {
       "$value": "{color.reference.label.light.vibrant.primary}"
     },
     "textMutedOpaque": {
-      "$value": "{color.reference.label.light.opaque.secondary}"
+      "$value": "{color.reference.neutral.500}"
     },
     "textMutedVibrant": {
       "$value": "{color.reference.label.light.vibrant.secondary}"
@@ -96,9 +95,8 @@
       "$value": "{color.reference.label.light.opaque.seximal}"
     },
     "textDisabledOpaque": {
-      "$value": "{color.reference.label.light.opaque.tertiary}"
+      "$value": "{color.reference.neutral.400}"
     },
-
     "fillPrimaryOpaque": {
       "$value": "{color.reference.fill.light.opaque.primary}"
     },
@@ -129,31 +127,29 @@
     "fillQuinaryVibrant": {
       "$value": "{color.reference.fill.light.vibrant.quinary}"
     },
-
     "separatorOpaque": {
-      "$value": "{color.reference.fill.light.opaque.tertiary}"
+      "$value": "{color.reference.neutral.200}"
     },
     "separatorVibrant": {
       "$value": "{color.reference.fill.light.vibrant.tertiary}"
     },
     "separatorStrongOpaque": {
-      "$value": "{color.reference.fill.light.opaque.primary}"
+      "$value": "{color.reference.neutral.300}"
     },
     "separatorStrongVibrant": {
       "$value": "{color.reference.fill.light.vibrant.primary}"
     },
-
     "border": {
-      "$value": "{color.reference.fill.light.opaque.tertiary}",
-      "$description": "Default component boundary, derived from the same opacity-based fill system as separators."
+      "$value": "{color.reference.neutral.200}",
+      "$description": "Mash border; light theme."
     },
     "borderStrong": {
-      "$value": "{color.reference.fill.light.opaque.primary}",
-      "$description": "Emphasised component boundary: hovered controls and active field borders."
+      "$value": "{color.reference.neutral.200}",
+      "$description": "Mash input.border; light theme."
     },
     "focusRing": {
-      "$value": "{color.reference.blue.500}",
-      "$description": "Keyboard focus indicator. Paired with border.focusRing / border.focusRingOffset."
+      "$value": "{color.reference.neutral.400}",
+      "$description": "Mash ring; light theme."
     },
     "shadow": {
       "$value": "{color.reference.shadow.soft}",
@@ -163,81 +159,139 @@
       "$value": "{color.reference.shadow.overlay}",
       "$description": "Translucent backdrop behind dialogs, drawers, menus, and other elevated surfaces."
     },
-
     "action": {
-      "$value": "{color.reference.blue.500}",
-      "$description": "The accent tone. Primary buttons, links, selected state."
+      "$value": "{color.reference.neutral.900}",
+      "$description": "Mash primary.background; light theme."
     },
-    "actionOpaque": { "$value": "{color.reference.blue.500}" },
-    "actionVibrant": { "$value": "{color.reference.blue.vibrantLight}" },
-    "menuSelection": { "$value": "{color.reference.blue.menuSelection}" },
-    "onMenuSelection": { "$value": "{color.reference.neutral.0}" },
+    "actionOpaque": {
+      "$value": "{color.reference.neutral.900}"
+    },
+    "actionVibrant": {
+      "$value": "{color.reference.blue.vibrantLight}"
+    },
+    "menuSelection": {
+      "$value": "{color.reference.neutral.100}"
+    },
+    "onMenuSelection": {
+      "$value": "{color.reference.neutral.900}"
+    },
     "actionWash": {
-      "$value": "{color.reference.blue.500Alpha08}",
-      "$description": "Lowest-emphasis action-tinted surface for provenance and preview scaffolding."
+      "$value": "{color.reference.neutral.50}"
     },
     "actionSubtle": {
-      "$value": "{color.reference.blue.500Alpha14}",
-      "$description": "Action-tinted selected surface."
+      "$value": "{color.reference.neutral.100}"
     },
-    "actionSubtleHover": { "$value": "{color.reference.blue.500Alpha20}" },
-    "actionEmphasis": { "$value": "{color.reference.blue.500Alpha28}" },
-    "actionBorder": { "$value": "{color.reference.blue.500Alpha45}" },
-    "actionHover": { "$value": "{color.reference.blue.600}" },
-    "actionPressed": { "$value": "{color.reference.blue.700}" },
+    "actionSubtleHover": {
+      "$value": "{color.reference.neutral.200}"
+    },
+    "actionEmphasis": {
+      "$value": "{color.reference.neutral.900}"
+    },
+    "actionBorder": {
+      "$value": "{color.reference.neutral.300}"
+    },
+    "actionHover": {
+      "$value": "{color.reference.neutral.800}",
+      "$description": "Mash primary.hover.background; light theme."
+    },
+    "actionPressed": {
+      "$value": "{color.reference.neutral.950}",
+      "$description": "Mash primary.active.background; light theme."
+    },
     "onAction": {
-      "$value": "{color.reference.neutral.900}",
-      "$description": "Ink foreground for content sitting on `action`; the Paper primary blue does not carry white text at accessible body sizes."
+      "$value": "{color.reference.neutral.50}",
+      "$description": "Mash primary.foreground; light theme."
     },
-
     "neutral": {
-      "$value": "{color.reference.fill.light.opaque.tertiary}",
-      "$description": "Idle neutral control fill, composed as 5% black over its actual light surface."
+      "$value": "{color.reference.neutral.200}",
+      "$description": "Mash secondary.background; light theme."
     },
-    "neutralHover": { "$value": "{color.reference.fill.light.opaque.primary}" },
+    "neutralHover": {
+      "$value": "{color.reference.neutral.200}",
+      "$description": "Mash secondary.hover.background; light theme."
+    },
     "neutralPressed": {
-      "$value": "{color.reference.fill.light.opaque.controlPressed}"
+      "$value": "{color.reference.neutral.300}",
+      "$description": "Mash secondary.active.background; light theme."
     },
-    "onNeutral": { "$value": "{color.reference.label.light.opaque.primary}" },
-
-    "positive": {
-      "$value": "{color.reference.green.600}",
-      "$description": "The positive tone. Success, confirmation, safe-to-proceed."
-    },
-    "positiveSubtle": { "$value": "{color.reference.positiveTint.light}" },
-    "positiveHover": { "$value": "{color.reference.green.700}" },
-    "positivePressed": { "$value": "{color.reference.green.800}" },
-    "onPositive": { "$value": "{color.reference.neutral.0}" },
-
-    "warning": {
-      "$value": "{color.reference.amber.600}",
-      "$description": "The warning tone. Needs attention but is not an error."
-    },
-    "warningHover": { "$value": "{color.reference.amber.700}" },
-    "warningPressed": { "$value": "{color.reference.amber.800}" },
-    "onWarning": {
+    "onNeutral": {
       "$value": "{color.reference.neutral.900}",
-      "$description": "Dark rather than light: amber is too bright to carry white text at 4.5:1."
+      "$description": "Mash secondary.foreground; light theme."
     },
-
+    "positive": {
+      "$value": "{color.reference.green.500}",
+      "$description": "Mash success.background; light theme."
+    },
+    "positiveSubtle": {
+      "$value": "{color.reference.positiveTint.light}"
+    },
+    "positiveHover": {
+      "$value": "{color.reference.green.700}"
+    },
+    "positivePressed": {
+      "$value": "{color.reference.green.800}"
+    },
+    "onPositive": {
+      "$value": "{color.reference.neutral.50}",
+      "$description": "Mash success.foreground; light theme."
+    },
+    "warning": {
+      "$value": "{color.reference.yellow.500}",
+      "$description": "Mash warning.background; light theme."
+    },
+    "warningHover": {
+      "$value": "{color.reference.amber.700}"
+    },
+    "warningPressed": {
+      "$value": "{color.reference.amber.800}"
+    },
+    "onWarning": {
+      "$value": "{color.reference.neutral.50}",
+      "$description": "Mash warning.foreground; light theme."
+    },
     "critical": {
-      "$value": "{color.reference.red.600}",
-      "$description": "The critical tone. Errors and destructive actions."
+      "$value": "{color.reference.red.500}",
+      "$description": "Mash danger.background; light theme."
     },
-    "criticalHover": { "$value": "{color.reference.red.700}" },
-    "criticalPressed": { "$value": "{color.reference.red.800}" },
-    "onCritical": { "$value": "{color.reference.neutral.0}" }
+    "criticalHover": {
+      "$value": "{color.reference.red.700}"
+    },
+    "criticalPressed": {
+      "$value": "{color.reference.red.800}"
+    },
+    "onCritical": {
+      "$value": "{color.reference.neutral.50}",
+      "$description": "Mash danger.foreground; light theme."
+    },
+    "info": {
+      "$value": "{color.reference.cyan.500}",
+      "$description": "Mash info.background; light theme."
+    },
+    "onInfo": {
+      "$value": "{color.reference.neutral.50}",
+      "$description": "Mash info.foreground; light theme."
+    }
   },
   "opacity": {
     "$type": "number",
     "$description": "Adaptive semantic label strengths for the light theme. Renderers combine these values with color.labelSource instead of treating every tier as an unrelated grey.",
-    "labelPrimary": { "$value": "{opacity.reference.label.light.primary}" },
-    "labelSecondary": { "$value": "{opacity.reference.label.light.secondary}" },
-    "labelTertiary": { "$value": "{opacity.reference.label.light.tertiary}" },
+    "labelPrimary": {
+      "$value": "{opacity.reference.label.light.primary}"
+    },
+    "labelSecondary": {
+      "$value": "{opacity.reference.label.light.secondary}"
+    },
+    "labelTertiary": {
+      "$value": "{opacity.reference.label.light.tertiary}"
+    },
     "labelQuaternary": {
       "$value": "{opacity.reference.label.light.quaternary}"
     },
-    "labelQuinary": { "$value": "{opacity.reference.label.light.quinary}" },
-    "labelSeximal": { "$value": "{opacity.reference.label.light.seximal}" }
+    "labelQuinary": {
+      "$value": "{opacity.reference.label.light.quinary}"
+    },
+    "labelSeximal": {
+      "$value": "{opacity.reference.label.light.seximal}"
+    }
   }
 }

@@ -65,7 +65,7 @@ describe("ui-label", () => {
     );
     const root = inShadow<HTMLElement>(label, '[part="root"]');
 
-    expect(getComputedStyle(root).fontSize).toBe("15px");
+    expect(getComputedStyle(root).fontSize).toBe("16px");
     expect(getComputedStyle(root).textAlign).toBe("end");
   });
 });

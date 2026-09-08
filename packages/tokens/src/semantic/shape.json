@@ -2,13 +2,12 @@
   "radius": {
     "$type": "dimension",
     "$description": "Theme-independent shape semantics. Persistent controls and containers use broad roles; specialized transient surfaces keep their own optical corner roles.",
-
     "control": {
       "$value": "{radius.reference.3}",
       "$description": "Corner radius for interactive controls: buttons, inputs, chips."
     },
     "container": {
-      "$value": "{radius.reference.5}",
+      "$value": "{radius.reference.4}",
       "$description": "Corner radius for surfaces that contain other content: cards, panels, dialogs."
     },
     "bubble": {
@@ -16,11 +15,11 @@
       "$description": "Large conversation bubble radius."
     },
     "menu": {
-      "$value": "{radius.reference.menu}",
+      "$value": "{radius.reference.3}",
       "$description": "Outer radius for compact floating menu surfaces."
     },
     "menuItem": {
-      "$value": "{radius.reference.4}",
+      "$value": "{radius.reference.2}",
       "$description": "Inner row radius for selectable commands inside floating menu surfaces."
     },
     "pill": {
@@ -28,7 +27,6 @@
       "$description": "Fully rounded. For badges and toggles whose shape is part of their meaning."
     }
   },
-
   "border": {
     "$type": "dimension",
     "$description": "Border widths. Authored in px because a hairline should stay a hairline.",
@@ -36,8 +34,12 @@
       "$value": "{border.reference.material}",
       "$description": "Half-pixel optical outline for translucent floating materials."
     },
-    "hairline": { "$value": "{border.reference.hairline}" },
-    "strong": { "$value": "{border.reference.strong}" },
+    "hairline": {
+      "$value": "{border.reference.hairline}"
+    },
+    "strong": {
+      "$value": "{border.reference.strong}"
+    },
     "focusRing": {
       "$value": "{border.reference.focusRing}",
       "$description": "Thickness of the focus indicator. Paired with color.focusRing."
