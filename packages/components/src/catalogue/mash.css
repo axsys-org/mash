@@ -5084,6 +5084,72 @@
     color: var(--color-critical);
   }
 
+  :where([data-mash-catalogue="mash"]) ui-file-upload {
+    display: block;
+    max-inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-file-upload::part(root) {
+    gap: var(--space-control-block-small);
+    min-inline-size: var(--layout-dimension-zero);
+  }
+  :where([data-mash-catalogue="mash"]) ui-file-upload::part(trigger) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    justify-items: center;
+    inline-size: 100%;
+    min-block-size: calc(
+      var(--layout-dimension-control-large) + var(--space-container-block) +
+        var(--space-container-block)
+    );
+    gap: var(--space-control-gap);
+    padding: var(--space-container-block) var(--space-container-inline);
+    border: var(--border-hairline) dashed var(--_mash-component-boundary-strong);
+    border-radius: var(--radius-container);
+    background: var(--_mash-component-surface-sunken);
+    color: var(--color-text);
+    cursor: pointer;
+    transition:
+      border-color var(--duration-control) var(--easing-control),
+      background-color var(--duration-control) var(--easing-control),
+      color var(--duration-control) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"]) ui-file-upload::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-file-upload::part(suffix) {
+    display: inline-grid;
+    place-items: center;
+    color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-file-upload::part(label) {
+    min-inline-size: var(--layout-dimension-zero);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+  }
+  :where([data-mash-catalogue="mash"]) ui-file-upload::part(description),
+  :where([data-mash-catalogue="mash"]) ui-file-upload::part(selection) {
+    min-inline-size: var(--layout-dimension-zero);
+    color: var(--color-text-muted);
+    font: var(--type-caption1-font-weight) var(--type-caption1-font-size) /
+      var(--type-caption1-line-height) var(--type-caption1-font-family);
+    text-align: center;
+  }
+  :where([data-mash-catalogue="mash"]) ui-file-upload:state(dragover)::part(trigger) {
+    border-color: var(--color-action-border);
+    background: var(--color-action-wash);
+    color: var(--color-action);
+  }
+  :where([data-mash-catalogue="mash"]) ui-file-upload:state(rejected)::part(trigger) {
+    border-color: var(--color-critical);
+  }
+  :where([data-mash-catalogue="mash"]) ui-file-upload:state(disabled)::part(root) {
+    color: var(--color-text-disabled);
+  }
+  :where([data-mash-catalogue="mash"]) ui-file-upload:state(disabled)::part(trigger) {
+    border-color: var(--_mash-component-boundary);
+    background: var(--_mash-component-surface-sunken);
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+  }
   :where([data-mash-catalogue="mash"]) ui-intl-formatter::part(root) {
     color: var(--color-text);
     font-family: var(--type-body-font-family);

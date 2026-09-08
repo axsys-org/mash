@@ -53,6 +53,13 @@ describe("selection manager", () => {
     expect(adapter.restore()).toBe(true);
     expect(document.getSelection()?.toString()).toBe("review");
 
+    adapter.clear();
+    root.querySelector("button")!.focus();
+    expect(adapter.range).toBeNull();
+    expect(adapter.capture(true)).toBeNull();
+    expect(manager.find("text")).toBeUndefined();
+    expect(document.getSelection()?.rangeCount).toBe(0);
+
     adapter.destroy();
   });
 

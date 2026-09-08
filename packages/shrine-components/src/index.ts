@@ -8,6 +8,11 @@
  *   import "@mash/shrine/register";           // the whole package
  */
 
+export {
+  shrineBlockIntegrationFor,
+  shrineComponentBlockIntegration,
+} from "./block/component-policy.js";
+export type { ClassifiedShrineComponentTag } from "./block/component-policy.js";
 export { ShrineConfirm } from "./confirm/confirm.js";
 export type { ConfirmTone } from "./confirm/confirm.js";
 export { ShrineTriptych } from "./triptych/triptych.js";

@@ -70,6 +70,10 @@
       "types": "./dist/bubble/register.d.ts",
       "import": "./dist/bubble/register.js"
     },
+    "./block": {
+      "types": "./dist/block/index.d.ts",
+      "import": "./dist/block/index.js"
+    },
     "./catalogue/mash.css": "./src/catalogue/mash.css",
     "./tailwind.css": "./dist/tailwind.css",
     "./checkbox": {
@@ -103,6 +107,14 @@
     "./field/register": {
       "types": "./dist/field/register.d.ts",
       "import": "./dist/field/register.js"
+    },
+    "./file-upload": {
+      "types": "./dist/file-upload/file-upload.d.ts",
+      "import": "./dist/file-upload/file-upload.js"
+    },
+    "./file-upload/register": {
+      "types": "./dist/file-upload/register.d.ts",
+      "import": "./dist/file-upload/register.js"
     },
     "./fieldset": {
       "types": "./dist/fieldset/fieldset.d.ts",

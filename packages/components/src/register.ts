@@ -30,6 +30,7 @@ import "./date-picker/register.js";
 import "./data-table/register.js";
 import "./editor/register.js";
 import "./field/register.js";
+import "./file-upload/register.js";
 import "./fieldset/register.js";
 import "./form/register.js";
 import "./gesture-binding/register.js";

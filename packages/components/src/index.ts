@@ -38,6 +38,34 @@ export { UICheckbox } from "./checkbox/checkbox.js";
 export type { CheckboxSize } from "./checkbox/checkbox.js";
 export { UICheckboxGroup } from "./checkbox-group/checkbox-group.js";
 export type { CheckboxGroupOrientation } from "./checkbox-group/checkbox-group.js";
+export {
+  applyBlockOperation,
+  applyBlockStreamFrame,
+  BlockCatalogue,
+  BlockValidationError,
+  createBlockDocument,
+} from "./block/block.js";
+export type {
+  BlockCapability,
+  BlockCatalogueListOptions,
+  BlockCatalogueRegistration,
+  BlockDefinition,
+  BlockDocument,
+  BlockNode,
+  BlockOperation,
+  BlockPlacement,
+  BlockProperties,
+  BlockScalar,
+  BlockStreamFrame,
+  BlockValidationCode,
+  BlockValidationIssue,
+  BlockValue,
+} from "./block/block.js";
+export { blockIntegrationFor, componentBlockIntegration } from "./block/component-policy.js";
+export type {
+  ClassifiedComponentTag,
+  ComponentBlockIntegration,
+} from "./block/component-policy.js";
 export { UIClipboard } from "./clipboard/clipboard.js";
 export type {
   ClipboardCopiedDetail,
@@ -54,6 +82,13 @@ export { UICard } from "./card/card.js";
 export type { CardElevation } from "./card/card.js";
 export { UIChip } from "./chip/chip.js";
 export { UIField } from "./field/field.js";
+export { UIFileUpload } from "./file-upload/file-upload.js";
+export type {
+  FileUploadChangeDetail,
+  FileUploadRejection,
+  FileUploadRejectionReason,
+  FileUploadSource,
+} from "./file-upload/file-upload.js";
 export { UIFieldset } from "./fieldset/fieldset.js";
 export { UIForm } from "./form/form.js";
 export {

@@ -398,8 +398,9 @@ These are reasons to extract the grammar, not clone the runtime.
    slash palette, and narrow-screen action sheet projections.
 4. Add virtual-rectangle anchors to the shared overlay engine for selections,
    canvas bounds, and remote cursors.
-5. Move the catalogue playground onto a real fragment AST/editor adapter while
-   leaving collaboration and persistence optional.
+5. Use the versioned `BlockDocument` and ordered stream operations as the
+   fragment-AST boundary while the catalogue remains a progressively enhanced
+   authored-HTML adapter; leave collaboration and persistence optional.
 6. Add an import/export adapter package for Foil/Markdown fragments, separate
    from components and tokens.
 7. Test one adapter contract matrix and a small number of representative visual

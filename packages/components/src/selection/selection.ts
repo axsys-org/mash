@@ -269,6 +269,17 @@ export class DOMTextSelectionAdapter<RecordType extends SelectionRecord = DOMTex
     return true;
   }
 
+  /** Discards both the retained range and its projected selection record. */
+  clear(): void {
+    this.#range = null;
+    const selection = this.surface.ownerDocument.getSelection();
+    if (selection?.rangeCount) {
+      const range = selection.getRangeAt(0);
+      if (rangeInside(this.surface, range)) selection.removeAllRanges();
+    }
+    this.manager.clear(this.group);
+  }
+
   destroy(): void {
     if (this.#destroyed) return;
     const view = this.surface.ownerDocument.defaultView;
@@ -280,7 +291,7 @@ export class DOMTextSelectionAdapter<RecordType extends SelectionRecord = DOMTex
     this.surface.ownerDocument.removeEventListener("scroll", this.#queueRetainedCapture, true);
     view?.removeEventListener("resize", this.#queueRetainedCapture);
     if (this.#frame) view?.cancelAnimationFrame(this.#frame);
-    this.manager.clear(this.group);
+    this.clear();
     this.#destroyed = true;
   }
 
