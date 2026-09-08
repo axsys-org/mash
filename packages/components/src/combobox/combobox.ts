@@ -114,6 +114,7 @@ function optionLabel(option: UIOption): string {
  * @mashnode input-group group root
  * @mashnode chips chips input-group
  * @mashnode control control input-group
+ * @mashnode input input control
  * @mashnode value value input-group
  * @mashnode trigger trigger input-group
  * @mashnode icon icon input-group

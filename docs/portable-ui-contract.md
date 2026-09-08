@@ -181,13 +181,15 @@ recipe forward.
 
 ### Current conformance boundary
 
-The JSON Schema validates manifest shape, and the generator checks shared-role
-membership, unique addresses, and valid parent references. Browser tests provide
-current evidence for the Web renderer's covered behaviour. Equivalent behaviour
-in other renderers is currently reviewed manually; Mash does not yet run one
-shared behaviour fixture suite against every renderer. Schema alignment alone
-must not be reported as proof of identical focus, keyboard, accessibility, or
-event behaviour.
+The manifest generator emits the versioned `declaration.mash` extension and
+checks that every custom element has semantic nodes, node IDs are unique, parent
+and binding references resolve, and binding/axis vocabularies are known. Its JSON
+shape is documented by [`mash-contract.schema.json`](mash-contract.schema.json).
+Browser tests provide current evidence for the Web renderer's covered behaviour.
+Equivalent behaviour in other renderers is currently reviewed manually; Mash
+does not yet run one shared behaviour fixture suite against every renderer.
+Schema alignment alone must not be reported as proof of identical focus,
+keyboard, accessibility, or event behaviour.
 
 ### Input, tree, and toolbar boundaries
 

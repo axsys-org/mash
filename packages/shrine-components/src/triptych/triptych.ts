@@ -36,6 +36,41 @@ import { baseStyles } from "../internal/base-styles.js";
  * @csspart inspector-viewport - The inspector's native scroll viewport.
  * @csspart inspector-content - The inspector's content region.
  * @cssstate inspector-open - Matches `:state(inspector-open)` while the inspector exists.
+ * @mashnode root workspace
+ * @mashnode sidebar navigation root
+ * @mashnode sidebar-viewport viewport sidebar
+ * @mashnode sidebar-content content sidebar-viewport
+ * @mashnode navigate navigation sidebar
+ * @mashnode main main root
+ * @mashnode locator location main
+ * @mashnode main-viewport viewport main
+ * @mashnode content content main-viewport
+ * @mashnode inspector inspector root
+ * @mashnode inspector-locator location inspector
+ * @mashnode inspector-viewport viewport inspector
+ * @mashnode inspector-content content inspector-viewport
+ * @mashnode inspector-open open inspector
+ * @mashrole slot default content content
+ * @mashrole slot content content content
+ * @mashrole slot sidebar navigation sidebar-content
+ * @mashrole slot navigate navigation navigate
+ * @mashrole slot locator location locator
+ * @mashrole slot inspector inspector inspector-content
+ * @mashrole slot inspector-locator location inspector-locator
+ * @mashrole part shell workspace root
+ * @mashrole part sidebar navigation sidebar
+ * @mashrole part sidebar-viewport viewport sidebar-viewport
+ * @mashrole part sidebar-content content sidebar-content
+ * @mashrole part navigate navigation navigate
+ * @mashrole part main main main
+ * @mashrole part locator location locator
+ * @mashrole part main-viewport viewport main-viewport
+ * @mashrole part content content content
+ * @mashrole part inspector inspector inspector
+ * @mashrole part inspector-locator location inspector-locator
+ * @mashrole part inspector-viewport viewport inspector-viewport
+ * @mashrole part inspector-content content inspector-content
+ * @mashrole state inspector-open open inspector-open
  *
  * Note: there is deliberately no "inspector closed" example. `inspectorOpen`
  * is a boolean attribute that defaults to true, and a boolean attribute is

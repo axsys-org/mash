@@ -15,6 +15,12 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot value - Optional rich value content. Overrides the `text` fallback.
  * @csspart root - The visible field value.
  * @csspart value - The authored rich value slot.
+ * @mashnode root value
+ * @mashnode content content root
+ * @mashrole slot default content content
+ * @mashrole slot value content content
+ * @mashrole part root value root
+ * @mashrole part value content content
  */
 export class ShrinePail extends LitElement {
   static override properties = {

@@ -66,6 +66,33 @@ interface AuthoredSource {
  *
  * @fires {CustomEvent<ImageLoadDetail>} ui-image-load - Reports the source and intrinsic dimensions after loading.
  * @fires {CustomEvent<ImageErrorDetail>} ui-image-error - Reports a failed source and whether fallback recovery will continue.
+ * @mashnode root image
+ * @mashnode picture picture root
+ * @mashnode sources sources picture
+ * @mashnode source source sources
+ * @mashnode image image picture
+ * @mashnode placeholder placeholder root
+ * @mashnode error error root
+ * @mashnode loading loading root
+ * @mashnode loaded loaded root
+ * @mashnode fallback fallback root
+ * @mashnode load load root
+ * @mashnode fail error root
+ * @mashrole slot source source source
+ * @mashrole slot placeholder placeholder placeholder
+ * @mashrole slot error error error
+ * @mashrole part root image root
+ * @mashrole part picture picture picture
+ * @mashrole part sources sources sources
+ * @mashrole part source source source
+ * @mashrole part image image image
+ * @mashrole part placeholder placeholder placeholder
+ * @mashrole part error error error
+ * @mashrole state loading loading loading
+ * @mashrole state loaded loaded loaded
+ * @mashrole state fallback fallback fallback
+ * @mashrole event ui-image-load load load
+ * @mashrole event ui-image-error error fail
  *
  */
 export class UIImage extends LitElement {
@@ -195,6 +222,7 @@ export class UIImage extends LitElement {
   }
 
   #onLoad = (event: Event): void => {
+    if (this._status === "error") return;
     const image = event.currentTarget as HTMLImageElement;
     this._status = "loaded";
     this.dispatchEvent(

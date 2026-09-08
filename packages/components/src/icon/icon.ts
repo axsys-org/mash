@@ -48,6 +48,7 @@ export type { IconSize, IconSource };
  * @mashnode root icon
  * @mashnode glyph glyph root
  * @mashnode primary primary glyph
+ * @mashnode fallback fallback primary
  * @mashnode secondary secondary glyph
  * @mashnode badge badge glyph
  * @mashnode name name root

@@ -22,6 +22,16 @@ import { baseStyles } from "../internal/base-styles.js";
  * @csspart label - The label column.
  * @csspart slot - Compatibility alias for the `label` part.
  * @csspart value - The value column.
+ * @mashnode root field
+ * @mashnode label label root
+ * @mashnode value value root
+ * @mashrole slot label label label
+ * @mashrole slot slot label label
+ * @mashrole slot value value value
+ * @mashrole part root field root
+ * @mashrole part label label label
+ * @mashrole part slot label label
+ * @mashrole part value value value
  */
 export class ShrineLimb extends LitElement {
   static override styles = baseStyles;
