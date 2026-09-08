@@ -3822,63 +3822,140 @@ export function MarkdownFrame({ html }: { html: string }) {
   ],
   "ui-toolbar": [
     example(
-      "Selection editor",
+      "Editing playground",
       `
-        <section class="catalog-example example-toolbar-selection" data-catalog-toolbar-selection-demo data-catalog-gesture-demo>
-          <article class="example-toolbar-document" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" data-catalog-toolbar-selection-surface>
-            <h2>Migration brief</h2>
-            <p>The billing migration should keep invoice review fast while the team replaces brittle one-off approval states.</p>
-            <p>Prioritize <span data-catalog-toolbar-selection-initial>international reconciliation</span> before pushing the final customer notice.</p>
-          </article>
-          <ui-toolbar class="example-toolbar-floating" data-catalog-selection-toolbar hidden label="Selected text formatting">
-            <ui-menu class="example-toolbar-menu" label="Text style" density="compact" sizing="fixed" placement="bottom" align="start" offset="8">
-              <ui-button class="example-toolbar-text-trigger" id="toolbar-selection-text" slot="trigger" type="button" size="small" variant="quiet" dropdown-caret aria-label="Text style">Text</ui-button>
+        <section class="catalog-example example-editing-playground" data-catalog-editing-playground>
+          <header class="example-editing-header">
+            <ui-path size="small" path="/workspace/migrations/billing"><span slot="title">Billing migration</span></ui-path>
+            <span class="example-editing-presence"><span class="example-editing-presence-dot"></span>Saved</span>
+            <ui-toolbar class="example-editing-history" label="Document history">
+              <ui-button type="button" size="xsmall" variant="quiet" compact aria-label="Undo" title="Undo" data-editing-command="history.undo"><ui-icon name="navigation.back" label=""></ui-icon></ui-button>
+              <ui-button type="button" size="xsmall" variant="quiet" compact aria-label="Redo" title="Redo" data-editing-command="history.redo"><ui-icon name="action.refresh" label=""></ui-icon></ui-button>
+            </ui-toolbar>
+            <ui-avatar size="small">AM</ui-avatar>
+            <ui-button type="button" size="small" variant="secondary">Share</ui-button>
+            <ui-button type="button" size="small" variant="quiet" compact aria-label="More document actions"><ui-icon name="navigation.more.horizontal" label=""></ui-icon></ui-button>
+          </header>
+          <div class="example-editing-workspace">
+            <aside class="example-editing-outline" aria-label="Document outline">
+              <div class="example-editing-panel-heading"><strong>Outline</strong><ui-badge size="small">4</ui-badge></div>
+              <nav class="example-editing-outline-list" aria-label="Headings">
+                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="title">Migration brief</ui-button>
+                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="summary">Summary</ui-button>
+                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="priority">Priorities</ui-button>
+                <ui-button type="button" size="small" variant="quiet" data-editing-focus-block="decision">Decision</ui-button>
+              </nav>
+              <div class="example-editing-panel-meta">
+                <ui-icon name="status.information" label=""></ui-icon>
+                <span>Finance workspace</span>
+              </div>
+            </aside>
+            <main class="example-editing-canvas">
+              <article id="editing-playground-surface" class="example-editing-document" aria-label="Migration brief" data-editing-surface>
+                <section data-editing-block="meta" data-editing-block-kind="caption">
+                  <div data-editing-block-content><p class="example-editing-kicker" contenteditable="true" spellcheck="true" data-editing-text>MIGRATION PLAN · SEPTEMBER 7</p></div>
+                </section>
+                <section data-editing-block="title" data-editing-block-kind="title">
+                  <div data-editing-block-content><h1 contenteditable="true" spellcheck="true" data-editing-text>Migration brief</h1></div>
+                </section>
+                <section data-editing-block="summary" data-editing-block-kind="body">
+                  <div data-editing-block-content><p contenteditable="true" spellcheck="true" data-editing-text>The billing migration should keep invoice review fast while the team replaces brittle one-off approval states.</p></div>
+                </section>
+                <section data-editing-block="priority" data-editing-block-kind="heading">
+                  <div data-editing-block-content><h2 contenteditable="true" spellcheck="true" data-editing-text>Priorities</h2></div>
+                </section>
+                <section data-editing-block="priority-copy" data-editing-block-kind="body">
+                  <div data-editing-block-content><p contenteditable="true" spellcheck="true" data-editing-text>Prioritize <span data-editing-initial>international reconciliation</span> before pushing the final customer notice. Keep the operational handoff legible for support and finance.</p></div>
+                </section>
+                <section data-editing-block="decision" data-editing-block-kind="callout">
+                  <div data-editing-block-content>
+                    <ui-card class="example-editing-callout" data-editing-component="callout">
+                      <strong slot="header">Decision</strong>
+                      <p slot="content" contenteditable="true" spellcheck="true" data-editing-text>Ship the ledger adapter behind a measured rollout and preserve the existing export path.</p>
+                    </ui-card>
+                  </div>
+                </section>
+              </article>
+            </main>
+            <aside class="example-editing-comments" aria-label="Document comments">
+              <div class="example-editing-panel-heading"><strong>Comments</strong><ui-badge size="small" data-editing-comment-count>1</ui-badge></div>
+              <ui-bubble variant="secondary">Confirm the reconciliation owner before the rollout window.</ui-bubble>
+              <p class="example-editing-comment-latest" data-editing-comment-latest hidden></p>
+              <div class="example-editing-comment-author"><ui-avatar size="small">SK</ui-avatar><span>Sam · Finance</span></div>
+            </aside>
+          </div>
+          <footer class="example-editing-footer">
+            <output data-editing-status>Ready</output>
+            <span>Edited just now</span>
+          </footer>
+          <ui-toolbar class="example-editing-block-bar" data-editing-block-toolbar hidden label="Block actions">
+            <ui-button type="button" size="xsmall" variant="quiet" compact aria-label="Insert block below" title="Insert block below" data-editing-add-block><ui-icon name="action.add" label=""></ui-icon></ui-button>
+            <ui-button type="button" size="xsmall" variant="quiet" compact aria-label="Move block up" title="Move block up" data-editing-command="block.move-up"><ui-icon name="navigation.up" label=""></ui-icon></ui-button>
+            <ui-button type="button" size="xsmall" variant="quiet" compact aria-label="Move block down" title="Move block down" data-editing-command="block.move-down"><ui-icon name="navigation.chevron-down" label=""></ui-icon></ui-button>
+            <ui-button type="button" size="xsmall" variant="quiet" compact aria-label="Duplicate block" title="Duplicate block" data-editing-command="block.duplicate"><ui-icon name="object.document" label=""></ui-icon></ui-button>
+            <ui-menu class="example-editing-format-menu" label="More block actions" density="compact" sizing="fixed" placement="bottom" align="start" offset="8">
+              <ui-button slot="trigger" type="button" size="xsmall" variant="quiet" compact aria-label="More block actions"><ui-icon name="navigation.more.horizontal" label=""></ui-icon></ui-button>
+              <ui-menu-label>Block</ui-menu-label>
+              <ui-menu-item value="copy" data-editing-command="block.copy">Copy contents</ui-menu-item>
+              <ui-menu-item value="delete" tone="critical" data-editing-command="block.delete">Delete</ui-menu-item>
+            </ui-menu>
+          </ui-toolbar>
+          <ui-toolbar class="example-editing-format-bar" data-editing-toolbar hidden label="Selected text formatting">
+            <ui-menu class="example-editing-format-menu" label="Block style" density="compact" sizing="fixed" placement="bottom" align="start" offset="8">
+              <ui-button class="example-editing-style-trigger" slot="trigger" type="button" size="xsmall" variant="quiet" dropdown-caret aria-label="Block style" data-editing-style-label>Text</ui-button>
               <ui-menu-label>Turn into</ui-menu-label>
-              <ui-menu-item kind="checkbox" value="body" data-catalog-selection-command="format.body">Body<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
-              <ui-menu-item kind="checkbox" value="callout" data-catalog-selection-command="format.callout">Callout<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
-              <ui-menu-item kind="checkbox" value="headline" data-catalog-selection-command="format.headline">Headline<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
-              <ui-menu-item kind="checkbox" value="title" data-catalog-selection-command="format.title">Title 3<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
-              <ui-separator></ui-separator>
-              <ui-menu-item value="tone">
-                Tone
-                <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
+              <ui-menu-item kind="radio" value="body" data-editing-command="block.body">Body<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              <ui-menu-item kind="radio" value="callout" data-editing-command="block.callout">Callout<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              <ui-menu-item kind="radio" value="heading" data-editing-command="block.heading">Heading<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+              <ui-menu-item kind="radio" value="title" data-editing-command="block.title">Title 3<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+            </ui-menu>
+            <ui-separator orientation="vertical"></ui-separator>
+            <ui-toggle value="bold" aria-label="Bold" title="Bold" data-editing-command="format.bold"><strong>B</strong></ui-toggle>
+            <ui-toggle value="italic" aria-label="Italic" title="Italic" data-editing-command="format.italic"><em>I</em></ui-toggle>
+            <ui-toggle value="underline" aria-label="Underline" title="Underline" data-editing-command="format.underline"><u>U</u></ui-toggle>
+            <ui-toggle class="example-editing-secondary-action" value="strike" aria-label="Strikethrough" title="Strikethrough" data-editing-command="format.strike"><s>S</s></ui-toggle>
+            <ui-toggle class="example-editing-secondary-action" value="code" aria-label="Inline code" title="Inline code" data-editing-command="format.code"><code>&lt;&gt;</code></ui-toggle>
+            <ui-separator orientation="vertical"></ui-separator>
+            <ui-button class="example-editing-secondary-action" type="button" size="xsmall" variant="quiet" compact aria-label="Add link" title="Add link" data-editing-command="format.link"><ui-icon name="action.launch" label=""></ui-icon></ui-button>
+            <ui-button class="example-editing-secondary-action" type="button" size="xsmall" variant="quiet" compact aria-label="Add comment" title="Add comment" data-editing-command="format.comment"><ui-icon name="action.edit" label=""></ui-icon></ui-button>
+            <ui-menu class="example-editing-format-menu" label="More formatting" density="compact" sizing="fixed" placement="bottom" align="end" offset="8">
+              <ui-button slot="trigger" type="button" size="xsmall" variant="quiet" compact aria-label="More formatting"><ui-icon name="navigation.more.horizontal" label=""></ui-icon></ui-button>
+              <ui-menu-label class="example-editing-overflow-action">Formatting</ui-menu-label>
+              <ui-menu-item class="example-editing-overflow-action" value="strike" data-editing-command="format.strike">Strikethrough</ui-menu-item>
+              <ui-menu-item class="example-editing-overflow-action" value="code" data-editing-command="format.code">Inline code</ui-menu-item>
+              <ui-menu-item class="example-editing-overflow-action" value="link" data-editing-command="format.link">Add link</ui-menu-item>
+              <ui-menu-item class="example-editing-overflow-action" value="comment" data-editing-command="format.comment">Add comment</ui-menu-item>
+              <ui-separator class="example-editing-overflow-action"></ui-separator>
+              <ui-menu-item value="tone">Tone<ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
                 <ui-menu slot="submenu" label="Text tone" density="compact" sizing="fixed">
-                  <ui-menu-item kind="checkbox" value="secondary" data-catalog-selection-command="tone.secondary">Muted<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
-                  <ui-menu-item kind="checkbox" value="accent" data-catalog-selection-command="tone.accent">Accent<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
-                  <ui-menu-item kind="checkbox" value="critical" data-catalog-selection-command="tone.critical">Critical<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                  <ui-menu-item kind="radio" value="secondary" data-editing-command="tone.secondary">Muted<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                  <ui-menu-item kind="radio" value="accent" data-editing-command="tone.accent">Accent<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                  <ui-menu-item kind="radio" value="critical" data-editing-command="tone.critical">Critical<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
                 </ui-menu>
               </ui-menu-item>
-              <ui-menu-item value="insert">
-                Insert component
-                <ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
+              <ui-menu-item value="insert">Insert component<ui-icon slot="chevron" name="navigation.disclosure" label=""></ui-icon>
                 <ui-menu slot="submenu" label="Insert component" density="compact" sizing="fixed">
-                  <ui-menu-item kind="checkbox" value="badge" data-catalog-selection-command="insert.badge">Badge<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
-                  <ui-menu-item kind="checkbox" value="callout-chip" data-catalog-selection-command="insert.callout">Callout chip<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                  <ui-menu-item kind="checkbox" value="badge" data-editing-command="insert.badge">Badge<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
+                  <ui-menu-item kind="checkbox" value="callout" data-editing-command="insert.callout">Callout chip<ui-icon slot="selection" name="action.confirm" label=""></ui-icon></ui-menu-item>
                 </ui-menu>
               </ui-menu-item>
             </ui-menu>
-            <ui-separator orientation="vertical"></ui-separator>
-            <ui-toggle id="toolbar-selection-bold" value="bold" aria-label="Bold" data-catalog-selection-command="format.bold"><strong>B</strong></ui-toggle>
-            <ui-toggle id="toolbar-selection-italic" value="italic" aria-label="Italic" data-catalog-selection-command="format.italic"><em>I</em></ui-toggle>
-            <ui-toggle id="toolbar-selection-strike" value="strike" aria-label="Strikethrough" data-catalog-selection-command="format.strike"><s>S</s></ui-toggle>
-            <ui-toggle id="toolbar-selection-code" value="code" aria-label="Inline code" data-catalog-selection-command="format.code"><code>&lt;&gt;</code></ui-toggle>
-            <ui-separator orientation="vertical"></ui-separator>
-            <ui-button id="toolbar-selection-link" type="button" size="small" variant="quiet" compact aria-label="Add link" data-catalog-selection-command="format.link"><ui-icon name="action.launch" label=""></ui-icon></ui-button>
-            <ui-button id="toolbar-selection-comment" type="button" size="small" variant="quiet" compact aria-label="Add comment" data-catalog-selection-command="format.comment" data-catalog-selection-secondary><ui-icon name="action.edit" label=""></ui-icon></ui-button>
-            <ui-button id="toolbar-selection-more" type="button" size="small" variant="quiet" compact aria-label="More actions" data-catalog-selection-secondary><ui-icon name="navigation.more.horizontal" label=""></ui-icon></ui-button>
           </ui-toolbar>
-          <output class="example-toolbar-output" data-catalog-toolbar-selection-output>international reconciliation selected</output>
-          <ui-gesture-binding for="toolbar-selection-bold" gesture="press" command="format.bold" group="selection-toolbar"></ui-gesture-binding>
-          <ui-gesture-binding for="toolbar-selection-italic" gesture="press" command="format.italic" group="selection-toolbar"></ui-gesture-binding>
-          <ui-gesture-binding for="toolbar-selection-strike" gesture="press" command="format.strike" group="selection-toolbar"></ui-gesture-binding>
-          <ui-gesture-binding for="toolbar-selection-code" gesture="press" command="format.code" group="selection-toolbar"></ui-gesture-binding>
-          <ui-gesture-binding for="toolbar-selection-link" gesture="press" command="format.link" group="selection-toolbar"></ui-gesture-binding>
-          <ui-gesture-binding for="toolbar-selection-comment" gesture="press" command="format.comment" group="selection-toolbar"></ui-gesture-binding>
+          <ui-menu class="example-editing-slash-menu" data-editing-slash-menu label="Insert block" density="compact" sizing="fixed" placement="bottom" align="start" offset="6">
+            <button class="example-editing-slash-anchor" slot="trigger" type="button" tabindex="-1" aria-hidden="true" data-editing-slash-anchor></button>
+            <div class="example-editing-slash-header" slot="header"><ui-icon name="action.search" label=""></ui-icon><span data-editing-slash-heading>Insert</span><ui-kbd>/</ui-kbd></div>
+            <div class="example-editing-slash-footer" slot="footer"><output data-editing-slash-count></output><span>blocks</span></div>
+          </ui-menu>
+          <ui-gesture-binding for="editing-playground-surface" gesture="key" shortcut="Primary+B" command="format.bold" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="editing-playground-surface" gesture="key" shortcut="Primary+I" command="format.italic" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="editing-playground-surface" gesture="key" shortcut="Primary+U" command="format.underline" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="editing-playground-surface" gesture="key" shortcut="Primary+Z" command="history.undo" prevent-default="recognized"></ui-gesture-binding>
+          <ui-gesture-binding for="editing-playground-surface" gesture="key" shortcut="Primary+Shift+Z" command="history.redo" prevent-default="recognized"></ui-gesture-binding>
         </section>`,
       {
         compositionOnly: true,
         description:
-          "The toolbar remains a semantic command group; the catalogue composes selection detection, floating placement, nested menus, and gesture bindings around it.",
+          "A real editing context projects one selection and command registry through document chrome, history, outline, comments, shortcuts, nested menus, and the contextual format bar.",
         stageLayout: "fill",
       },
     ),

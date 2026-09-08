@@ -300,17 +300,58 @@ const stageRecipes: UtilityRecipes = {
   "example-switch-copy": "grid min-w-0 gap-[var(--border-hairline)]",
   "example-switch-matrix":
     "grid w-[min(100%,var(--layout-dimension-dialog))] gap-control-gap rounded-container border border-border bg-surface px-container-inline py-container-block",
-  "example-toolbar-selection":
-    "relative grid min-h-[24rem] w-[min(100%,var(--layout-dimension-content))] content-center gap-container-gap overflow-hidden rounded-container border border-border bg-canvas px-container-inline py-container-block",
-  "example-toolbar-document":
-    "mx-auto grid w-[min(100%,38rem)] gap-container-block rounded-container border border-border bg-surface px-region py-region type-body leading-relaxed shadow-[0_2px_8px_var(--color-shadow)] outline-none focus-visible:focus-ring",
-  "example-toolbar-floating":
-    "absolute z-floating inline-flex max-w-[calc(100%_-_var(--space-container-inline)*2)] -translate-x-1/2 -translate-y-full items-center gap-[var(--border-hairline)] rounded-menu border border-border bg-surface-raised px-control-block-small py-control-block-small text-text shadow-[0_8px_24px_var(--color-shadow)] transition-[opacity,transform] duration-control ease-spring-snappy",
-  "example-toolbar-menu":
+  "example-editing-playground":
+    "relative grid h-full min-h-[32rem] w-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-canvas text-text",
+  "example-editing-header":
+    "grid min-h-[3.25rem] grid-cols-[minmax(0,1fr)_auto_auto_auto_auto] items-center gap-control-gap border-b border-border bg-surface px-container-inline py-control-block-small max-[42rem]:grid-cols-[minmax(0,1fr)_auto_auto]",
+  "example-editing-presence":
+    "inline-flex items-center gap-control-block-small type-label-small text-text-muted max-[42rem]:hidden",
+  "example-editing-presence-dot": "size-[0.4375rem] rounded-pill bg-positive",
+  "example-editing-history": "max-[42rem]:hidden",
+  "example-editing-workspace":
+    "grid min-h-0 grid-cols-[12rem_minmax(0,1fr)_15rem] max-[58rem]:grid-cols-[10rem_minmax(0,1fr)] max-[38rem]:grid-cols-1",
+  "example-editing-outline":
+    "grid min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] gap-control-gap overflow-auto border-r border-border bg-surface px-control-inline py-container-block max-[38rem]:hidden",
+  "example-editing-comments":
+    "grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_auto] content-start gap-control-gap overflow-auto border-l border-border bg-surface px-control-inline py-container-block max-[58rem]:hidden",
+  "example-editing-panel-heading":
+    "flex min-w-0 items-center justify-between gap-control-gap type-label-small",
+  "example-editing-outline-list": "grid content-start gap-[var(--border-hairline)]",
+  "example-editing-panel-meta":
+    "flex min-w-0 items-center gap-control-gap border-t border-border pt-control-block type-label-small text-text-muted",
+  "example-editing-canvas":
+    "min-h-0 overflow-auto bg-surface-sunken px-region py-region max-[38rem]:px-container-inline max-[38rem]:py-container-block",
+  "example-editing-document":
+    "mx-auto grid min-h-full w-[min(100%,44rem)] content-start gap-control-block-small border border-border bg-surface px-region py-region type-body leading-relaxed shadow-[0_2px_12px_var(--color-shadow)] max-[38rem]:px-container-inline",
+  "example-editing-kicker": "type-caption1 text-text-muted",
+  "example-editing-callout": "w-full",
+  "example-editing-code":
+    "block w-full overflow-auto rounded-control border border-border bg-surface-sunken px-container-inline py-container-block",
+  "example-editing-comment-latest":
+    "m-0 rounded-control border border-action-border bg-action-wash px-control-inline py-control-block type-label-small text-action",
+  "example-editing-comment-author":
+    "flex items-center gap-control-gap border-t border-border pt-control-block type-label-small text-text-muted",
+  "example-editing-footer":
+    "flex min-h-control items-center justify-between gap-control-gap border-t border-border bg-surface px-container-inline py-control-block-small type-label-small text-text-muted",
+  "example-editing-format-bar":
+    "fixed z-floating inline-flex max-w-[calc(100vw-var(--space-container-inline)*2)] items-center gap-[var(--border-hairline)] rounded-menu border border-border bg-surface-raised px-control-block-small py-control-block-small text-text shadow-[0_10px_30px_var(--color-shadow)] backdrop-blur-[var(--material-blur)] [&[hidden]]:hidden!",
+  "example-editing-block-bar":
+    "fixed z-floating inline-flex max-w-[calc(100vw-var(--space-container-inline)*2)] items-center gap-[var(--border-hairline)] rounded-menu border border-border bg-surface-raised px-control-block-small py-control-block-small text-text shadow-[0_10px_30px_var(--color-shadow)] backdrop-blur-[var(--material-blur)] [&[hidden]]:hidden!",
+  "example-editing-format-menu":
     "inline-flex shrink-0 items-center [&::part(popup)]:min-w-[var(--layout-menu-inline-compact)]! [&::part(popup)]:max-w-[calc(100vw-var(--space-container-inline)*2)]! [&::part(viewport)]:max-h-[calc(var(--layout-menu-row-compact)*8)]!",
-  "example-toolbar-text-trigger":
+  "example-editing-style-trigger":
     "[&::part(control)]:min-w-[calc(var(--layout-dimension-control-xsmall)*2.25)]! [&::part(control)]:gap-control-block-small! [&::part(control)]:px-control-inline-small!",
-  "example-toolbar-output": "justify-self-center type-code text-text-muted",
+  "example-editing-secondary-action": "max-[28rem]:hidden",
+  "example-editing-overflow-action": "hidden max-[28rem]:block",
+  "example-editing-slash-menu":
+    "[&::part(popup)]:w-[min(21rem,calc(100vw-var(--space-container-inline)*2))]! [&::part(viewport)]:max-h-[min(25rem,calc(100vh-var(--space-region)*2))]!",
+  "example-editing-slash-anchor":
+    "pointer-events-none fixed z-floating size-px border-0 bg-transparent p-0 opacity-0",
+  "example-editing-slash-header":
+    "flex min-w-0 items-center gap-control-gap border-b border-border px-control-inline py-control-block type-label-small text-text-muted",
+  "example-editing-slash-footer":
+    "flex items-center justify-end gap-control-block-small border-t border-border px-control-inline py-control-block-small type-caption1 text-text-muted",
+  "example-editing-slash-copy": "grid min-w-0 gap-[var(--border-hairline)]",
   "example-navigation":
     "flex flex-wrap items-center gap-control-gap rounded-container border border-border bg-surface px-control-inline py-control-block",
   "example-link-showcase":
@@ -1110,27 +1151,85 @@ const stageSelectorRecipes: ReadonlyArray<readonly [string, string]> = [
   [".example-switch-copy strong", "type-label-large"],
   [".example-switch-copy span", "type-label-small text-text-muted"],
   [".example-switch-matrix ui-switch", "justify-self-start"],
-  [".example-toolbar-document h2, .example-toolbar-document p", "m-0"],
-  [".example-toolbar-document h2", "type-title2"],
-  [".example-toolbar-document ::selection", "bg-action-emphasis text-text"],
+  [".example-editing-header ui-path", "min-w-0"],
+  [".example-editing-header > ui-button:last-child", "max-[42rem]:hidden"],
   [
-    ".example-toolbar-document mark",
-    "rounded-control bg-warning-subtle px-control-block-small text-warning",
+    ".example-editing-outline-list ui-button",
+    "w-full [&::part(control)]:w-full! [&::part(control)]:justify-start!",
   ],
   [
-    ".example-toolbar-document [data-catalog-toolbar-comment]",
-    "border-b border-dotted border-warning bg-warning-subtle",
+    ".example-editing-document h1, .example-editing-document h2, .example-editing-document p, .example-editing-document blockquote, .example-editing-document ul, .example-editing-document pre",
+    "m-0",
   ],
   [
-    ".example-toolbar-floating ui-button, .example-toolbar-floating ui-toggle",
-    "shrink-0 text-text [&::part(control)]:min-h-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:min-w-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:border-0! [&::part(control)]:bg-transparent! [&::part(control)]:px-control-block! [&::part(control)]:text-text! hover:[&::part(control)]:bg-surface-sunken!",
+    ".example-editing-document > [data-editing-block]",
+    "relative min-w-0 rounded-control border-y border-transparent py-control-block-small outline-none transition-colors [&[aria-selected=true]]:border-action-border [&[aria-selected=true]]:bg-action-wash [&[data-editing-dragging]]:opacity-40 [&[data-editing-drop-before]]:border-t-action [&[data-editing-drop-after]]:border-b-action",
   ],
-  [".example-toolbar-floating [data-catalog-selection-secondary]", "max-[32rem]:hidden"],
-  [".example-toolbar-floating ui-toggle[pressed]", "[&::part(control)]:bg-action-wash!"],
+  [".example-editing-document [data-editing-block-content]", "min-w-0 [&>*]:min-w-0"],
   [
-    ".example-toolbar-floating > ui-separator",
-    "mx-control-block-small h-[calc(var(--layout-dimension-control-xsmall)-var(--space-control-block-small))] bg-[rgba(255,255,255,0.18)]",
+    ".example-editing-document [data-editing-block-rail]",
+    "absolute z-raised flex items-center gap-[var(--border-hairline)] opacity-0 transition-opacity [inset-block-start:var(--space-control-block-small)] [inset-inline-end:calc(100%+var(--space-control-block-small))] focus-within:opacity-100",
   ],
+  [
+    ".example-editing-document [data-editing-block]:hover > [data-editing-block-rail], .example-editing-document [data-editing-block][data-editing-active] > [data-editing-block-rail], .example-editing-document [data-editing-block][aria-selected='true'] > [data-editing-block-rail]",
+    "opacity-100",
+  ],
+  [
+    ".example-editing-document [data-editing-block-rail] ui-button",
+    "text-text-muted [&::part(control)]:min-h-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:min-w-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:border-0! [&::part(control)]:px-control-block-small!",
+  ],
+  [".example-editing-document [data-editing-text]", "min-h-[1lh] min-w-0 outline-none"],
+  [
+    ".example-editing-document [data-editing-block-kind='title'] [data-editing-text]",
+    "type-title1",
+  ],
+  [
+    ".example-editing-document [data-editing-block-kind='heading'] [data-editing-text]",
+    "type-title3",
+  ],
+  [".example-editing-document [data-editing-block-kind='body'] [data-editing-text]", "type-body"],
+  [
+    ".example-editing-document [data-editing-block-kind='caption'] [data-editing-text]",
+    "type-caption1 text-text-muted",
+  ],
+  [
+    ".example-editing-document [data-editing-block-kind='quote'] [data-editing-text]",
+    "border-l-[var(--border-selected)] border-border-strong pl-control-inline text-text-muted",
+  ],
+  [
+    ".example-editing-document [data-editing-block-kind='bullet'] ul",
+    "grid gap-control-block-small pl-container-inline",
+  ],
+  [".example-editing-document [data-editing-component='table']", "w-full"],
+  [
+    ".example-editing-document [data-editing-component='table'] [contenteditable]",
+    "block min-w-[4rem] outline-none",
+  ],
+  [".example-editing-document ::selection", "bg-action-emphasis text-on-action"],
+  [".example-editing-footer output", "min-w-0 flex-1 truncate"],
+  [".example-editing-footer > span", "shrink-0"],
+  [
+    ".example-editing-document mark[data-editing-comment]",
+    "border-b border-dotted border-warning bg-warning-subtle text-text",
+  ],
+  [
+    ".example-editing-format-bar ui-button, .example-editing-format-bar ui-toggle, .example-editing-block-bar ui-button",
+    "shrink-0 text-text [&::part(control)]:min-h-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:min-w-[var(--layout-dimension-control-xsmall)]! [&::part(control)]:border-0! [&::part(control)]:bg-transparent! [&::part(control)]:px-control-block! [&::part(control)]:text-text! hover:[&::part(control)]:bg-neutral-hover!",
+  ],
+  [
+    ".example-editing-format-bar ui-toggle[pressed]",
+    "[&::part(control)]:bg-action-wash! [&::part(control)]:text-action!",
+  ],
+  [
+    ".example-editing-format-bar > ui-separator",
+    "mx-control-block-small h-[calc(var(--layout-dimension-control-xsmall)-var(--space-control-block-small))] bg-border",
+  ],
+  [
+    ".example-editing-slash-menu ui-menu-item",
+    "[&::part(control)]:min-h-[var(--layout-dimension-control-large)]! [&::part(control)]:py-control-block-small! [&[data-editing-highlighted]::part(control)]:bg-neutral-hover!",
+  ],
+  [".example-editing-slash-copy strong", "truncate type-label-small"],
+  [".example-editing-slash-copy > span", "truncate type-caption1 text-text-muted"],
   [".example-tabs ui-tab-panel", "block pt-container-block"],
   [".example-icon-layers ui-icon", "text-text"],
   [
@@ -1278,6 +1377,7 @@ export function applyStageUtilityRecipes(root: Element): void {
   }
 
   for (const [selector, utilities] of stageSelectorRecipes) {
+    if (root.matches(selector)) addUtilities(root, utilities);
     for (const element of root.querySelectorAll(selector)) addUtilities(element, utilities);
   }
 }

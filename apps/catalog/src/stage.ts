@@ -40,6 +40,7 @@ import {
   type LinearFilterPreset,
   type LinearWorkspaceSnapshot,
 } from "./linear-workspace-state.js";
+import "./editing-playground.js";
 
 // Tells the parent the frame is ready without it having to poll for the
 // registry being populated.
@@ -423,13 +424,25 @@ function syncCatalogVirtualLists(): void {
 function syncStageContent(): void {
   syncDragSources();
   syncCatalogComboboxDemos();
-  syncToolbarSelectionDemos();
   syncLinearWorkspaces();
   syncCatalogVirtualLists();
 }
 
-new MutationObserver(syncStageContent).observe(document.body, { childList: true, subtree: true });
-queueMicrotask(syncStageContent);
+const stageContentObserver = new MutationObserver(syncStageContent);
+
+function observeStageContent(): void {
+  const body = document.body;
+  if (!body) return;
+  stageContentObserver.observe(body, { childList: true, subtree: true });
+  queueMicrotask(syncStageContent);
+}
+
+if (document.body) observeStageContent();
+else document.addEventListener("DOMContentLoaded", observeStageContent, { once: true });
+
+const stageHot = (import.meta as ImportMeta & { hot?: { dispose(callback: () => void): void } })
+  .hot;
+stageHot?.dispose(() => stageContentObserver.disconnect());
 
 function dragSource(event: Event): HTMLElement | null {
   const source = event.target;
@@ -1648,352 +1661,6 @@ interface CatalogGestureCommandDetail {
 
 const clampGestureValue = (value: number): number => Math.min(100, Math.max(0, value));
 
-const toolbarSelectionRanges = new WeakMap<HTMLElement, Range>();
-const initializedToolbarSelectionDemos = new WeakSet<HTMLElement>();
-
-interface ToolbarSelectionCommandDescriptor {
-  selector: string;
-  tag: string;
-  label: string;
-  attributes?: Record<string, string>;
-  className?: string;
-  dataset?: string;
-  href?: string;
-}
-
-const toolbarSelectionCommands = {
-  "format.body": {
-    selector: 'ui-typeset[preset="body"]',
-    tag: "ui-typeset",
-    label: "set to body",
-    attributes: { preset: "body" },
-  },
-  "format.callout": {
-    selector: 'ui-typeset[preset="callout"]',
-    tag: "ui-typeset",
-    label: "set to callout",
-    attributes: { preset: "callout" },
-  },
-  "format.headline": {
-    selector: 'ui-typeset[preset="headline"]',
-    tag: "ui-typeset",
-    label: "set to headline",
-    attributes: { preset: "headline" },
-  },
-  "format.title": {
-    selector: 'ui-typeset[preset="title3"]',
-    tag: "ui-typeset",
-    label: "set to title",
-    attributes: { preset: "title3" },
-  },
-  "format.bold": { selector: "strong, b", tag: "strong", label: "bold" },
-  "format.italic": { selector: "em, i", tag: "em", label: "italic" },
-  "format.strike": { selector: "s, strike", tag: "s", label: "struck" },
-  "format.code": {
-    selector: "code",
-    tag: "code",
-    label: "code",
-    className: "rounded-control bg-surface-sunken px-control-block-small type-code",
-  },
-  "format.link": {
-    selector: "a[href]",
-    tag: "a",
-    label: "linked",
-    className: "text-action underline underline-offset-[var(--space-control-block-small)]",
-    href: "#migration-brief",
-  },
-  "format.comment": {
-    selector: "[data-catalog-toolbar-comment]",
-    tag: "mark",
-    label: "commented",
-    className: "rounded-control bg-warning-subtle px-control-block-small text-warning",
-    dataset: "catalogToolbarComment",
-  },
-  "tone.secondary": {
-    selector: 'ui-typeset[tone="secondary"]',
-    tag: "ui-typeset",
-    label: "muted",
-    attributes: { preset: "body", tone: "secondary" },
-  },
-  "tone.accent": {
-    selector: 'ui-typeset[tone="accent"]',
-    tag: "ui-typeset",
-    label: "accented",
-    attributes: { preset: "body", tone: "accent" },
-  },
-  "tone.critical": {
-    selector: 'ui-typeset[tone="critical"]',
-    tag: "ui-typeset",
-    label: "marked critical",
-    attributes: { preset: "body", tone: "critical" },
-  },
-  "insert.badge": {
-    selector: "[data-catalog-toolbar-badge]",
-    tag: "ui-badge",
-    label: "badged",
-    attributes: { tone: "accent", "data-catalog-toolbar-badge": "" },
-  },
-  "insert.callout": {
-    selector: "[data-catalog-toolbar-callout]",
-    tag: "span",
-    label: "called out",
-    className:
-      "inline-flex items-baseline rounded-control bg-action-wash px-control-inline-small py-control-block-small text-action",
-    dataset: "catalogToolbarCallout",
-  },
-} satisfies Record<string, ToolbarSelectionCommandDescriptor>;
-
-type ToolbarSelectionCommand = keyof typeof toolbarSelectionCommands;
-
-const toolbarSelectionCommandMap: Record<
-  ToolbarSelectionCommand,
-  ToolbarSelectionCommandDescriptor
-> = toolbarSelectionCommands;
-
-function toolbarSelectionSurface(demo: HTMLElement): HTMLElement | null {
-  return demo.querySelector<HTMLElement>("[data-catalog-toolbar-selection-surface]");
-}
-
-function toolbarSelectionToolbar(demo: HTMLElement): HTMLElement | null {
-  return demo.querySelector<HTMLElement>("[data-catalog-selection-toolbar]");
-}
-
-function toolbarSelectionOutput(demo: HTMLElement): HTMLOutputElement | null {
-  return demo.querySelector<HTMLOutputElement>("[data-catalog-toolbar-selection-output]");
-}
-
-function toolbarSelectionElement(node: Node): Element | null {
-  if (node instanceof Element) return node;
-  const parent = node.parentNode;
-  return parent instanceof Element ? parent : null;
-}
-
-function toolbarSelectionRangeInside(range: Range, surface: HTMLElement): boolean {
-  const start = toolbarSelectionElement(range.startContainer);
-  const end = toolbarSelectionElement(range.endContainer);
-  return Boolean(start && end && surface.contains(start) && surface.contains(end));
-}
-
-function toolbarSelectionRangeText(range: Range): string {
-  return range.toString().replace(/\s+/g, " ").trim();
-}
-
-function toolbarSelectionRect(range: Range): DOMRect | null {
-  const rects = [...range.getClientRects()].filter((rect) => rect.width > 0 && rect.height > 0);
-  if (rects[0]) return rects[0];
-  const rect = range.getBoundingClientRect();
-  return rect.width > 0 || rect.height > 0 ? rect : null;
-}
-
-function toolbarSelectionActiveElement(toolbar: HTMLElement): boolean {
-  const active = document.activeElement;
-  return active instanceof HTMLElement && toolbar.contains(active);
-}
-
-function toolbarSelectionHasAncestor(
-  range: Range,
-  surface: HTMLElement,
-  selector: string,
-): boolean {
-  let current: Node | null = toolbarSelectionElement(range.commonAncestorContainer);
-  while (current && current !== surface) {
-    if (current instanceof Element && current.matches(selector)) return true;
-    current = current.parentNode;
-  }
-  return false;
-}
-
-function syncToolbarSelectionPressed(demo: HTMLElement, range: Range): void {
-  const surface = toolbarSelectionSurface(demo);
-  if (!surface) return;
-  for (const control of demo.querySelectorAll<HTMLElement>("[data-catalog-selection-command]")) {
-    const command = control.dataset.catalogSelectionCommand;
-    const descriptor = toolbarSelectionCommandMap[command as ToolbarSelectionCommand];
-    const active =
-      descriptor !== undefined &&
-      toolbarSelectionRangeInside(range, surface) &&
-      toolbarSelectionHasAncestor(range, surface, descriptor.selector);
-    if ("pressed" in control) {
-      (control as HTMLElement & { pressed?: boolean }).pressed = active;
-    } else if ("checked" in control) {
-      (control as HTMLElement & { checked?: boolean }).checked = active;
-    } else {
-      control.toggleAttribute("selected", active);
-    }
-  }
-}
-
-function hideToolbarSelectionDemo(demo: HTMLElement): void {
-  delete demo.dataset.toolbarSelectionActive;
-  const toolbar = toolbarSelectionToolbar(demo);
-  if (toolbar) toolbar.hidden = true;
-}
-
-function syncToolbarSelectionDemo(demo: HTMLElement, allowStoredRange = false): void {
-  const surface = toolbarSelectionSurface(demo);
-  const toolbar = toolbarSelectionToolbar(demo);
-  const output = toolbarSelectionOutput(demo);
-  if (!surface || !toolbar) return;
-
-  let range: Range | null = null;
-  const stored = toolbarSelectionRanges.get(demo);
-  const selection = window.getSelection();
-  if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
-    const candidate = selection.getRangeAt(0);
-    if (toolbarSelectionRangeInside(candidate, surface)) {
-      if (stored && toolbarSelectionRangeText(stored) !== toolbarSelectionRangeText(candidate)) {
-        delete demo.dataset.toolbarSelectionFeedback;
-      }
-      range = candidate.cloneRange();
-      toolbarSelectionRanges.set(demo, range.cloneRange());
-    }
-  }
-
-  if (
-    !range &&
-    allowStoredRange &&
-    stored &&
-    toolbarSelectionActiveElement(toolbar) &&
-    toolbarSelectionRangeInside(stored, surface)
-  ) {
-    range = stored.cloneRange();
-  }
-
-  const selectedText = range ? toolbarSelectionRangeText(range) : "";
-  if (!range || range.collapsed || !selectedText) {
-    hideToolbarSelectionDemo(demo);
-    delete demo.dataset.toolbarSelectionFeedback;
-    if (output) output.value = "Select text in the brief.";
-    return;
-  }
-
-  const selectionRect = toolbarSelectionRect(range);
-  if (!selectionRect) {
-    hideToolbarSelectionDemo(demo);
-    return;
-  }
-
-  toolbar.hidden = false;
-  demo.dataset.toolbarSelectionActive = "true";
-  const demoRect = demo.getBoundingClientRect();
-  const toolbarRect = toolbar.getBoundingClientRect();
-  const gutter = 8;
-  const halfToolbar = toolbarRect.width / 2;
-  const minimumX = halfToolbar + gutter;
-  const maximumX = Math.max(minimumX, demo.clientWidth - halfToolbar - gutter);
-  const rawX = selectionRect.left - demoRect.left + selectionRect.width / 2;
-  const x = Math.min(maximumX, Math.max(minimumX, rawX));
-  const rawY = selectionRect.top - demoRect.top - gutter;
-  const y = Math.max(toolbarRect.height + gutter, rawY);
-
-  toolbar.style.left = `${x}px`;
-  toolbar.style.top = `${y}px`;
-  syncToolbarSelectionPressed(demo, range);
-  if (output) output.value = demo.dataset.toolbarSelectionFeedback ?? `${selectedText} selected`;
-}
-
-function selectInitialToolbarText(demo: HTMLElement): void {
-  if (initializedToolbarSelectionDemos.has(demo)) return;
-  initializedToolbarSelectionDemos.add(demo);
-  const initial = demo.querySelector<HTMLElement>("[data-catalog-toolbar-selection-initial]");
-  if (!initial) return;
-  window.requestAnimationFrame(() => {
-    if (!demo.isConnected) return;
-    const selection = window.getSelection();
-    if (!selection || selection.toString().trim()) return;
-    const range = document.createRange();
-    range.selectNodeContents(initial);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    toolbarSelectionRanges.set(demo, range.cloneRange());
-    syncToolbarSelectionDemo(demo);
-  });
-}
-
-function syncToolbarSelectionDemos(): void {
-  for (const demo of document.querySelectorAll<HTMLElement>(
-    "[data-catalog-toolbar-selection-demo]",
-  )) {
-    selectInitialToolbarText(demo);
-    syncToolbarSelectionDemo(demo, true);
-  }
-}
-
-function toolbarSelectionCommand(command: string): ToolbarSelectionCommand | null {
-  return Object.prototype.hasOwnProperty.call(toolbarSelectionCommandMap, command)
-    ? (command as ToolbarSelectionCommand)
-    : null;
-}
-
-function applyToolbarSelectionCommand(target: HTMLElement, command: ToolbarSelectionCommand): void {
-  const demo = target.closest<HTMLElement>("[data-catalog-toolbar-selection-demo]");
-  const surface = demo ? toolbarSelectionSurface(demo) : null;
-  const output = demo ? toolbarSelectionOutput(demo) : null;
-  if (!demo || !surface) return;
-  const stored = toolbarSelectionRanges.get(demo);
-  if (!stored || stored.collapsed || !toolbarSelectionRangeInside(stored, surface)) return;
-
-  const descriptor = toolbarSelectionCommandMap[command];
-  const wrapper = document.createElement(descriptor.tag);
-  if (descriptor.className) wrapper.className = descriptor.className;
-  for (const [name, value] of Object.entries(descriptor.attributes ?? {})) {
-    wrapper.setAttribute(name, value);
-  }
-  if (descriptor.href) wrapper.setAttribute("href", descriptor.href);
-  if (descriptor.dataset) wrapper.dataset[descriptor.dataset] = "";
-
-  try {
-    const range = stored.cloneRange();
-    wrapper.append(range.extractContents());
-    range.insertNode(wrapper);
-    const nextRange = document.createRange();
-    nextRange.selectNodeContents(wrapper);
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(nextRange);
-    toolbarSelectionRanges.set(demo, nextRange.cloneRange());
-    demo.dataset.toolbarSelectionFeedback = `${toolbarSelectionRangeText(nextRange)} ${
-      descriptor.label
-    }`;
-    syncToolbarSelectionDemo(demo, true);
-  } catch {
-    delete demo.dataset.toolbarSelectionFeedback;
-    if (output) output.value = "Selection could not be formatted.";
-  }
-}
-
-function syncToolbarSelectionSoon(): void {
-  window.requestAnimationFrame(syncToolbarSelectionDemos);
-}
-
-document.addEventListener("selectionchange", syncToolbarSelectionSoon);
-
-document.addEventListener("pointerup", (event) => {
-  if (
-    event
-      .composedPath()
-      .some(
-        (node) =>
-          node instanceof HTMLElement && node.matches("[data-catalog-toolbar-selection-demo]"),
-      )
-  ) {
-    window.setTimeout(syncToolbarSelectionDemos, 0);
-  }
-});
-
-document.addEventListener("keyup", (event) => {
-  if (
-    event
-      .composedPath()
-      .some(
-        (node) =>
-          node instanceof HTMLElement && node.matches("[data-catalog-toolbar-selection-demo]"),
-      )
-  ) {
-    syncToolbarSelectionSoon();
-  }
-});
-
 function updateGestureSelection(
   demo: HTMLElement,
   target: HTMLElement,
@@ -2181,32 +1848,6 @@ document.addEventListener("mash-command", (event) => {
     delete target.dataset.gestureOriginX;
     delete target.dataset.gestureOriginY;
   }
-});
-
-document.addEventListener("mash-command", (event) => {
-  const target = event.target;
-  if (!(target instanceof HTMLElement)) return;
-  const detail = (event as CustomEvent<CatalogGestureCommandDetail>).detail;
-  if (detail.phase !== "ended") return;
-  const command = toolbarSelectionCommand(detail.command);
-  if (!command) return;
-  target.dataset.catalogSelectionCommandHandledAt = String(performance.now());
-  applyToolbarSelectionCommand(target, command);
-});
-
-document.addEventListener("click", (event) => {
-  const action = event
-    .composedPath()
-    .find(
-      (node): node is HTMLElement =>
-        node instanceof HTMLElement && node.dataset.catalogSelectionCommand !== undefined,
-    );
-  if (!action) return;
-  const command = toolbarSelectionCommand(action.dataset.catalogSelectionCommand ?? "");
-  if (!command) return;
-  const handledAt = Number(action.dataset.catalogSelectionCommandHandledAt ?? 0);
-  if (performance.now() - handledAt < 250) return;
-  applyToolbarSelectionCommand(action, command);
 });
 
 document.addEventListener("mash-command", (event) => {
