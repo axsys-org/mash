@@ -28,9 +28,9 @@ The mixed final checkpoint was reconstructed as four commits: button disclosure 
 | [#47](https://github.com/axsys-org/mash/pull/47) | `codex/stack/story-composition`    | `codex/stack/composition-geometry` |
 | [#48](https://github.com/axsys-org/mash/pull/48) | `codex/stack/character-picker`     | `codex/stack/story-composition`    |
 
-| Pending | `codex/stack/study-workspace` | `codex/stack/character-picker` |
+| [#49](https://github.com/axsys-org/mash/pull/49) | `codex/stack/study-workspace` | `codex/stack/character-picker` |
 
-The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. Its prerequisite PR is [#29](https://github.com/axsys-org/mash/pull/29). Review it first, then proceed down the table. All 20 PRs are drafts; no merges were performed.
+The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. Its prerequisite PR is [#29](https://github.com/axsys-org/mash/pull/29). Review it first, then proceed down the table. All 21 PRs are drafts; no merges were performed.
 
 ## Test cleanup
 
