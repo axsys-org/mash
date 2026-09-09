@@ -272,6 +272,7 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
           { signal: abort.signal },
         );
         doc.body.innerHTML = variant.code;
+        let requestedMinHeight = frame.style.minHeight;
         if (
           doc.body.querySelector(
             "ui-menu, ui-context-menu, ui-select, ui-combobox, ui-date-picker, ui-popover, ui-preview-card, ui-color-picker:not([inline])",
@@ -279,11 +280,25 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
         ) {
           // Floating surfaces do not contribute to body height. Reserve the public
           // menu recipe's ten rows, two control rows, and outer/inner breathing room.
-          frame.style.minHeight =
+          requestedMinHeight =
             "calc(var(--layout-menu-row-regular) * 10 + var(--layout-dimension-control-medium) * 2 + var(--space-region) * 4)";
         }
-        const restingMinHeight = frame.style.minHeight;
+        const restingMinHeight = requestedMinHeight;
         const openFloatingSurfaces = new Set<EventTarget>();
+        const revealFloatingSurface = (popup: HTMLElement | null | undefined) => {
+          if (abort.signal.aborted || !popup?.getClientRects().length) return;
+          const zoomFactor = parseFloat(getComputedStyle(target).zoom) || 1;
+          const frameBounds = frame.getBoundingClientRect();
+          const popupBounds = popup.getBoundingClientRect();
+          const viewportBounds = viewport.getBoundingClientRect();
+          const top = Math.max(viewportBounds.top, 0) + 12;
+          const bottom = Math.min(viewportBounds.bottom, innerHeight) - 12;
+          const popupTop = frameBounds.top + popupBounds.top * zoomFactor;
+          const popupBottom = frameBounds.top + popupBounds.bottom * zoomFactor;
+          if (popupTop < top || popupBottom - popupTop > bottom - top)
+            viewport.scrollTop += popupTop - top;
+          else if (popupBottom > bottom) viewport.scrollTop += popupBottom - bottom;
+        };
         // Composed open events also reach us from controls inside component shadow roots.
         // Their floating surfaces need the same room as directly authored menus.
         for (const name of [
@@ -309,30 +324,21 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
                   const popup = host.shadowRoot?.querySelector<HTMLElement>("[part~='popup']");
                   if (popup) size.observe(popup);
                   resize();
-                  requestAnimationFrame(() => {
-                    if (abort.signal.aborted || !popup?.getClientRects().length) return;
-                    const zoomFactor = parseFloat(getComputedStyle(target).zoom) || 1;
-                    const frameBounds = frame.getBoundingClientRect();
-                    const popupBounds = popup.getBoundingClientRect();
-                    const viewportBounds = viewport.getBoundingClientRect();
-                    const top = Math.max(viewportBounds.top, 0) + 12;
-                    const bottom = Math.min(viewportBounds.bottom, innerHeight) - 12;
-                    const popupTop = frameBounds.top + popupBounds.top * zoomFactor;
-                    const popupBottom = frameBounds.top + popupBounds.bottom * zoomFactor;
-                    // Reveal the open surface, not the middle of a potentially
-                    // very tall example with an expanded source-data table.
-                    if (popupTop < top || popupBottom - popupTop > bottom - top)
-                      viewport.scrollTop += popupTop - top;
-                    else if (popupBottom > bottom) viewport.scrollTop += popupBottom - bottom;
-                  });
+                  const reveal = () => requestAnimationFrame(() => revealFloatingSurface(popup));
+                  reveal();
+                  // Entrance transforms and anchored positioning can settle after
+                  // the first paint. Reveal the final bounds as well.
+                  void Promise.allSettled(
+                    popup?.getAnimations().map((animation) => animation.finished) ?? [],
+                  ).then(reveal);
                 });
               } else openFloatingSurfaces.delete(surface);
               if (!openFloatingSurfaces.size) {
-                frame.style.minHeight = restingMinHeight;
+                requestedMinHeight = restingMinHeight;
                 requestAnimationFrame(resize);
                 return;
               }
-              frame.style.minHeight =
+              requestedMinHeight =
                 "calc(var(--layout-menu-row-regular) * 10 + var(--layout-dimension-control-medium) * 2 + var(--space-region) * 4)";
             },
             { signal: abort.signal },
@@ -386,28 +392,46 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
               Math.min(Math.max(320, modalLimit), popup.scrollHeight + triggerHeight + 96),
             );
           }
-          const heightChanged = frame.height !== String(Math.ceil(height));
+          const heightChanged =
+            frame.height !== String(Math.ceil(height)) ||
+            frame.style.minHeight !== requestedMinHeight;
           if (heightChanged) {
-            // A late-loading example above the reader must not move the control
-            // they are using. Only the focused, visible frame owns this anchor;
-            // explicit navigation, zoom controls and an offscreen old focus do not.
-            const focused = document.activeElement;
-            const anchor =
-              focused instanceof HTMLIFrameElement &&
-              focused !== frame &&
-              viewport.contains(focused) &&
-              frame.compareDocumentPosition(focused) & Node.DOCUMENT_POSITION_FOLLOWING
-                ? focused
-                : null;
-            const anchorBounds = anchor?.getBoundingClientRect();
+            // Preserve the reader's visible frame even before its first click.
+            // A focused frame wins only while it remains in this scrollport.
             const viewportBounds = viewport.getBoundingClientRect();
-            const visible =
-              anchorBounds &&
-              anchorBounds.bottom > Math.max(viewportBounds.top, 0) &&
-              anchorBounds.top < Math.min(viewportBounds.bottom, window.innerHeight);
+            const canAnchor = (candidate: Element | null): candidate is HTMLIFrameElement => {
+              if (
+                !(candidate instanceof HTMLIFrameElement) ||
+                candidate === frame ||
+                !viewport.contains(candidate) ||
+                !(frame.compareDocumentPosition(candidate) & Node.DOCUMENT_POSITION_FOLLOWING)
+              )
+                return false;
+              const bounds = candidate.getBoundingClientRect();
+              return (
+                bounds.bottom > Math.max(viewportBounds.top, 0) &&
+                bounds.top < Math.min(viewportBounds.bottom, window.innerHeight)
+              );
+            };
+            const focused = document.activeElement;
+            const anchor = canAnchor(focused)
+              ? focused
+              : [...viewport.querySelectorAll("iframe")].find(canAnchor);
+            const anchorBounds = anchor?.getBoundingClientRect();
+            frame.style.minHeight = requestedMinHeight;
             frame.height = String(Math.ceil(height));
-            if (anchor && anchorBounds && visible)
+            if (anchor && anchorBounds)
               viewport.scrollTop += anchor.getBoundingClientRect().top - anchorBounds.top;
+          }
+          if (heightChanged && openFloatingSurfaces.size) {
+            requestAnimationFrame(() => {
+              for (const surface of openFloatingSurfaces)
+                revealFloatingSurface(
+                  (surface as HTMLElement).shadowRoot?.querySelector<HTMLElement>(
+                    "[part~='popup']",
+                  ),
+                );
+            });
           }
           // A child document cannot reveal the portion clipped by its parent's
           // scrollport. Bring the live frame into that scrollport as its modal opens.

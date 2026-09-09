@@ -13,7 +13,9 @@ test("late content above an engaged example preserves the visible control positi
     return frames[index - 1]!.dataset.variant!;
   });
   const preceding = page.locator(`iframe[data-variant="${previousName}"]`);
+  await preceding.scrollIntoViewIfNeeded();
   await expect(preceding.contentFrame().locator("ui-chart svg")).toBeVisible();
+  await page.locator('iframe[data-variant="Custom marks · schedule"]').scrollIntoViewIfNeeded();
   await renderer.click();
   await frame.getByRole("option", { name: "SVG", exact: true }).click();
   await expect(renderer).toBeFocused();
@@ -53,4 +55,33 @@ test("late content above an engaged example preserves the visible control positi
   await expect
     .poll(() => page.locator(".preview-viewport").evaluate((el) => el.scrollTop))
     .toBe(afterScroll.scrollTop);
+});
+
+test("late content preserves an example before the reader first focuses it", async ({ page }) => {
+  await page.goto("/components/ui-motion?example=Custom%20SVG%20motion");
+  const current = page.locator('iframe[data-variant="Custom SVG motion"]');
+  await current.scrollIntoViewIfNeeded();
+  const frame = current.contentFrame();
+  await expect(frame.locator("html")).toHaveAttribute("data-example-ready", "true");
+  const button = frame.getByRole("button", { name: "Replay checkmark" });
+  await button.scrollIntoViewIfNeeded();
+  const earlier = page.locator('iframe[data-variant="Recipe gallery"]');
+  await expect(earlier.contentFrame().locator("html")).toHaveAttribute(
+    "data-example-ready",
+    "true",
+  );
+  const before = (await button.boundingBox())!;
+  const oldHeight = await earlier.getAttribute("height");
+  await earlier.evaluate((element) => {
+    const document = (element as HTMLIFrameElement).contentDocument!;
+    const block = document.createElement("div");
+    block.style.height = "400px";
+    document.body.append(block);
+  });
+  await expect(earlier).not.toHaveAttribute("height", oldHeight!);
+  await expect
+    .poll(async () => Math.abs((await button.boundingBox())!.y - before.y))
+    .toBeLessThan(2);
+  await button.click();
+  await expect(frame.locator("#draw-status")).toHaveText("Checkmark complete");
 });

@@ -600,3 +600,14 @@ it("forwards icon-only accessible names to the native button and updates them", 
   await settled(button);
   expect(control(button).getAttribute("aria-label")).toBe("Add another document");
 });
+
+it("forwards disclosure state changes and removes the state for ordinary buttons", async () => {
+  const button = await fixture<UIButton>('<ui-button aria-expanded="false">Details</ui-button>');
+  expect(control(button).getAttribute("aria-expanded")).toBe("false");
+  button.ariaExpanded = "true";
+  await settled(button);
+  expect(control(button).getAttribute("aria-expanded")).toBe("true");
+  button.removeAttribute("aria-expanded");
+  await settled(button);
+  expect(control(button).hasAttribute("aria-expanded")).toBe(false);
+});
