@@ -24,7 +24,7 @@ export const selectionExamples: Record<string, CatalogExample[]> = {
       `<div class="mash-stack" style="inline-size:30rem;max-inline-size:100%">
   <ui-autocomplete id="project-typeahead" label="Find a project" placeholder="Search projects or people…" filter="none" style="inline-size:100%">
     <ui-icon slot="icon" name="action.search"></ui-icon>
-    <ui-button slot="clear" variant="ghost" size="xsmall" aria-label="Clear project search">Clear</ui-button>
+    <ui-button slot="clear" variant="ghost" size="xsmall" aria-label="Clear project search"><ui-icon name="action.dismiss" size="small"></ui-icon></ui-button>
     <span slot="empty" id="typeahead-empty">Start typing to find a project.</span>
     <span slot="footer"><ui-kbd>↑</ui-kbd> <ui-kbd>↓</ui-kbd> to navigate · <ui-kbd>Enter</ui-kbd> to select</span>
   </ui-autocomplete>

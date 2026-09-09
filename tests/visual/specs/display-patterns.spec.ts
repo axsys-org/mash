@@ -109,3 +109,34 @@ test("marker completion reveals a draft and restart preserves its value", async 
   await frame.getByRole("button", { name: "Open draft", exact: true }).click();
   await expect(draft).toHaveValue("A revised response.");
 });
+
+test("anchored badges preserve their targets and leave neighboring annotations clear", async ({
+  page,
+}) => {
+  await page.goto("/components/ui-badge?example=Dot%20and%20icon");
+  await page.locator('iframe[data-variant="Dot and icon"]').scrollIntoViewIfNeeded();
+  const frame = page.frameLocator('iframe[data-variant="Dot and icon"]');
+  await expect(frame.locator("html")).toHaveAttribute("data-example-ready", "true");
+  const badges = await frame.locator("ui-badge").evaluateAll((elements) =>
+    elements.map((element) => {
+      const target = element.querySelector('[slot="target"]')!.getBoundingClientRect();
+      const root = element.shadowRoot!.querySelector('[part="root"]')!.getBoundingClientRect();
+      const indicator = element
+        .shadowRoot!.querySelector('[part="indicator"]')!
+        .getBoundingClientRect();
+      return {
+        dot: element.getAttribute("variant") === "dot",
+        indicator: indicator.width,
+        target: target.width,
+        root: root.width,
+        left: Math.min(root.left, indicator.left),
+        right: Math.max(root.right, indicator.right),
+      };
+    }),
+  );
+  for (const [index, badge] of badges.entries()) {
+    expect(badge.root).toBeGreaterThanOrEqual(badge.target);
+    if (badge.dot) expect(badge.indicator).toBeLessThan(badge.target / 2);
+    if (index) expect(badge.left).toBeGreaterThan(badges[index - 1]!.right);
+  }
+});

@@ -1305,7 +1305,7 @@
     justify-self: start;
     translate: -50% 35%;
   }
-  :where([data-mash-catalogue="mash"]) ui-badge[variant="dot"]::part(root),
+  :where([data-mash-catalogue="mash"]) ui-badge[variant="dot"]:not(:state(anchored))::part(root),
   :where([data-mash-catalogue="mash"]) ui-badge[variant="dot"]:state(anchored)::part(indicator) {
     min-inline-size: var(--space-control-gap);
     inline-size: var(--space-control-gap);
@@ -1313,7 +1313,11 @@
     block-size: var(--space-control-gap);
     padding: 0;
   }
-  :where([data-mash-catalogue="mash"]) ui-badge[size="small"]::part(root) {
+  :where([data-mash-catalogue="mash"]) ui-badge[variant="icon"]:state(anchored)::part(indicator) {
+    padding: 0;
+    aspect-ratio: 1;
+  }
+  :where([data-mash-catalogue="mash"]) ui-badge[size="small"]:not(:state(anchored))::part(root) {
     min-block-size: var(--layout-dimension-control-xsmall);
     padding-block: calc(var(--space-control-block-small) / 2);
     font: var(--type-caption1-font-weight) var(--type-caption1-font-size) /

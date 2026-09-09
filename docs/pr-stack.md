@@ -6,24 +6,25 @@ The existing `codex/component-rebuild` branch is preserved at `5ca546a`; no publ
 
 The mixed final checkpoint was reconstructed as four commits: button disclosure accessibility, Calendar styling, Motion catalogue examples, and preview positioning. The reconstructed tree exactly matches `5ca546a` before the test cleanup. Autocomplete remains its own existing commit.
 
-| Branch                            | PR base                           |
-| --------------------------------- | --------------------------------- |
-| `codex/stack/rebuild-checkpoint`  | `stack/design-system-convergence` |
-| `codex/stack/foundations`         | `codex/stack/rebuild-checkpoint`  |
-| `codex/stack/catalogue`           | `codex/stack/foundations`         |
-| `codex/stack/showcase`            | `codex/stack/catalogue`           |
-| `codex/stack/preview-windows`     | `codex/stack/showcase`            |
-| `codex/stack/catalogue-coverage`  | `codex/stack/preview-windows`     |
-| `codex/stack/navigation`          | `codex/stack/catalogue-coverage`  |
-| `codex/stack/application-stories` | `codex/stack/navigation`          |
-| `codex/stack/autocomplete`        | `codex/stack/application-stories` |
-| `codex/stack/button-disclosure`   | `codex/stack/autocomplete`        |
-| `codex/stack/calendar`            | `codex/stack/button-disclosure`   |
-| `codex/stack/motion`              | `codex/stack/calendar`            |
-| `codex/stack/preview-stability`   | `codex/stack/motion`              |
-| `codex/stack/test-streamline`     | `codex/stack/preview-stability`   |
-| `codex/stack/icon-layout`         | `codex/stack/test-streamline`     |
-| `codex/stack/commons-polish`      | `codex/stack/icon-layout`         |
+| Branch                             | PR base                           |
+| ---------------------------------- | --------------------------------- |
+| `codex/stack/rebuild-checkpoint`   | `stack/design-system-convergence` |
+| `codex/stack/foundations`          | `codex/stack/rebuild-checkpoint`  |
+| `codex/stack/catalogue`            | `codex/stack/foundations`         |
+| `codex/stack/showcase`             | `codex/stack/catalogue`           |
+| `codex/stack/preview-windows`      | `codex/stack/showcase`            |
+| `codex/stack/catalogue-coverage`   | `codex/stack/preview-windows`     |
+| `codex/stack/navigation`           | `codex/stack/catalogue-coverage`  |
+| `codex/stack/application-stories`  | `codex/stack/navigation`          |
+| `codex/stack/autocomplete`         | `codex/stack/application-stories` |
+| `codex/stack/button-disclosure`    | `codex/stack/autocomplete`        |
+| `codex/stack/calendar`             | `codex/stack/button-disclosure`   |
+| `codex/stack/motion`               | `codex/stack/calendar`            |
+| `codex/stack/preview-stability`    | `codex/stack/motion`              |
+| `codex/stack/test-streamline`      | `codex/stack/preview-stability`   |
+| `codex/stack/icon-layout`          | `codex/stack/test-streamline`     |
+| `codex/stack/commons-polish`       | `codex/stack/icon-layout`         |
+| `codex/stack/composition-geometry` | `codex/stack/commons-polish`      |
 
 The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. It must be reviewed and landed as a prerequisite.
 

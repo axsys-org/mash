@@ -63,6 +63,8 @@ export default defineConfig({
   // imports resolve the same way the catalog's do.
   build: {
     minify: "esbuild",
+    // Preserve ::part selectors: wrapping them in :is() invalidates their rules.
+    cssMinify: "esbuild",
     rollupOptions: {
       output: {
         // Keep renderer dependencies lazy; an explicit group also isolates the

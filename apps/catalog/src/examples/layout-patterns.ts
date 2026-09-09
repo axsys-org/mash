@@ -84,18 +84,18 @@ document.querySelector("#create-local-key").addEventListener("click", () => { co
     {
       ...sample(
         "Counts",
-        `<div class="mash-row mash-wrap"><ui-badge id="inbox-count" variant="count" count="12" max="99" label="12 unread messages"><ui-icon slot="target" name="object.document" label="Inbox"></ui-icon></ui-badge><ui-badge variant="count" count="103" max="99" label="103 notifications"><ui-avatar slot="target" alt="Alex Morgan"></ui-avatar></ui-badge><ui-badge variant="count" count="1200" max="999" label="1200 updates"><ui-button slot="target">Updates</ui-button></ui-badge></div><ui-slider id="unread-slider" min="0" max="120" step="1" value="12" label="Unread messages"></ui-slider><output id="unread-count" aria-live="polite">12 unread messages</output>`,
+        `<div class="mash-row mash-wrap" style="gap:calc(var(--space-group-block) * 2);padding:var(--space-group-related)"><ui-badge id="inbox-count" variant="count" count="12" max="99" label="12 unread messages"><ui-icon slot="target" name="object.document" label="Inbox"></ui-icon></ui-badge><ui-badge variant="count" count="103" max="99" label="103 notifications"><ui-avatar slot="target" alt="Alex Morgan"></ui-avatar></ui-badge><ui-badge variant="count" count="1200" max="999" label="1200 updates"><ui-button slot="target">Updates</ui-button></ui-badge></div><ui-slider id="unread-slider" min="0" max="120" step="1" value="12" label="Unread messages"></ui-slider><output id="unread-count" aria-live="polite">12 unread messages</output>`,
         "Counts over the maximum use a plus suffix. Zero removes the annotation without hiding its target.",
       ),
       script: `document.querySelector("#unread-slider").addEventListener("ui-slider-input", event => { const count = event.detail.value; const badge = document.querySelector("#inbox-count"); badge.count = count; badge.label = count + " unread messages"; document.querySelector("#unread-count").textContent = badge.label; });`,
     },
     sample(
       "Dot and icon",
-      `<div class="mash-row mash-wrap"><ui-badge variant="dot" tone="positive" label="Alex is online"><ui-avatar slot="target" alt="Alex Morgan"></ui-avatar></ui-badge><ui-badge variant="icon" tone="positive" label="Verified workspace"><ui-icon slot="icon" name="action.confirm" label=""></ui-icon><ui-avatar slot="target" alt="Studio workspace" shape="square">S</ui-avatar></ui-badge><ui-badge variant="dot" tone="warning" label="New activity"><ui-icon slot="target" name="action.search" label="Search"></ui-icon></ui-badge></div>`,
+      `<div class="mash-row mash-wrap" style="gap:calc(var(--space-group-block) * 2);padding:var(--space-group-related)"><ui-badge variant="dot" tone="positive" label="Alex is online"><ui-avatar slot="target" alt="Alex Morgan"></ui-avatar></ui-badge><ui-badge variant="icon" tone="positive" label="Verified workspace"><ui-icon slot="icon" name="action.confirm" size="small" label=""></ui-icon><ui-avatar slot="target" alt="Studio workspace" shape="square">S</ui-avatar></ui-badge><ui-badge variant="dot" tone="warning" label="New activity"><ui-icon slot="target" name="action.search" label="Search"></ui-icon></ui-badge></div>`,
     ),
     sample(
       "Sizes and nesting",
-      `<div class="mash-row mash-wrap">${["small", "medium", "large"].map((size) => `<ui-badge variant="count" size="${size}" count="3" label="3 updates"><ui-avatar slot="target" size="${size}" alt="Alex Morgan"></ui-avatar></ui-badge>`).join("")}<ui-badge variant="count" count="12" label="12 new updates"><ui-badge slot="target" variant="icon" tone="positive" label="Verified"><ui-icon slot="icon" name="action.confirm" label=""></ui-icon><ui-avatar slot="target" size="large" alt="Studio">S</ui-avatar></ui-badge></ui-badge></div>`,
+      `<div class="mash-row mash-wrap">${["small", "medium", "large"].map((size) => `<ui-badge variant="count" size="${size}" count="3" label="3 updates"><ui-avatar slot="target" size="${size}" alt="Alex Morgan"></ui-avatar></ui-badge>`).join("")}<ui-badge variant="count" count="12" label="12 new updates"><ui-badge slot="target" variant="icon" tone="positive" label="Verified"><ui-icon slot="icon" name="action.confirm" size="small" label=""></ui-icon><ui-avatar slot="target" size="large" alt="Studio">S</ui-avatar></ui-badge></ui-badge></div>`,
       "An annotation can target another annotation. Keep each accessible meaning distinct.",
     ),
   ],
@@ -174,7 +174,7 @@ document.querySelector("ui-menu").addEventListener("ui-menu-select", () => { doc
     ),
     sample(
       "Status and icons",
-      `<ui-marker variant="plain" style="color:var(--color-positive)"><ui-icon slot="icon" name="action.confirm" label=""></ui-icon>Online</ui-marker><ui-marker variant="plain"><ui-spinner slot="icon" size="small" label="Activity"></ui-spinner>Alex is typing…</ui-marker><ui-marker variant="plain"><ui-icon slot="icon" name="object.document" label=""></ui-icon>Conversation details updated</ui-marker><ui-marker variant="plain">No icon required</ui-marker>`,
+      `<ui-marker variant="plain" style="color:var(--color-positive)"><ui-icon slot="icon" name="action.confirm" size="small" label=""></ui-icon>Online</ui-marker><ui-marker variant="plain"><ui-spinner slot="icon" size="small" label="Activity"></ui-spinner>Alex is typing…</ui-marker><ui-marker variant="plain"><ui-icon slot="icon" name="object.document" label=""></ui-icon>Conversation details updated</ui-marker><ui-marker variant="plain">No icon required</ui-marker>`,
     ),
     {
       ...sample(

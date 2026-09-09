@@ -78,3 +78,41 @@ test("progress action cancels cleanly and produces a downloadable report", async
     await link.evaluate(async (node) => (await fetch((node as HTMLAnchorElement).href)).text()),
   ).toBe("Document,Status\nRelease notes,Reviewed\nDesign notes,Ready\n");
 });
+
+test("range fill stays between its handles across direction and orientation", async ({ page }) => {
+  await page.goto("/components/ui-slider?example=Range");
+  const host = page.locator('iframe[data-variant="Range"]');
+  await host.scrollIntoViewIfNeeded();
+  const frame = page.frameLocator('iframe[data-variant="Range"]');
+  await expect(frame.locator("html")).toHaveAttribute("data-example-ready", "true");
+  const slider = frame.locator("ui-slider");
+  for (const orientation of ["horizontal", "vertical"]) {
+    for (const reversed of [false, true]) {
+      for (const dir of ["ltr", "rtl"]) {
+        const bounds = await slider.evaluate(
+          async (element, state) => {
+            element.setAttribute("orientation", state.orientation);
+            element.toggleAttribute("reversed", state.reversed);
+            element.setAttribute("dir", state.dir);
+            await (element as HTMLElement & { updateComplete: Promise<unknown> }).updateComplete;
+            const box = (part: string) =>
+              element.shadowRoot!.querySelector(`[part~="${part}"]`)!.getBoundingClientRect();
+            const start = box("start-thumb"),
+              end = box("end-thumb"),
+              fill = box("indicator");
+            const vertical = state.orientation === "vertical";
+            return {
+              centers: vertical
+                ? [start.y + start.height / 2, end.y + end.height / 2]
+                : [start.x + start.width / 2, end.x + end.width / 2],
+              fill: vertical ? [fill.top, fill.bottom] : [fill.left, fill.right],
+            };
+          },
+          { orientation, reversed, dir },
+        );
+        expect(Math.abs(bounds.fill[0]! - Math.min(...bounds.centers))).toBeLessThan(1);
+        expect(Math.abs(bounds.fill[1]! - Math.max(...bounds.centers))).toBeLessThan(1);
+      }
+    }
+  }
+});

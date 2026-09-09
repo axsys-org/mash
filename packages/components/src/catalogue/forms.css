@@ -317,7 +317,6 @@
   :where([data-mash-catalogue="mash"]) ui-slider::part(indicator) {
     position: absolute;
     inset-block: var(--layout-dimension-zero);
-    inset-inline-start: var(--layout-dimension-zero);
     border-radius: inherit;
     background: var(--color-action);
   }
@@ -416,6 +415,7 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(indicator) {
+    inset-block-start: revert-layer;
     inset-inline: var(--layout-dimension-zero);
     inset-block-end: auto;
     inline-size: 100%;
@@ -426,6 +426,7 @@
   :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]:dir(rtl)::part(thumb),
   :where([data-mash-catalogue="mash"])
     ui-slider[orientation="vertical"]:dir(rtl)::part(start-thumb) {
+    inset-block-start: revert-layer;
     inset-inline-start: 50%;
     translate: -50% -50%;
   }
@@ -650,6 +651,8 @@
   :where([data-mash-catalogue="mash"]) ui-autocomplete::part(input-group),
   :where([data-mash-catalogue="mash"]) ui-combobox::part(input-group) {
     display: inline-flex;
+    inline-size: 100%;
+    min-inline-size: 0;
     flex-wrap: nowrap;
     gap: var(--_mash-control-gap);
     align-items: center;
@@ -711,6 +714,8 @@
 
   :where([data-mash-catalogue="mash"]) ui-autocomplete::part(icon),
   :where([data-mash-catalogue="mash"]) ui-combobox::part(icon) {
+    order: -1;
+    flex: none;
     display: inline-flex;
     color: var(--color-text-muted);
   }
