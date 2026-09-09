@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const stories = [
+  ["study", ".study-hero"],
   ["characters", ".characters-window"],
   ["studio", ".studio"],
   ["command-center", ".launcher-window"],
@@ -44,7 +45,7 @@ test("Stories and component navigation share one document and release workspace 
   page,
 }) => {
   await page.goto("/stories");
-  await expect(page.locator(".story-card")).toHaveCount(6);
+  await expect(page.locator(".story-card")).toHaveCount(7);
   const origin = await page.evaluate(() => performance.timeOrigin);
   await page.locator('a.story-card[href="/stories/command-center"]').click();
   await expect(page.locator(".launcher-window")).toBeVisible();

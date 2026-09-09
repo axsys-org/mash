@@ -28,6 +28,8 @@ The mixed final checkpoint was reconstructed as four commits: button disclosure 
 | [#47](https://github.com/axsys-org/mash/pull/47) | `codex/stack/story-composition`    | `codex/stack/composition-geometry` |
 | [#48](https://github.com/axsys-org/mash/pull/48) | `codex/stack/character-picker`     | `codex/stack/story-composition`    |
 
+| Pending | `codex/stack/study-workspace` | `codex/stack/character-picker` |
+
 The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. Its prerequisite PR is [#29](https://github.com/axsys-org/mash/pull/29). Review it first, then proceed down the table. All 20 PRs are drafts; no merges were performed.
 
 ## Test cleanup
@@ -47,3 +49,14 @@ Put one behavior or cohesive feature and its meaningful regressions in each comm
 The Characters story adds compact and expanded views, cursor insertion, emoji and symbol search, persistent favorites and recents, code points, skin tones, and font previews. It loads only on its own route and adds no dependencies. Its emitted JS and CSS total about 11KB gzipped, excluding shared components.
 
 Validation: production catalogue build, TypeScript, lint, formatting, token and catalogue checks, and five browser cases covering state, insertion, keyboard use, mobile layout, both themes, and route cleanup.
+
+## Study workspace
+
+`codex/stack/study-workspace` is based on `codex/stack/character-picker` and adds **Recall** at `/stories/study`.
+
+- Decks and subdecks, daily limits, four note types (question/answer, forward/reverse, cloze, typed answer), tags, images, audio, card appearance templates, and a paginated card browser with bulk move, suspend, reset, and delete.
+- Due and custom study sessions, keyboard reveal/grading, sibling burying, review undo, persistent schedules, activity history, and review forecasts. The compact interval scheduler uses 1- and 10-minute learning steps; successful answers start at 1 or 4 days and later intervals grow according to recall. It does not claim adaptive retention optimization.
+- Source pages share the existing Notebook data and full page/canvas editor. A card links to a stable block identity; source edits update its answer while preserving its card identity and schedule. Missing sources retain the last saved answer. Detaching makes the answer independently editable.
+- JSON backups include notes, media, schedules, and review history. CSV/TSV imports add notes; JSON replacement requires confirmation. Source notebooks export separately through their existing editor. Native archive packages, cloud synchronization, arbitrary HTML templates, and image occlusion are outside this local story's implemented scope.
+- No added dependencies. The study-specific production assets are about 21.6 KB gzip (JavaScript and CSS combined, excluding shared components). The full document editor is imported only when opened; card browser rendering is limited to 60 rows per page.
+- Validation: 16 production browser/model checks pass, including notebook regressions and shared source updates, plus manual custom-session completion and deck-limit checks. Catalogue/test types, lint, formatting, token consumers, and catalogue conformance pass. The unavailable `bd` executable prevents recording separate tracker items; the implementation boundaries above remain explicit follow-up scope.
