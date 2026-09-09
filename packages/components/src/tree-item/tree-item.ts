@@ -234,8 +234,11 @@ export class UITreeItem extends LitElement {
     this.renderRoot.querySelector<HTMLButtonElement>("[part='control']")?.focus();
   }
 
+  #tabbable = true;
+
   /** Assigns this item as the tree's one sequential keyboard stop. */
   setTabbable(tabbable: boolean): void {
+    this.#tabbable = tabbable;
     const control = this.renderRoot.querySelector<HTMLButtonElement>("[part='control']");
     if (control) control.tabIndex = tabbable ? 0 : -1;
   }
@@ -333,7 +336,7 @@ export class UITreeItem extends LitElement {
           part="control"
           type="button"
           role="treeitem"
-          tabindex="0"
+          tabindex=${this.#tabbable ? "0" : "-1"}
           aria-current=${this.current ? "page" : nothing}
           aria-expanded=${this.branch ? String(this.expanded) : nothing}
           aria-level=${this.#level()}

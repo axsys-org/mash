@@ -278,3 +278,47 @@ icon token, menu header spacing, and the unthemed loading flash in lazy frames.
 Matching reference captures across the entire catalogue remain open. The next
 bounded work is select/combobox and form-control states, followed by table range
 selection/sorting examples and the larger editor/docking gaps in the inventory.
+
+### Interaction repair checkpoint — 2026-09-09
+
+The latest review identified defects beneath the expanded examples. Tabs now use
+`DragController` with the same threshold/cancellation contract as `ui-draggable`;
+tabs and dock share a small transient reorder-motion controller. A dragged tab
+follows the pointer, siblings animate into the prospective order, and release
+commits without replacing live panels. Escape and pointer cancellation restore
+the order. Dock uses a tab-sized preview and compact, separated split/join hints.
+Keyboard reordering is Alt+Shift+Arrow; dock splitting is Ctrl+Alt+Arrow.
+
+Tab strips restore scroll-edge masks and truncate long labels. Their complete
+label chooser uses Mash menu items. Preview zoom and composer mode now use Mash
+selection controls too. Opening a nested chooser reserves preview space through
+its composed overlay event. Dynamic documents have a compact strip, contained
+editor, and close/reopen operations that retain the same draft nodes.
+
+Tree examples again own their controlled toggle/select events. The tree observes
+expansion changes and retains one reachable tab stop. Command examples now expose
+grouped search, real document actions, editable retained contents, empty recovery,
+keyboard hints, and a gesture-bound dialog. Modal focus discovery includes the
+command search and excludes controls hidden through slots. Repeated disabling of
+select controls now restores their trigger and form participation correctly.
+
+This checkpoint repairs the reviewed interactions. It does not close the
+catalogue-wide reference acceptance ledger. Remaining parity work continues from
+`docs/audit/example-parity.md` and `docs/audit/complex-example-parity.md`; Stories
+remain deferred. The local `bd` executable is unavailable, so follow-up work stays
+recorded in these checked-in ledgers.
+
+Validation: the production build and static gates pass. Across focused runs,
+83 component/overlay/motion tests and all 24 reviewed production-browser scenarios
+pass. Captures cover moving and resting tabs in both themes, complete overflow
+labels, compact dock dragging at 75% and 100% zoom, separated docking hints,
+expanded/collapsed trees, and grouped/overlay commands. Capture review tightened
+command rows so all five initial actions fit the existing list height. The shared
+motion controller honors reduced motion and an explicit zero-duration token.
+
+The first browser pass exposed and repaired the nested chooser's clipped preview,
+select re-enabling after send cancellation, and hidden-slot modal focus. Two
+harness issues were also corrected: awaiting the real color-selector content
+before measuring its iframe, and mapping child-document rectangles through the
+iframe's actual scale for pointer tests. A transient browser-session startup
+failure passed on an isolated rerun. No dependencies were added.

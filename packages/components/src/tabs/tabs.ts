@@ -1,5 +1,7 @@
 import { LitElement, css, html, type PropertyValues, type TemplateResult } from "lit";
 
+import { DragController, type DragEventDetail } from "../drag/drag.js";
+import { ReorderMotionController } from "../internal/reorder-motion.js";
 import { baseStyles } from "../internal/base-styles.js";
 import type { UITab } from "../tab/tab.js";
 import type { UITabPanel } from "../tab-panel/tab-panel.js";
@@ -44,10 +46,14 @@ let tabPanelId = 0;
  * @csspart panel - The authored tab-panel collection.
  *
  * @csspart overflow - Overflow chooser affordance.
- * @csspart overflow-select - Native chooser listing complete tab labels.
+ * @csspart overflow-trigger - Opens the complete tab list.
+ * @csspart overflow-popup - Scrollable tab chooser surface.
+ * @csspart overflow-item - A tab chooser command.
  * @csspart announcement - Visually hidden reorder announcement.
  * @mashnode overflow control strip
- * @mashnode overflow-select control overflow
+ * @mashnode overflow-trigger control overflow
+ * @mashnode overflow-popup popup overflow
+ * @mashnode overflow-item item overflow-popup
  * @mashnode announcement status root
  * @fires {CustomEvent<{ previous: string[], order: string[] }>} ui-tabs-reorder - Reports the previous and current tab order; restore with setOrder(previous).
  * @fires {CustomEvent<{ value: string }>} ui-tabs-change - Emitted after tab selection changes.
@@ -104,6 +110,9 @@ export class UITabs extends LitElement {
     this.label = "Tabs";
     this.orientation = "horizontal";
     this.addEventListener("ui-tab-select", this.#onTabSelect as EventListener);
+    this.addEventListener("ui-drag-start", this.#dragStart as EventListener);
+    this.addEventListener("ui-drag", this.#dragMove as EventListener);
+    this.addEventListener("ui-drag-end", this.#dragEnd as EventListener);
   }
 
   static override styles = [
@@ -113,12 +122,39 @@ export class UITabs extends LitElement {
         position: relative;
         flex: none;
       }
-      [part="overflow-select"] {
-        position: absolute;
-        inset: 0;
-        opacity: 0;
-        width: 100%;
+      [part="overflow-trigger"] {
+        font: inherit;
         cursor: pointer;
+      }
+      ui-menu::part(viewport) {
+        overflow: auto;
+        max-block-size: 320px;
+      }
+      ui-menu-item {
+        display: block;
+      }
+      ui-menu-item::part(control) {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        font: inherit;
+        text-align: start;
+      }
+      ui-menu-item::part(label) {
+        flex: 1;
+      }
+      ui-menu-item::part(selection) {
+        width: 18px;
+        flex: none;
+      }
+      ui-menu-item[checked]::part(control) {
+        font-weight: 600;
+      }
+      ui-menu-item[disabled]::part(control) {
+        opacity: 0.5;
+      }
+      [part="list"] {
+        scrollbar-width: none;
       }
       [part="announcement"] {
         position: absolute;
@@ -131,17 +167,16 @@ export class UITabs extends LitElement {
   ];
 
   #size = new ResizeObserver(() => this.#measureOverflow());
+  #controllers = new Map<UITab, DragController>();
+  #motion = new ReorderMotionController(this);
   #drag: {
     tab: UITab;
-    x: number;
-    y: number;
     index: number;
-    active: boolean;
-    pointerId: number;
-    capture: HTMLElement | null;
-    abort: AbortController;
+    tabs: UITab[];
+    rects: Map<UITab, DOMRect>;
+    scroll: number;
+    scale: number;
   } | null = null;
-  #suppressClick = false;
 
   /** Snapshot authored tab order, including hidden tabs. Panels are never moved. */
   getOrder(): string[] {
@@ -207,11 +242,17 @@ export class UITabs extends LitElement {
 
   #measureOverflow(): void {
     const list = this.renderRoot.querySelector<HTMLElement>('[part="list"]');
-    if (list)
-      this._overflowed =
-        this.orientation === "vertical"
-          ? list.scrollHeight > list.clientHeight + 1
-          : list.scrollWidth > list.clientWidth + 1;
+    if (!list) return;
+    const vertical = this.orientation === "vertical";
+    const rtl = !vertical && getComputedStyle(this).direction === "rtl";
+    const extent = vertical
+      ? list.scrollHeight - list.clientHeight
+      : list.scrollWidth - list.clientWidth;
+    const offset = vertical ? list.scrollTop : Math.abs(list.scrollLeft);
+    this._overflowed = extent > 1;
+    const start = offset > 1 ? "transparent" : "black";
+    const end = offset < extent - 1 ? "transparent" : "black";
+    list.style.maskImage = `linear-gradient(${vertical ? "to bottom" : rtl ? "to left" : "to right"}, ${start}, black 18px, black calc(100% - 18px), ${end})`;
   }
 
   protected override firstUpdated(): void {
@@ -219,139 +260,137 @@ export class UITabs extends LitElement {
     this.#measureOverflow();
   }
 
-  #onOverflow = (event: Event): void => {
-    const value = (event.target as HTMLSelectElement).value;
-    const tab = this.#tabs().find((candidate) => candidate.value === value && !candidate.disabled);
+  #onOverflow = (event: CustomEvent<{ value: string }>): void => {
+    const tab = this.#tabs().find(
+      (candidate) => candidate.value === event.detail.value && !candidate.disabled,
+    );
     if (!tab) return;
-    this.select(value);
-    tab.focus();
-    tab.scrollIntoView({ block: "nearest", inline: "nearest" });
-  };
-
-  #pointerDown = (event: PointerEvent): void => {
-    if (this.#drag && event.pointerId !== this.#drag.pointerId) return;
-    const tab = event
-      .composedPath()
-      .find((node) => node instanceof HTMLElement && node.localName === "ui-tab") as
-      UITab | undefined;
-    if (
-      !this.reorderable ||
-      event.button !== 0 ||
-      !tab ||
-      tab.parentElement !== this ||
-      tab.disabled ||
-      event
-        .composedPath()
-        .some((node) => node instanceof HTMLElement && node.getAttribute("part") === "close")
-    )
-      return;
-    this.#endDrag();
-    this.#suppressClick = false;
-    const abort = new AbortController();
-    this.#drag = {
-      tab,
-      x: event.clientX,
-      y: event.clientY,
-      index: this.getOrder().indexOf(tab.value),
-      active: false,
-      pointerId: event.pointerId,
-      capture: null,
-      abort,
-    };
-    this.ownerDocument.addEventListener("pointermove", this.#pointerMove, { signal: abort.signal });
-    this.ownerDocument.addEventListener("pointerup", this.#pointerUp, { signal: abort.signal });
-    this.ownerDocument.addEventListener("pointercancel", this.#pointerCancel, {
-      signal: abort.signal,
+    this.select(tab.value);
+    // The menu restores trigger focus on close; move to the chosen tab afterwards.
+    requestAnimationFrame(() => {
+      tab.focus();
+      tab.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
-    this.ownerDocument.addEventListener("keydown", this.#cancelDrag, { signal: abort.signal });
   };
 
-  #pointerMove = (event: PointerEvent): void => {
-    const drag = this.#drag;
-    if (!drag || event.pointerId !== drag.pointerId) return;
-    if (!drag.active) {
-      if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 6) return;
-      const list = this.renderRoot.querySelector<HTMLElement>('[part="list"]')!;
-      try {
-        list.setPointerCapture(drag.pointerId);
-        drag.capture = list;
-        list.addEventListener("lostpointercapture", this.#pointerCancel, {
-          signal: drag.abort.signal,
-        });
-      } catch {
-        // Synthetic events have no active pointer to capture; document listeners still work.
+  #syncDrags(): void {
+    if (!this.isConnected) return;
+    const tabs = this.#tabs();
+    for (const [tab, controller] of this.#controllers) {
+      if (!this.reorderable || !tabs.includes(tab) || tab.disabled) {
+        controller.destroy();
+        this.#controllers.delete(tab);
+        this.#motion.reset(tab);
       }
     }
-    drag.active = true;
-    drag.tab.dataset.dragging = "";
-    event.preventDefault();
+    const list = this.renderRoot.querySelector<HTMLElement>('[part="list"]');
+    if (!this.reorderable || !list) return;
+    for (const tab of tabs) {
+      if (tab.disabled || this.#controllers.has(tab)) continue;
+      const handle = tab.shadowRoot?.querySelector<HTMLElement>('[part="control"]');
+      if (!handle) continue;
+      const controller = new DragController(tab, {
+        handle,
+        threshold: 6,
+        controlled: true,
+        containment: false,
+        axis: this.orientation === "vertical" ? "y" : "x",
+        autoScroll: {
+          target: list,
+          sensitivity: 28,
+          speed: 240,
+          ...(this.orientation === "vertical" ? { minX: 0, maxX: 0 } : { minY: 0, maxY: 0 }),
+        },
+      });
+      this.#controllers.set(tab, controller);
+    }
+  }
+
+  #dragStart = (event: CustomEvent<DragEventDetail>): void => {
+    const tab = event.target as UITab;
+    if (this.#controllers.get(tab) !== event.detail.controller) return;
+    if (this.#drag) {
+      event.preventDefault();
+      return;
+    }
+    this.#motion.reset();
+    const tabs = this.#tabs();
+    const list = this.renderRoot.querySelector<HTMLElement>('[part="list"]')!;
+    this.#drag = {
+      tab,
+      tabs,
+      index: this.getOrder().indexOf(tab.value),
+      rects: new Map(tabs.map((item) => [item, item.getBoundingClientRect()])),
+      scroll: this.orientation === "vertical" ? list.scrollTop : list.scrollLeft,
+      scale: list.getBoundingClientRect().width / list.offsetWidth || 1,
+    };
+    tab.dataset.dragging = "";
+  };
+
+  #dragMove = (event: CustomEvent<DragEventDetail>): void => {
+    const drag = this.#drag;
+    if (!drag || event.target !== drag.tab) return;
     const vertical = this.orientation === "vertical";
     const rtl = !vertical && getComputedStyle(this).direction === "rtl";
-    const coordinate = vertical ? event.clientY : event.clientX;
-    const remaining = this.#tabs().filter((tab) => tab !== drag.tab);
-    this.#tabs().forEach((tab) => {
-      delete tab.dataset.dropBefore;
-      delete tab.dataset.dropAfter;
-    });
+    const list = this.renderRoot.querySelector<HTMLElement>('[part="list"]')!;
+    const scrollDelta = (vertical ? list.scrollTop : list.scrollLeft) - drag.scroll;
+    const point =
+      (vertical ? event.detail.pointer.y : event.detail.pointer.x) + scrollDelta * drag.scale;
+    const remaining = drag.tabs.filter((tab) => tab !== drag.tab);
     const before = remaining.find((tab) => {
-      const bounds = tab.getBoundingClientRect();
-      const middle = vertical ? bounds.top + bounds.height / 2 : bounds.left + bounds.width / 2;
-      return rtl ? coordinate > middle : coordinate < middle;
+      const rect = drag.rects.get(tab)!;
+      const middle = vertical ? rect.top + rect.height / 2 : rect.left + rect.width / 2;
+      return rtl ? point > middle : point < middle;
     });
     const order = this.getOrder().filter((value) => value !== drag.tab.value);
     drag.index = before ? order.indexOf(before.value) : order.length;
-    if (before) before.dataset.dropBefore = "";
-    else if (remaining.at(-1)) remaining.at(-1)!.dataset.dropAfter = "";
-    const list = this.renderRoot.querySelector<HTMLElement>('[part="list"]')!;
-    const bounds = list.getBoundingClientRect();
-    if (vertical)
-      list.scrollTop +=
-        coordinate < bounds.top + 24 ? -16 : coordinate > bounds.bottom - 24 ? 16 : 0;
-    else
-      list.scrollLeft +=
-        coordinate < bounds.left + 24 ? -16 : coordinate > bounds.right - 24 ? 16 : 0;
-  };
-
-  #pointerUp = (event: PointerEvent): void => {
-    const drag = this.#drag;
-    if (!drag || event.pointerId !== drag.pointerId) return;
-    if (drag.active) {
-      this.#suppressClick = true;
-      this.reorder(drag.tab.value, drag.index);
-      void drag.tab.updateComplete.then(() => drag.tab.focus());
+    const preview = [...remaining];
+    preview.splice(before ? preview.indexOf(before) : preview.length, 0, drag.tab);
+    const first = drag.rects.get(drag.tabs[0]!)!;
+    const second = drag.rects.get(drag.tabs[1]!);
+    const gap = second
+      ? vertical
+        ? second.top - first.bottom
+        : rtl
+          ? first.left - second.right
+          : second.left - first.right
+      : 0;
+    let cursor = vertical ? first.top : rtl ? first.right : first.left;
+    for (const tab of preview) {
+      const rect = drag.rects.get(tab)!;
+      const size = vertical ? rect.height : rect.width;
+      const offset = (cursor - (vertical ? rect.top : rtl ? rect.right : rect.left)) / drag.scale;
+      if (tab !== drag.tab) this.#motion.move(tab, vertical ? 0 : offset, vertical ? offset : 0);
+      cursor += (rtl ? -1 : 1) * (size + gap);
     }
-    this.#endDrag();
+    const delta =
+      (vertical ? event.detail.delta.y : event.detail.delta.x) / drag.scale + scrollDelta;
+    this.#motion.move(drag.tab, vertical ? 0 : delta, vertical ? delta : 0, true);
   };
 
-  #pointerCancel = (event: PointerEvent): void => {
-    if (event.pointerId === this.#drag?.pointerId) this.#endDrag();
-  };
-
-  #cancelDrag = (event: KeyboardEvent): void => {
-    if (event.key !== "Escape" || !this.#drag?.active) return;
-    event.preventDefault();
-    this.#endDrag();
-  };
-
-  #endDrag = (): void => {
+  #dragEnd = (event: CustomEvent<DragEventDetail>): void => {
     const drag = this.#drag;
+    if (!drag || event.target !== drag.tab) return;
     this.#drag = null;
-    if (drag?.active) this.#suppressClick = true;
-    drag?.abort.abort();
-    if (drag?.capture?.hasPointerCapture(drag.pointerId))
-      drag.capture.releasePointerCapture(drag.pointerId);
-    this.#tabs().forEach((tab) => {
-      delete tab.dataset.dragging;
-      delete tab.dataset.dropBefore;
-      delete tab.dataset.dropAfter;
-    });
-  };
-
-  #captureClick = (event: Event): void => {
-    if (!this.#suppressClick) return;
-    this.#suppressClick = false;
-    event.preventDefault();
-    event.stopPropagation();
+    const visual = new Map(drag.tabs.map((tab) => [tab, tab.getBoundingClientRect()]));
+    this.#motion.reset();
+    delete drag.tab.dataset.dragging;
+    if (!event.detail.cancelled) this.reorder(drag.tab.value, drag.index);
+    event.detail.controller.position = { x: 0, y: 0 };
+    for (const tab of drag.tabs) {
+      if (tab.parentElement !== this) continue;
+      const previous = visual.get(tab)!;
+      const next = tab.getBoundingClientRect();
+      this.#motion.move(
+        tab,
+        (previous.left - next.left) / drag.scale,
+        (previous.top - next.top) / drag.scale,
+        true,
+      );
+      this.#motion.move(tab, 0, 0);
+    }
+    if (!event.detail.cancelled)
+      void drag.tab.updateComplete.then(() => drag.tab.focus({ preventScroll: true }));
   };
 
   #previousTabs: UITab[] = [];
@@ -390,7 +429,9 @@ export class UITabs extends LitElement {
     this.#observer.disconnect();
     this.#size.disconnect();
     this.#previousTabs = [];
-    this.#endDrag();
+    for (const controller of this.#controllers.values()) controller.destroy();
+    this.#controllers.clear();
+    this.#motion.destroy();
     super.disconnectedCallback();
   }
 
@@ -424,7 +465,10 @@ export class UITabs extends LitElement {
       .forEach((tab) => this.#size.observe(tab));
     this.#previousTabs = tabs;
     this.requestUpdate();
-    void this.updateComplete.then(() => this.#measureOverflow());
+    void this.updateComplete.then(() => {
+      this.#measureOverflow();
+      this.#syncDrags();
+    });
     const tabByValue = new Map(tabs.map((tab) => [tab.value, tab]));
     for (const panel of this.#panels()) {
       panel.id ||= `ui-tab-panel-${++tabPanelId}`;
@@ -443,6 +487,11 @@ export class UITabs extends LitElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("value")) this.#syncSelection();
+    if (changed.has("reorderable") || changed.has("orientation")) {
+      for (const controller of this.#controllers.values()) controller.destroy();
+      this.#controllers.clear();
+      this.#syncDrags();
+    }
   }
 
   #onSlotChange = (): void => this.#syncSelection();
@@ -529,21 +578,37 @@ export class UITabs extends LitElement {
           aria-label=${this.label}
           aria-orientation=${this.orientation}
           @keydown=${this.#onKeydown}
-          @pointerdown=${this.#pointerDown}
-          @click=${{ handleEvent: this.#captureClick, capture: true }}
+          @scroll=${this.#measureOverflow}
         >
           <slot part="tab" name="tab" @slotchange=${this.#onSlotChange}></slot>
         </div>
-        <span part="overflow" ?hidden=${!this._overflowed}>
-          <span aria-hidden="true">⌄</span>
-          <select
-            part="overflow-select"
+        <ui-menu
+          part="overflow"
+          ?hidden=${!this._overflowed}
+          label=${`Choose tab in ${this.label}`}
+          align="end"
+          density="compact"
+          exportparts="popup:overflow-popup"
+          @ui-menu-select=${this.#onOverflow}
+        >
+          <button
+            slot="trigger"
+            part="overflow-trigger"
+            type="button"
             aria-label=${`Choose tab in ${this.label}`}
-            @change=${this.#onOverflow}
           >
-            ${this.#tabs().map((tab) => html`<option value=${tab.value} ?selected=${tab.value === this.value} ?disabled=${tab.disabled}>${tab.accessibleLabel}</option>`)}
-          </select>
-        </span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path
+                d="m4 6 4 4 4-4"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+          ${this.#tabs().map((tab) => html`<ui-menu-item value=${tab.value} kind="radio" ?checked=${tab.value === this.value} ?disabled=${tab.disabled} exportparts="control:overflow-item">${tab.accessibleLabel}</ui-menu-item>`)}
+        </ui-menu>
         <slot part="suffix" name="suffix"></slot>
       </div>
       <span part="announcement" role="status" aria-live="polite">${this._announcement}</span>

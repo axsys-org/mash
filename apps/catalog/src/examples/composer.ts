@@ -9,7 +9,7 @@ export const composerMarkup = (attributes = "", value = "") => `
   <div class="mash-composer-toolbar">
     <ui-button type="button" variant="ghost" size="small" data-attach aria-label="Attach files"><ui-icon name="action.add" label=""></ui-icon></ui-button>
     <input type="file" multiple hidden aria-label="Choose attachments">
-    <label class="mash-composer-mode"><select aria-label="Response mode"><option value="ask">Ask</option><option value="plan">Plan</option><option value="write">Write</option></select></label>
+    <ui-select class="mash-composer-mode" label="Response mode" value="ask" size="small" placement="top" align="start"><ui-option value="ask">Ask</ui-option><ui-option value="plan">Plan</ui-option><ui-option value="write">Write</ui-option></ui-select>
     <span class="mash-composer-spacer"></span>
     <ui-button type="button" variant="ghost" size="small" data-expand aria-label="Expand composer" aria-expanded="false"><ui-icon name="action.fit" label=""></ui-icon></ui-button>
     <ui-button type="submit" variant="primary" size="small" data-send aria-label="Send" disabled><ui-icon name="navigation.up" label=""></ui-icon></ui-button>
@@ -30,7 +30,7 @@ export const composerScript = `for (const form of document.querySelectorAll(".ma
   const status = form.querySelector(".mash-composer-status");
   const output = status.querySelector("output");
   const retry = form.querySelector("[data-retry]");
-  const mode = form.querySelector("select");
+  const mode = form.querySelector(".mash-composer-mode");
   let files = [];
   let pending = null;
   let timer;
@@ -116,8 +116,8 @@ export const composerScript = `for (const form of document.querySelectorAll(".ma
     setBusy(false); renderFiles(); sync(); announce("Sending stopped. Continue editing."); draft.focus();
   });
   retry.addEventListener("click", submit);
-  mode.addEventListener("change", () => {
-    draft.placeholder = { ask: "Ask anything, or describe a task…", plan: "What would you like to plan?", write: "What would you like to write?" }[mode.value];
+  mode.addEventListener("ui-select-change", event => {
+    draft.placeholder = { ask: "Ask anything, or describe a task…", plan: "What would you like to plan?", write: "What would you like to write?" }[event.detail.value];
   });
   if (form.dataset.context) {
     files = form.dataset.context.split(",").map(name => new File(["Example context"], name));

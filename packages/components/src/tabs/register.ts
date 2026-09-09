@@ -1,3 +1,4 @@
+import "../menu/register.js";
 import "../tab-panel/register.js";
 import "../tab/register.js";
 import { UITabs } from "./tabs.js";

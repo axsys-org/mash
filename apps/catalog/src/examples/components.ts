@@ -1,3 +1,4 @@
+import { treeExamples } from "./command-tree.js";
 import { menuExamples } from "./menus.js";
 import { refinements } from "./refinements.js";
 import { patternExamples } from "./patterns.js";
@@ -323,12 +324,7 @@ sections.addEventListener("ui-accordion-change", event => {
     ),
   ],
   "ui-table": [sample("Table", table)],
-  "ui-tree": [
-    sample(
-      "Tree",
-      `<ui-tree label="Files"><ui-tree-item title="Project" value="project" kind="folder" expanded><ui-tree-item slot="children" title="README.md" value="readme" selected></ui-tree-item><ui-tree-item slot="children" title="package.json" value="package"></ui-tree-item><ui-tree-item slot="children" title="Archived" value="archive" disabled></ui-tree-item></ui-tree-item></ui-tree>`,
-    ),
-  ],
+  "ui-tree": treeExamples,
   "ui-pagination": [
     {
       ...sample(

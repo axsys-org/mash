@@ -32,6 +32,8 @@ export interface DragPositioner {
 }
 
 export interface DragControllerOptions {
+  /** Pointer travel in CSS pixels before capture and drag-start. */
+  threshold?: number;
   axis?: DragAxis;
   containment?: DragContainment;
   snap?: DragSnapOptions | false;
@@ -46,6 +48,8 @@ export interface DragControllerOptions {
 
 export interface DragEventDetail {
   controller: DragController;
+  /** True when an end event aborts instead of committing a drop. */
+  cancelled?: boolean;
   position: DragPoint;
   delta: DragPoint;
   pointer: DragPoint;
@@ -164,6 +168,8 @@ export class DragController {
   #startPosition: DragPoint = { x: 0, y: 0 };
   #pointerOffset: DragPoint = { x: 0, y: 0 };
   #startBaseRect: DragRect | undefined;
+  #started = false;
+  #suppressClick = false;
   #moving = false;
   #snappedX = false;
   #snappedY = false;
@@ -230,7 +236,7 @@ export class DragController {
       this.#attachHandle(this.#handle);
     }
     if (options.position) this.position = options.position;
-    if (this.#options.disabled && this.dragging) this.#end();
+    if (this.#options.disabled && this.dragging) this.cancel();
     if (options.autoScroll !== undefined) {
       this.#autoScrollController?.destroy();
       this.#autoScrollController = undefined;
@@ -244,12 +250,17 @@ export class DragController {
 
   /** Recalculates active containment and snap geometry after external layout changes. */
   refresh(): void {
-    if (this.dragging) this.#move(this.#lastPointer);
+    if (this.#started) this.#move(this.#lastPointer);
+  }
+
+  /** Abort the current gesture without committing a drop. */
+  cancel(): void {
+    this.#end(true);
   }
 
   destroy(): void {
     if (this.#destroyed) return;
-    this.#end();
+    this.cancel();
     this.#detachHandle(this.#handle);
     this.#autoScrollController?.destroy();
     this.#autoScrollController = undefined;
@@ -258,17 +269,15 @@ export class DragController {
 
   #attachHandle(handle: Element): void {
     handle.addEventListener("pointerdown", this.#onPointerDown);
-    handle.addEventListener("pointermove", this.#onPointerMove);
-    handle.addEventListener("pointerup", this.#onPointerEnd);
-    handle.addEventListener("pointercancel", this.#onPointerEnd);
+    handle.addEventListener("click", this.#onClick, true);
+    handle.addEventListener("dragstart", this.#onNativeDrag);
     handle.addEventListener("lostpointercapture", this.#onLostPointerCapture);
   }
 
   #detachHandle(handle: Element): void {
     handle.removeEventListener("pointerdown", this.#onPointerDown);
-    handle.removeEventListener("pointermove", this.#onPointerMove);
-    handle.removeEventListener("pointerup", this.#onPointerEnd);
-    handle.removeEventListener("pointercancel", this.#onPointerEnd);
+    handle.removeEventListener("click", this.#onClick, true);
+    handle.removeEventListener("dragstart", this.#onNativeDrag);
     handle.removeEventListener("lostpointercapture", this.#onLostPointerCapture);
   }
 
@@ -289,13 +298,13 @@ export class DragController {
     this.#startPointer = point;
     this.#lastPointer = point;
     this.#startPosition = { ...this.#position };
-    const detail = this.#detail(point, this.#position, false, false, []);
-    if (!this.#dispatch("ui-drag-start", detail, true)) {
-      this.#pointerId = undefined;
-      return;
-    }
-
-    pointer.preventDefault();
+    this.#suppressClick = false;
+    this.#started = false;
+    const doc = this.target.ownerDocument;
+    doc.addEventListener("pointermove", this.#onPointerMove);
+    doc.addEventListener("pointerup", this.#onPointerEnd);
+    doc.addEventListener("pointercancel", this.#onPointerEnd);
+    doc.addEventListener("keydown", this.#onKeydown, true);
     this.#pointerOffset = { x: rect.left - point.x, y: rect.top - point.y };
     this.#startBaseRect = rectFromEdges(
       rect.left - this.#position.x,
@@ -306,6 +315,24 @@ export class DragController {
     this.#moving = false;
     this.#snappedX = false;
     this.#snappedY = false;
+    if (!(this.#options.threshold && this.#options.threshold > 0)) this.#begin(pointer);
+  };
+
+  #begin(pointer: PointerEvent): boolean {
+    const pointerId = this.#pointerId;
+    if (
+      !this.#dispatch(
+        "ui-drag-start",
+        this.#detail(this.#startPointer, this.#position, false, false, []),
+        true,
+      )
+    ) {
+      this.#end(true);
+      return false;
+    }
+    if (this.#destroyed || this.#pointerId !== pointerId || pointerId === undefined) return false;
+    this.#started = true;
+    pointer.preventDefault();
     if ("setPointerCapture" in this.#handle) {
       try {
         this.#handle.setPointerCapture(pointer.pointerId);
@@ -313,22 +340,51 @@ export class DragController {
         // Synthetic pointer events and detached test fixtures may not support capture.
       }
     }
-  };
+    return true;
+  }
 
   #onPointerMove = (event: Event): void => {
     const pointer = event as PointerEvent;
     if (pointer.pointerId !== this.#pointerId) return;
+    if (!this.#started) {
+      if (
+        Math.hypot(pointer.clientX - this.#startPointer.x, pointer.clientY - this.#startPointer.y) <
+        (this.#options.threshold ?? 0)
+      )
+        return;
+      if (!this.#begin(pointer)) return;
+    }
     pointer.preventDefault();
     this.#move({ x: pointer.clientX, y: pointer.clientY });
   };
 
   #onPointerEnd = (event: Event): void => {
     if ((event as PointerEvent).pointerId !== this.#pointerId) return;
-    this.#end();
+    this.#end(event.type === "pointercancel");
   };
 
   #onLostPointerCapture = (event: Event): void => {
-    if ((event as PointerEvent).pointerId === this.#pointerId && !this.#ending) this.#end();
+    if ((event as PointerEvent).pointerId === this.#pointerId && !this.#ending) this.#end(true);
+  };
+
+  #onClick = (event: Event): void => {
+    if (!this.#suppressClick) return;
+    this.#suppressClick = false;
+    if ((event as MouseEvent).detail === 0) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+
+  #onNativeDrag = (event: Event): void => {
+    if (this.dragging) event.preventDefault();
+  };
+  #onKeydown = (event: KeyboardEvent): void => {
+    if (event.key !== "Escape") return;
+    if (this.#started) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.cancel();
   };
 
   #move(pointer: DragPoint): void {
@@ -426,16 +482,21 @@ export class DragController {
     if (!this.#autoScrollController) {
       const resolved = option === true ? { target: nearestScrollable(this.target) } : option;
       this.#autoScrollController = new DragAutoScrollController(resolved, () => {
-        if (this.dragging) this.#move(this.#lastPointer);
+        if (this.#started) this.#move(this.#lastPointer);
       });
     }
     return this.#autoScrollController.update(pointer);
   }
 
-  #end(): void {
+  #end(cancelled = false): void {
     if (this.#pointerId === undefined || this.#ending) return;
     this.#ending = true;
     const pointerId = this.#pointerId;
+    const doc = this.target.ownerDocument;
+    doc.removeEventListener("pointermove", this.#onPointerMove);
+    doc.removeEventListener("pointerup", this.#onPointerEnd);
+    doc.removeEventListener("pointercancel", this.#onPointerEnd);
+    doc.removeEventListener("keydown", this.#onKeydown, true);
     this.#autoScrollController?.stop();
     this.#autoScrolling = false;
     if ("hasPointerCapture" in this.#handle && this.#handle.hasPointerCapture(pointerId)) {
@@ -445,10 +506,14 @@ export class DragController {
         // The browser can release capture before pointercancel reaches the controller.
       }
     }
-    this.#dispatch(
-      "ui-drag-end",
-      this.#detail(this.#lastPointer, this.#position, this.#snappedX, this.#snappedY, []),
-    );
+    if (this.#started) {
+      this.#suppressClick = this.#moving;
+      this.#dispatch("ui-drag-end", {
+        ...this.#detail(this.#lastPointer, this.#position, this.#snappedX, this.#snappedY, []),
+        cancelled,
+      });
+    }
+    this.#started = false;
     this.#pointerId = undefined;
     this.#moving = false;
     this.#snappedX = false;

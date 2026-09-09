@@ -1,5 +1,6 @@
 import type { CatalogExample } from "../examples.js";
 import { sample } from "./shared.js";
+import { commandExamples } from "./command-tree.js";
 
 const tabs = (
   variant: string,
@@ -8,12 +9,6 @@ const tabs = (
   <ui-tab slot="tab" value="account">Account</ui-tab><ui-tab slot="tab" value="profile">Profile</ui-tab><ui-tab slot="tab" value="settings">Settings</ui-tab><ui-tab slot="tab" value="archived" disabled>Archived</ui-tab>
   <ui-tab-panel slot="panel" value="account">Account details</ui-tab-panel><ui-tab-panel slot="panel" value="profile">Your profile</ui-tab-panel><ui-tab-panel slot="panel" value="settings">Preferences</ui-tab-panel>
 </ui-tabs>`;
-const commands = `<ui-command id="commands" label="Quick actions">
-  <ui-command-item value="new" keywords="create document"><ui-icon slot="icon" name="action.add" label=""></ui-icon>New document<ui-kbd slot="shortcut" command="document.new" shortcut="Primary+N" appearance="plain"></ui-kbd></ui-command-item>
-  <ui-command-item value="search" keywords="find"><ui-icon slot="icon" name="action.search" label=""></ui-icon>Search files</ui-command-item>
-  <ui-command-item value="settings" keywords="preferences">Settings</ui-command-item>
-  <ui-command-item value="delete" disabled>Delete workspace</ui-command-item>
-</ui-command>`;
 export const navigationExamples: Record<string, CatalogExample[]> = {
   "ui-stepper": [
     sample(
@@ -100,13 +95,22 @@ document.querySelector("#reset-order").addEventListener("click", () => tabs.setO
     {
       ...sample(
         "Dynamic tabs",
-        `<ui-tabs id="documents" variant="default" value="notes" label="Open documents" reorderable>
+        `<style>
+#documents { display:block; width:100%; border:var(--border-hairline) solid var(--color-border); border-radius:var(--radius-container); background:var(--color-surface); overflow:hidden; }
+#documents::part(strip) { padding:var(--space-control-gap); background:var(--color-surface-sunken); }
+#documents::part(panels) { padding:var(--space-container-gap); min-block-size:13rem; border-block-start:var(--border-hairline) solid var(--color-border); }
+#documents ui-tab { min-inline-size:7rem; max-inline-size:12rem; }
+#documents ui-tab::part(root), #documents ui-tab::part(control) { inline-size:100%; }
+#documents ui-tab::part(control) { justify-content:flex-start; }
+#documents ui-textarea::part(control) { min-block-size:10rem; border:0; background:transparent; padding:0; box-shadow:none; resize:vertical; }
+#documents ui-textarea::part(control):focus { outline:none; }
+</style><ui-tabs id="documents" size="small" variant="default" value="notes" label="Open documents" reorderable>
   <ui-tab slot="tab" value="notes" closable>Notes</ui-tab><ui-tab slot="tab" value="tasks" closable>Tasks</ui-tab>
   <ui-tab-panel slot="panel" value="notes"><ui-textarea label="Your notes" value="Keep this draft when closing and reopening."></ui-textarea></ui-tab-panel>
   <ui-tab-panel slot="panel" value="tasks"><ui-checkbox>Review the latest changes</ui-checkbox></ui-tab-panel>
   <div slot="suffix" class="mash-row"><ui-button id="reopen-tab" size="small" variant="ghost" disabled>Reopen</ui-button><ui-button id="add-tab" size="small" variant="ghost" aria-label="Add document"><ui-icon name="action.add" label=""></ui-icon></ui-button></div>
 </ui-tabs>`,
-        "Add, drag, close, and reopen documents. Delete closes the focused tab; reopening restores its existing content.",
+        "Drag to rearrange. Add, close, and reopen documents without losing drafts. Delete closes the focused tab; Alt+Shift+Arrow moves it.",
       ),
       script: `const tabs = document.querySelector("#documents");
 let count = 0;
@@ -181,19 +185,5 @@ document.querySelector("#reset-tabs").addEventListener("click", () => { tabs.sel
       `<p>Press <ui-kbd appearance="plain" command="search.open" shortcut="Primary+K"></ui-kbd> to search.</p>`,
     ),
   ],
-  "ui-command": [
-    {
-      ...sample(
-        "Commands",
-        `${commands}<output id="command-result" aria-live="polite">Choose a command</output>`,
-      ),
-      script: `document.querySelector("#commands").addEventListener("ui-command-select", event => {
-  document.querySelector("#command-result").textContent = "Selected: " + event.detail.value;
-});`,
-    },
-    sample(
-      "Command dialog",
-      `<ui-dialog label="Commands"><ui-button slot="trigger">Open commands</ui-button><strong slot="title">Quick actions</strong>${commands}</ui-dialog>`,
-    ),
-  ],
+  "ui-command": commandExamples,
 };

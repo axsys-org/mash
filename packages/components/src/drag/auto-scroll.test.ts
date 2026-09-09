@@ -4,6 +4,54 @@ import { fixture } from "../test-support/fixture.js";
 import { DragAutoScrollController } from "./auto-scroll.js";
 
 describe("DragAutoScrollController", () => {
+  it("reaches both physical edges of an RTL strip using negative native coordinates", async () => {
+    const scroller = await fixture<HTMLElement>(`
+      <div style="direction:rtl;width:100px;height:100px;overflow:auto">
+        <div style="width:500px;height:50px"></div>
+      </div>
+    `);
+    const controller = new DragAutoScrollController(
+      { target: scroller, speed: 10000, sensitivity: 12 },
+      vi.fn(),
+    );
+    const rect = scroller.getBoundingClientRect();
+    try {
+      expect(scroller.scrollLeft).toBe(0);
+      controller.update({ x: rect.left + 1, y: rect.top + rect.height / 2 });
+      await vi.waitFor(() => expect(scroller.scrollLeft).toBe(-400));
+      controller.update({ x: rect.right - 1, y: rect.top + rect.height / 2 });
+      await vi.waitFor(() => expect(scroller.scrollLeft).toBe(0));
+    } finally {
+      controller.destroy();
+    }
+  });
+
+  it.each(["ltr", "rtl"])(
+    "preserves explicit horizontal bounds for %s elements",
+    async (direction) => {
+      const scroller = await fixture<HTMLElement>(`
+      <div style="direction:${direction};width:100px;height:100px;overflow:auto">
+        <div style="width:500px;height:50px"></div>
+      </div>
+    `);
+      const minX = direction === "rtl" ? -30 : 10;
+      const maxX = direction === "rtl" ? -10 : 30;
+      const controller = new DragAutoScrollController(
+        { target: scroller, speed: 10000, sensitivity: 12, minX, maxX },
+        vi.fn(),
+      );
+      const rect = scroller.getBoundingClientRect();
+      try {
+        controller.update({ x: rect.left + 1, y: rect.top + rect.height / 2 });
+        await vi.waitFor(() => expect(scroller.scrollLeft).toBe(minX));
+        controller.update({ x: rect.right - 1, y: rect.top + rect.height / 2 });
+        await vi.waitFor(() => expect(scroller.scrollLeft).toBe(maxX));
+      } finally {
+        controller.destroy();
+      }
+    },
+  );
+
   it("scrolls a local overflow target near its edge and stops cleanly", async () => {
     const scroller = await fixture<HTMLElement>(`
       <div style="width:100px;height:100px;overflow:auto">

@@ -54,22 +54,34 @@
   :where([data-mash-catalogue="mash"]) .mash-composer-spacer {
     flex: 1;
   }
-  :where([data-mash-catalogue="mash"]) .mash-composer-mode select {
+  :where([data-mash-catalogue="mash"]) .mash-composer-mode {
+    display: inline-flex;
+    flex: none;
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-mode::part(trigger) {
     font: inherit;
     font-size: var(--type-label-small-font-size);
     color: var(--color-text-muted);
+    min-inline-size: 0;
+    min-block-size: var(--layout-dimension-control-medium);
     border: 0;
     border-radius: var(--radius-pill);
     background: transparent;
-    padding: var(--space-control-block) var(--space-control-gap);
+    padding: 0 var(--space-control-inline);
+    box-shadow: none;
     cursor: pointer;
   }
-  :where([data-mash-catalogue="mash"]) .mash-composer-mode select:hover {
+  :where([data-mash-catalogue="mash"]) .mash-composer-mode:not([disabled])::part(trigger):hover {
     background: var(--color-surface-hover);
     color: var(--color-text);
   }
-  :where([data-mash-catalogue="mash"]) .mash-composer-mode select:focus-visible {
+  :where([data-mash-catalogue="mash"]) .mash-composer-mode::part(trigger):focus-visible {
     outline: var(--border-focus-ring) solid var(--color-focus-ring);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-mode[disabled]::part(trigger) {
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
   }
   :where([data-mash-catalogue="mash"]) .mash-composer-toolbar ui-button::part(control) {
     border-radius: var(--radius-pill);

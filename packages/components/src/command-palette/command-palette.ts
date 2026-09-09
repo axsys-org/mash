@@ -8,15 +8,23 @@ import { baseStyles } from "../internal/base-styles.js";
  * @example Quick actions
  * <ui-command label="Quick actions"><ui-command-item value="new">New document</ui-command-item><ui-command-item value="search">Search files</ui-command-item></ui-command>
  * @slot - Command items, with optional labelled sections.
+ * @slot search-prefix - Search icon or leading context.
+ * @slot search-suffix - Search shortcut or adjacent action.
  * @slot empty - Content shown when the query has no matches.
  * @slot footer - Shortcut hints or contextual actions.
  * @csspart root - The command surface.
  * @csspart search - Native search input.
+ * @csspart search-row - Search input and its accessories.
+ * @csspart search-prefix - Leading search accessory.
+ * @csspart search-suffix - Trailing search accessory.
  * @csspart list - The command list.
  * @csspart empty - No-results state.
  * @csspart footer - Optional contextual footer.
  * @mashnode root command
- * @mashnode search query root
+ * @mashnode search-row row root
+ * @mashnode search query search-row
+ * @mashnode search-prefix prefix search-row
+ * @mashnode search-suffix suffix search-row
  * @mashnode list list root
  * @mashnode empty empty list
  * @mashnode footer footer root
@@ -29,6 +37,7 @@ export class UICommand extends LitElement {
     query: { type: String, reflect: true },
     searchable: { type: Boolean, reflect: true },
     _empty: { state: true },
+    _footer: { state: true },
   };
   /** Accessible command collection name. */
   declare label: string;
@@ -39,6 +48,7 @@ export class UICommand extends LitElement {
   /** Show a search input; false exposes a keyboard-focusable quick-action list. */
   declare searchable: boolean;
   protected _empty = false;
+  protected _footer = false;
   #active?: UICommandItem;
   #observer = new MutationObserver(() => this.#filter());
   constructor() {
@@ -48,6 +58,12 @@ export class UICommand extends LitElement {
     this.query = "";
     this.searchable = true;
     this.addEventListener("ui-command-item-select", this.#onSelect);
+    this.addEventListener("pointermove", (event) => {
+      const item = event
+        .composedPath()
+        .find((node): node is UICommandItem => node instanceof UICommandItem);
+      if (item && this.#available.includes(item)) this.#activate(item);
+    });
   }
   static override styles = [
     baseStyles,
@@ -56,8 +72,24 @@ export class UICommand extends LitElement {
         display: block;
         min-inline-size: 0;
       }
+      [part="search-row"] {
+        display: flex;
+        align-items: center;
+      }
       [part="search"] {
+        flex: 1;
+        min-inline-size: 0;
         inline-size: 100%;
+      }
+      slot[name="search-prefix"],
+      slot[name="search-suffix"] {
+        display: none;
+      }
+      slot[data-filled] {
+        display: block;
+      }
+      [part="search"]::-webkit-search-cancel-button {
+        display: none;
       }
       [part="list"] {
         max-block-size: 20rem;
@@ -90,10 +122,22 @@ export class UICommand extends LitElement {
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("query") || changed.has("searchable")) this.#filter();
   }
+  /** Focuses the search field or the searchless command list. */
+  override focus(options?: FocusOptions): void {
+    this.renderRoot
+      .querySelector<HTMLElement>(this.searchable ? '[part="search"]' : '[part="list"]')
+      ?.focus(options);
+  }
   #filter = (): void => {
-    const query = this.query.trim().toLocaleLowerCase();
-    for (const item of this.#items)
-      item.hidden = !`${item.textContent} ${item.keywords}`.toLocaleLowerCase().includes(query);
+    const terms = this.query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+    for (const item of this.#items) {
+      const text = `${item.textContent} ${item.keywords}`.toLocaleLowerCase();
+      item.hidden = !terms.every((term) => text.includes(term));
+    }
+    for (const group of this.querySelectorAll<HTMLElement>('[role="group"]')) {
+      if (group.closest("ui-command") !== this) continue;
+      group.hidden = !this.#items.some((item) => group.contains(item) && !item.hidden);
+    }
     this._empty = !this.#items.some((item) => !item.hidden);
     this.#activate(this.#available.includes(this.#active!) ? this.#active : this.#available[0]);
   };
@@ -107,6 +151,7 @@ export class UICommand extends LitElement {
   }
   #select(item?: UICommandItem): void {
     if (!item || item.disabled || item.hidden) return;
+    this.#activate(item);
     this.dispatchEvent(
       new CustomEvent("ui-command-select", {
         bubbles: true,
@@ -123,8 +168,18 @@ export class UICommand extends LitElement {
     }
   };
   #onKeydown = (event: KeyboardEvent): void => {
+    if (event.isComposing) return;
+    const source = event.composedPath()[0];
+    if (
+      source !== this.renderRoot.querySelector('[part="search"]') &&
+      source !== this.renderRoot.querySelector('[part="list"]')
+    )
+      return;
     const items = this.#available;
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    if (!this.searchable && (event.key === "Home" || event.key === "End")) {
+      event.preventDefault();
+      this.#activate(event.key === "Home" ? items[0] : items.at(-1));
+    } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       const current = items.indexOf(this.#active!);
       const next =
@@ -140,24 +195,39 @@ export class UICommand extends LitElement {
       this.query = "";
     }
   };
+  #accessoryChange = (event: Event): void => {
+    const slot = event.target as HTMLSlotElement;
+    slot.toggleAttribute("data-filled", slot.assignedNodes().length > 0);
+  };
   protected override render(): TemplateResult {
     return html`<div part="root" @keydown=${this.#onKeydown}>
       ${
         this.searchable
-          ? html`<input
-              part="search"
-              type="search"
-              role="combobox"
-              aria-label=${this.label}
-              aria-autocomplete="list"
-              aria-expanded="true"
-              aria-controls="commands"
-              placeholder=${this.placeholder}
-              .value=${this.query}
-              @input=${(event: Event) => {
-                this.query = (event.target as HTMLInputElement).value;
-              }}
-            />`
+          ? html`<div part="search-row">
+              <slot
+                name="search-prefix"
+                part="search-prefix"
+                @slotchange=${this.#accessoryChange}
+              ></slot
+              ><input
+                part="search"
+                type="search"
+                role="combobox"
+                aria-label=${this.label}
+                aria-autocomplete="list"
+                aria-expanded="true"
+                aria-controls="commands"
+                placeholder=${this.placeholder}
+                .value=${this.query}
+                @input=${(event: Event) => {
+                  this.query = (event.target as HTMLInputElement).value;
+                }}
+              /><slot
+                name="search-suffix"
+                part="search-suffix"
+                @slotchange=${this.#accessoryChange}
+              ></slot>
+            </div>`
           : ""
       }
       <div
@@ -172,7 +242,14 @@ export class UICommand extends LitElement {
       <div part="empty" role="status" ?hidden=${!this._empty}>
         <slot name="empty">No commands found.</slot>
       </div>
-      <div part="footer"><slot name="footer"></slot></div>
+      <div part="footer" ?hidden=${!this._footer}>
+        <slot
+          name="footer"
+          @slotchange=${(event: Event) => {
+            this._footer = (event.target as HTMLSlotElement).assignedElements().length > 0;
+          }}
+        ></slot>
+      </div>
     </div>`;
   }
 }
@@ -184,15 +261,20 @@ export class UICommand extends LitElement {
  * @example Command
  * <ui-command><ui-command-item value="new">New document</ui-command-item></ui-command>
  * @slot - Command label and description.
+ * @slot description - Supporting command context.
  * @slot icon - Leading command icon.
  * @slot shortcut - Keyboard hint.
  * @csspart root - Selectable command row.
  * @csspart icon - Leading icon region.
  * @csspart label - Authored command text.
+ * @csspart text - Label and description stack.
+ * @csspart description - Supporting command context.
  * @csspart shortcut - Trailing shortcut region.
  * @mashnode root command
  * @mashnode icon icon root
- * @mashnode label label root
+ * @mashnode text text root
+ * @mashnode label label text
+ * @mashnode description description text
  * @mashnode shortcut shortcut root
  * @fires {CustomEvent} ui-command-item-select - Requests activation from the command owner.
  */
@@ -226,15 +308,43 @@ export class UICommandItem extends LitElement {
         );
     });
   }
-  static override styles = baseStyles;
+  static override styles = [
+    baseStyles,
+    css`
+      :host([hidden]) {
+        display: none !important;
+      }
+      [part="text"] {
+        flex: 1;
+        min-inline-size: 0;
+        display: grid;
+      }
+      slot[name="icon"],
+      slot[name="shortcut"],
+      slot[name="description"] {
+        display: none;
+      }
+      slot[data-filled] {
+        display: block;
+      }
+    `,
+  ];
   protected override updated(): void {
     this.#internals.ariaSelected = String(this.selected);
     this.#internals.ariaDisabled = String(this.disabled);
   }
+  #slotChange = (event: Event): void => {
+    const slot = event.target as HTMLSlotElement;
+    slot.toggleAttribute("data-filled", slot.assignedNodes().length > 0);
+  };
   protected override render(): TemplateResult {
     return html`<div part="root">
-      <slot name="icon" part="icon"></slot><slot part="label"></slot
-      ><slot name="shortcut" part="shortcut"></slot>
+      <slot name="icon" part="icon" @slotchange=${this.#slotChange}></slot>
+      <div part="text">
+        <slot part="label"></slot
+        ><slot name="description" part="description" @slotchange=${this.#slotChange}></slot>
+      </div>
+      <slot name="shortcut" part="shortcut" @slotchange=${this.#slotChange}></slot>
     </div>`;
   }
 }

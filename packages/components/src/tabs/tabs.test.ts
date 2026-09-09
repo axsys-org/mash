@@ -139,6 +139,7 @@ describe("ui-tabs", () => {
       inShadow(tab, '[part="control"]').dispatchEvent(
         new PointerEvent("pointerdown", {
           button: 0,
+          isPrimary: true,
           pointerId: 7,
           clientX: bounds.left + 5,
           clientY: bounds.top + 5,
@@ -171,7 +172,9 @@ describe("ui-tabs", () => {
     document.dispatchEvent(new PointerEvent("pointerup", { pointerId: 7 }));
     expect(element.getOrder()).toEqual(["b", "c", "a"]);
     expect(element.querySelector("[data-dragging]")).toBeNull();
-    inShadow(tab, '[part="control"]').click();
+    inShadow(tab, '[part="control"]').dispatchEvent(
+      new MouseEvent("click", { detail: 1, bubbles: true, composed: true, cancelable: true }),
+    );
     expect(element.value).toBe("b");
   });
 
@@ -186,10 +189,12 @@ describe("ui-tabs", () => {
     await settled(element);
     const overflow = inShadow<HTMLElement>(element, '[part="overflow"]');
     expect(overflow.hidden).toBe(false);
-    const select = inShadow<HTMLSelectElement>(element, "select");
-    expect(select.options[5]!.textContent).toBe("Complete document title 5");
-    select.value = "5";
-    select.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(element.shadowRoot!.querySelector("select")).toBeNull();
+    const menu = element.shadowRoot!.querySelector("ui-menu")!;
+    expect(menu.querySelectorAll("ui-menu-item")[5]!.textContent).toBe("Complete document title 5");
+    menu.dispatchEvent(
+      new CustomEvent("ui-menu-select", { detail: { value: "5" }, bubbles: true }),
+    );
     await settled(element);
     expect(element.value).toBe("5");
     expect(element.querySelector<UITabPanel>('ui-tab-panel[value="5"]')!.selected).toBe(true);

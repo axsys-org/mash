@@ -12,6 +12,9 @@ import {
   type DockSplit,
   type DockPlacement,
 } from "./layout.js";
+import { DragController, type DragEventDetail } from "../drag/drag.js";
+import { ReorderMotionController } from "../internal/reorder-motion.js";
+import { dockEdgePlacement } from "./drag-target.js";
 import type { UIDockPanel } from "../dock-panel/dock-panel.js";
 export type { DockLayout, DockNode, DockTabs, DockSplit, DockPlacement } from "./layout.js";
 
@@ -32,7 +35,9 @@ export type { DockLayout, DockNode, DockTabs, DockSplit, DockPlacement } from ".
  * @csspart selected - Selected tab.
  * @csspart action - Close, maximize, or restore action.
  * @csspart body - Active panel projection.
- * @csspart drop-target - Drag placement indicator.
+ * @csspart drop-target - Compact docking intent hint shown only over another group or a body edge.
+ * @csspart drag-preview - Tab-sized pointer-following drag surface.
+ * @mashnode drag-preview preview root
  * @csspart empty - Empty workspace prompt.
  * @mashnode root workspace
  * @mashnode split split root
@@ -62,8 +67,20 @@ export class UIDock extends LitElement {
   /** Versioned layout. Use restoreLayout for untrusted serialized snapshots. */
   declare layout: DockLayout;
   protected _zoom: string | null = null;
-  protected _drop: { id: string; placement: DockPlacement } | null = null;
-  #drag: string | null = null;
+  protected _drop: { id: string; placement: DockPlacement; top: number } | null = null;
+  #controllers = new Map<HTMLButtonElement, DragController>();
+  #motion = new ReorderMotionController(this);
+  #drag: {
+    name: string;
+    group: string;
+    source: HTMLButtonElement;
+    ghost: HTMLElement;
+    offset: { x: number; y: number };
+    target: { id: string; placement: DockPlacement; before?: string } | null;
+    rects: Map<HTMLElement, DOMRect>;
+    scroll: Map<HTMLElement, number>;
+  } | null = null;
+  #suppressClick = false;
   #known = new Set<string>();
   #observer = new MutationObserver(() => this.#syncPanels());
   #resize?: { split: DockSplit; start: number; ratio: number; extent: number };
@@ -112,6 +129,24 @@ export class UIDock extends LitElement {
       }
       [part~="tab"] {
         white-space: nowrap;
+        flex: none;
+        touch-action: none;
+        user-select: none;
+      }
+      [part~="tab"][data-dragging] {
+        visibility: hidden;
+      }
+      [part="drag-preview"] {
+        position: fixed;
+        margin: 0;
+        inset: auto;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-inline-size: 16rem;
       }
       [part="body"] {
         min-inline-size: 0;
@@ -142,6 +177,9 @@ export class UIDock extends LitElement {
   }
   override disconnectedCallback(): void {
     this.#observer.disconnect();
+    for (const controller of this.#controllers.values()) controller.destroy();
+    this.#controllers.clear();
+    this.#motion.destroy();
     super.disconnectedCallback();
   }
   #syncPanels = (): void => {
@@ -175,6 +213,24 @@ export class UIDock extends LitElement {
       !groups(this.layout.root).some((group) => group.id === this._zoom)
     )
       this._zoom = null;
+  }
+  protected override updated(): void {
+    const tabs = [...this.renderRoot.querySelectorAll<HTMLButtonElement>("[data-panel]")];
+    for (const [tab, controller] of this.#controllers) {
+      if (tabs.includes(tab)) continue;
+      controller.destroy();
+      this.#controllers.delete(tab);
+    }
+    for (const tab of tabs) {
+      if (this.#controllers.has(tab)) continue;
+      const controller = new DragController(tab, {
+        controlled: true,
+        containment: false,
+        threshold: 6,
+        autoScroll: { target: tab.parentElement!, sensitivity: 28, speed: 240, minY: 0, maxY: 0 },
+      });
+      this.#controllers.set(tab, controller);
+    }
   }
   #commit(root: DockNode | null): void {
     this.layout = { version: 1, root };
@@ -228,6 +284,14 @@ export class UIDock extends LitElement {
   ): boolean {
     if (!this.#known.has(name) || !groups(this.layout.root).some((group) => group.id === targetId))
       return false;
+    if (
+      placement === "center" &&
+      before === name &&
+      groups(this.layout.root)
+        .find((group) => group.id === targetId)
+        ?.panels.includes(name)
+    )
+      return true;
     let root = structuredClone(this.layout.root)!;
     const previousTarget = groups(root).find((group) => group.id === targetId)!;
     if (
@@ -274,6 +338,28 @@ export class UIDock extends LitElement {
     if (
       event.altKey &&
       event.shiftKey &&
+      ["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)
+    ) {
+      event.preventDefault();
+      const rtl = getComputedStyle(this).direction === "rtl";
+      const index = group.panels.indexOf(name);
+      const forward = event.key === (rtl ? "ArrowLeft" : "ArrowRight");
+      const destination =
+        event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? group.panels.length - 1
+            : Math.max(0, Math.min(group.panels.length - 1, index + (forward ? 1 : -1)));
+      const order = group.panels.filter((panel) => panel !== name);
+      this.movePanel(name, group.id, "center", order[destination]);
+      void this.updateComplete.then(() =>
+        this.renderRoot.querySelector<HTMLElement>(`[data-panel="${CSS.escape(name)}"]`)?.focus(),
+      );
+      return;
+    }
+    if (
+      event.altKey &&
+      event.ctrlKey &&
       ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
     ) {
       event.preventDefault();
@@ -311,32 +397,150 @@ export class UIDock extends LitElement {
         ?.focus(),
     );
   }
-  #dragOver(event: DragEvent, group: DockTabs): void {
-    if (!this.#drag) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = (event.clientX - box.left) / box.width,
-      y = (event.clientY - box.top) / box.height;
-    this._drop = {
-      id: group.id,
-      placement:
-        x < 0.2 ? "left" : x > 0.8 ? "right" : y < 0.2 ? "top" : y > 0.8 ? "bottom" : "center",
+  #startDrag = (event: CustomEvent<DragEventDetail>): void => {
+    const source = event.detail.controller.target as HTMLButtonElement;
+    if (!this.#controllers.has(source)) return;
+    const group = source.closest<HTMLElement>("[data-group]")!;
+    const rect = source.getBoundingClientRect();
+    const ghost = this.ownerDocument.createElement("div");
+    ghost.setAttribute("part", "drag-preview");
+    ghost.setAttribute("popover", "manual");
+    ghost.setAttribute("aria-hidden", "true");
+    ghost.textContent = source.textContent?.trim() ?? "";
+    ghost.style.width = `${rect.width}px`;
+    ghost.style.height = `${rect.height}px`;
+    this.renderRoot.appendChild(ghost);
+    ghost.showPopover();
+    const tabs = [...this.#controllers.keys()];
+    this.#drag = {
+      name: source.dataset.panel!,
+      group: group.dataset.group!,
+      source,
+      ghost,
+      offset: { x: event.detail.pointer.x - rect.left, y: event.detail.pointer.y - rect.top },
+      target: null,
+      rects: new Map(tabs.map((tab) => [tab, tab.getBoundingClientRect()])),
+      scroll: new Map(tabs.map((tab) => [tab.parentElement!, tab.parentElement!.scrollLeft])),
     };
-  }
-  #dropPanel(event: DragEvent, group: DockTabs, before?: string): void {
-    if (!this.#drag) return;
-    event.preventDefault();
-    event.stopPropagation();
-    this.movePanel(
-      this.#drag,
-      group.id,
-      before ? "center" : (this._drop?.placement ?? "center"),
-      before,
+    source.dataset.dragging = "";
+    this.#suppressClick = true;
+    this.#moveDrag(event);
+  };
+
+  #moveDrag = (event: CustomEvent<DragEventDetail>): void => {
+    const drag = this.#drag;
+    if (!drag || event.detail.controller.target !== drag.source) return;
+    const pointer = event.detail.pointer;
+    drag.ghost.style.left = `${pointer.x - drag.offset.x}px`;
+    drag.ghost.style.top = `${pointer.y - drag.offset.y}px`;
+    const group = [...this.renderRoot.querySelectorAll<HTMLElement>("[data-group]")].find(
+      (element) => {
+        const rect = element.getBoundingClientRect();
+        return (
+          pointer.x >= rect.left &&
+          pointer.x <= rect.right &&
+          pointer.y >= rect.top &&
+          pointer.y <= rect.bottom
+        );
+      },
     );
+    drag.target = null;
+    this._drop = null;
+    for (const tab of this.#controllers.keys())
+      if (tab !== drag.source && !group?.contains(tab)) this.#motion.move(tab, 0, 0);
+    if (!group) return;
+    const id = group.dataset.group!;
+    const body = group.querySelector<HTMLElement>('[part="body"]')!;
+    const header = group.querySelector<HTMLElement>('[part="header"]')!;
+    const model = groups(this.layout.root).find((item) => item.id === id)!;
+    const groupBounds = group.getBoundingClientRect();
+    const headerBottom = header.getBoundingClientRect().bottom;
+    const overHeader = pointer.y <= headerBottom;
+    const ghostTop = pointer.y - drag.offset.y - groupBounds.top;
+    const aboveGhost = ghostTop - 36;
+    const hintTop = Math.max(
+      headerBottom - groupBounds.top + 8,
+      Math.min(
+        groupBounds.height - 40,
+        aboveGhost > headerBottom - groupBounds.top + 8
+          ? aboveGhost
+          : ghostTop + drag.ghost.offsetHeight + 8,
+      ),
+    );
+    const edge = overHeader ? null : dockEdgePlacement(pointer, body.getBoundingClientRect());
+    if (edge && !(model.panels.length === 1 && model.panels[0] === drag.name)) {
+      for (const tab of group.querySelectorAll<HTMLElement>("[data-panel]"))
+        if (tab !== drag.source) this.#motion.move(tab, 0, 0);
+      drag.target = { id, placement: edge };
+      this._drop = { id, placement: edge, top: hintTop };
+      return;
+    }
+    if (!overHeader && id === drag.group) {
+      for (const tab of group.querySelectorAll<HTMLElement>("[data-panel]"))
+        if (tab !== drag.source) this.#motion.move(tab, 0, 0);
+      return;
+    }
+    const tabs = [...group.querySelectorAll<HTMLButtonElement>("[data-panel]")];
+    const rtl = getComputedStyle(this).direction === "rtl";
+    const before = tabs
+      .filter((tab) => tab !== drag.source)
+      .find((tab) => {
+        const rect = drag.rects.get(tab)!;
+        const scrollDelta =
+          (drag.scroll.get(tab.parentElement!) ?? 0) - tab.parentElement!.scrollLeft;
+        const middle = rect.left + scrollDelta + rect.width / 2;
+        return rtl ? pointer.x > middle : pointer.x < middle;
+      });
+    drag.target = {
+      id,
+      placement: "center",
+      before: overHeader ? before?.dataset.panel : undefined,
+    };
+    if (!overHeader) this._drop = { id, placement: "center", top: hintTop };
+    const order = tabs.filter((tab) => tab !== drag.source);
+    const insertion = overHeader && before ? order.indexOf(before) : order.length;
+    order.splice(insertion, 0, drag.source);
+    const first = drag.rects.get(tabs[0]!)!;
+    let position = rtl ? first.right : first.left;
+    for (const tab of order) {
+      const rect = drag.rects.get(tab)!;
+      const desired = rtl ? position - rect.width : position;
+      if (tab !== drag.source) this.#motion.move(tab, desired - rect.left, 0);
+      position += (rtl ? -1 : 1) * rect.width;
+    }
+  };
+
+  #endDrag = (event: CustomEvent<DragEventDetail>): void => {
+    const drag = this.#drag;
+    if (!drag || event.detail.controller.target !== drag.source) return;
     this.#drag = null;
     this._drop = null;
+    drag.ghost.remove();
+    delete drag.source.dataset.dragging;
+    this.#motion.reset();
+    this.ownerDocument.defaultView?.requestAnimationFrame(() => {
+      this.#suppressClick = false;
+    });
+    event.detail.controller.position = { x: 0, y: 0 };
+    if (!event.detail.cancelled && drag.target) {
+      const { id, placement, before } = drag.target;
+      this.movePanel(drag.name, id, placement, before);
+    }
+    void this.updateComplete.then(() =>
+      this.renderRoot
+        .querySelector<HTMLElement>(`[data-panel="${CSS.escape(drag.name)}"]`)
+        ?.focus(),
+    );
+  };
+
+  #tabClick(group: DockTabs, name: string): void {
+    if (this.#suppressClick) {
+      this.#suppressClick = false;
+      return;
+    }
+    this.#select(group, name);
   }
+
   #splitResize(event: PointerEvent, split: DockSplit): void {
     if (event.button !== 0) return;
     const handle = event.currentTarget as HTMLElement,
@@ -404,22 +608,7 @@ export class UIDock extends LitElement {
       </div>`;
     const active = this.#panels.find((panel) => panel.name === model.active);
     const placement = this._drop?.id === model.id ? this._drop.placement : null;
-    const inset =
-      placement === "left"
-        ? "0 50% 0 0"
-        : placement === "right"
-          ? "0 0 0 50%"
-          : placement === "top"
-            ? "0 0 50% 0"
-            : placement === "bottom"
-              ? "50% 0 0 0"
-              : "0";
-    return html`<div
-      part="group"
-      data-group=${model.id}
-      @dragover=${(event: DragEvent) => this.#dragOver(event, model)}
-      @drop=${(event: DragEvent) => this.#dropPanel(event, model)}
-    >
+    return html`<div part="group" data-group=${model.id}>
       <div part="header">
         <div part="tabs" role="tablist" aria-label="Panel tabs">
           ${repeat(
@@ -433,25 +622,8 @@ export class UIDock extends LitElement {
                 role="tab"
                 aria-selected=${name === model.active}
                 tabindex=${name === model.active ? 0 : -1}
-                draggable="true"
-                @click=${() => this.#select(model, name)}
+                @click=${() => this.#tabClick(model, name)}
                 @keydown=${(event: KeyboardEvent) => this.#tabKey(event, model, name)}
-                @dragstart=${(event: DragEvent) => {
-                  this.#drag = name;
-                  event.dataTransfer?.setData("text/plain", name);
-                }}
-                @dragend=${() => {
-                  this.#drag = null;
-                  this._drop = null;
-                }}
-                @dragover=${(event: DragEvent) => {
-                  if (this.#drag) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    this._drop = { id: model.id, placement: "center" };
-                  }
-                }}
-                @drop=${(event: DragEvent) => this.#dropPanel(event, model, name)}
               >
                 ${this.#panels.find((panel) => panel.name === name)?.label ?? name}
               </button>`,
@@ -469,14 +641,21 @@ export class UIDock extends LitElement {
         >${active?.closable ? html`<button part="action" type="button" aria-label=${`Close ${active.label}`} @click=${() => this.closePanel(model.active)}>×</button>` : ""}
       </div>
       <div part="body"><slot name=${`panel:${model.active}`}></slot></div>
-      ${placement ? html`<div part="drop-target" style=${`inset:${inset}`}></div>` : ""}
+      ${placement ? html`<div part="drop-target" style=${`top:${this._drop?.top ?? 0}px;${placement === "left" ? "left:8px;right:auto;translate:0 0" : placement === "right" ? "left:auto;right:8px;translate:0 0" : "left:50%;right:auto;translate:-50% 0"}`}>${{ left: "Split left", right: "Split right", top: "Split above", bottom: "Split below", center: "Join tabs" }[placement]}</div>` : ""}
     </div>`;
   }
   protected override render(): TemplateResult {
     const root = this._zoom
       ? (groups(this.layout.root).find((group) => group.id === this._zoom) ?? this.layout.root)
       : this.layout.root;
-    return html`<div part="root" role="region" aria-label=${this.label}>
+    return html`<div
+      part="root"
+      role="region"
+      aria-label=${this.label}
+      @ui-drag-start=${this.#startDrag}
+      @ui-drag-move=${this.#moveDrag}
+      @ui-drag-end=${this.#endDrag}
+    >
       ${root ? this.#renderNode(root) : html`<div part="empty">No open panels</div>`}<slot
         hidden
         @slotchange=${this.#syncPanels}

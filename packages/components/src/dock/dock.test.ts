@@ -55,4 +55,32 @@ describe("dock", () => {
     await settled(dock);
     expect(separator.getAttribute("aria-valuenow")).toBe("55");
   });
+  it("reorders with Alt+Shift and reserves Ctrl+Alt for splitting", async () => {
+    const dock = await fixture<UIDock>(markup);
+    await settled(dock);
+    const tab = inShadow<HTMLElement>(dock, '[data-panel="notes"]');
+    tab.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ArrowRight",
+        altKey: true,
+        shiftKey: true,
+        bubbles: true,
+      }),
+    );
+    await settled(dock);
+    const root = dock.getLayout().root!;
+    expect(root.type === "tabs" && root.panels).toEqual(["preview", "notes", "console"]);
+    expect(dock.movePanel("notes", "main", "center", "notes")).toBe(true);
+    expect(dock.getLayout()).toEqual({ version: 1, root });
+    tab.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ArrowDown",
+        altKey: true,
+        ctrlKey: true,
+        bubbles: true,
+      }),
+    );
+    await settled(dock);
+    expect(dock.getLayout().root?.type).toBe("split");
+  });
 });

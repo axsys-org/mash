@@ -43,9 +43,28 @@
     outline-offset: calc(0px - var(--border-focus-ring));
   }
   :where([data-mash-catalogue="mash"]) ui-dock::part(drop-target) {
-    background: color-mix(in srgb, var(--color-selection) 70%, transparent);
-    border: var(--border-strong) solid var(--color-focus-ring);
+    inline-size: max-content;
+    max-inline-size: calc(100% - var(--space-container-inline) * 2);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--_mash-component-surface-raised);
+    color: var(--color-text);
+    border: var(--border-hairline) solid var(--color-action);
     border-radius: var(--radius-control);
+    box-shadow: 0 var(--space-control-block) var(--space-control-inline)
+      var(--_mash-component-shadow);
+    font: var(--type-label-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-line-height) var(--type-label-font-family);
+  }
+  :where([data-mash-catalogue="mash"]) ui-dock::part(drag-preview) {
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--_mash-component-surface-raised);
+    color: var(--color-text);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-control);
+    box-shadow: 0 var(--space-control-block) var(--space-container-inline)
+      var(--_mash-component-shadow);
+    font: var(--type-label-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-line-height) var(--type-label-font-family);
   }
   :where([data-mash-catalogue="mash"]) ui-dock::part(empty) {
     padding: var(--space-container-inline);

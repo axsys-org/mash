@@ -1007,34 +1007,21 @@
   }
   :where([data-mash-catalogue="mash"]) ui-tabs[reorderable] > ui-tab:not([disabled]) {
     position: relative;
-    touch-action: pan-y;
+    touch-action: none;
     user-select: none;
     cursor: grab;
   }
   :where([data-mash-catalogue="mash"]) ui-tabs[reorderable][orientation="vertical"] > ui-tab {
-    touch-action: pan-x;
+    touch-action: none;
   }
   :where([data-mash-catalogue="mash"]) ui-tabs > ui-tab[data-dragging] {
-    opacity: var(--effect-opacity-disabled);
+    z-index: 1;
     cursor: grabbing;
   }
-  :where([data-mash-catalogue="mash"]) ui-tabs > ui-tab[data-drop-before] {
-    box-shadow: calc(-1 * var(--border-strong)) 0 0 var(--color-action);
-  }
-  :where([data-mash-catalogue="mash"]) ui-tabs > ui-tab[data-drop-after] {
-    box-shadow: var(--border-strong) 0 0 var(--color-action);
-  }
-  :where([data-mash-catalogue="mash"]) ui-tabs:dir(rtl) > ui-tab[data-drop-before] {
-    box-shadow: var(--border-strong) 0 0 var(--color-action);
-  }
-  :where([data-mash-catalogue="mash"]) ui-tabs:dir(rtl) > ui-tab[data-drop-after] {
-    box-shadow: calc(-1 * var(--border-strong)) 0 0 var(--color-action);
-  }
-  :where([data-mash-catalogue="mash"]) ui-tabs[orientation="vertical"] > ui-tab[data-drop-before] {
-    box-shadow: 0 calc(-1 * var(--border-strong)) 0 var(--color-action);
-  }
-  :where([data-mash-catalogue="mash"]) ui-tabs[orientation="vertical"] > ui-tab[data-drop-after] {
-    box-shadow: 0 var(--border-strong) 0 var(--color-action);
+  :where([data-mash-catalogue="mash"]) ui-tabs > ui-tab[data-dragging]::part(control) {
+    background: var(--color-surface-hover);
+    box-shadow: 0 var(--border-hairline) var(--space-control-gap) var(--_mash-component-shadow);
+    cursor: grabbing;
   }
   :where([data-mash-catalogue="mash"]) ui-tabs::part(strip) {
     display: flex;
@@ -1128,14 +1115,38 @@
     color: var(--color-text);
     overflow: hidden;
   }
+  :where([data-mash-catalogue="mash"]) ui-command::part(search-row) {
+    gap: var(--space-control-gap);
+    padding-inline: var(--space-control-inline);
+    border-block-end: var(--border-hairline) solid var(--_mash-component-boundary);
+    color: var(--color-text-muted);
+  }
   :where([data-mash-catalogue="mash"]) ui-command::part(search) {
     border: 0;
-    border-block-end: var(--border-hairline) solid var(--_mash-component-boundary);
-    padding: var(--space-container-block) var(--space-container-inline);
+    padding-block: var(--space-control-inline);
     background: transparent;
     color: var(--color-text);
     font: inherit;
-    outline-offset: calc(-1 * var(--border-strong));
+    outline: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(search-row):focus-within {
+    box-shadow: inset 0 calc(-1 * var(--border-focus-ring)) var(--color-focus-ring);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(footer) {
+    padding: var(--space-control-gap) var(--space-control-inline);
+    border-block-start: var(--border-hairline) solid var(--_mash-component-boundary);
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command [role="group"] > [data-command-heading] {
+    display: block;
+    padding: var(--space-control-block) var(--space-control-inline);
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+    font-weight: var(--type-label-font-weight);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command [role="group"][hidden] {
+    display: none;
   }
   :where([data-mash-catalogue="mash"]) ui-command::part(list) {
     padding: var(--space-control-gap);
@@ -1153,12 +1164,22 @@
     display: flex;
     align-items: center;
     gap: var(--space-control-gap);
-    padding: var(--space-control-gap) var(--space-control-inline);
+    padding: var(--space-control-block) var(--space-control-inline);
     min-block-size: var(--layout-dimension-control-medium);
     border-radius: var(--radius-menu-item);
   }
-  :where([data-mash-catalogue="mash"]) ui-command-item::part(label) {
+  :where([data-mash-catalogue="mash"]) ui-command-item::part(text) {
     flex: 1;
+    min-inline-size: 0;
+    gap: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item::part(description) {
+    font-size: var(--type-label-small-font-size);
+    color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item[selected]::part(description),
+  :where([data-mash-catalogue="mash"]) ui-command-item[selected]::part(shortcut) {
+    color: inherit;
   }
   :where([data-mash-catalogue="mash"]) ui-command-item::part(shortcut) {
     color: var(--color-text-muted);
@@ -1312,5 +1333,70 @@
     ui-tabs:is([variant="underline"], [variant="outline"], [variant="segmented"])
     ui-tab[selected]::part(control):hover:not(:disabled) {
     background: var(--color-surface-hover);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-tabs::part(overflow-trigger) {
+    display: grid;
+    place-items: center;
+    inline-size: var(--layout-dimension-control-medium);
+    block-size: var(--_mash-control-height);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: inherit;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs::part(overflow-popup) {
+    min-inline-size: 12rem;
+    max-inline-size: min(24rem, calc(100vw - 2rem));
+    padding: var(--space-control-gap);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    box-shadow: 0 var(--space-control-gap) var(--space-container-gap) var(--_mash-component-shadow);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs::part(overflow-item) {
+    min-block-size: var(--layout-dimension-control-small);
+    gap: var(--space-control-gap);
+    padding: var(--space-control-block) var(--space-control-inline);
+    border: 0;
+    border-radius: var(--radius-menu-item);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs::part(overflow-item):hover,
+  :where([data-mash-catalogue="mash"]) ui-tabs::part(overflow-item):focus-visible {
+    outline: none;
+    background: var(--color-selection);
+    color: var(--color-on-selection);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs ui-tab::part(control) {
+    outline: none;
+    transition:
+      background-color var(--duration-control) var(--easing-control),
+      color var(--duration-control) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs ui-tab::part(control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: calc(-1 * var(--border-focus-ring));
+  }
+  :where([data-mash-catalogue="mash"]) ui-tab::part(close) {
+    color: var(--color-text-muted);
+    opacity: 0;
+    transition:
+      opacity var(--duration-control) var(--easing-control),
+      background-color var(--duration-control) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tab:is([selected], :hover, :focus-within)::part(close) {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    :where([data-mash-catalogue="mash"]) ui-tab::part(close) {
+      opacity: 1;
+    }
   }
 }

@@ -58,10 +58,17 @@ renderMembers();`,
     {
       ...sample(
         "Selectable list",
-        `<ui-command label="Recent files"><ui-command-item value="proposal"><ui-icon slot="icon" name="object.document" label=""></ui-icon>Proposal<ui-badge slot="shortcut">PDF</ui-badge></ui-command-item><ui-command-item value="notes"><ui-icon slot="icon" name="object.document" label=""></ui-icon>Meeting notes</ui-command-item><ui-command-item value="archive" disabled>Archived file</ui-command-item></ui-command>`,
-        "Use a listbox when choosing an item. Ordinary content lists can use native ul and li with mash-list.",
+        `<ui-command label="Recent files"><ui-command-item value="proposal"><ui-icon slot="icon" name="object.document" label=""></ui-icon>Proposal<span slot="description">The next release and its goals</span><ui-badge slot="shortcut">PDF</ui-badge></ui-command-item><ui-command-item value="notes"><ui-icon slot="icon" name="object.document" label=""></ui-icon>Meeting notes<span slot="description">Decisions from the design review</span></ui-command-item><ui-command-item value="archive" disabled>Archived file</ui-command-item><div slot="footer" class="mash-row"><ui-kbd shortcut="Enter" appearance="plain"></ui-kbd><span>Open selected file</span></div></ui-command><ui-card><strong slot="title" id="recent-title">Proposal</strong><p id="recent-content">Bring the navigation and editor into one focused workspace.</p></ui-card>`,
+        "A searchless collection keeps one keyboard stop. Arrow keys, Home, and End navigate; Enter opens the document preview.",
       ),
-      script: `document.querySelector("ui-command").searchable = false;`,
+      script: `const command = document.querySelector("ui-command");
+command.searchable = false;
+const files = {proposal: ["Proposal", "Bring the navigation and editor into one focused workspace."], notes: ["Meeting notes", "Keep labels short, preserve drafts, and make every action reversible."]};
+command.addEventListener("ui-command-select", event => {
+  const file = files[event.detail.value];
+  document.querySelector("#recent-title").textContent = file[0];
+  document.querySelector("#recent-content").textContent = file[1];
+});`,
     },
   ],
   "ui-form": [

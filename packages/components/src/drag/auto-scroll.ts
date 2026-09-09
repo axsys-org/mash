@@ -6,7 +6,9 @@ export interface DragAutoScrollOptions {
   speed?: number | readonly number[];
   /** Edge distances in CSS pixels, ordered from widest to narrowest. */
   sensitivity?: number | readonly number[];
+  /** Lower native scrollLeft bound; RTL elements use negative coordinates. */
   minX?: number;
+  /** Upper native scrollLeft bound; RTL elements normally end at zero. */
   maxX?: number;
   minY?: number;
   maxY?: number;
@@ -139,9 +141,12 @@ export class DragAutoScrollController {
     const target = this.#options.target;
     const current = scrollPosition(target);
     const maximum = scrollMaximum(target);
-    const minimumX = Math.max(0, this.#options.minX ?? 0);
+    const rtl = !isWindow(target) && this.#view.getComputedStyle(target).direction === "rtl";
+    const nativeMinimumX = rtl ? -maximum.x : 0;
+    const nativeMaximumX = rtl ? 0 : maximum.x;
+    const minimumX = Math.max(nativeMinimumX, this.#options.minX ?? nativeMinimumX);
     const minimumY = Math.max(0, this.#options.minY ?? 0);
-    const maximumX = Math.min(maximum.x, this.#options.maxX ?? maximum.x);
+    const maximumX = Math.min(nativeMaximumX, this.#options.maxX ?? nativeMaximumX);
     const maximumY = Math.min(maximum.y, this.#options.maxY ?? maximum.y);
     const next = {
       x: Math.min(maximumX, Math.max(minimumX, current.x + (this.#velocity.x * elapsed) / 1000)),

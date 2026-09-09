@@ -1,6 +1,7 @@
 import { components, type ComponentSchema } from "./schema.js";
 import { examplesFor } from "./examples.js";
 import { formatMarkup } from "./format-markup.js";
+import type { UIOption, UISelect } from "@mash/ui";
 
 export const nameOf = (tag: string) =>
   tag
@@ -88,12 +89,16 @@ export function showCatalogue(root: HTMLElement): void {
   preview.setAttribute("aria-label", `${nameOf(component.tagName)} preview`);
   const chrome = node("div", "preview-chrome");
   const title = node("span", "preview-title", nameOf(component.tagName));
-  const zoom = node("select", "preview-zoom");
-  zoom.setAttribute("aria-label", "Preview zoom");
+  const zoom = document.createElement("ui-select") as UISelect;
+  zoom.className = "preview-zoom";
+  zoom.label = "Preview zoom";
+  zoom.value = "1";
+  zoom.size = "small";
+  zoom.align = "end";
   for (const value of [50, 75, 100, 125, 150]) {
-    const option = node("option", "", `${value}%`);
+    const option = document.createElement("ui-option") as UIOption;
+    option.textContent = `${value}%`;
     option.value = String(value / 100);
-    option.selected = value === 100;
     zoom.append(option);
   }
   const expand = node("button", "preview-expand");
@@ -154,7 +159,7 @@ export function showCatalogue(root: HTMLElement): void {
     { signal: abort.signal },
   );
   zoom.addEventListener(
-    "change",
+    "ui-select-change",
     () => {
       // CSS zoom changes available layout space, so charts and menus reflow naturally.
       target.style.zoom = zoom.value;
@@ -237,6 +242,38 @@ export function showCatalogue(root: HTMLElement): void {
           frame.style.minHeight =
             "calc(var(--layout-menu-row-regular) * 10 + var(--layout-dimension-control-medium) * 2 + var(--space-region) * 4)";
         }
+        const restingMinHeight = frame.style.minHeight;
+        const openFloatingSurfaces = new Set<EventTarget>();
+        // Composed open events also reach us from controls inside component shadow roots.
+        // Their floating surfaces need the same room as directly authored menus.
+        for (const name of [
+          "ui-menu-open-change",
+          "ui-select-open-change",
+          "ui-popover-open-change",
+          "ui-combobox-open-change",
+        ]) {
+          doc.addEventListener(
+            name,
+            (event) => {
+              const surface = event.composedPath()[0]!;
+              const open = (event as CustomEvent<{ open: boolean }>).detail.open;
+              if (open) openFloatingSurfaces.add(surface);
+              else openFloatingSurfaces.delete(surface);
+              if (!openFloatingSurfaces.size) {
+                frame.style.minHeight = restingMinHeight;
+                return;
+              }
+              frame.style.minHeight =
+                "calc(var(--layout-menu-row-regular) * 10 + var(--layout-dimension-control-medium) * 2 + var(--space-region) * 4)";
+              if (!open) return;
+              requestAnimationFrame(() => {
+                if (frame.isConnected && !abort.signal.aborted)
+                  frame.scrollIntoView({ block: "center", inline: "nearest" });
+              });
+            },
+            { signal: abort.signal },
+          );
+        }
         if (variant.script) {
           const script = doc.createElement("script");
           script.type = "module";
@@ -285,7 +322,7 @@ export function showCatalogue(root: HTMLElement): void {
         const size = new ResizeObserver(resize);
         size.observe(doc.body);
         window.addEventListener("resize", resize, { signal: abort.signal });
-        zoom.addEventListener("change", resize, { signal: abort.signal });
+        zoom.addEventListener("ui-select-change", resize, { signal: abort.signal });
         observers.push(size);
         resize();
         const modals = [

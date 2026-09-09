@@ -1,4 +1,12 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function chooseZoom(page: Page, value: number): Promise<void> {
+  const zoom = page.getByRole("combobox", { name: "Preview zoom", exact: true });
+  await zoom.click();
+  await page.getByRole("option", { name: `${value}%`, exact: true }).click();
+  await expect(page.locator(".showcase-variants")).toHaveCSS("zoom", String(value / 100));
+  await expect(zoom).toBeFocused();
+}
 
 test("one preview window scrolls all variants and reaches deep-linked examples", async ({
   page,
@@ -33,7 +41,7 @@ test("expand, zoom, theme, and restore preserve the mounted editor", async ({ pa
   const dialog = page.getByRole("dialog", { name: "Editor preview" });
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveAttribute("aria-modal", "true");
-  await page.getByRole("combobox", { name: "Preview zoom" }).selectOption("0.75");
+  await chooseZoom(page, 75);
   await expect(editor).toHaveValue("const draft = 'keep this';");
   await expect(stage.locator("html")).toHaveAttribute("data-theme", "dark");
   await editor.press("Escape");
@@ -55,11 +63,14 @@ for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/components/ui-color-picker", { waitUntil: "domcontentloaded" });
     const stage = page.locator("iframe.stage-frame");
-    await expect(stage).toBeVisible();
-    expect((await stage.boundingBox())!.height).toBeGreaterThanOrEqual(320);
+    await expect(
+      page.frameLocator("iframe.stage-frame").locator('ui-color-picker [part="plane"]'),
+    ).toBeVisible();
+    await expect.poll(async () => (await stage.boundingBox())!.height).toBeGreaterThanOrEqual(320);
     await page.getByRole("button", { name: "Expand preview" }).click();
-    for (const zoom of ["0.5", "0.75", "1", "1.25", "1.5"]) {
-      await page.getByRole("combobox", { name: "Preview zoom" }).selectOption(zoom);
+    await expect(page.locator("select")).toHaveCount(0);
+    for (const zoom of [50, 75, 100, 125, 150]) {
+      await chooseZoom(page, zoom);
       const bounds = (await page.locator(".preview-window").boundingBox())!;
       expect(bounds.x).toBeGreaterThanOrEqual(0);
       expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);

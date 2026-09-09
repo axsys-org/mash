@@ -5,8 +5,8 @@ import { UIDraggable } from "./draggable.js";
 import "./register.js";
 
 function pointer(
-  target: Element,
-  type: "pointerdown" | "pointermove" | "pointerup",
+  target: Element | Document,
+  type: "pointerdown" | "pointermove" | "pointerup" | "pointercancel",
   x: number,
   y: number,
   pointerId = 7,
@@ -39,6 +39,122 @@ async function draggableFixture(markup = ""): Promise<UIDraggable> {
 }
 
 describe("ui-draggable", () => {
+  it.each(["cancel", "destroy"] as const)(
+    "does not capture or revive a session when a start listener calls %s",
+    async (operation) => {
+      const element = await draggableFixture('threshold="4"');
+      const handle = element.querySelector('[slot="handle"]')!;
+      const controller = element.controller!;
+      const capture = vi.spyOn(handle, "setPointerCapture").mockImplementation(() => {});
+      const move = vi.fn();
+      const end = vi.fn();
+      element.addEventListener("ui-drag-start", () => controller[operation](), { once: true });
+      element.addEventListener("ui-drag-move", move);
+      element.addEventListener("ui-drag-end", end);
+      const { left, top } = element.getBoundingClientRect();
+      try {
+        pointer(handle, "pointerdown", left + 5, top + 5);
+        pointer(document, "pointermove", left + 25, top + 5);
+        pointer(document, "pointermove", left + 45, top + 5);
+        pointer(document, "pointerup", left + 45, top + 5);
+        await settled(element);
+        expect(capture).not.toHaveBeenCalled();
+        expect(move).not.toHaveBeenCalled();
+        expect(end).not.toHaveBeenCalled();
+        expect(controller.dragging).toBe(false);
+        expect(element.dragging).toBe(false);
+        expect(element.x).toBe(0);
+      } finally {
+        capture.mockRestore();
+      }
+    },
+  );
+
+  it("preserves ordinary clicks below the authored threshold and starts once after crossing it", async () => {
+    const element = await draggableFixture('threshold="8"');
+    const handle = element.querySelector('[slot="handle"]')!;
+    const { left, top } = element.getBoundingClientRect();
+    const start = vi.fn();
+    const end = vi.fn();
+    const click = vi.fn();
+    element.addEventListener("ui-drag-start", start);
+    element.addEventListener("ui-drag-end", end);
+    handle.addEventListener("click", click);
+
+    pointer(handle, "pointerdown", left + 5, top + 5);
+    pointer(document, "pointermove", left + 8, top + 9);
+    pointer(document, "pointerup", left + 8, top + 9);
+    handle.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
+    await settled(element);
+    expect(start).not.toHaveBeenCalled();
+    expect(end).not.toHaveBeenCalled();
+    expect(click).toHaveBeenCalledOnce();
+    expect(element.x).toBe(0);
+    expect(element.dragging).toBe(false);
+
+    pointer(handle, "pointerdown", left + 5, top + 5);
+    pointer(document, "pointermove", left + 14, top + 5);
+    pointer(document, "pointermove", left + 25, top + 5);
+    pointer(document, "pointerup", left + 25, top + 5);
+    handle.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1 }));
+    await settled(element);
+    expect(start).toHaveBeenCalledOnce();
+    expect(end).toHaveBeenCalledOnce();
+    expect(end.mock.calls[0]![0].detail.cancelled).toBe(false);
+    expect(click).toHaveBeenCalledOnce();
+    expect(element.x).toBe(20);
+  });
+
+  it.each(["escape", "pointercancel", "disabled"])(
+    "reports %s cancellation once and ignores later pointer movement",
+    async (reason) => {
+      const element = await draggableFixture('threshold="4"');
+      const handle = element.querySelector('[slot="handle"]')!;
+      const { left, top } = element.getBoundingClientRect();
+      const end = vi.fn();
+      element.addEventListener("ui-drag-end", end);
+      pointer(handle, "pointerdown", left + 5, top + 5);
+      pointer(document, "pointermove", left + 25, top + 5);
+      await settled(element);
+      expect(element.dragging).toBe(true);
+      if (reason === "escape") {
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      } else if (reason === "pointercancel") {
+        pointer(document, "pointercancel", left + 25, top + 5);
+      } else {
+        element.disabled = true;
+        await settled(element);
+      }
+      pointer(document, "pointermove", left + 95, top + 5);
+      pointer(document, "pointerup", left + 95, top + 5);
+      await settled(element);
+      expect(end).toHaveBeenCalledOnce();
+      expect(end.mock.calls[0]![0].detail.cancelled).toBe(true);
+      expect(element.dragging).toBe(false);
+      expect(element.matches(":state(dragging)")).toBe(false);
+      expect(element.x).toBe(20);
+    },
+  );
+
+  it("forwards a changed threshold and treats invalid values as immediate activation", async () => {
+    const element = await draggableFixture('threshold="20"');
+    const handle = element.querySelector('[slot="handle"]')!;
+    const { left, top } = element.getBoundingClientRect();
+    const start = vi.fn();
+    element.addEventListener("ui-drag-start", start);
+    element.threshold = 4;
+    await settled(element);
+    pointer(handle, "pointerdown", left + 5, top + 5);
+    pointer(document, "pointermove", left + 10, top + 5);
+    pointer(document, "pointerup", left + 10, top + 5);
+    expect(start).toHaveBeenCalledOnce();
+    element.threshold = Number.NaN;
+    await settled(element);
+    pointer(handle, "pointerdown", left + 5, top + 5);
+    pointer(document, "pointerup", left + 5, top + 5);
+    expect(start).toHaveBeenCalledTimes(2);
+  });
+
   it("registers, projects semantic slots, and exposes a controller", async () => {
     const element = await draggableFixture();
     expect(customElements.get("ui-draggable")).toBe(UIDraggable);

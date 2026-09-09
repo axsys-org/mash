@@ -24,14 +24,14 @@ export interface TreeRevealDetail {
 }
 
 /**
- * A navigable Shrine tree surface.
+ * A navigable tree surface.
  *
  * The tree owns hierarchy navigation only. Items supply reflected state and
  * request changes through events, while an opt-in recipe decides whether the
  * same structure looks like a file browser, an outline, or a compact picker.
  *
  * @tag ui-tree
- * @summary Groups expandable Shrine tree items into an accessible hierarchy.
+ * @summary Groups expandable tree items into an accessible hierarchy.
  *
  * @example Project namespace
  * <ui-tree label="Project namespace">
@@ -84,7 +84,7 @@ export class UITree extends LitElement {
 
   constructor() {
     super();
-    this.label = "Shrine tree";
+    this.label = "Tree";
     this.selectionFollowsFocus = true;
     this.#internals = this.attachInternals();
   }
@@ -97,7 +97,12 @@ export class UITree extends LitElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    this.#collectionObserver.observe(this, { childList: true, subtree: true });
+    this.#collectionObserver.observe(this, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["expanded", "disabled", "hidden", "selected", "current", "parent-value"],
+    });
   }
 
   override disconnectedCallback(): void {
@@ -106,28 +111,47 @@ export class UITree extends LitElement {
     super.disconnectedCallback();
   }
 
+  #items(): UITreeItem[] {
+    return [...this.querySelectorAll<UITreeItem>("ui-tree-item")].filter(
+      (item) => item.closest("ui-tree") === this,
+    );
+  }
+
   #visibleItems(): UITreeItem[] {
-    return [...this.querySelectorAll<UITreeItem>("ui-tree-item")].filter((item) => {
-      if (item.disabled) return false;
-      let parent = item.parentElement?.closest<UITreeItem>("ui-tree-item");
-      if (!parent) parent = item.parentItem;
+    return this.#items().filter((item) => {
+      if (item.disabled || item.hidden) return false;
+      const visited = new Set<UITreeItem>([item]);
+      let parent = item.parentItem;
       while (parent) {
-        if (!parent.expanded) return false;
-        parent = parent.parentElement?.closest<UITreeItem>("ui-tree-item");
+        if (visited.has(parent) || !parent.expanded || parent.hidden) return false;
+        visited.add(parent);
+        parent = parent.parentItem;
       }
       return true;
     });
   }
 
   #syncTabStops(preferred?: UITreeItem): void {
+    const items = this.#items();
     const visible = this.#visibleItems();
+    const focused = items.find(
+      (item) =>
+        item.shadowRoot?.activeElement &&
+        item.shadowRoot.activeElement === item.shadowRoot?.querySelector("[part='control']"),
+    );
+    let ancestor = focused;
+    const visited = new Set<UITreeItem>();
+    while (ancestor && !visible.includes(ancestor) && !visited.has(ancestor)) {
+      visited.add(ancestor);
+      ancestor = ancestor.parentItem;
+    }
     const active =
       (preferred && visible.includes(preferred) ? preferred : undefined) ??
+      (ancestor && visible.includes(ancestor) ? ancestor : undefined) ??
       visible.find((item) => item.selected || item.current) ??
       visible[0];
-    for (const item of this.querySelectorAll<UITreeItem>("ui-tree-item")) {
-      item.setTabbable(item === active);
-    }
+    for (const item of items) item.setTabbable(item === active);
+    if (focused && !visible.includes(focused)) active?.focusControl();
   }
 
   #onSlotChange = (): void => {
@@ -226,7 +250,8 @@ export class UITree extends LitElement {
         break;
       case "ArrowRight":
         if (item.branch && !item.expanded) item.requestExpansion(true);
-        else if (item.branch && item.expanded) target = item.childItems[0];
+        else if (item.branch && item.expanded)
+          target = items.find((candidate) => candidate.parentItem === item);
         else return;
         break;
       case "ArrowLeft":

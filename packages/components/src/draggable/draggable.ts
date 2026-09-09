@@ -63,6 +63,7 @@ export type DraggableContainment = "parent" | "viewport" | "none";
  * @mashnode content content root
  * @mashnode position position root
  * @mashnode axis axis root
+ * @mashnode threshold threshold root
  * @mashnode containment containment root
  * @mashnode dragging dragging root
  * @mashnode moving moving root
@@ -87,6 +88,7 @@ export type DraggableContainment = "parent" | "viewport" | "none";
 export class UIDraggable extends LitElement {
   static override properties = {
     axis: { type: String, reflect: true },
+    threshold: { type: Number, reflect: true },
     containment: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
     controlled: { type: Boolean, reflect: true },
@@ -106,6 +108,8 @@ export class UIDraggable extends LitElement {
 
   /** Permitted movement axis. */
   declare axis: DragAxis;
+  /** Pointer travel in CSS pixels before dragging begins; zero starts immediately. */
+  declare threshold: number;
   /** Declarative containment policy; `containmentTarget` can provide an element or rectangle. */
   declare containment: DraggableContainment;
   /** Prevents new drag sessions and ends an active one. */
@@ -143,6 +147,7 @@ export class UIDraggable extends LitElement {
   constructor() {
     super();
     this.axis = "both";
+    this.threshold = 0;
     this.containment = "parent";
     this.disabled = false;
     this.controlled = false;
@@ -282,6 +287,7 @@ export class UIDraggable extends LitElement {
     if (!this.isConnected || !this.shadowRoot) return;
     const options = {
       axis: this.axis,
+      threshold: Number.isFinite(this.threshold) ? Math.max(0, this.threshold) : 0,
       containment: this.#resolvedContainment(),
       disabled: this.disabled,
       controlled: this.controlled,

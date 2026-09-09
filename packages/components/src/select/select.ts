@@ -421,7 +421,13 @@ export class UISelect extends LitElement {
 
   formDisabledCallback(disabled: boolean): void {
     this.#formDisabled = disabled;
-    this.requestUpdate();
+    // This also runs while Lit reflects our own disabled attribute, after
+    // render() has read the previous effective state. Schedule a fresh update
+    // after that cycle so enabling the select clears the native trigger too.
+    queueMicrotask(() => {
+      this.#sync();
+      this.requestUpdate();
+    });
   }
   formResetCallback(): void {
     this.value = this.#defaultValue ?? "";

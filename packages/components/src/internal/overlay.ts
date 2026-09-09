@@ -296,7 +296,7 @@ export abstract class UIOverlay extends LitElement {
     const nativeFocusable =
       "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
     const mashFocusable =
-      "ui-button:not([disabled]):not([loading]), ui-input:not([disabled]), ui-textarea:not([disabled]), ui-number-field:not([disabled]), ui-otp-field:not([disabled]), ui-select:not([disabled]), ui-combobox:not([disabled]), ui-autocomplete:not([disabled]), ui-slider:not([disabled]), ui-switch:not([disabled]), ui-checkbox:not([disabled]), ui-radio:not([disabled]), ui-toggle:not([disabled]), ui-menu-item:not([disabled])";
+      "ui-button:not([disabled]):not([loading]), ui-input:not([disabled]), ui-textarea:not([disabled]), ui-command, ui-number-field:not([disabled]), ui-otp-field:not([disabled]), ui-select:not([disabled]), ui-combobox:not([disabled]), ui-autocomplete:not([disabled]), ui-slider:not([disabled]), ui-switch:not([disabled]), ui-checkbox:not([disabled]), ui-radio:not([disabled]), ui-toggle:not([disabled]), ui-menu-item:not([disabled])";
     const selector = `${nativeFocusable}, ${mashFocusable}`;
     const slots = [
       ...popup.querySelectorAll<HTMLSlotElement>(
@@ -313,7 +313,9 @@ export abstract class UIOverlay extends LitElement {
       }
     }
 
-    return [...seen];
+    // Follow rendered visibility through slots as well as DOM ancestors. A hidden
+    // empty-state action must not create an unreachable end of the modal tab loop.
+    return [...seen].filter((item) => item.checkVisibility({ visibilityProperty: true }));
   }
 
   /** Lets menus and listboxes extend the baseline Escape and focus contract. */

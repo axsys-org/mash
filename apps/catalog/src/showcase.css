@@ -193,7 +193,7 @@ h2 {
   font-weight: 550;
   color: var(--color-text-muted);
 }
-.preview-zoom,
+.preview-zoom::part(trigger),
 .preview-expand {
   height: 28px;
   border: 0;
@@ -202,11 +202,19 @@ h2 {
   font-size: 11px;
 }
 .preview-zoom {
+  display: inline-flex;
+  flex: none;
+}
+.preview-zoom::part(trigger) {
+  min-height: 0;
+  min-width: 0;
   cursor: pointer;
   padding: 0 4px;
+  color: var(--color-text-muted);
+  gap: 4px;
 }
-.preview-zoom option {
-  background: var(--color-surface);
+.preview-zoom::part(popup) {
+  min-inline-size: calc(var(--layout-dimension-control-medium) * 3);
 }
 .preview-expand {
   width: 28px;
@@ -218,7 +226,7 @@ h2 {
   height: 16px;
 }
 .preview-expand:hover,
-.preview-zoom:hover {
+.preview-zoom::part(trigger):hover {
   background: var(--color-surface-hover);
 }
 .preview-viewport {
