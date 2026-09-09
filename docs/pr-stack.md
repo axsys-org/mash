@@ -27,10 +27,10 @@ The mixed final checkpoint was reconstructed as four commits: button disclosure 
 | [#46](https://github.com/axsys-org/mash/pull/46) | `codex/stack/composition-geometry` | `codex/stack/commons-polish`       |
 | [#47](https://github.com/axsys-org/mash/pull/47) | `codex/stack/story-composition`    | `codex/stack/composition-geometry` |
 | [#48](https://github.com/axsys-org/mash/pull/48) | `codex/stack/character-picker`     | `codex/stack/story-composition`    |
+| [#49](https://github.com/axsys-org/mash/pull/49) | `codex/stack/study-workspace`      | `codex/stack/character-picker`     |
+| [#50](https://github.com/axsys-org/mash/pull/50) | `codex/stack/review-readiness`     | `codex/stack/study-workspace`      |
 
-| [#49](https://github.com/axsys-org/mash/pull/49) | `codex/stack/study-workspace` | `codex/stack/character-picker` |
-
-The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. Its prerequisite PR is [#29](https://github.com/axsys-org/mash/pull/29). Review it first, then proceed down the table. All 21 PRs are drafts; no merges were performed.
+The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. Its prerequisite PR is [#29](https://github.com/axsys-org/mash/pull/29). Review it first, then proceed down the table. PRs #29–49 retain their draft status. PR #50 is the integrated review checkpoint; no merges were performed.
 
 ## Test cleanup
 
@@ -60,3 +60,13 @@ Validation: production catalogue build, TypeScript, lint, formatting, token and 
 - JSON backups include notes, media, schedules, and review history. CSV/TSV imports add notes; JSON replacement requires confirmation. Source notebooks export separately through their existing editor. Native archive packages, cloud synchronization, arbitrary HTML templates, and image occlusion are outside this local story's implemented scope.
 - No added dependencies. The study-specific production assets are about 21.6 KB gzip (JavaScript and CSS combined, excluding shared components). The full document editor is imported only when opened; card browser rendering is limited to 60 rows per page.
 - Validation: 16 production browser/model checks pass, including notebook regressions and shared source updates, plus manual custom-session completion and deck-limit checks. Catalogue/test types, lint, formatting, token consumers, and catalogue conformance pass. The unavailable `bd` executable prevents recording separate tracker items; the implementation boundaries above remain explicit follow-up scope.
+
+## Integrated review checkpoint
+
+PR #50 removes the Stories attribution and repairs the checks against the current catalogue. The pinned pnpm 10 toolchain needs patch metadata in its own lockfile format; the emitted preview document is now `fixture.html`. Browser assertions use rendered color values and current composed controls, and accessibility inspection targets the selected example iframe.
+
+Two behavior fixes accompany that maintenance: resizing the first preview no longer anchors to a later example, and virtual chat history preserves the requested message while custom rows finish layout. Existing regressions cover preview resizing, deep links, unread positioning, and prepending.
+
+Use the checks and Vercel deployment attached to the latest #50 commit for integrated validation. Historical draft heads still carry older configurations and failed checks; they must receive the applicable fixes and pass again as they are restacked for merging. A green integration checkpoint does not certify every older head independently.
+
+Review candidates linked in Linear: AXI-64 (slider geometry), AXI-68 (combobox composition), AXI-78 (motion catalogue), and AXI-79 (study workspace). Broad catalogue and parity work remains open.

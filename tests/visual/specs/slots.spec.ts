@@ -49,12 +49,21 @@ test("command list can omit search while retaining arrow-key selection", async (
   await page.keyboard.press("ArrowDown");
   // Playwright's role locator does not inspect ElementInternals; verify the browser AX tree.
   const session = await page.context().newCDPSession(page);
-  const { frameTree } = await session.send("Page.getFrameTree");
+  const { root } = await session.send("DOM.getDocument");
+  const { nodeId } = await session.send("DOM.querySelector", {
+    nodeId: root.nodeId,
+    selector: "iframe.stage-frame",
+  });
+  const { node: iframeNode } = await session.send("DOM.describeNode", { nodeId });
   const { nodes } = await session.send("Accessibility.getFullAXTree", {
-    frameId: frameTree.childFrames![0]!.frame.id,
+    frameId: iframeNode.frameId!,
   });
   expect(
-    nodes.some((node) => node.role?.value === "option" && node.name?.value === "Meeting notes"),
+    nodes.some(
+      (node) =>
+        node.role?.value === "option" &&
+        node.name?.value === "Meeting notes Decisions from the design review",
+    ),
   ).toBe(true);
   await session.detach();
   await expect(stage.locator('ui-command-item[value="notes"]')).toHaveAttribute("selected", "");
