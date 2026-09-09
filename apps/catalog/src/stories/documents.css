@@ -17,10 +17,6 @@
 .documents-app [hidden] {
   display: none !important;
 }
-.documents-app ui-icon {
-  width: 16px;
-  height: 16px;
-}
 .documents-app ui-button {
   flex-shrink: 0;
 }

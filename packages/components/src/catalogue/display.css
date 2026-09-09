@@ -1382,6 +1382,8 @@
 
   :where([data-mash-catalogue="mash"]) ui-icon {
     display: inline-flex;
+    inline-size: 1em;
+    block-size: 1em;
     flex: none;
     color: currentColor;
     line-height: 1;

@@ -37,11 +37,6 @@
 .studio ui-button::part(control) {
   gap: 5px;
 }
-.studio ui-icon {
-  width: 15px;
-  height: 15px;
-  flex: none;
-}
 .studio-titlebar {
   display: flex;
   align-items: center;
