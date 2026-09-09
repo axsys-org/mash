@@ -24,16 +24,16 @@ export class VirtualHistory {
   #readingAnchor?: { id: string; offset: number };
   #position = 0;
   #resize = new ResizeObserver((entries) => {
-    let changed = false;
     for (const entry of entries) {
       const id = (entry.target as HTMLElement).dataset.messageId!;
       const height = Math.ceil(entry.target.getBoundingClientRect().height);
       if (height > 0 && this.#heights.get(id) !== height) {
         this.#heights.set(id, height);
-        changed = true;
       }
     }
-    if (changed && !this.#frame)
+    // A remounted row can finish at its cached height after briefly rendering
+    // smaller. Restore positioning even when the final measurement is unchanged.
+    if (entries.length && !this.#frame)
       this.#frame = requestAnimationFrame(() => {
         this.#frame = 0;
         this.#rebuild(this.#readingAnchor ?? this.#anchor());
@@ -107,7 +107,7 @@ export class VirtualHistory {
         ? this.#offsets[index]! + anchor!.offset
         : this.viewport.scrollTop;
     this.#render(top);
-    this.viewport.scrollTop = top;
+    this.viewport.scrollTop = this.#following ? this.viewport.scrollHeight : top;
     if (!this.#following && anchor) {
       const row = this.#rows.get(anchor.id)?.element;
       if (row)
@@ -155,10 +155,10 @@ export class VirtualHistory {
     }
   }
   scroll(follow: boolean): void {
-    this.#following = follow;
     // Our own positioning already rendered the requested window. Rendering it
     // again against estimates before custom rows finish layout loses that anchor.
     if (this.viewport.scrollTop === this.#position) return;
+    this.#following = follow;
     this.#readingAnchor = this.#anchor();
     this.#render();
     this.#position = this.viewport.scrollTop;

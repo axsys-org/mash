@@ -48,6 +48,14 @@ test("virtual history keeps a bounded window and an unread anchor while older ro
         getComputedStyle(node.shadowRoot!.querySelector('[part="content"]')!).backgroundColor,
     ),
   ).not.toBe("rgba(0, 0, 0, 0)");
+  await frame.getByRole("button", { name: "Jump to latest", exact: false }).click();
+  await expect
+    .poll(() =>
+      frame
+        .locator("ui-message-scroller")
+        .evaluate((element) => (element as HTMLElement & { atEnd: boolean }).atEnd),
+    )
+    .toBe(true);
 });
 
 test("dock moves panel content without losing edits and restores saved geometry", async ({
