@@ -35,6 +35,7 @@ import {
   safeLink,
   markdown,
   bounds,
+  type Notebook,
   type NotebookDocument,
   type DocumentBlock,
   type BlockKind,
@@ -51,9 +52,12 @@ import {
   type CollectionView,
 } from "./documents-render.js";
 import "./documents.css";
-const storageKey = "mash-documents-notebook-v1";
+import { notebookStorageKey as storageKey } from "./documents-store.js";
 
-export async function mount(root: HTMLElement): Promise<() => void> {
+export async function mount(
+  root: HTMLElement,
+  options: { activeDocument?: string; onChange?: (notebook: Notebook) => void } = {},
+): Promise<() => void> {
   const controller = new AbortController();
   const signal = controller.signal;
   let initial = seedNotebook(),
@@ -65,6 +69,8 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     loadError =
       "Saved data could not be read. A fresh notebook is open; import an exported copy to restore it.";
   }
+  if (options.activeDocument && initial.documents.some((doc) => doc.id === options.activeDocument))
+    initial.active = options.activeDocument;
   const history = new NotebookHistory(initial);
   let mode: "document" | "canvas" = "document",
     selected: string | null = null,
@@ -105,6 +111,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     clearTimeout(saveTimer);
     try {
       localStorage.setItem(storageKey, JSON.stringify(history.state));
+      options.onChange?.(history.state);
       saveError = false;
       $("#documents-storage").textContent = "Saved in this browser";
     } catch {
@@ -1452,6 +1459,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     clearTimeout(saveTimer);
     try {
       localStorage.setItem(storageKey, JSON.stringify(history.state));
+      options.onChange?.(history.state);
     } catch {
       /* The visible storage message already directs export when storage is unavailable. */
     }
