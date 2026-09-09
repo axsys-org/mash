@@ -52,4 +52,14 @@ describe("ui-kbd", () => {
     expect(shadow(kbd).textContent).toContain("Enter");
     expect(shadow(kbd).textContent).not.toContain("↩");
   });
+  it("keeps punctuation keys distinct from modifier separators", async () => {
+    const kbd = await fixture<UIKbd>(
+      '<ui-kbd platform="windows" shortcut="Primary++" appearance="outline"></ui-kbd>',
+    );
+    expect(shadow(kbd).querySelector('[part="key"]')?.textContent).toBe("+");
+    expect(shadow(kbd).querySelector('[part="separator"]')?.textContent).toBe("+");
+    kbd.shortcut = "Primary+-";
+    await kbd.updateComplete;
+    expect(shadow(kbd).querySelector('[part="key"]')?.textContent).toBe("-");
+  });
 });

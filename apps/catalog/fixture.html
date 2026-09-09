@@ -3,6 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <title>Mash component example</title>
+    <style>
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+      }
+      :root[data-theme="light"] {
+        color-scheme: light;
+      }
+    </style>
+    <script>
+      const theme = new URLSearchParams(location.search).get("theme");
+      if (theme === "dark" || theme === "light") {
+        document.documentElement.dataset.theme = theme;
+      }
+    </script>
   </head>
   <body>
     <script type="module" src="/src/fixture-stage.ts"></script>

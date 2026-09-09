@@ -3,7 +3,9 @@
 Audit date: 2026-09-08. Baseline: `ca7a0ee`. This is a source audit of the live
 example registry, component implementations, existing tests, and the supplied
 documentation/source snapshot (`48336016a3074fbb8af619014b18565ef747f512`). It is
-not a visual sign-off. No component below has established exact visual parity.
+not a visual sign-off. The chart section includes the subsequent five-example
+implementation; other sections retain the baseline audit. No component below has
+established exact visual parity.
 
 The target is an executable demonstration for every relevant documented behavior
 and visual variant. Equivalent web-native composition is acceptable when the
@@ -12,18 +14,18 @@ renderer, or passing render check is not an executable demonstration.
 
 ## Immediate conclusions
 
-| Surface          | Current live examples              | Assessment                                                                                                                   |
-| ---------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Chart            | 12 configurations                  | Core chart types present; customization and interaction breadth substantially incomplete.                                    |
-| Data table       | 6 examples                         | Selection/editing foundation present; large-data, column, and application compositions incomplete.                           |
-| Static table     | 1 example                          | Several supported structural and visual variants unshown.                                                                    |
-| Editor           | 2 examples                         | Native source editing is useful; major documented editor capabilities absent.                                                |
-| Color selector   | 2 examples                         | Working inline/popup selection; size, format, trigger, and composed workflows incomplete.                                    |
-| Dock             | 1 example                          | Tabs/splits/persistence work; edge regions and free-position tiles absent.                                                   |
-| List composition | 3 command examples                 | Search and basic item activation present; sectioned/loading/reorderable/large lists incomplete.                              |
-| Scroll area      | 1 example                          | Implementation considerably exceeds what the catalogue demonstrates.                                                         |
-| Virtual list     | 1 example                          | Authored-item windowing; not equivalent to bounded construction of a large data collection.                                  |
-| Message scroller | Live conversation and long history | Useful measured virtualization and prepend anchor support; streaming and structural-update demonstrations remain incomplete. |
+| Surface          | Current live examples              | Assessment                                                                                                                      |
+| ---------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Chart            | 12 configurations + 5 explorations | Curves, axes, bar arrangements, fills, flow, and live data now have controls; visual acceptance and remaining breadth are open. |
+| Data table       | 6 examples                         | Selection/editing foundation present; large-data, column, and application compositions incomplete.                              |
+| Static table     | 1 example                          | Several supported structural and visual variants unshown.                                                                       |
+| Editor           | 2 examples                         | Native source editing is useful; major documented editor capabilities absent.                                                   |
+| Color selector   | 2 examples                         | Working inline/popup selection; size, format, trigger, and composed workflows incomplete.                                       |
+| Dock             | 1 example                          | Tabs/splits/persistence work; edge regions and free-position tiles absent.                                                      |
+| List composition | 3 command examples                 | Search and basic item activation present; sectioned/loading/reorderable/large lists incomplete.                                 |
+| Scroll area      | 1 example                          | Implementation considerably exceeds what the catalogue demonstrates.                                                            |
+| Virtual list     | 1 example                          | Authored-item windowing; not equivalent to bounded construction of a large data collection.                                     |
+| Message scroller | Live conversation and long history | Useful measured virtualization and prepend anchor support; streaming and structural-update demonstrations remain incomplete.    |
 
 Counts describe the inspected registry only; they are not completion metrics.
 `apps/catalog/src/examples/components.ts` merges pattern examples and then replaces
@@ -35,20 +37,33 @@ every example literal found on disk.
 Evidence: `apps/catalog/src/examples/data.ts`, `packages/components/src/chart/chart.ts`,
 `packages/components/src/chart/renderer.ts`, and supplied Chart / Plot documentation.
 
-The live set contains Line, Area, Stacked area, Bars, Horizontal bars, Positive and
-negative, Pie, Donut, Radar, Candlestick, Flow, and Scatter · canvas. It supplies
-readable fallback data tables and theme-aware rendering. Existing renderer imports
-also support heatmaps, graphs, and treemaps, but none has a live example.
+The original set remains: Line, Area, Stacked area, Bars, Horizontal bars, Positive
+and negative, Pie, Donut, Radar, Candlestick, Flow, and Scatter · canvas. Five
+additional explorations now use the public `option`, `renderer`, and selection-event
+contracts, without changing the component API or adding dependencies:
+
+| Live section      | Implemented controls and visible outcomes                                                                                                                                                |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Curves and axes   | Linear/smooth/step-after paths, points, every/alternate category labels, grid, legend visibility, and two series.                                                                        |
+| Bar arrangements  | Up/down/left/right growth, grouped/stacked series, and value labels. Source values remain unchanged.                                                                                     |
+| Fills and corners | Solid or bar-local gradient from a semantic chart color, three bar widths, and square/soft/rounded endpoint corners.                                                                     |
+| Flow alignment    | Justify/left/right terminal-node alignment, source-to-target gradient or source-color ribbons, and original-value throughput labels. A shallow terminal makes alignment changes visible. |
+| Live data         | Add day, clear, reset, range zoom, SVG/canvas switching, and an accessible data table synchronized with the collection.                                                                  |
+
+Every new exploration supplies a readable data table and a selection result. The
+gradient example resolves its semantic color again when the page theme changes.
+These are implemented examples, not completed visual acceptance. Existing renderer
+imports also support heatmaps, graphs, and treemaps, but none has a live example.
 
 **P1 — supported options need deliberate examples and comparison:**
 
-- Lines: smooth/linear/step-after, dots on/off, stroke treatment, controlled ticks,
-  multiple series, legend interaction, and time axes. The current Line uses the
-  renderer default; a smooth Area is not a Line variant demonstration.
-- Bars: all four growth directions, labels on/off, value-axis ticks, per-datum
-  colors, gradients local to a bar versus the chart domain, corner treatments,
-  grouped versus stacked, and positive/negative mixtures. One rounded horizontal
-  series does not demonstrate all alignment/corner combinations.
+- Lines: stroke treatment, numerical/time axes, and value-axis tick control remain
+  unshown. Compare the new curve/dot/category-label controls and actual legend
+  interaction visually in both themes before marking those requirements complete.
+- Bars: value-axis tick control, per-datum colors, gradients aligned to the chart
+  domain, and mixed-sign stacking remain open. The new arrangements and fills
+  sections cover four growth directions, labels, grouping/stacking, widths, and
+  endpoint corners; verify their visual combinations and negative-value geometry.
 - Areas: curve variants, layered versus stacked, fill/stroke opacity, meaningful
   zero/negative handling, and dense data.
 - Pie/donut: pad angle, labels, inner/outer radius, slice border and custom colors.
@@ -57,13 +72,15 @@ also support heatmaps, graphs, and treemaps, but none has a live example.
   customization, and fill/stroke differences.
 - Candlestick: body/wick width, tick treatment, positive/negative color refinement,
   real time-series data, and pan/zoom controls.
-- Flow: alignment choices, spacing/width, source-to-target gradient ribbons,
-  throughput labels and multiple styled label lines, overflow-safe margins,
-  and extreme value ranges. The current example has four nodes and no labels
-  beyond renderer defaults.
-- Shared states: point activation with a visible selected-data result, update/reset,
-  empty data, malformed configuration/recovery, large datasets, narrow/wide
-  resize, nested theme boundaries, and reduced motion.
+- Flow: center alignment, spacing/width controls, multiple independently styled
+  label lines, tested overflow-safe margins, and extreme value ranges remain open.
+  The new six-node exploration implements justify/left/right alignment, gradient
+  ribbons, and plain multiline throughput labels. It does not claim the remaining
+  layout or label contracts.
+- Shared states: malformed configuration/recovery, large datasets, narrow/wide
+  resize, nested theme boundaries, and reduced-motion visual acceptance remain
+  open. Live data now demonstrates append/reset/empty and backend switching;
+  verify plotted-item selection and zoom interaction as well as their visible UI.
 
 **P1 — capability equivalence must be resolved, not assumed:**
 
@@ -73,15 +90,20 @@ also support heatmaps, graphs, and treemaps, but none has a live example.
   labels or layout semantics.
 - The supplied Plot documentation exposes composable scales, marks, stacking,
   arcs, and axes, including a custom chart assembled from them. Mapping that topic
-  to the same twelve `ui-chart` screenshots does not demonstrate its authoring
+  to chart configuration examples does not demonstrate its authoring
   capability. Choose an explicit existing-renderer composition or a small public
   plot contract, then demonstrate the custom marks and scales without new dependencies.
 
-Tests currently cover SVG theme/lifecycle, malformed JSON recovery, and retention
-of zoom/legend state. Add user-visible tests for chart selection, option changes,
-canvas resize, and the difficult flow cases. Capture each chart family in both
-themes at ordinary and expanded stage widths; assess labels, ticks, gradients,
-legends, and tooltip contrast rather than just presence of an SVG.
+Component tests cover SVG theme/lifecycle, malformed JSON recovery, and retention
+of zoom/legend state. `tests/visual/specs/chart-examples.spec.ts` adds ten light/dark
+cases for geometry changes, category/legend visibility, gradient presence,
+unchanged source values, throughput labels, append/empty/reset, and backend
+switching. All ten cases passed in both themes after the controls were wired to
+the public checkbox change event. Remaining browser acceptance includes plotted-item
+selection, actual range-handle interaction, canvas resize, and difficult flow
+cases. Capture each chart family in both themes at ordinary and expanded stage
+widths; assess labels, ticks, gradients, legends, and tooltip contrast rather than
+just presence of an SVG.
 
 ## Data table and static table
 

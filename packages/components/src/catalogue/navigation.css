@@ -977,6 +977,65 @@
 }
 
 @layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-tabs::part(overflow) {
+    display: grid;
+    place-items: center;
+    inline-size: var(--layout-dimension-control-medium);
+    block-size: var(--_mash-control-height);
+    border-radius: var(--radius-control);
+    background: var(--_mash-component-surface);
+    color: var(--color-text-muted);
+    font: inherit;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs::part(overflow):hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs::part(overflow):focus-within {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs[stretched] > ui-tab {
+    flex: 1 1 0;
+    min-inline-size: 0;
+    max-inline-size: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs[stretched] > ui-tab::part(root),
+  :where([data-mash-catalogue="mash"]) ui-tabs[stretched] > ui-tab::part(control) {
+    inline-size: 100%;
+    justify-content: center;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs[reorderable] > ui-tab:not([disabled]) {
+    position: relative;
+    touch-action: pan-y;
+    user-select: none;
+    cursor: grab;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs[reorderable][orientation="vertical"] > ui-tab {
+    touch-action: pan-x;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs > ui-tab[data-dragging] {
+    opacity: var(--effect-opacity-disabled);
+    cursor: grabbing;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs > ui-tab[data-drop-before] {
+    box-shadow: calc(-1 * var(--border-strong)) 0 0 var(--color-action);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs > ui-tab[data-drop-after] {
+    box-shadow: var(--border-strong) 0 0 var(--color-action);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs:dir(rtl) > ui-tab[data-drop-before] {
+    box-shadow: var(--border-strong) 0 0 var(--color-action);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs:dir(rtl) > ui-tab[data-drop-after] {
+    box-shadow: calc(-1 * var(--border-strong)) 0 0 var(--color-action);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs[orientation="vertical"] > ui-tab[data-drop-before] {
+    box-shadow: 0 calc(-1 * var(--border-strong)) 0 var(--color-action);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs[orientation="vertical"] > ui-tab[data-drop-after] {
+    box-shadow: 0 var(--border-strong) 0 var(--color-action);
+  }
   :where([data-mash-catalogue="mash"]) ui-tabs::part(strip) {
     display: flex;
     align-items: center;
@@ -1046,6 +1105,9 @@
     ui-tab[selected]::part(control) {
     background: var(--_mash-component-surface);
     box-shadow: 0 var(--border-hairline) var(--space-control-gap) var(--_mash-component-shadow);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs[stretched]::part(list) {
+    flex: 1;
   }
   :where([data-mash-catalogue="mash"]) ui-tabs[orientation="vertical"] {
     display: flex;

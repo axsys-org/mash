@@ -143,6 +143,7 @@ export abstract class UIOverlay extends LitElement {
       },
     });
     this.addEventListener("click", this.#onHostClick);
+    this.addEventListener("keydown", this.#onContextTriggerKeydown);
     this.addEventListener("pointerover", this.#onPointerOver);
     this.addEventListener("pointerout", this.#onPointerOut);
     this.addEventListener("focusin", this.#onFocusIn);
@@ -295,7 +296,7 @@ export abstract class UIOverlay extends LitElement {
     const nativeFocusable =
       "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
     const mashFocusable =
-      "ui-button:not([disabled]):not([loading]), ui-input:not([disabled]), ui-number-field:not([disabled]), ui-otp-field:not([disabled]), ui-select:not([disabled]), ui-combobox:not([disabled]), ui-autocomplete:not([disabled]), ui-slider:not([disabled]), ui-switch:not([disabled]), ui-checkbox:not([disabled]), ui-radio:not([disabled]), ui-toggle:not([disabled]), ui-menu-item:not([disabled])";
+      "ui-button:not([disabled]):not([loading]), ui-input:not([disabled]), ui-textarea:not([disabled]), ui-number-field:not([disabled]), ui-otp-field:not([disabled]), ui-select:not([disabled]), ui-combobox:not([disabled]), ui-autocomplete:not([disabled]), ui-slider:not([disabled]), ui-switch:not([disabled]), ui-checkbox:not([disabled]), ui-radio:not([disabled]), ui-toggle:not([disabled]), ui-menu-item:not([disabled])";
     const selector = `${nativeFocusable}, ${mashFocusable}`;
     const slots = [
       ...popup.querySelectorAll<HTMLSlotElement>(
@@ -501,6 +502,19 @@ export abstract class UIOverlay extends LitElement {
     const related = event.relatedTarget;
     if (related instanceof Node && this.contains(related)) return;
     this.#scheduleInteractionChange(false, "focus");
+  };
+
+  #onContextTriggerKeydown = (event: KeyboardEvent): void => {
+    if (
+      this.interactionTriggerAction() !== "contextmenu" ||
+      !this.#eventIsWithinTrigger(event) ||
+      !(event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))
+    )
+      return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.#contextPoint = null;
+    this.requestOpenChange(true, "keyboard", "first");
   };
 
   #onContextMenu = (event: MouseEvent): void => {

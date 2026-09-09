@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("shows every variant directly with searchable component navigation", async ({ page }) => {
   await page.goto("/components/ui-tabs");
-  await expect(page.locator(".showcase-section")).toHaveCount(6);
+  await expect(page.locator(".showcase-section")).toHaveCount(9);
   await expect(page.getByRole("button", { name: "example", exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Variants", exact: true })).toBeVisible();
   await page.getByRole("searchbox", { name: "Find component" }).fill("toast");

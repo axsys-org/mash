@@ -86,8 +86,8 @@ export class UIKbd extends LitElement {
 
   /** Platform formatting; auto follows the device. */
   declare platform: "auto" | "mac" | "windows";
-  /** Bordered key surface or inline text. */
-  declare appearance: "key" | "plain";
+  /** Subtle key surface, outlined emphasis, or inline text. */
+  declare appearance: "key" | "outline" | "plain";
 
   /** Semantic command this hint advertises; execution belongs to a gesture binding. */
   declare command: string;

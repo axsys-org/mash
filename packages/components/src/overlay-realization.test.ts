@@ -12,6 +12,7 @@ import "./menu-item/register.js";
 import "./popover/register.js";
 import "./preview-card/register.js";
 import "./tooltip/register.js";
+import "./textarea/register.js";
 
 const overlayCases = [
   { tag: "ui-alert-dialog", contentPart: "content", hasClose: true, hasTitle: true },
@@ -256,6 +257,38 @@ describe("overlay authored-slot realizations", () => {
       "mash-presence-start:exiting:false",
       "mash-presence-end:exiting:false",
     ]);
+  });
+
+  it("focuses an authored textarea on open and reopen and includes it in modal traversal", async () => {
+    const dialog = await fixture<HTMLElement>(`<ui-dialog label="Draft">
+      <button slot="trigger">Open draft</button>
+      <ui-textarea label="Unavailable" disabled></ui-textarea>
+      <ui-textarea id="draft-notes" label="Notes" value="Keep this draft"></ui-textarea>
+      <button slot="close">Close draft</button>
+    </ui-dialog>`);
+    const trigger = dialog.querySelector<HTMLButtonElement>('[slot="trigger"]')!;
+    const notes = dialog.querySelector<HTMLElement>("#draft-notes")!;
+    const control = inShadow<HTMLTextAreaElement>(notes, "textarea");
+    const close = dialog.querySelector<HTMLButtonElement>('[slot="close"]')!;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      trigger.focus();
+      trigger.click();
+      await settled(dialog);
+      expect(document.activeElement).toBe(notes);
+      expect(notes.shadowRoot?.activeElement).toBe(control);
+      close.focus();
+      close.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Tab", bubbles: true, composed: true }),
+      );
+      expect(document.activeElement).toBe(notes);
+      control.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Tab", shiftKey: true, bubbles: true, composed: true }),
+      );
+      expect(document.activeElement).toBe(close);
+      close.click();
+      await settled(dialog);
+      expect(document.activeElement).toBe(trigger);
+    }
   });
 
   it.each([0, 1])(

@@ -1,3 +1,4 @@
+import { menuExamples } from "./menus.js";
 import { refinements } from "./refinements.js";
 import { patternExamples } from "./patterns.js";
 import type { CatalogExample } from "../examples.js";
@@ -421,5 +422,9 @@ renderPage();`,
 Object.assign(componentExamples, refinements);
 
 for (const [tag, examples] of Object.entries(patternExamples)) {
+  componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
+}
+
+for (const [tag, examples] of Object.entries(menuExamples)) {
   componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
 }

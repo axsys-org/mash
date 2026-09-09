@@ -372,3 +372,28 @@
     }
   }
 }
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) .mash-button-group {
+    display: inline-flex;
+    align-items: stretch;
+    inline-size: fit-content;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-button-group > ui-button::part(control) {
+    border-radius: 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-button-group > ui-button + ui-button {
+    margin-inline-start: calc(0px - var(--border-hairline));
+  }
+  :where([data-mash-catalogue="mash"]) .mash-button-group > ui-button:first-child::part(control) {
+    border-start-start-radius: var(--radius-control);
+    border-end-start-radius: var(--radius-control);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-button-group > ui-button:last-child::part(control) {
+    border-start-end-radius: var(--radius-control);
+    border-end-end-radius: var(--radius-control);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-button-group > ui-button:focus-within {
+    z-index: 1;
+  }
+}

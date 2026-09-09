@@ -1353,32 +1353,31 @@
   :where([data-mash-catalogue="mash"]) ui-kbd::part(root) {
     display: inline-flex;
     align-items: center;
-    min-block-size: calc(var(--space-control-block) + var(--space-control-block));
-    padding-inline: var(--space-control-block-small);
-    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
-    border-radius: var(--radius-control);
-    background: var(--_mash-component-surface-raised);
-    box-shadow: 0 var(--border-hairline) 0 var(--_mash-component-boundary);
-    color: var(--color-text);
-    font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
+    justify-content: center;
+    min-inline-size: var(--layout-dimension-control-xsmall);
+    padding: var(--space-control-block-small) var(--space-control-block);
+    border: 0;
+    border-radius: calc(var(--radius-control) / 2);
+    background: var(--_mash-component-surface-sunken);
+    color: var(--color-text-muted);
+    font: var(--type-code-font-weight) var(--type-label-small-font-size) / 1
       var(--type-code-font-family);
     white-space: nowrap;
+  }
+  :where([data-mash-catalogue="mash"]) ui-kbd[appearance="outline"]::part(root) {
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    background: var(--_mash-component-surface);
   }
   :where([data-mash-catalogue="mash"]) ui-kbd::part(value) {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-control-block-small);
+    gap: 0;
   }
   :where([data-mash-catalogue="mash"]) ui-kbd::part(key),
-  :where([data-mash-catalogue="mash"]) ui-kbd::part(modifier),
-  :where([data-mash-catalogue="mash"]) ui-kbd::part(glyph) {
+  :where([data-mash-catalogue="mash"]) ui-kbd::part(separator) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-inline-size: 1em;
-  }
-  :where([data-mash-catalogue="mash"]) ui-kbd::part(separator) {
-    display: none;
   }
 
   :where([data-mash-catalogue="mash"]) ui-icon {

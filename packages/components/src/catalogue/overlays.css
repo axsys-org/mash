@@ -920,6 +920,43 @@
     text-overflow: ellipsis;
   }
 
+  :where([data-mash-catalogue="mash"])
+    :is(ui-menu, ui-context-menu):has(> ui-menu-item.mash-menu-rich > ui-avatar[slot="prefix"]) {
+    --_mash-menu-prefix-lane: calc(
+      var(--layout-dimension-control-small) + var(--space-control-block-small)
+    );
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item.mash-menu-rich::part(control) {
+    block-size: auto;
+    min-block-size: var(--_mash-menu-row-size);
+    padding-block: var(--space-control-block-small);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item.mash-menu-rich::part(label-viewport) {
+    white-space: normal;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item.mash-menu-rich > .mash-stack {
+    gap: var(--space-control-block-small);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu > :is([slot="header"], [slot="footer"]) {
+    display: block;
+    padding: var(--space-control-block) var(--space-menu-inline);
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu > [slot="header"].mash-stack {
+    display: flex;
+    gap: var(--space-control-block-small);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu > [slot="header"] strong {
+    color: var(--color-text);
+  }
+
   :where([data-mash-catalogue="mash"]) ui-menu-item::part(shortcut) {
     margin-inline-start: var(--space-control-gap);
     color: var(--mash-material-label-secondary, var(--color-text-muted));

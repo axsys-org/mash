@@ -38,7 +38,7 @@ export function showCatalogue(root: HTMLElement): void {
         if (!entry.isIntersecting) return;
         observer.unobserve(entry.target);
         const frame = entry.target as HTMLIFrameElement;
-        frame.src = "/fixture.html";
+        frame.src = `/fixture.html?theme=${document.documentElement.dataset.theme}`;
       }),
     { rootMargin: "400px" },
   );
@@ -243,18 +243,73 @@ export function showCatalogue(root: HTMLElement): void {
           script.textContent = variant.script;
           doc.body.append(script);
         }
+        const modalSurfaces: { popup: HTMLElement; backdrop: HTMLElement }[] = [];
+        let modalVisible = false;
         const resize = () => {
-          const height = Math.max(180, Math.ceil(doc.body.getBoundingClientRect().height));
-          if (frame.height !== String(height)) frame.height = String(height);
+          let height = Math.max(180, Math.ceil(doc.body.getBoundingClientRect().height));
+          const zoomFactor = parseFloat(getComputedStyle(target).zoom) || 1;
+          const modalLimit = Math.max(
+            180,
+            Math.min(viewport.clientHeight, window.innerHeight - 96) / zoomFactor,
+          );
+          let hasVisibleModal = false;
+          for (const { popup, backdrop } of modalSurfaces) {
+            if (!popup.getClientRects().length) continue;
+            hasVisibleModal = true;
+            const style = doc.defaultView!.getComputedStyle(backdrop);
+            const padding =
+              parseFloat(style.paddingTop || "0") + parseFloat(style.paddingBottom || "0");
+            // Modals can exceed a small initial frame without contributing to body
+            // height. Bound their growth to the outer window to avoid feedback from
+            // viewport-relative content, and scroll only genuinely oversized panels.
+            popup.style.maxBlockSize = `calc(100dvh - ${padding}px)`;
+            popup.style.overflowY = "auto";
+            const border = popup.offsetHeight - popup.clientHeight;
+            height = Math.max(
+              height,
+              Math.min(modalLimit, Math.ceil(popup.scrollHeight + border + padding)),
+            );
+          }
+          const heightChanged = frame.height !== String(Math.ceil(height));
+          if (heightChanged) frame.height = String(Math.ceil(height));
+          // A child document cannot reveal the portion clipped by its parent's
+          // scrollport. Bring the live frame into that scrollport as its modal opens.
+          if (hasVisibleModal && (!modalVisible || heightChanged)) {
+            requestAnimationFrame(() => {
+              if (frame.isConnected && !abort.signal.aborted)
+                frame.scrollIntoView({ block: "center", inline: "nearest" });
+            });
+          }
+          modalVisible = hasVisibleModal;
         };
         const size = new ResizeObserver(resize);
         size.observe(doc.body);
+        window.addEventListener("resize", resize, { signal: abort.signal });
+        zoom.addEventListener("change", resize, { signal: abort.signal });
         observers.push(size);
         resize();
+        const modals = [
+          ...doc.querySelectorAll<HTMLElement & { updateComplete?: Promise<unknown> }>(
+            "ui-dialog, ui-alert-dialog",
+          ),
+        ];
+        void Promise.all(modals.map((modal) => modal.updateComplete)).then(() => {
+          if (abort.signal.aborted || !frame.isConnected) return;
+          for (const modal of modals) {
+            const popup = modal.shadowRoot?.querySelector<HTMLElement>('[part="popup"]');
+            const backdrop = modal.shadowRoot?.querySelector<HTMLElement>('[part="backdrop"]');
+            if (!popup || !backdrop) continue;
+            modalSurfaces.push({ popup, backdrop });
+            size.observe(popup);
+            for (const child of modal.children) size.observe(child);
+          }
+          resize();
+        });
       },
       { signal: abort.signal },
     );
-    if (index === 0 || variant === selectedVariant) frame.src = "/fixture.html";
+    if (index === 0 || variant === selectedVariant)
+      frame.src = `/fixture.html?theme=${document.documentElement.dataset.theme}`;
     else observer.observe(frame);
   });
   preview.after(api(component));

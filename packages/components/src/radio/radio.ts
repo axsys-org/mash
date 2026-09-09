@@ -77,7 +77,7 @@ export class UIRadio extends UICheckable {
   }
 
   protected override renderCheckableParts(): TemplateResult {
-    return html`<span part="indicator"><slot name="indicator"></slot></span>`;
+    return html`<span part="indicator" aria-hidden="true"><slot name="indicator"></slot></span>`;
   }
 
   protected override checkableChangeDetail(): Record<string, unknown> {

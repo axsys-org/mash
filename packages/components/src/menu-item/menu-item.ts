@@ -412,6 +412,11 @@ export class UIMenuItem extends LitElement {
     this.#closeTimer = window.setTimeout(
       () => {
         this.#closeTimer = undefined;
+        let active = this.ownerDocument.activeElement;
+        while (active) {
+          if (this.#submenu?.contains(active)) return;
+          active = active.shadowRoot?.activeElement ?? null;
+        }
         this.#submenu?.dismiss("hover");
       },
       Math.max(0, this.#submenu.submenuCloseDelay),

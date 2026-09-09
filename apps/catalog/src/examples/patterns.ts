@@ -1,9 +1,13 @@
 import type { CatalogExample } from "../examples.js";
+import { keyboardExamples } from "./keyboard.js";
+import { controlPatternExamples } from "./control-patterns.js";
 import { composerExamples } from "./composer.js";
 import { sample } from "./shared.js";
 
 /** Focused compositions using native semantics and existing component parts. */
 export const patternExamples: Record<string, CatalogExample[]> = {
+  ...controlPatternExamples,
+  "ui-kbd": keyboardExamples,
   "ui-textarea": composerExamples,
   "ui-card": [
     sample(

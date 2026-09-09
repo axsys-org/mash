@@ -47,6 +47,7 @@ export class UITab extends LitElement {
   };
 
   static override properties = {
+    label: { type: String, reflect: true },
     closable: { type: Boolean, reflect: true },
     value: { type: String, reflect: true },
     selected: { type: Boolean, reflect: true },
@@ -55,6 +56,13 @@ export class UITab extends LitElement {
     position: { type: Number, reflect: true },
     setSize: { type: Number, attribute: "set-size", reflect: true },
   };
+
+  /** Full accessible label, required when the visible label contains only an icon. */
+  declare label: string;
+  /** Full name shared by the control, tooltip, close action, and overflow chooser. */
+  get accessibleLabel(): string {
+    return this.label || this.textContent?.trim() || this.value;
+  }
 
   /** Show a close action; listen to ui-tab-close to remove the authored tab and panel. */
   declare closable: boolean;
@@ -75,6 +83,7 @@ export class UITab extends LitElement {
 
   constructor() {
     super();
+    this.label = "";
     this.closable = false;
     this.value = "";
     this.selected = false;
@@ -152,6 +161,8 @@ export class UITab extends LitElement {
           part="control"
           type="button"
           role="tab"
+          aria-label=${this.accessibleLabel}
+          title=${this.accessibleLabel}
           aria-selected=${this.selected ? "true" : "false"}
           aria-controls=${this.controls || undefined}
           aria-posinset=${this.position || undefined}
@@ -161,7 +172,7 @@ export class UITab extends LitElement {
           @keydown=${this.#keydown}
           @click=${this.#select}
         >
-          <slot part="label"></slot>
+          <slot part="label" @slotchange=${() => this.requestUpdate()}></slot>
         </button>
         ${
           this.closable
@@ -169,7 +180,7 @@ export class UITab extends LitElement {
                 part="close"
                 type="button"
                 tabindex="-1"
-                aria-label=${`Close ${this.textContent?.trim() || this.value}`}
+                aria-label=${`Close ${this.accessibleLabel}`}
                 ?disabled=${this.disabled}
                 @click=${this.#close}
               >

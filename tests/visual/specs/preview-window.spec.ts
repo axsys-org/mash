@@ -91,3 +91,43 @@ test("calendar popup and its final date remain reachable inside the preview", as
   await lastDate.click();
   await expect(popup).not.toBeVisible();
 });
+
+for (const width of [390, 1280])
+  test(`dialog stage grows and restores at ${width}px without resetting edits`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/components/ui-dialog?example=Validated%20edit", {
+      waitUntil: "domcontentloaded",
+    });
+    const iframe = page.locator("iframe.stage-frame");
+    const stage = page.frameLocator("iframe.stage-frame");
+    const edit = stage.getByRole("button", { name: "Edit details", exact: true });
+    await expect(edit).toBeVisible();
+    const collapsedHeight = (await iframe.boundingBox())!.height;
+    await edit.click();
+    const draft = stage.getByRole("textbox", { name: "Project name", exact: true });
+    await draft.fill("Preserve this draft through preview resizing");
+    await page.getByRole("button", { name: "Expand preview", exact: true }).click();
+    await expect(draft).toHaveValue("Preserve this draft through preview resizing");
+    await page.getByRole("button", { name: "Restore preview", exact: true }).click();
+    await expect(draft).toHaveValue("Preserve this draft through preview resizing");
+    const save = stage.getByRole("button", { name: "Save changes", exact: true });
+    await expect(save).toBeVisible();
+    await expect
+      .poll(async () => (await iframe.boundingBox())!.height)
+      .toBeGreaterThan(collapsedHeight);
+    await expect
+      .poll(() =>
+        save.evaluate((node) => {
+          const bounds = node.getBoundingClientRect();
+          return bounds.top >= 0 && bounds.bottom <= window.innerHeight;
+        }),
+      )
+      .toBe(true);
+    await stage.getByRole("button", { name: "Cancel editing", exact: true }).click();
+    await expect(save).not.toBeVisible();
+    await expect
+      .poll(async () => Math.abs((await iframe.boundingBox())!.height - collapsedHeight))
+      .toBeLessThanOrEqual(1);
+  });

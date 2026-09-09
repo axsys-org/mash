@@ -229,3 +229,52 @@ correction, 12 Textarea light/dark cases and three composer behavior checks
 passed; the other changed pages had already passed 28 light/dark cases. Together
 these cover 40 variant/theme cases. The initial misplaced-example failures are
 resolved, not waived. The full catalogue-wide sweep remains a separate open gate.
+
+## Navigation, controls, and chart parity batch — 2026-09-08
+
+Tabs now support reversible order changes, pointer and keyboard reordering,
+full-label overflow selection, stretched layouts, icon-only labels, and close /
+reopen examples that retain authored edits. Panels stay mounted while tab controls
+move. Gesture capture begins after the drag threshold; cancellation suppresses a
+trailing activation and releases capture.
+
+Keyboard hints now distinguish subtle, outlined, and plain treatments; Windows
+separators remain visible. Punctuation, live command bindings, and shortcut help
+are demonstrated. Buttons add icon arrangements, repeatable async actions,
+cancellable progress with a generated CSV, and joined controls. Formatting and
+file filters show actual toggle outcomes.
+
+Menu and overlay examples add record operations, nested exports, persisted view
+choices, rich rows, anchoring, context commands, validated forms, nested dismissal,
+live settings, and async retry. Charts retain all twelve original types and add
+five explorations for curves, axes, bar direction/stacking, semantic gradients,
+flow alignment, and live data with SVG/canvas switching.
+
+These implementations address inventory rows; they do not certify complete visual
+parity. Matching reference captures and the catalogue-wide acceptance sweep remain
+open. The next controls batch covers select/combobox states, validation, selection
+controls, number/OTP inputs, and remaining display/overlay variants before the
+larger table/editor/docking capability work. Story applications remain deferred.
+
+Interaction acceptance exposed underlying defects as well as missing examples:
+decorative checkbox indicators polluted accessible names, icon-only toggles did
+not forward their labels, keyboard-focused submenus could be closed by a hover
+timer, and context menus depended on a platform-generated keyboard event. Rich
+menu rows now have an explicit variable-height treatment. The showcase also
+measures open modal content, bounds it to available preview space, and returns to
+its compact height after dismissal.
+
+Validation completed 2026-09-09: production build and static gates pass. Across
+focused runs, all 38 production checks and 52 component/overlay checks pass.
+These cover the new chart controls in both themes, menus and nested dialogs,
+button/toggle/keyboard outcomes, tab draft preservation, and mobile/desktop
+preview bounds. The initial failures were repaired and rerun; one nested reopen
+failure did not reproduce in five diagnostic repetitions or the final production
+run. A separate textarea first-focus omission was fixed and regression-tested.
+
+Representative tab, keyboard, chart, button, menu, and dialog surfaces were
+visually inspected in both themes. Review also corrected an undefined progress
+icon token, menu header spacing, and the unthemed loading flash in lazy frames.
+Matching reference captures across the entire catalogue remain open. The next
+bounded work is select/combobox and form-control states, followed by table range
+selection/sorting examples and the larger editor/docking gaps in the inventory.

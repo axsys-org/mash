@@ -1,4 +1,4 @@
-import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -17,6 +17,7 @@ import { baseStyles } from "../internal/base-styles.js";
  *   <ui-toggle pressed>Bold</ui-toggle>
  * </div>
  *
+ * @attr {string} aria-label - Accessible name passed to the native control for icon-only toggles.
  * @slot - Toggle label or icon content.
  *
  * @csspart control - The native button that owns keyboard interaction.
@@ -38,6 +39,7 @@ export class UIToggle extends LitElement {
   };
 
   static override properties = {
+    ariaLabel: { type: String, attribute: "aria-label", reflect: true },
     pressed: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
     value: { type: String, reflect: true },
@@ -89,6 +91,7 @@ export class UIToggle extends LitElement {
       <button
         part="control"
         type="button"
+        aria-label=${this.ariaLabel || nothing}
         aria-pressed=${this.pressed ? "true" : "false"}
         ?disabled=${this.disabled}
         @click=${this.#onClick}
