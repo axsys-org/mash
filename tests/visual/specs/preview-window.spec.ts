@@ -14,6 +14,7 @@ test("one preview window scrolls all variants and reaches deep-linked examples",
   await page.goto("/components/ui-tabs?example=Variants", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".preview-window")).toHaveCount(1);
   const viewport = page.locator(".preview-viewport");
+  await expect(page.frameLocator("iframe.stage-frame").getByRole("tab").first()).toBeVisible();
   expect(await viewport.evaluate((node) => node.scrollHeight)).toBeGreaterThan(
     await viewport.evaluate((node) => node.clientHeight),
   );
