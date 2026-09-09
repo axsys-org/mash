@@ -1633,3 +1633,36 @@
     opacity: var(--motion-opacity-muted);
   }
 }
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-avatar::part(root) {
+    position: relative;
+    overflow: visible;
+  }
+  :where([data-mash-catalogue="mash"]) ui-avatar::part(image) {
+    border-radius: inherit;
+  }
+  :where([data-mash-catalogue="mash"]) ui-avatar[shape="square"]::part(root) {
+    border-radius: var(--radius-control);
+  }
+  :where([data-mash-catalogue="mash"]) ui-avatar::part(status) {
+    position: absolute;
+    inset-inline-end: calc(0px - var(--border-hairline));
+    inset-block-end: calc(0px - var(--border-hairline));
+    inline-size: var(--space-control-gap);
+    block-size: var(--space-control-gap);
+    border: var(--border-strong) solid var(--_mash-component-surface);
+    box-sizing: content-box;
+    border-radius: var(--radius-pill);
+    background: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-avatar[status="online"]::part(status) {
+    background: var(--color-positive);
+  }
+  :where([data-mash-catalogue="mash"]) ui-avatar[status="away"]::part(status) {
+    background: var(--color-warning);
+  }
+  :where([data-mash-catalogue="mash"]) ui-avatar[status="busy"]::part(status) {
+    background: var(--color-critical);
+  }
+}

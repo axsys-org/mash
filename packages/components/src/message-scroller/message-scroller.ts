@@ -1,5 +1,7 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, css, html, type TemplateResult, type PropertyValues } from "lit";
 import { baseStyles } from "../internal/base-styles.js";
+import { VirtualHistory, type MessageRecord, type MessageRenderer } from "./virtual-history.js";
+export type { MessageRecord, MessageRenderer } from "./virtual-history.js";
 
 /**
  * A conversation viewport that follows new content only while the reader is at the end.
@@ -10,6 +12,11 @@ import { baseStyles } from "../internal/base-styles.js";
  * <ui-message-scroller label="Conversation"><ui-message><ui-bubble variant="secondary">Hello.</ui-bubble></ui-message></ui-message-scroller>
  * @slot - Stable message rows in chronological order.
  * @slot empty - Content shown when no messages are present.
+ * @slot latest - Label for the jump-to-latest button.
+ * @csspart history - Virtualized history extent.
+ * @slot history - Virtual history projection, managed by the items property.
+ * @mashnode history list content
+ * @mashnode row row history
  * @csspart root - The viewport boundary.
  * @csspart viewport - Native scrolling region.
  * @csspart content - The message stack.
@@ -26,6 +33,10 @@ export class UIMessageScroller extends LitElement {
   static override properties = {
     label: { type: String, reflect: true },
     follow: { type: Boolean, reflect: true },
+    items: { attribute: false },
+    renderMessage: { attribute: false },
+    estimatedSize: { type: Number, attribute: "estimated-size" },
+    overscan: { type: Number },
     _atEnd: { state: true },
     _empty: { state: true },
   };
@@ -33,6 +44,16 @@ export class UIMessageScroller extends LitElement {
   declare label: string;
   /** Start at the newest message and follow appends while at the end. */
   declare follow: boolean;
+  /** Optional immutable records with stable IDs. Null uses authored slotted rows. */
+  declare items: readonly MessageRecord[] | null;
+  /** Creates a virtual row's content. Called only for rows entering the window or changing identity. */
+  declare renderMessage: MessageRenderer | undefined;
+  /** Estimated pixel height until a virtual row is measured. */
+  declare estimatedSize: number;
+  /** Extra virtual rows retained around the visible range. */
+  declare overscan: number;
+  #history?: VirtualHistory;
+  #historyContent?: HTMLElement;
   protected _atEnd = true;
   protected _empty = true;
   #anchor?: { element: Element; offset: number };
@@ -42,6 +63,9 @@ export class UIMessageScroller extends LitElement {
     super();
     this.label = "Conversation";
     this.follow = true;
+    this.items = null;
+    this.estimatedSize = 80;
+    this.overscan = 3;
   }
   static override styles = [
     baseStyles,
@@ -96,6 +120,10 @@ export class UIMessageScroller extends LitElement {
   override disconnectedCallback(): void {
     this.#contentResize.disconnect();
     this.#mutations.disconnect();
+    this.#history?.disconnect();
+    this.#history = undefined;
+    this.#historyContent?.remove();
+    this.#historyContent = undefined;
     super.disconnectedCallback();
   }
   #remember = (): void => {
@@ -113,8 +141,43 @@ export class UIMessageScroller extends LitElement {
     this.#anchor = element
       ? { element, offset: element.getBoundingClientRect().top - top }
       : undefined;
+    this.#history?.scroll(this.follow && atEnd);
   };
+  protected override updated(changed: PropertyValues<this>): void {
+    if (this.items !== null && this.#viewport) {
+      const fresh = !this.#history;
+      if (!this.#history) {
+        this.#historyContent = document.createElement("div");
+        this.#historyContent.slot = "history";
+        this.append(this.#historyContent);
+        this.#history = new VirtualHistory(this.#viewport, this.#historyContent);
+      }
+      if (
+        fresh ||
+        changed.has("items") ||
+        changed.has("renderMessage") ||
+        changed.has("estimatedSize") ||
+        changed.has("overscan") ||
+        changed.has("follow")
+      ) {
+        this.#history.update(
+          this.items,
+          this.renderMessage,
+          this.follow && this._atEnd,
+          this.estimatedSize,
+          this.overscan,
+        );
+        this._empty = this.items.length === 0;
+      }
+    } else if (this.#history) {
+      this.#history.disconnect();
+      this.#history = undefined;
+      this.#historyContent?.remove();
+      this.#historyContent = undefined;
+    }
+  }
   #restore(): void {
+    if (this.#history) return;
     const viewport = this.#viewport;
     if (!viewport) return;
     this._empty = this.#rows.length === 0;
@@ -129,11 +192,17 @@ export class UIMessageScroller extends LitElement {
   }
   /** Resume following at the newest message. */
   scrollToLatest = (): void => {
+    this.#history?.latest();
     if (this.#viewport) this.#viewport.scrollTop = this.#viewport.scrollHeight;
     this.#remember();
   };
   /** Reveal an authored row by its DOM id. Returns false if the row is absent. */
   scrollToMessage(id: string): boolean {
+    if (this.#history) {
+      const found = this.#history.reveal(id);
+      this.#remember();
+      return found;
+    }
     const row = this.#rows.find((candidate) => candidate.id === id);
     const viewport = this.#viewport;
     if (!row || !viewport) return false;
@@ -151,7 +220,8 @@ export class UIMessageScroller extends LitElement {
         @scroll=${this.#remember}
       >
         <div part="content">
-          <slot @slotchange=${() => this.#restore()}></slot>
+          <slot ?hidden=${this.items !== null} @slotchange=${() => this.#restore()}></slot>
+          <div part="history" ?hidden=${this.items === null}><slot name="history"></slot></div>
           <div part="empty" ?hidden=${!this._empty}><slot name="empty">No messages yet.</slot></div>
         </div>
       </div>
@@ -161,7 +231,7 @@ export class UIMessageScroller extends LitElement {
         ?hidden=${this._atEnd || this._empty}
         @click=${this.scrollToLatest}
       >
-        ↓ Latest
+        <slot name="latest">↓ Latest</slot>
       </button>
     </div>`;
   }

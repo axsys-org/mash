@@ -1,6 +1,7 @@
 import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { hideEmptySlot } from "../internal/slot-visibility.js";
 import {
   type OverlayChangeReason,
   type OverlayOpenChangeDetail,
@@ -90,15 +91,23 @@ function hexFromChannels(channels: ColorChannels): string {
 }
 
 /**
- * An unstyled color-picker state and overlay coordinator.
+ * A color selector with an inline surface or an anchored popup.
  *
  * The picker owns committed versus transient preview values, open/dismiss
- * behavior, and swatch event coordination. Applications own the palette,
- * sliders, text input, layout, and every visual decision through the authored
- * palette slot and semantic component parts.
+ * behavior, a saturation/value plane, keyboard channel controls, and hex input.
+ * Applications can replace the native controls through named slots and supply
+ * their own palette. Public parts and semantic recipes own appearance.
  *
  * @tag ui-color-picker
- * @summary Coordinates color preview, commit, and an authored picker popup.
+ * @summary Selects colors through a plane, channel controls, hex input, and optional palette.
+ * @csspart plane - Pointer and keyboard saturation/value surface.
+ * @csspart thumb - Current position on the color plane.
+ * @csspart channel - Native fallback channel controls.
+ * @csspart hex-input - Native fallback hexadecimal input.
+ * @mashnode plane color controls
+ * @mashnode thumb value plane
+ * @mashnode channel channel controls
+ * @mashnode hex-input value hex
  *
  * @example Accent color
  * <ui-color-picker label="Accent color" value="#0A84FF">
@@ -214,6 +223,7 @@ export class UIColorPicker extends UIAnchoredOverlay {
     saturation: { type: Number, reflect: true },
     lightness: { type: Number, reflect: true },
     alpha: { type: Number, reflect: true },
+    inline: { type: Boolean, reflect: true },
   };
 
   /** Committed normalized hex color. */
@@ -228,6 +238,8 @@ export class UIColorPicker extends UIAnchoredOverlay {
   declare lightness: number;
   /** Alpha channel from zero through 100. */
   declare alpha: number;
+  /** Display the complete picker directly, without a popup or trigger. */
+  declare inline: boolean;
 
   protected readonly overlayRole = "dialog" as const;
   constructor() {
@@ -238,6 +250,7 @@ export class UIColorPicker extends UIAnchoredOverlay {
     this.saturation = 0;
     this.lightness = 0;
     this.alpha = 100;
+    this.inline = false;
     this.addEventListener("ui-color-select", this.#onSelect as EventListener);
     this.addEventListener("ui-color-swatch-preview", this.#onPreview as EventListener);
     this.addEventListener("ui-slider-input", this.#onChannelInput as EventListener);
@@ -425,24 +438,112 @@ export class UIColorPicker extends UIAnchoredOverlay {
   }
 
   protected override renderAuthoredContent(): TemplateResult {
+    const light = this.lightness / 100;
+    const value = light + (this.saturation / 100) * Math.min(light, 1 - light);
+    const saturation = value === 0 ? 0 : 2 * (1 - light / value);
     return html`
       <div part="content">
-        <div part="preview">
-          <slot name="preview" @slotchange=${this.#syncAuthoredControls}></slot>
+        <div
+          part="plane"
+          role="group"
+          aria-label="Saturation and brightness"
+          style=${`position:relative;background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(${this.hue} 100% 50%))`}
+          @pointerdown=${this.#planeDown}
+          @pointermove=${this.#planeMove}
+          @pointerup=${this.#planeUp}
+        >
+          <span
+            part="thumb"
+            style=${`position:absolute;left:${saturation * 100}%;top:${(1 - value) * 100}%;transform:translate(-50%,-50%)`}
+          ></span>
         </div>
-        <div part="palette"><slot @slotchange=${this.#syncAuthoredControls}></slot></div>
+        <div part="preview">
+          <slot
+            name="preview"
+            @slotchange=${(event: Event) => {
+              hideEmptySlot(event);
+              this.#syncAuthoredControls();
+            }}
+          ></slot>
+        </div>
+        <div part="palette">
+          <slot
+            @slotchange=${(event: Event) => {
+              hideEmptySlot(event);
+              this.#syncAuthoredControls();
+            }}
+          ></slot>
+        </div>
         <div part="controls">
-          <div part="hue"><slot name="hue" @slotchange=${this.#syncAuthoredControls}></slot></div>
+          <div part="hue">
+            <slot name="hue" @slotchange=${this.#syncAuthoredControls}
+              ><label
+                >Hue<input
+                  part="channel"
+                  ?disabled=${this.disabled}
+                  type="range"
+                  min="0"
+                  max="359"
+                  aria-label="Hue"
+                  .value=${String(this.hue)}
+                  @input=${(event: Event) => this.commitColor(this.#setChannel("hue", Number((event.target as HTMLInputElement).value)), false)} /></label
+            ></slot>
+          </div>
           <div part="saturation">
-            <slot name="saturation" @slotchange=${this.#syncAuthoredControls}></slot>
+            <slot name="saturation" @slotchange=${this.#syncAuthoredControls}
+              ><label
+                >Saturation<input
+                  part="channel"
+                  ?disabled=${this.disabled}
+                  type="range"
+                  min="0"
+                  max="100"
+                  aria-label="Saturation"
+                  .value=${String(this.saturation)}
+                  @input=${(event: Event) => this.commitColor(this.#setChannel("saturation", Number((event.target as HTMLInputElement).value)), false)} /></label
+            ></slot>
           </div>
           <div part="lightness">
-            <slot name="lightness" @slotchange=${this.#syncAuthoredControls}></slot>
+            <slot name="lightness" @slotchange=${this.#syncAuthoredControls}
+              ><label
+                >Lightness<input
+                  part="channel"
+                  ?disabled=${this.disabled}
+                  type="range"
+                  min="0"
+                  max="100"
+                  aria-label="Lightness"
+                  .value=${String(this.lightness)}
+                  @input=${(event: Event) => this.commitColor(this.#setChannel("lightness", Number((event.target as HTMLInputElement).value)), false)} /></label
+            ></slot>
           </div>
           <div part="alpha">
-            <slot name="alpha" @slotchange=${this.#syncAuthoredControls}></slot>
+            <slot name="alpha" @slotchange=${this.#syncAuthoredControls}
+              ><label
+                >Opacity<input
+                  part="channel"
+                  ?disabled=${this.disabled}
+                  type="range"
+                  min="0"
+                  max="100"
+                  aria-label="Opacity"
+                  .value=${String(this.alpha)}
+                  @input=${(event: Event) => this.commitColor(this.#setChannel("alpha", Number((event.target as HTMLInputElement).value)), false)} /></label
+            ></slot>
           </div>
-          <div part="hex"><slot name="hex" @slotchange=${this.#syncAuthoredControls}></slot></div>
+          <div part="hex">
+            <slot name="hex" @slotchange=${this.#syncAuthoredControls}
+              ><input
+                part="hex-input"
+                ?disabled=${this.disabled}
+                aria-label="Hex color"
+                .value=${this.preview || this.value}
+                @change=${(event: Event) => {
+                  const control = event.target as HTMLInputElement;
+                  if (!this.commitColor(control.value, false)) control.value = this.value;
+                }}
+            /></slot>
+          </div>
         </div>
         <div part="actions">
           <div part="clear"><slot name="clear"></slot></div>
@@ -453,7 +554,34 @@ export class UIColorPicker extends UIAnchoredOverlay {
   }
 
   protected override render(): TemplateResult {
-    return html`<div part="root">${this.renderOverlay()}</div>`;
+    return html`<div part="root">
+      ${this.inline ? this.renderAuthoredContent() : this.renderOverlay()}
+    </div>`;
+  }
+  #planeDown = (event: PointerEvent): void => {
+    if (this.disabled || event.button !== 0) return;
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    this.#choosePlane(event);
+  };
+  #planeMove = (event: PointerEvent): void => {
+    if ((event.currentTarget as HTMLElement).hasPointerCapture(event.pointerId))
+      this.#choosePlane(event);
+  };
+  #planeUp = (event: PointerEvent): void => {
+    const plane = event.currentTarget as HTMLElement;
+    if (plane.hasPointerCapture(event.pointerId)) plane.releasePointerCapture(event.pointerId);
+  };
+  #choosePlane(event: PointerEvent): void {
+    const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const saturation = clamp((event.clientX - bounds.left) / bounds.width, 0, 1);
+    const value = 1 - clamp((event.clientY - bounds.top) / bounds.height, 0, 1);
+    const lightness = value * (1 - saturation / 2);
+    this.saturation =
+      lightness === 0 || lightness === 1
+        ? 0
+        : ((value - lightness) / Math.min(lightness, 1 - lightness)) * 100;
+    this.lightness = lightness * 100;
+    this.commitColor(hexFromChannels(this), false);
   }
 }
 

@@ -134,14 +134,14 @@ not a claim that every reference feature has been implemented.
 
 `bd` is unavailable in this workspace. This ledger records open work:
 
-| Work                            | Status and required result                                                                                                                                                                                                                                                                                       |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| MASH-R2: reference acceptance   | Opaque surfaces, shared dimensions, hover/pressed/selection/inverse states, menu density, and joined accordion treatment implemented. Complete direct comparison of every example and relevant interaction state in both themes.                                                                                 |
-| MASH-R3: capability gaps        | Conversation scrolling preserves the reading anchor and follows appends, but does not virtualize message history. Docking and persisted workspace layouts need a full implementation; split panels alone do not provide docking. Rich editor provider behavior needs a separate contract and integration review. |
-| MASH-R4: API and example depth  | All 112 pages are portable. Check every feature listed in the 71-topic checklist against actual behavior, expand missing variants, and replace remaining illustrative actions with useful executable outcomes where they teach a component contract.                                                             |
-| MASH-R5: chart state            | Twelve chart arrangements and SVG/canvas renderers are available. Theme and renderer changes preserve zoom and legend selection. Audit remaining interaction state for each supported chart type.                                                                                                                |
-| MASH-R6: visual baselines       | The blocking catalogue gate checks all named examples in both themes, composition geometry, dependency display, and focused interactions. Canonical screenshot baselines remain platform-specific and local. Establish reviewed Linux baselines before making the screenshot job blocking.                       |
-| MASH-R7: later application work | Preserve the isolated application source for the requested playground and story samples. Reintroduce it only after the component review, with its dependencies and behavior exposed. Stage fullscreen remains deferred until parity acceptance.                                                                  |
+| Work                            | Status and required result                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MASH-R2: reference acceptance   | Opaque surfaces, shared dimensions, hover/pressed/selection/inverse states, menu density, and joined accordion treatment implemented. Complete direct comparison of every example and relevant interaction state in both themes.                                                                                                                                                             |
+| MASH-R3: capability gaps        | Virtual message history now preserves visible anchors across prepends and measures variable-height rows. Nested dock tabs, splits, resizing, closing/reopening, maximization, and validated layout persistence are implemented. Collapsible edge docks and rich editor provider behavior remain open.                                                                                        |
+| MASH-R4: API and example depth  | The showcase now lists base components only and displays their variants directly. Re-run the complete portability and variant sweep against this replacement shell. Check every feature listed in the 71-topic checklist against actual behavior, expand missing variants, and replace remaining illustrative actions with useful executable outcomes where they teach a component contract. |
+| MASH-R5: chart state            | Twelve chart arrangements and SVG/canvas renderers are available. Theme and renderer changes preserve zoom and legend selection. Audit remaining interaction state for each supported chart type.                                                                                                                                                                                            |
+| MASH-R6: visual baselines       | The blocking catalogue gate checks all named examples in both themes, composition geometry, dependency display, and focused interactions. Canonical screenshot baselines remain platform-specific and local. Establish reviewed Linux baselines before making the screenshot job blocking.                                                                                                   |
+| MASH-R7: later application work | Preserve the isolated application source for the requested playground and story samples. Reintroduce it only after the component review, with its dependencies and behavior exposed. Stage fullscreen remains deferred until parity acceptance.                                                                                                                                              |
 
 The relevant gates are `pnpm run build:catalog`, `pnpm run check`,
 `pnpm run test:browser`, `pnpm run test:integration`, and
@@ -159,3 +159,35 @@ token tests. Integration passed 21 tests. The full catalogue sweep passed 653
 checks; the subsequent empty-slot alignment refinement passed all eight accordion
 example/theme checks. Six local canonical screenshots were refreshed; selected component and catalogue
 screenshots were manually reviewed. These are local references, not accepted cross-platform baselines.
+
+## Showcase and conversation checkpoint — 2026-09-08
+
+The component showcase now presents variants inline with lazy preview frames,
+local reference code, search, theme switching that preserves live inputs, and
+compact API details. The live conversation has a working multiline composer.
+A separate 10,000-message history demonstrates bounded rendering, unread navigation,
+and stable reading position while older messages arrive. Managed history rows
+remain in light DOM so public component recipes style their contents.
+
+The editor adds safe lexical highlighting and an interactive find/replace demo;
+the color selector adds a saturation/value plane and native channel controls.
+Avatar examples cover presence and image fallback; shimmer examples expose pause
+and completion. Syntax colors now have dedicated semantic roles in both themes.
+Docking has a working editable-panel example with split, save, restore, and reset
+controls. These changes add no dependencies.
+
+This is a steering checkpoint, not full parity acceptance. Resume with the
+showcase-wide variant and visual audit, including missing variant coverage,
+remaining editor and edge-dock capabilities, chart interactions, hover/inverse
+states, and preview loading performance. Stories remain deferred.
+
+Checkpoint validation: the component suites passed 417 base tests, 43 existing
+composition tests, and seven token tests. The full replacement-showcase sweep
+was interrupted after timeouts in chart/table cases; it is not recorded as a
+pass and still needs investigation and a completed run. All ten focused showcase and interaction checks passed. The production build,
+static checks, and 21 integration checks passed. The static census is 114
+components, 690 public parts, 243 named slots, and 627 token variables.
+
+Specific acceptance follow-ups include restoring avatar-group coverage after
+example consolidation, checking same-tab drop ordering, and handling split
+controls when every dock panel is closed. These remain on the parity audit.

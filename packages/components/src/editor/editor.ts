@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { sourceTokens } from "./syntax.js";
 
 export interface EditorSelectionDetail {
   start: number;
@@ -74,6 +75,16 @@ export interface EditorSearchDetail {
  * @csspart line-number - One generated line number.
  * @csspart scroller - The editing viewport owner.
  * @csspart control - The native textarea editing surface.
+ * @csspart syntax - Non-interactive source color layer.
+ * @csspart keyword - Lexical keywords.
+ * @csspart string - String literals.
+ * @csspart number - Numeric literals.
+ * @csspart comment - Source comments.
+ * @mashnode syntax text scroller
+ * @mashnode keyword keyword syntax
+ * @mashnode string string syntax
+ * @mashnode number number syntax
+ * @mashnode comment comment syntax
  * @csspart overlay - The contextual overlay binding.
  * @csspart completion - The completion binding.
  * @csspart diagnostics - The diagnostics binding.
@@ -186,6 +197,7 @@ export class UIEditor extends LitElement {
     readonly: { type: Boolean, reflect: true },
     lineNumbers: { type: Boolean, attribute: "line-numbers", reflect: true },
     softWrap: { type: Boolean, attribute: "soft-wrap", reflect: true },
+    highlight: { type: Boolean, reflect: true },
     tabSize: { type: Number, attribute: "tab-size", reflect: true },
     searchQuery: { type: String, attribute: "search-query", reflect: true },
     caseSensitive: { type: Boolean, attribute: "case-sensitive", reflect: true },
@@ -212,6 +224,8 @@ export class UIEditor extends LitElement {
   declare lineNumbers: boolean;
   /** Allows long lines to wrap within the editing viewport. */
   declare softWrap: boolean;
+  /** Apply a lightweight lexical color layer; native text input remains authoritative. */
+  declare highlight: boolean;
   /** Spaces inserted for the Tab key and native tab rendering width. */
   declare tabSize: number;
   /** Literal query used by the portable search methods. */
@@ -241,6 +255,7 @@ export class UIEditor extends LitElement {
     this.readonly = false;
     this.lineNumbers = true;
     this.softWrap = false;
+    this.highlight = true;
     this.tabSize = 2;
     this.searchQuery = "";
     this.caseSensitive = false;
@@ -299,6 +314,11 @@ export class UIEditor extends LitElement {
     const gutter = this.renderRoot.querySelector<HTMLElement>("[part='gutter']");
     if (gutter) gutter.style.translate = `0 ${-this.#gutterScroll}px`;
     const control = event.currentTarget as HTMLTextAreaElement;
+    const syntax = this.renderRoot.querySelector<HTMLElement>('[part="syntax"]');
+    if (syntax) {
+      syntax.scrollTop = control.scrollTop;
+      syntax.scrollLeft = control.scrollLeft;
+    }
     this.dispatchEvent(
       new CustomEvent<{ inline: number; block: number }>("ui-editor-scroll", {
         bubbles: true,
@@ -592,6 +612,7 @@ export class UIEditor extends LitElement {
             : nothing
         }
         <div part="scroller">
+          ${this.highlight ? html`<pre part="syntax" aria-hidden="true" style=${`tab-size:${Math.max(1, Math.trunc(this.tabSize) || 2)}`}>${sourceTokens(this.value).map((token) => (token.kind === "comment" ? html`<span part="comment">${token.text}</span>` : token.kind === "string" ? html`<span part="string">${token.text}</span>` : token.kind === "keyword" ? html`<span part="keyword">${token.text}</span>` : token.kind === "number" ? html`<span part="number">${token.text}</span>` : token.text))}${"\n"}</pre>` : nothing}
           <div part="indent-guides" ?hidden=${!this.#hasSlot("indent-guides")}>
             <slot name="indent-guides" @slotchange=${this.#onSlotChange}></slot>
           </div>

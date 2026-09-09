@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("dialog slots retain focus entry, dismissal, and focus restoration", async ({ page }) => {
   await page.goto("/components/ui-dialog");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   const trigger = stage.getByRole("button", { name: "Edit project", exact: true });
   await trigger.click();
   await expect(stage.getByRole("dialog", { name: "Edit project", exact: true })).toBeVisible();
@@ -14,7 +14,7 @@ test("dialog slots retain focus entry, dismissal, and focus restoration", async 
 
 test("settings use native submission and reset with form-associated controls", async ({ page }) => {
   await page.goto("/components/ui-form?example=Settings");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   const digest = stage.getByRole("switch", { name: "Weekly digest", exact: true });
   await digest.click();
   await expect(digest).toBeChecked();
@@ -26,7 +26,7 @@ test("settings use native submission and reset with form-associated controls", a
 
 test("description lists retain native term and definition semantics", async ({ page }) => {
   await page.goto("/components/ui-card?example=Description%20list");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   await expect(stage.getByRole("term")).toHaveCount(4);
   await expect(stage.getByRole("definition")).toHaveCount(4);
   await expect(stage.getByRole("img", { name: "Alex", exact: true })).toBeVisible();
@@ -34,7 +34,7 @@ test("description lists retain native term and definition semantics", async ({ p
 
 test("persistent alerts can be dismissed without changing their siblings", async ({ page }) => {
   await page.goto("/components/ui-alert");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   await stage.getByRole("button", { name: "Dismiss alert" }).first().click();
   await expect(stage.locator("ui-alert").first()).toBeHidden();
   await expect(stage.locator("ui-alert").nth(1)).toBeVisible();
@@ -42,7 +42,7 @@ test("persistent alerts can be dismissed without changing their siblings", async
 
 test("command list can omit search while retaining arrow-key selection", async ({ page }) => {
   await page.goto("/components/ui-command?example=Selectable%20list");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   await expect(stage.getByRole("combobox")).toHaveCount(0);
   const list = stage.getByRole("listbox", { name: "Recent files" });
   await list.focus();
@@ -64,7 +64,7 @@ test("menu destinations remain real anchors with disabled destinations removed",
   page,
 }) => {
   await page.goto("/components/ui-menu?example=Navigation%20links");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   await stage.getByRole("button", { name: "Resources", exact: true }).click();
   const docs = stage.getByRole("menuitem", { name: "Documentation", exact: true });
   await expect(docs).toHaveAttribute("href", "https://example.com");

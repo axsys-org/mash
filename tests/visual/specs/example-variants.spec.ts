@@ -2,7 +2,9 @@ import { expect, test } from "@playwright/test";
 import { componentExamples } from "../../../apps/catalog/src/examples/components.js";
 import { controlExamples } from "../../../apps/catalog/src/examples/controls.js";
 
-for (const [tag, examples] of Object.entries({ ...componentExamples, ...controlExamples })) {
+for (const [tag, examples] of Object.entries({ ...componentExamples, ...controlExamples }).filter(
+  ([name]) => name.startsWith("ui-"),
+)) {
   for (const example of examples) {
     for (const theme of ["light", "dark"]) {
       test(`${tag}: ${example.name} ${theme}`, async ({ page }) => {
@@ -11,11 +13,13 @@ for (const [tag, examples] of Object.entries({ ...componentExamples, ...controlE
         await page.goto(
           `/components/${tag}?theme=${theme}&example=${encodeURIComponent(example.name)}`,
         );
-        const stage = page.frameLocator("iframe");
+        const stage = page.frameLocator("iframe.stage-frame");
         await expect(stage.locator("html")).toHaveAttribute("data-stage-ready", "true");
         await expect(stage.locator(tag).first()).toBeAttached();
         await expect(stage.locator("html")).not.toHaveAttribute("data-stage-error", /.+/);
-        const frame = page.frames().find((candidate) => candidate.url().includes("/fixture.html"))!;
+        const frame = (await (await page
+          .locator("iframe.stage-frame")
+          .elementHandle())!.contentFrame())!;
         await frame.evaluate(async () => {
           await Promise.all(
             [...document.querySelectorAll("*")].map(
@@ -46,7 +50,7 @@ for (const [tag, examples] of Object.entries({ ...componentExamples, ...controlE
 
 test("dynamic tab example adds, closes, and restores an adjacent panel", async ({ page }) => {
   await page.goto("/components/ui-tabs?example=Dynamic%20tabs");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   await stage.getByRole("button", { name: "Add document" }).click();
   await expect(stage.getByRole("tab", { name: "Document 1", exact: true })).toHaveAttribute(
     "aria-selected",
@@ -63,7 +67,7 @@ test("dynamic tab example adds, closes, and restores an adjacent panel", async (
 
 test("table example commits and cancels edits through the displayed script", async ({ page }) => {
   await page.goto("/components/ui-data-table?example=Editing");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   const first = stage.locator("ui-table-body ui-table-cell").first();
   await first.dblclick();
   const input = stage.getByRole("textbox", { name: "Cell value" });
@@ -79,7 +83,7 @@ test("table example commits and cancels edits through the displayed script", asy
 
 test("sorting updates visible rows and accessible header direction", async ({ page }) => {
   await page.goto("/components/ui-data-table?example=Sorting");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   await stage.getByRole("button", { name: "Project ↕" }).click();
   await expect(stage.locator("ui-table-body ui-table-row").first()).toContainText("Components");
   await expect(stage.getByRole("columnheader").first()).toHaveAttribute("aria-sort", "ascending");

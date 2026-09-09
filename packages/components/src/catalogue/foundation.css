@@ -1092,3 +1092,46 @@
     color: var(--color-on-selection);
   }
 }
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-editor::part(syntax) {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    overflow: hidden;
+    pointer-events: none;
+    white-space: pre;
+    padding: var(--space-container-block) var(--space-container-inline);
+    font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
+      var(--type-code-font-family);
+    color: var(--color-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor[soft-wrap]::part(syntax) {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor[highlight]::part(control) {
+    position: relative;
+    color: transparent;
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor::part(keyword) {
+    color: var(--color-syntax-keyword);
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor::part(string) {
+    color: var(--color-syntax-string);
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor::part(number) {
+    color: var(--color-syntax-number);
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor::part(comment) {
+    color: var(--color-text-muted);
+  }
+  @media (forced-colors: active) {
+    :where([data-mash-catalogue="mash"]) ui-editor::part(syntax) {
+      display: none;
+    }
+    :where([data-mash-catalogue="mash"]) ui-editor[highlight]::part(control) {
+      color: CanvasText;
+    }
+  }
+}

@@ -39,17 +39,21 @@ export class UIShimmer extends LitElement {
   static override properties = {
     reverse: { type: Boolean, reflect: true },
     once: { type: Boolean, reflect: true },
+    paused: { type: Boolean, reflect: true },
   };
 
   /** Sweeps the highlight from inline-end toward inline-start. */
   declare reverse: boolean;
   /** Plays a single sweep instead of looping continuously. */
   declare once: boolean;
+  /** Freeze the decorative sweep without hiding its accessible text. */
+  declare paused: boolean;
 
   constructor() {
     super();
     this.reverse = false;
     this.once = false;
+    this.paused = false;
   }
 
   static override styles = [
@@ -90,6 +94,9 @@ export class UIShimmer extends LitElement {
 
       :host([reverse]) [part="content"] {
         animation-direction: reverse;
+      }
+      :host([paused]) [part="content"] {
+        animation-play-state: paused;
       }
 
       :host([once]) [part="content"] {

@@ -79,7 +79,7 @@ export const conversationExamples: Record<string, CatalogExample[]> = {
     {
       ...sample(
         "Live conversation",
-        `<ui-message-scroller id="conversation" label="Project conversation"><ui-marker>Today</ui-marker>${Array.from({ length: 5 }, () => incoming + outgoing).join("\n")}</ui-message-scroller><div class="mash-row"><ui-button id="earlier" size="small">Load earlier</ui-button><ui-button id="append" size="small">New message</ui-button></div>`,
+        `<ui-message-scroller id="conversation" label="Project conversation"><ui-marker>Today</ui-marker>${Array.from({ length: 5 }, () => incoming + outgoing).join("\n")}</ui-message-scroller><div class="mash-row"><ui-button id="earlier" size="small">Load earlier</ui-button><ui-button id="append" size="small">Receive message</ui-button></div><form id="composer" class="mash-row"><ui-textarea id="draft" name="message" label="Message" placeholder="Write a message…" rows="2" class="mash-fill"></ui-textarea><ui-button id="send" type="submit" variant="primary" disabled>Send</ui-button></form><span>Enter to send · Shift+Enter for a new line</span>`,
       ),
       script: `const conversation = document.querySelector("#conversation");
 const message = text => {
@@ -91,7 +91,48 @@ const message = text => {
   return row;
 };
 document.querySelector("#earlier").addEventListener("click", () => conversation.prepend(message("Earlier context, with your reading position preserved.")));
-document.querySelector("#append").addEventListener("click", () => conversation.append(message("A new message just arrived.")));`,
+document.querySelector("#append").addEventListener("click", () => conversation.append(message("A new message just arrived.")));
+const draft = document.querySelector("#draft");
+const send = document.querySelector("#send");
+draft.addEventListener("input", () => { send.disabled = !draft.value.trim(); });
+const submit = () => {
+  const text = draft.value.trim();
+  if (!text) return;
+  const row = message(text);
+  row.alignment = "end";
+  row.querySelector("ui-bubble").variant = "filled";
+  row.querySelector("ui-bubble").alignment = "end";
+  conversation.append(row);
+  draft.value = "";
+  send.disabled = true;
+  draft.focus();
+  requestAnimationFrame(() => conversation.scrollToLatest());
+};
+document.querySelector("#composer").addEventListener("submit", event => { event.preventDefault(); submit(); });
+draft.addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) { event.preventDefault(); submit(); }
+});`,
+    },
+    {
+      ...sample(
+        "Long history",
+        `<div class="mash-row"><ui-button id="unread" size="small">Jump to unread</ui-button><ui-button id="older-history" size="small">Load 100 earlier</ui-button><span>10,000 messages · variable heights</span></div><ui-message-scroller id="history" label="Message history"><span slot="latest">Jump to latest ↓</span></ui-message-scroller>`,
+        "Only the visible window is mounted. Stable IDs preserve the reading position as earlier history arrives; the owner chooses the unread message.",
+      ),
+      script: `const history = document.querySelector("#history");
+history.renderMessage = item => {
+  const row = document.createElement("ui-message");
+  row.alignment = item.outgoing ? "end" : "start";
+  const label = document.createElement("span"); label.slot = "header"; label.textContent = item.author;
+  const bubble = document.createElement("ui-bubble"); bubble.variant = item.outgoing ? "filled" : "secondary"; bubble.alignment = item.outgoing ? "end" : "start"; bubble.textContent = item.text;
+  row.append(label, bubble); return row;
+};
+history.items = Array.from({ length: 10000 }, (_, index) => ({ id: "message-" + index, author: index % 2 ? "You" : "Alex", outgoing: Boolean(index % 2), text: "Message " + (index + 1) + (index % 4 ? ": A quick update." : ": The latest review includes a few more details about the proposed interaction. We can keep the controls close to their content and give every action a clear outcome.") }));
+document.querySelector("#unread").addEventListener("click", () => history.scrollToMessage("message-9750"));
+let earlier = 0;
+document.querySelector("#older-history").addEventListener("click", () => {
+  history.items = [...Array.from({ length: 100 }, () => ({ id: "earlier-" + ++earlier, author: "Alex", text: "Earlier context " + earlier })), ...history.items];
+});`,
     },
   ],
   "ui-bubble": [

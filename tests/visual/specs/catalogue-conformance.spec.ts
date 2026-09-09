@@ -1,7 +1,6 @@
 import { expect, test } from "@playwright/test";
 
 import uiManifest from "../../../packages/components/custom-elements.json" with { type: "json" };
-import shrineManifest from "../../../packages/shrine-components/custom-elements.json" with { type: "json" };
 
 interface ManifestDeclaration {
   customElement?: boolean;
@@ -16,7 +15,7 @@ interface Manifest {
   modules?: ManifestModule[];
 }
 
-const tags = ([uiManifest, shrineManifest] as Manifest[])
+const tags = ([uiManifest] as Manifest[])
   .flatMap((manifest) => manifest.modules ?? [])
   .flatMap((module) => module.declarations ?? [])
   .filter(
@@ -118,8 +117,6 @@ for (const tag of tags) {
 }
 
 const compactSurfaces = [
-  "sh-tree",
-  "sh-triptych",
   "ui-color-picker",
   "ui-dialog",
   "ui-scroll-area",
@@ -163,23 +160,6 @@ for (const tag of compactSurfaces) {
         });
         expect(scroll.bounded).toBe(true);
         expect(scroll.height).toBeGreaterThan(0);
-      }
-
-      if (tag === "sh-triptych") {
-        const regions = await component.evaluate((node) => {
-          const shell = node.shadowRoot?.querySelector<HTMLElement>("[part~='shell']");
-          const sidebar = node.shadowRoot?.querySelector<HTMLElement>("[part~='sidebar']");
-          const main = node.shadowRoot?.querySelector<HTMLElement>("[part~='main']");
-          const inspector = node.shadowRoot?.querySelector<HTMLElement>("[part~='inspector']");
-          return {
-            shellWidth: shell?.getBoundingClientRect().width ?? 0,
-            widths: [sidebar, main, inspector].map(
-              (region) => region?.getBoundingClientRect().width ?? 0,
-            ),
-          };
-        });
-        expect(regions.shellWidth).toBeGreaterThan(0);
-        expect(regions.widths.every((width) => width > 0)).toBe(true);
       }
     });
   }

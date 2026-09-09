@@ -30,12 +30,17 @@ const compositionsByTag: Record<
   "sh-limb": { parent: "sh-myth" },
   "sh-pail": { parent: "sh-myth" },
   "sh-slot": { parent: "sh-myth" },
+  "ui-dock-panel": { parent: "ui-dock" },
   "ui-accordion-item": { parent: "ui-accordion" },
   "ui-bubble-group": { parent: "ui-bubble", example: "Message rows" },
   "ui-command-item": { parent: "ui-command" },
   "ui-step": { parent: "ui-stepper" },
   "ui-chip": { parent: "ui-combobox", example: "Multiple" },
-  "ui-color-swatch": { parent: "ui-color-picker", openParent: true },
+  "ui-color-swatch": {
+    parent: "ui-color-picker",
+    example: "Popover and palette",
+    openParent: true,
+  },
   "ui-menu-item": { parent: "ui-menu", openParent: true },
   "ui-menu-label": {
     parent: "ui-menu",

@@ -956,3 +956,57 @@
     clip-path: polygon(100% var(--_mash-safe-y, 50%), 0 0, 0 100%);
   }
 }
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-color-picker[inline]::part(root) {
+    display: block;
+    inline-size: min(100%, var(--layout-dimension-panel));
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    padding: var(--space-container-inline);
+    background: var(--_mash-component-surface);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(plane) {
+    block-size: calc(var(--layout-dimension-compact) * 2);
+    border-radius: var(--radius-control);
+    cursor: crosshair;
+    touch-action: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(thumb) {
+    inline-size: var(--space-control-inline-large);
+    block-size: var(--space-control-inline-large);
+    border: var(--border-strong) solid var(--color-on-surface-inverse);
+    border-radius: var(--radius-pill);
+    box-shadow: 0 0 0 var(--border-hairline) var(--color-surface-inverse);
+    pointer-events: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(channel) {
+    display: block;
+    inline-size: 100%;
+    accent-color: var(--color-action);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(hex-input) {
+    inline-size: 100%;
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    padding: var(--space-control-block-large);
+    border-radius: var(--radius-control);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    font: inherit;
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-color-picker[inline] {
+    display: block;
+    inline-size: var(--layout-dimension-panel);
+    max-inline-size: 100%;
+    flex: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker[inline]::part(root) {
+    inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(plane) {
+    block-size: calc(var(--layout-dimension-compact) + var(--layout-dimension-control-medium));
+  }
+}

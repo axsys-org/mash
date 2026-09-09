@@ -294,3 +294,8 @@ export { UIMessageScroller } from "./message-scroller/message-scroller.js";
 export { UICommand, UICommandItem } from "./command-palette/command-palette.js";
 
 export { UIStepper, UIStep } from "./stepper/stepper.js";
+export { UIDock } from "./dock/dock.js";
+export { UIDockPanel } from "./dock-panel/dock-panel.js";
+
+export type { DockLayout, DockNode, DockTabs, DockSplit, DockPlacement } from "./dock/dock.js";
+export type { MessageRecord, MessageRenderer } from "./message-scroller/message-scroller.js";

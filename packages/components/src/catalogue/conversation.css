@@ -227,3 +227,10 @@
     font-size: var(--type-label-small-font-size);
   }
 }
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-message-scroller > [slot="history"] > [data-message-id] {
+    display: flow-root;
+    padding-block: var(--space-control-block-large);
+  }
+}

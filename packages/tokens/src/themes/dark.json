@@ -356,6 +356,18 @@
     "chart5": {
       "$value": "{color.reference.green.400}",
       "$description": "Categorical chart series 5; pair with labels or distinguishable marks."
+    },
+    "syntaxKeyword": {
+      "$value": "{color.reference.syntax.dark.keyword}",
+      "$description": "Lexical keyword foreground on code surfaces."
+    },
+    "syntaxString": {
+      "$value": "{color.reference.syntax.dark.string}",
+      "$description": "Lexical string foreground on code surfaces."
+    },
+    "syntaxNumber": {
+      "$value": "{color.reference.syntax.dark.number}",
+      "$description": "Lexical number foreground on code surfaces."
     }
   },
   "opacity": {

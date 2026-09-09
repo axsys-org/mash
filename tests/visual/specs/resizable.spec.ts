@@ -6,7 +6,7 @@ for (const [example, key, orientation] of [
 ]) {
   test(`resizes ${example} with the keyboard and exposes its constraints`, async ({ page }) => {
     await page.goto(`/components/ui-resizable?example=${encodeURIComponent(example!)}&theme=dark`);
-    const stage = page.frameLocator("iframe");
+    const stage = page.frameLocator("iframe.stage-frame");
     const control = stage.getByRole("separator");
     await expect(control).toHaveAttribute("aria-orientation", orientation!);
     const before = Number(await control.getAttribute("aria-valuenow"));
@@ -22,7 +22,7 @@ for (const [example, key, orientation] of [
 
 test("dragging stays within the authored canvas", async ({ page }) => {
   await page.goto("/components/ui-draggable");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   const card = stage.locator("ui-card");
   const before = (await card.boundingBox())!;
   await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);

@@ -27,6 +27,8 @@ export type AvatarSize = "small" | "medium" | "large";
  * @csspart root - The circular avatar surface.
  * @csspart image - The image, when `src` is available.
  * @csspart fallback - The text fallback behind the image.
+ * @csspart status - Optional availability indicator.
+ * @mashnode status status root
  *
  * @cssstate loading - Matches `:state(loading)` while an authored image is pending.
  * @cssstate loaded - Matches `:state(loaded)` after the authored image loads.
@@ -47,6 +49,8 @@ export class UIAvatar extends LitElement {
     src: { type: String, reflect: true },
     alt: { type: String, reflect: true },
     size: { type: String, reflect: true },
+    shape: { type: String, reflect: true },
+    status: { type: String, reflect: true },
     _imageFailed: { type: Boolean, state: true },
     _imageLoaded: { type: Boolean, state: true },
   };
@@ -57,6 +61,10 @@ export class UIAvatar extends LitElement {
   declare alt: string;
   /** Physical scale. */
   declare size: AvatarSize;
+  /** Circular identity or a rounded square for a team. */
+  declare shape: "circle" | "square";
+  /** Optional availability, announced with the identity label. */
+  declare status: "" | "online" | "away" | "busy" | "offline";
 
   declare private _imageFailed: boolean;
   declare private _imageLoaded: boolean;
@@ -68,6 +76,8 @@ export class UIAvatar extends LitElement {
     this.src = "";
     this.alt = "";
     this.size = "medium";
+    this.shape = "circle";
+    this.status = "";
     this._imageFailed = false;
     this._imageLoaded = false;
     this.#internals = this.attachInternals();
@@ -122,9 +132,21 @@ export class UIAvatar extends LitElement {
         part="root"
         class="avatar"
         role="img"
-        aria-label=${this.alt || this.textContent?.trim() || "Avatar"}
+        aria-label=${(this.alt || this.textContent?.trim() || "Avatar") + (this.status ? `, ${this.status}` : "")}
       >
-        <span part="fallback" ?hidden=${showImage}><slot></slot></span>
+        <span part="fallback" ?hidden=${showImage}
+          ><slot
+            >${
+              this.alt
+                .trim()
+                .split(/\s+/)
+                .slice(0, 2)
+                .map((word) => word[0] ?? "")
+                .join("")
+                .toUpperCase() || "?"
+            }</slot
+          ></span
+        >
         <img
           part="image"
           class="image"
@@ -134,6 +156,7 @@ export class UIAvatar extends LitElement {
           @load=${this.#onImageLoad}
           @error=${this.#onImageError}
         />
+        ${this.status ? html`<span part="status" aria-hidden="true"></span>` : ""}
       </span>
     `;
   }

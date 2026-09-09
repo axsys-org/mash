@@ -1,3 +1,4 @@
+import { refinements } from "./refinements.js";
 import { patternExamples } from "./patterns.js";
 import type { CatalogExample } from "../examples.js";
 import { navigationExamples } from "./navigation.js";
@@ -372,3 +373,5 @@ sections.addEventListener("ui-accordion-change", event => {
 for (const [tag, examples] of Object.entries(patternExamples)) {
   componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
 }
+
+Object.assign(componentExamples, refinements);

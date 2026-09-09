@@ -5,6 +5,15 @@ import { UIEditor } from "./editor.js";
 import "./register.js";
 
 describe("ui-editor", () => {
+  it("colors source as text without interpreting authored markup", async () => {
+    const editor = await fixture<UIEditor>("<ui-editor></ui-editor>");
+    editor.value = 'const value = "<img src=x onerror=alert(1)>"; // text';
+    await settled(editor);
+    expect(editor.shadowRoot?.querySelector("img")).toBeNull();
+    expect(inShadow(editor, '[part="syntax"]').textContent?.trim()).toBe(editor.value);
+    expect(inShadow(editor, '[part="keyword"]').textContent).toBe("const");
+    expect(inShadow(editor, '[part="syntax"]').getAttribute("aria-hidden")).toBe("true");
+  });
   it("projects source state and generated line anatomy", async () => {
     const editor = await fixture<UIEditor>(
       `<ui-editor language="typescript" value="const a = 1;\nconst b = 2;"></ui-editor>`,

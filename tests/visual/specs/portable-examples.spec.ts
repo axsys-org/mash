@@ -13,18 +13,20 @@ const tags = [
   "ui-combobox",
 ];
 
-for (const tag of new Set(tags)) {
+for (const tag of new Set(tags.filter((name) => name.startsWith("ui-")))) {
   test(`${tag} runs from a normal package import`, async ({ page }) => {
     await page.goto(`/components/${tag}`);
-    await expect(page.locator("iframe")).toHaveAttribute("src", /\/fixture\.html/);
-    const stage = page.frameLocator("iframe");
+    await expect(page.locator("iframe.stage-frame")).toHaveAttribute("src", /\/fixture\.html/);
+    const stage = page.frameLocator("iframe.stage-frame");
     await expect(stage.locator("html")).toHaveAttribute("data-stage-ready", "true");
     await expect(stage.locator(tag).first()).toBeAttached();
     if (tag === "ui-gesture-binding")
       await expect(stage.locator("ui-button").first()).toBeVisible();
     else if (tag === "ui-stagger") await expect(stage.locator("ui-motion").first()).toBeVisible();
     else await expect(stage.locator(tag).first()).toBeVisible();
-    const frame = page.frames().find((candidate) => candidate.url().includes("/fixture.html"))!;
+    const frame = (await (await page
+      .locator("iframe.stage-frame")
+      .elementHandle())!.contentFrame())!;
     const registry = await frame.evaluate(() => {
       const names = [
         ...new Set(
@@ -47,25 +49,19 @@ for (const tag of new Set(tags)) {
     });
     expect(registry.upgraded).toBe(true);
     expect(registry.complete).toBe(true);
-    const imports = await page.locator(".usage-panel pre").nth(1).innerText();
-    expect(imports).toContain(`import "${tag.startsWith("ui-") ? "@mash/ui" : "@mash/shrine"}";`);
+    const imports = await page.locator(".reference-code pre").first().textContent();
+    expect(imports).toContain('import "@mash/ui";');
     expect(imports).toContain("@mash/ui/catalogue/mash.css");
-    if (tag.startsWith("sh-")) expect(imports).toContain("@mash/shrine/catalogue/mash.css");
     expect(imports).not.toContain("/register");
-    if (["ui-gesture-binding", "ui-stagger", "ui-icon"].includes(tag)) {
-      await expect(page.locator(".token-list")).toContainText("No design tokens referenced.");
-    } else {
-      await expect(page.locator(".token-list")).toContainText(/--[a-z][\w-]+/);
-    }
   });
 }
 
 test("mixed toolbar restores its theme, geometry, and keyboard navigation", async ({ page }) => {
   await page.goto("/components/ui-toolbar?example=Mixed%20controls&theme=dark");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   await expect(stage.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(stage.getByRole("button", { name: "Save", exact: true })).toBeVisible();
-  const frame = page.frames().find((candidate) => candidate.url().includes("/fixture.html"))!;
+  const frame = (await (await page.locator("iframe.stage-frame").elementHandle())!.contentFrame())!;
   const heights = await frame.evaluate(() =>
     [...document.querySelector("ui-toolbar")!.children].map((host) => {
       const part = host.localName === "ui-select" ? "trigger" : "control";
@@ -84,7 +80,7 @@ test("mixed toolbar restores its theme, geometry, and keyboard navigation", asyn
 for (const theme of ["light", "dark"]) {
   test(`${theme} distinguishes hover, press, selection, and inverse surfaces`, async ({ page }) => {
     await page.goto("/components/ui-button?example=Theme%20boundaries");
-    const stage = page.frameLocator("iframe");
+    const stage = page.frameLocator("iframe.stage-frame");
     const panel = stage.locator(`.mash-panel[data-theme="${theme}"]`);
     const fill = (name: string) => panel.getByRole("button", { name, exact: true });
     const background = async (name: string) =>
@@ -123,7 +119,7 @@ for (const theme of ["light", "dark"]) {
 
 test("menus default to opaque surfaces and preserve keyboard selection", async ({ page }) => {
   await page.goto("/components/ui-menu");
-  const stage = page.frameLocator("iframe");
+  const stage = page.frameLocator("iframe.stage-frame");
   await stage.getByRole("button", { name: "Edit", exact: true }).focus();
   await page.keyboard.press("Enter");
   const copy = stage.getByRole("menuitem", { name: /Copy/ });

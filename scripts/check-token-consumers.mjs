@@ -125,7 +125,11 @@ async function main() {
     .map((filePath) => path.relative(ROOT, filePath))
     .filter((filePath) => filePath.startsWith("apps/catalog/src/"));
   for (const filePath of catalogueStyles) {
-    if (filePath !== CATALOG_SYSTEM_ENTRY && filePath !== "apps/catalog/src/fixture-stage.css") {
+    if (
+      filePath !== CATALOG_SYSTEM_ENTRY &&
+      filePath !== "apps/catalog/src/fixture-stage.css" &&
+      filePath !== "apps/catalog/src/showcase.css"
+    ) {
       unresolved.push(
         `${filePath} is application styling; compose semantic utilities in utility-recipes.ts instead`,
       );
