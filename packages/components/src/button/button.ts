@@ -67,6 +67,7 @@ export type ButtonType = "button" | "submit" | "reset";
  *   <ui-button tone="info">Information</ui-button>
  * </div>
  *
+ * @attr {string} aria-expanded - Disclosure state passed to the native control. Omit for ordinary buttons.
  * @attr {string} aria-label - Accessible name passed to the native control, required for icon-only buttons.
  * @slot - The button's label.
  * @slot prefix - Content placed before the label, typically an icon. Hidden while loading.
@@ -126,6 +127,7 @@ export class UIButton extends LitElement {
 
   static override properties = {
     ariaLabel: { type: String, attribute: "aria-label", reflect: true },
+    ariaExpanded: { type: String, attribute: "aria-expanded", reflect: true },
     variant: { type: String, reflect: true },
     size: { type: String, reflect: true },
     tone: { type: String, reflect: true },
@@ -285,6 +287,7 @@ export class UIButton extends LitElement {
         type="button"
         ?disabled=${this.#inert}
         aria-label=${this.ariaLabel || nothing}
+        aria-expanded=${this.ariaExpanded ?? nothing}
         aria-busy=${this.loading ? "true" : "false"}
         @pointerdown=${() => this.#setPressed(true)}
         @pointerup=${() => this.#setPressed(false)}
