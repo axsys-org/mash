@@ -76,6 +76,69 @@ describe("ui-virtual-list", () => {
     await settled(list);
     expect(viewport.scrollTop).toBe(150);
   });
+  it("constructs a bounded two-axis window for half a million records", async () => {
+    const list = await fixture<UIVirtualList>(`<ui-virtual-list overscan="1"></ui-virtual-list>`);
+    const viewport = inShadow<HTMLElement>(list, `[part="viewport"]`);
+    viewport.style.cssText = "height:120px;width:320px;overflow:auto";
+    const render = vi.fn((index: number, column: number) => {
+      const cell = document.createElement("span");
+      cell.textContent = `${index}:${column}`;
+      return cell;
+    });
+    list.source = { count: 500_000, size: 30, columns: 100, columnSize: 100, render };
+    await settled(list);
+    expect(list.querySelectorAll("ui-virtual-item").length).toBeLessThan(10);
+    expect(render.mock.calls.length).toBeLessThan(100);
+    expect(list.textContent).toContain("0:0");
+    list.scrollToItem(250_000, "start");
+    await settled(list);
+    expect(list.visibleRange[0]).toBe(249_999);
+    expect(list.textContent).toContain("250000:0");
+    expect([...list.querySelectorAll("span")].some((cell) => cell.textContent === "0:0")).toBe(
+      false,
+    );
+    viewport.scrollLeft = 9000;
+    viewport.dispatchEvent(new Event("scroll"));
+    await settled(list);
+    expect(list.textContent).toContain("250000:90");
+    expect(list.textContent).not.toContain("250000:0");
+    const calls = render.mock.calls.length;
+    viewport.dispatchEvent(new Event("scroll"));
+    await settled(list);
+    expect(render.mock.calls.length).toBe(calls);
+    list.scrollToBottom();
+    await settled(list);
+    expect(list.textContent).toContain("499999:90");
+    list.source = { count: 5, size: 30, render };
+    await settled(list);
+    expect(list.querySelectorAll("ui-virtual-item").length).toBeLessThanOrEqual(5);
+    list.source = null;
+    await settled(list);
+    expect(list.querySelectorAll("ui-virtual-item").length).toBe(0);
+  });
+
+  it("refreshes authored size caches and preserves surviving row nodes", async () => {
+    const list = await fixture<UIVirtualList>(
+      `<ui-virtual-list overscan="0">${Array.from({ length: 20 }, (_, i) => `<ui-virtual-item size="40"><input value="${i}"></ui-virtual-item>`).join("")}</ui-virtual-list>`,
+    );
+    const viewport = inShadow<HTMLElement>(list, `[part="viewport"]`);
+    viewport.style.cssText = "height:100px;overflow:auto";
+    viewport.dispatchEvent(new Event("scroll"));
+    await settled(list);
+    const rows = itemsAt(list);
+    rows[0]!.size = 100;
+    await settled(list);
+    list.scrollToItem(2, "start");
+    await settled(list);
+    expect(viewport.scrollTop).toBe(140);
+    const input = rows[2]!.querySelector("input")!;
+    input.value = "retained";
+    list.scrollToBottom();
+    list.scrollToItem(2, "start");
+    await settled(list);
+    expect(rows[2]!.querySelector("input")).toBe(input);
+    expect(input.value).toBe("retained");
+  });
 });
 
 function itemsAt(list: UIVirtualList): UIVirtualItem[] {

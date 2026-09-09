@@ -128,6 +128,23 @@ export class UICommand extends LitElement {
       .querySelector<HTMLElement>(this.searchable ? '[part="search"]' : '[part="list"]')
       ?.focus(options);
   }
+  /** Highlights an available command, scrolls it into view, and keeps keyboard ownership on the collection. */
+  highlight(value: string): boolean {
+    const item = this.#available.find((entry) => entry.value === value);
+    if (!item) return false;
+    this.#activate(item);
+    this.#reveal(item);
+    this.focus({ preventScroll: true });
+    return true;
+  }
+  #reveal(item?: UICommandItem): void {
+    const list = this.renderRoot.querySelector<HTMLElement>('[part="list"]');
+    if (!item || !list) return;
+    const viewport = list.getBoundingClientRect();
+    const row = item.getBoundingClientRect();
+    if (row.top < viewport.top) list.scrollTop += row.top - viewport.top;
+    else if (row.bottom > viewport.bottom) list.scrollTop += row.bottom - viewport.bottom;
+  }
   #filter = (): void => {
     const terms = this.query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
     for (const item of this.#items) {
@@ -178,14 +195,16 @@ export class UICommand extends LitElement {
     const items = this.#available;
     if (!this.searchable && (event.key === "Home" || event.key === "End")) {
       event.preventDefault();
-      this.#activate(event.key === "Home" ? items[0] : items.at(-1));
+      const next = event.key === "Home" ? items[0] : items.at(-1);
+      this.#activate(next);
+      this.#reveal(next);
     } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       const current = items.indexOf(this.#active!);
       const next =
         items[(current + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
       this.#activate(next);
-      next?.scrollIntoView({ block: "nearest" });
+      this.#reveal(next);
     } else if (event.key === "Enter") {
       event.preventDefault();
       this.#select(this.#active);

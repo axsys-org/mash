@@ -132,3 +132,21 @@ it("keeps modal Tab navigation inside the command when its empty-state action is
     expect(command.shadowRoot!.activeElement).toBe(search);
   }
 });
+
+it("reveals highlighted commands inside the list without moving its containing workspace", async () => {
+  const workspace = await fixture<HTMLElement>(
+    `<div style="height:160px;overflow:auto"><div style="height:120px">Workspace header</div><ui-command>${Array.from({ length: 30 }, (_, index) => `<ui-command-item style="display:block;height:30px" value="${index}">Command ${index}</ui-command-item>`).join("")}</ui-command><div style="height:300px"></div></div>`,
+  );
+  const command = workspace.querySelector<UICommand>("ui-command")!;
+  const list = inShadow<HTMLElement>(command, '[part="list"]');
+  list.style.maxHeight = "80px";
+  list.style.overflow = "auto";
+  await settled(command);
+  workspace.scrollTop = 10;
+  expect(command.highlight("29")).toBe(true);
+  await settled(command);
+  expect(list.scrollTop).toBeGreaterThan(0);
+  expect(workspace.scrollTop).toBe(10);
+  const row = command.querySelector('ui-command-item[value="29"]')!.getBoundingClientRect();
+  expect(row.bottom).toBeLessThanOrEqual(list.getBoundingClientRect().bottom + 1);
+});

@@ -1,50 +1,58 @@
 import { expect, test } from "@playwright/test";
-import { componentExamples } from "../../../apps/catalog/src/examples/components.js";
-import { controlExamples } from "../../../apps/catalog/src/examples/controls.js";
+import { examplesFor } from "../../../apps/catalog/src/examples.js";
+import { components } from "../../../apps/catalog/src/schema.js";
+import { hasRenderedContent } from "./helpers/rendered-content.js";
 
-for (const [tag, examples] of Object.entries({ ...componentExamples, ...controlExamples }).filter(
-  ([name]) => name.startsWith("ui-"),
-)) {
-  for (const example of examples) {
-    for (const theme of ["light", "dark"]) {
-      test(`${tag}: ${example.name} ${theme}`, async ({ page }) => {
-        const errors: string[] = [];
-        page.on("pageerror", (error) => errors.push(error.message));
-        await page.goto(
-          `/components/${tag}?theme=${theme}&example=${encodeURIComponent(example.name)}`,
-        );
-        const stage = page.frameLocator("iframe.stage-frame");
-        await expect(stage.locator("html")).toHaveAttribute("data-stage-ready", "true");
-        await expect(stage.locator(tag).first()).toBeAttached();
-        await expect(stage.locator("html")).not.toHaveAttribute("data-stage-error", /.+/);
-        const frame = (await (await page
-          .locator("iframe.stage-frame")
-          .elementHandle())!.contentFrame())!;
-        await frame.evaluate(async () => {
-          await Promise.all(
-            [...document.querySelectorAll("*")].map(
-              (node) =>
-                (node as HTMLElement & { updateComplete?: Promise<unknown> }).updateComplete,
-            ),
-          );
+// One page per component/theme: exercise the actual consolidated preview,
+// including lazy mounts, without repeatedly loading its already-checked siblings.
+for (const component of components.filter((item) => item.packageName === "@mash/ui")) {
+  const tag = component.tagName;
+  const examples = examplesFor(component);
+  for (const theme of ["light", "dark"]) {
+    test(`${tag}: every example in ${theme}`, async ({ page }) => {
+      test.setTimeout(Math.max(30_000, examples.length * 10_000));
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      await page.goto(`/components/${tag}?theme=${theme}`);
+      for (const example of examples) {
+        await test.step(example.name, async () => {
+          const host = page.locator(`iframe[data-variant=${JSON.stringify(example.name)}]`);
+          await host.scrollIntoViewIfNeeded();
+          const stage = host.contentFrame();
+          await expect(stage.locator("html")).toHaveAttribute("data-stage-ready", "true");
+          await expect(stage.locator("html")).toHaveAttribute("data-example-ready", "true");
+          // Native description lists, grouping, and passive status layouts are
+          // documented beside their composition ingredients, without inventing
+          // wrapper elements solely to make the preview contain the route tag.
+          if (new RegExp(`<${tag}(?:\\s|>)`).test(example.code))
+            await expect(stage.locator(tag).first()).toBeAttached();
+          // Labels and controls may live entirely in shadow DOM; light-DOM
+          // textContent cannot distinguish their preview from an empty body.
+          await expect.poll(() => stage.locator("body").evaluate(hasRenderedContent)).toBe(true);
+          await expect(stage.locator("html")).not.toHaveAttribute("data-stage-error", /.+/);
+          const state = await stage.locator("html").evaluate(async () => {
+            await Promise.all(
+              [...document.querySelectorAll("*")].map(
+                (node) =>
+                  (node as HTMLElement & { updateComplete?: Promise<unknown> }).updateComplete,
+              ),
+            );
+            return {
+              undefined: [...document.querySelectorAll("*")]
+                .filter(
+                  (node) => node.localName.startsWith("ui-") || node.localName.startsWith("sh-"),
+                )
+                .filter((node) => !customElements.get(node.localName))
+                .map((node) => node.localName),
+              overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+            };
+          });
+          expect(state.undefined).toEqual([]);
+          expect(state.overflow).toBeLessThanOrEqual(2);
+          expect(errors).toEqual([]);
         });
-        expect(
-          await frame.evaluate(() =>
-            [...document.querySelectorAll("*")]
-              .filter(
-                (node) => node.localName.startsWith("ui-") || node.localName.startsWith("sh-"),
-              )
-              .every((node) => customElements.get(node.localName)),
-          ),
-        ).toBe(true);
-        expect(
-          await frame.evaluate(
-            () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-          ),
-        ).toBeLessThanOrEqual(2);
-        expect(errors).toEqual([]);
-      });
-    }
+      }
+    });
   }
 }
 

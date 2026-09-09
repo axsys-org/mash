@@ -101,3 +101,25 @@ describe("ui-textarea", () => {
     expect(focusChange.mock.calls.at(-1)?.[0].detail).toEqual({ focused: false });
   });
 });
+
+it("reports a committed textarea value once across the form boundary", async () => {
+  const form = await fixture<HTMLFormElement>(
+    `<form><ui-textarea name="notes" value="Initial"></ui-textarea></form>`,
+  );
+  const textarea = form.querySelector<UITextarea>("ui-textarea")!;
+  const control = inShadow<HTMLTextAreaElement>(textarea, "textarea");
+  const change = vi.fn((event: Event) => {
+    expect(event.target).toBe(textarea);
+    expect(textarea.value).toBe("Edited\nnotes");
+    textarea.value = "Reviewed notes";
+  });
+  form.addEventListener("change", change);
+  control.value = "Edited\nnotes";
+  control.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+  await settled(form);
+  control.dispatchEvent(new Event("change", { bubbles: true }));
+  await settled(form);
+  expect(change).toHaveBeenCalledOnce();
+  expect(control.value).toBe("Reviewed notes");
+  expect(new FormData(form).get("notes")).toBe("Reviewed notes");
+});

@@ -118,4 +118,48 @@ describe("ui-color-picker", () => {
     expect(changes).toEqual([""]);
     expect(inShadow(picker, `[part="clear"]`)).toBeInstanceOf(HTMLElement);
   });
+
+  it("restores committed channels after preview and projects a new owner color", async () => {
+    const picker = await fixture<UIColorPicker>(
+      `<ui-color-picker inline value="#FF000080"></ui-color-picker>`,
+    );
+    picker.previewColor("#00FF00");
+    await settled(picker);
+    expect(picker.hue).toBe(120);
+    picker.previewColor(null);
+    await settled(picker);
+    expect(picker.hue).toBe(0);
+    expect(picker.alpha).toBeCloseTo(50.196, 2);
+    picker.commitColor("#00FF00", false);
+    await settled(picker);
+    picker.value = "#0000FF40";
+    await settled(picker);
+    expect(picker.preview).toBe("");
+    expect(picker.hue).toBe(240);
+    expect(inShadow<HTMLInputElement>(picker, '[part="hex-input"]').value).toBe("#0000FF40");
+  });
+
+  it("uses the shared overlay lifecycle when opening from the trigger", async () => {
+    const picker = await fixture<UIColorPicker>(
+      `<ui-color-picker value="#7965E8"><button slot="trigger">Choose</button></ui-color-picker>`,
+    );
+    picker.querySelector<HTMLButtonElement>('button[slot="trigger"]')!.click();
+    await settled(picker);
+    expect(picker.open).toBe(true);
+    expect(picker.matches(":state(present)")).toBe(true);
+    expect(inShadow<HTMLElement>(picker, '[part="backdrop"]').hidden).toBe(false);
+  });
+
+  it("prevents authored controls from editing a disabled inline picker", async () => {
+    const picker = await fixture<UIColorPicker>(
+      `<ui-color-picker inline disabled value="#7965E8"><ui-color-swatch value="#00FF00">Green</ui-color-swatch><button slot="clear">Clear</button></ui-color-picker>`,
+    );
+    const changed = vi.fn();
+    picker.addEventListener("ui-color-change", changed);
+    inShadow<HTMLButtonElement>(picker.querySelector("ui-color-swatch")!, "button").click();
+    picker.querySelector<HTMLButtonElement>('button[slot="clear"]')!.click();
+    await settled(picker);
+    expect(picker.value).toBe("#7965E8");
+    expect(changed).not.toHaveBeenCalled();
+  });
 });

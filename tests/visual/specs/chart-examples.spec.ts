@@ -21,6 +21,89 @@ async function paths(frame: FrameLocator): Promise<string> {
 }
 
 for (const theme of ["light", "dark"]) {
+  test(`${theme}: custom duration marks clip without changing their source data`, async ({
+    page,
+  }) => {
+    await page.goto(
+      `/components/ui-chart?example=${encodeURIComponent("Custom marks · schedule")}&theme=${theme}`,
+    );
+    const frame = page.frameLocator('iframe[data-variant="Custom marks · schedule"]');
+    await expect(frame.locator("#custom-plot svg")).toBeVisible();
+    const before = await frame
+      .locator("#custom-plot svg path")
+      .evaluateAll((elements) => elements.map((path) => path.getAttribute("d")).join("|"));
+    await choose(frame, "Time window", "Working hours");
+    await expect
+      .poll(() =>
+        frame
+          .locator("#custom-plot svg path")
+          .evaluateAll((elements) => elements.map((path) => path.getAttribute("d")).join("|")),
+      )
+      .not.toBe(before);
+    await frame.getByText("View data", { exact: true }).click();
+    await expect(frame.locator("tbody tr").nth(1)).toHaveText("Build415");
+    await choose(frame, "Renderer", "Canvas");
+    await expect(frame.locator("#custom-plot canvas")).toBeVisible();
+    await expect(frame.locator('[part="error"]')).toBeHidden();
+  });
+
+  test(`${theme}: custom arcs change outer radius while retaining quantities`, async ({ page }) => {
+    await page.goto(
+      `/components/ui-chart?example=${encodeURIComponent("Pie · variable radius")}&theme=${theme}`,
+    );
+    const frame = page.frameLocator('iframe[data-variant="Pie · variable radius"]');
+    await expect(frame.locator("#custom-plot svg")).toBeVisible();
+    const arcs = frame.locator("#custom-plot svg path");
+    const before = await arcs.evaluateAll((elements) =>
+      elements.map((path) => path.getAttribute("d")).join("|"),
+    );
+    await choose(frame, "Outer radius", "Equal radii");
+    await expect
+      .poll(() =>
+        arcs.evaluateAll((elements) => elements.map((path) => path.getAttribute("d")).join("|")),
+      )
+      .not.toBe(before);
+    await frame.getByText("View data", { exact: true }).click();
+    await expect(frame.locator("tbody tr")).toHaveCount(6);
+    await expect(frame.locator("tbody tr").first()).toHaveText("Jan186");
+  });
+
+  test(`${theme}: direct gradient gallery paints distinct bars with preserved source values`, async ({
+    page,
+  }) => {
+    await page.goto(
+      `/components/ui-chart?example=${encodeURIComponent("Bars · per-bar gradients")}&theme=${theme}`,
+    );
+    const frame = page.frameLocator('iframe[data-variant="Bars · per-bar gradients"]');
+    await expect(frame.locator("ui-chart svg")).toBeVisible();
+    await expect.poll(() => frame.locator("svg linearGradient").count()).toBeGreaterThanOrEqual(5);
+    const fills = await frame
+      .locator("svg linearGradient stop")
+      .evaluateAll((stops) => [...new Set(stops.map((stop) => stop.getAttribute("stop-color")))]);
+    expect(fills.length).toBeGreaterThanOrEqual(5);
+    await frame.getByText("View data", { exact: true }).click();
+    await expect(frame.locator("tbody tr")).toHaveCount(6);
+    await expect(frame.locator("tbody tr").first()).toContainText("186");
+    await expect(frame.locator('[part="error"]')).toBeHidden();
+  });
+
+  test(`${theme}: labeled pie and financial flow expose their actual values`, async ({ page }) => {
+    await page.goto(
+      `/components/ui-chart?example=${encodeURIComponent("Pie · labels")}&theme=${theme}`,
+    );
+    const pie = page.frameLocator('iframe[data-variant="Pie · labels"]');
+    await expect(pie.locator("ui-chart svg")).toBeVisible();
+    await expect(pie.locator("svg text").filter({ hasText: /Jan/ })).not.toHaveCount(0);
+    await expect(pie.locator("svg text").filter({ hasText: /186/ })).not.toHaveCount(0);
+    const flow = page.frameLocator('iframe[data-variant="Financial flow · period 1"]');
+    await page.locator('iframe[data-variant="Financial flow · period 1"]').scrollIntoViewIfNeeded();
+    await expect(flow.locator("ui-chart svg")).toBeVisible();
+    await expect(flow.locator("svg text").filter({ hasText: /\$120m/ })).not.toHaveCount(0);
+    await flow.getByText("View data", { exact: true }).click();
+    await expect(flow.locator("tbody tr")).toHaveCount(7);
+    await expect(flow.locator("tbody tr").first()).toHaveText("RevenueCost of sales72");
+  });
+
   test(`${theme}: curve and axis controls redraw the plotted geometry`, async ({ page }) => {
     const frame = await openChart(page, "Curves and axes", theme);
     const linear = await paths(frame);

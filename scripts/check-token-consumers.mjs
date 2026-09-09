@@ -128,7 +128,12 @@ async function main() {
     if (
       filePath !== CATALOG_SYSTEM_ENTRY &&
       filePath !== "apps/catalog/src/fixture-stage.css" &&
-      filePath !== "apps/catalog/src/showcase.css"
+      filePath !== "apps/catalog/src/showcase.css" &&
+      filePath !== "apps/catalog/src/stories.css" &&
+      // Lazy application examples own their layout; promoting these styles to
+      // the base recipes would make every component consumer pay for them.
+      // All token references below remain checked for these files.
+      !filePath.startsWith("apps/catalog/src/stories/")
     ) {
       unresolved.push(
         `${filePath} is application styling; compose semantic utilities in utility-recipes.ts instead`,

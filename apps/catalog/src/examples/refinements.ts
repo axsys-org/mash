@@ -1,64 +1,6 @@
 import type { CatalogExample } from "../examples.js";
 import { sample } from "./shared.js";
-const source = `// Keep behavior close to the content it owns.
-interface Message {
-  author: string;
-  text: string;
-}
-
-export function greeting(name: string): Message {
-  return { author: "Team", text: "Hello, " + name };
-}
-
-const message = greeting("Alex");
-console.log(message.text);`;
 export const refinements: Record<string, CatalogExample[]> = {
-  "ui-editor": [
-    {
-      ...sample(
-        "Source editor",
-        `<div class="mash-row"><ui-button id="find" size="small">Find / replace</ui-button><ui-checkbox id="wrap">Wrap lines</ui-checkbox><ui-button id="reset-source" size="small" variant="ghost">Reset</ui-button></div><ui-editor id="source" language="typescript" label="TypeScript source"><div slot="search" class="mash-row mash-wrap"><ui-input id="query" label="Find" placeholder="Find"></ui-input><ui-input id="replacement" label="Replace" placeholder="Replace with"></ui-input><ui-button id="next" size="small">Next</ui-button><ui-button id="replace" size="small">Replace all</ui-button><ui-button id="close-search" size="small" aria-label="Close search">×</ui-button></div><span slot="status" id="source-status">TypeScript · UTF-8</span></ui-editor>`,
-        "Edit directly. Tab indents, Shift+Tab outdents, and ⌘/Ctrl+F opens search. Text input, selection, IME, and clipboard stay native.",
-      ),
-      script: `const editor = document.querySelector("#source");
-const initial = ${JSON.stringify(source)};
-editor.value = initial;
-const query = document.querySelector("#query");
-document.querySelector("#find").addEventListener("click", () => { editor.searchOpen = !editor.searchOpen; if (editor.searchOpen) query.focus(); });
-editor.addEventListener("ui-editor-command", event => { if (event.detail.command === "find") query.focus(); });
-query.addEventListener("input", () => { editor.searchQuery = query.value; });
-document.querySelector("#next").addEventListener("click", () => editor.findNext());
-document.querySelector("#replace").addEventListener("click", () => editor.replaceAllMatches(document.querySelector("#replacement").value));
-document.querySelector("#close-search").addEventListener("click", () => { editor.searchOpen = false; editor.focus(); });
-document.querySelector("#wrap").addEventListener("change", event => { editor.softWrap = event.target.checked; });
-document.querySelector("#reset-source").addEventListener("click", () => { editor.value = initial; });
-editor.addEventListener("ui-editor-selection-change", event => { document.querySelector("#source-status").textContent = "Ln " + event.detail.startLine + ", Col " + (event.detail.startColumn + 1) + " · TypeScript · UTF-8"; });`,
-    },
-    sample(
-      "Read-only",
-      `<ui-editor readonly label="Configuration" language="json" value='{ "theme": "system", "motion": true }'><span slot="status">Read-only configuration</span></ui-editor>`,
-      "Read-only documents still support text selection and copy.",
-    ),
-  ],
-  "ui-color-picker": [
-    {
-      ...sample(
-        "Color selector",
-        `<div class="mash-row mash-wrap"><ui-color-picker id="color" inline label="Accent" value="#7965E8"></ui-color-picker><ui-card id="color-preview"><strong slot="title">Your color</strong><p id="color-value">#7965E8</p><ui-button id="copy-color" slot="footer" size="small">Copy hex</ui-button></ui-card></div>`,
-        "Drag the color plane, adjust channels with the keyboard, or enter a hex value. Opacity is preserved in eight-digit hex.",
-      ),
-      script: `const picker = document.querySelector("#color");
-const preview = document.querySelector("#color-preview");
-const update = () => { preview.style.borderInlineStart = "4px solid " + picker.value; document.querySelector("#color-value").textContent = picker.value; };
-picker.addEventListener("ui-color-change", update); update();
-document.querySelector("#copy-color").addEventListener("click", async event => { try { await navigator.clipboard.writeText(picker.value); event.target.textContent = "Copied"; } catch { event.target.textContent = "Select hex to copy"; } });`,
-    },
-    sample(
-      "Popover and palette",
-      `<ui-color-picker label="Label color" value="#7965E8"><ui-button slot="trigger">Choose label color</ui-button><ui-color-swatch value="#7965E8" label="Violet"></ui-color-swatch><ui-color-swatch value="#36A376" label="Green"></ui-color-swatch><ui-color-swatch value="#E79A32" label="Amber"></ui-color-swatch><ui-button slot="close" size="small">Done</ui-button></ui-color-picker>`,
-      "The same controls work in a popup. Supply swatches for a project palette.",
-    ),
-  ],
   "ui-shimmer": [
     {
       ...sample(

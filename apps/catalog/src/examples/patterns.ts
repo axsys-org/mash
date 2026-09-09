@@ -91,13 +91,6 @@ command.addEventListener("ui-command-select", event => {
       `<ui-fieldset legend="Delivery"><div class="mash-stack"><ui-radio-group name="delivery" label="Delivery method" value="email"><ui-radio value="email">Email</ui-radio><ui-radio value="download">Download</ui-radio></ui-radio-group></div></ui-fieldset><ui-fieldset legend="Unavailable settings" disabled><ui-input label="Team name" value="Design"></ui-input><ui-switch checked>Public access</ui-switch></ui-fieldset>`,
     ),
   ],
-  "ui-toolbar": [
-    sample(
-      "Status bar",
-      `<ui-toolbar label="Editor status" data-mash-size="small"><ui-label text="Saved" secondary="Just now"></ui-label><div class="mash-fill"></div><ui-button variant="ghost">Line 12, Column 8</ui-button><ui-separator orientation="vertical"></ui-separator><ui-button variant="ghost">UTF-8</ui-button><ui-button variant="ghost">HTML</ui-button></ui-toolbar>`,
-      "Use a toolbar for actionable status controls. Keep passive status messages concise and announce changes only when useful.",
-    ),
-  ],
   "ui-navigation-menu": [
     {
       ...sample(

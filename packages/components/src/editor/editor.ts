@@ -2,6 +2,14 @@ import { LitElement, css, html, nothing, type PropertyValues, type TemplateResul
 
 import { baseStyles } from "../internal/base-styles.js";
 import { sourceTokens } from "./syntax.js";
+import {
+  inferTextChange,
+  mapDecorations,
+  normalizeDecorations,
+  type EditorDecoration,
+  type EditorTextChange,
+} from "./decorations.js";
+export type { EditorDecoration } from "./decorations.js";
 
 export interface EditorSelectionDetail {
   start: number;
@@ -80,6 +88,21 @@ export interface EditorSearchDetail {
  * @csspart string - String literals.
  * @csspart number - Numeric literals.
  * @csspart comment - Source comments.
+ * @csspart range - Source text covered by a mapped decoration.
+ * @csspart range-highlight - Highlight decoration without changing text metrics.
+ * @csspart range-error - Error diagnostic text range.
+ * @csspart range-warning - Warning diagnostic text range.
+ * @csspart range-info - Informational text range.
+ * @csspart whitespace - Decorative space/tab marker with unchanged source text.
+ * @mashnode range decoration syntax
+ * @mashnode range-highlight decoration range
+ * @mashnode range-error diagnostic range
+ * @mashnode range-warning diagnostic range
+ * @mashnode range-info diagnostic range
+ * @mashnode whitespace text syntax
+ * @fires {CustomEvent<{decorations: readonly EditorDecoration[]}>} ui-editor-decorations-change - Reports range positions after document edits.
+ * @mashnode decorations-change change decorations
+ * @mashrole event ui-editor-decorations-change change decorations-change
  * @mashnode syntax text scroller
  * @mashnode keyword keyword syntax
  * @mashnode string string syntax
@@ -137,6 +160,8 @@ export interface EditorSearchDetail {
  * @mashnode line-numbers line-numbers gutter
  * @mashnode soft-wrap soft-wrap control
  * @mashnode tab-size tab-size control
+ * @mashnode hard-tabs indentation control
+ * @mashnode show-whitespace visibility syntax
  * @mashnode focused focused control
  * @mashnode invalid invalid control
  * @mashnode search-query search-query search
@@ -199,6 +224,9 @@ export class UIEditor extends LitElement {
     softWrap: { type: Boolean, attribute: "soft-wrap", reflect: true },
     highlight: { type: Boolean, reflect: true },
     tabSize: { type: Number, attribute: "tab-size", reflect: true },
+    hardTabs: { type: Boolean, attribute: "hard-tabs", reflect: true },
+    showWhitespace: { type: Boolean, attribute: "show-whitespace", reflect: true },
+    decorations: { attribute: false },
     searchQuery: { type: String, attribute: "search-query", reflect: true },
     caseSensitive: { type: Boolean, attribute: "case-sensitive", reflect: true },
     searchOpen: { type: Boolean, attribute: "search-open", reflect: true },
@@ -226,8 +254,14 @@ export class UIEditor extends LitElement {
   declare softWrap: boolean;
   /** Apply a lightweight lexical color layer; native text input remains authoritative. */
   declare highlight: boolean;
-  /** Spaces inserted for the Tab key and native tab rendering width. */
+  /** Tab stop width used by indentation and native tab rendering. */
   declare tabSize: number;
+  /** Inserts a literal tab instead of spaces when indenting. */
+  declare hardTabs: boolean;
+  /** Paints space and tab markers without changing the source text. */
+  declare showWhitespace: boolean;
+  /** Provider ranges mapped through edits; assign new arrays for provider updates. */
+  declare decorations: readonly EditorDecoration[];
   /** Literal query used by the portable search methods. */
   declare searchQuery: string;
   /** Whether literal source search distinguishes letter case. */
@@ -241,6 +275,10 @@ export class UIEditor extends LitElement {
 
   readonly #internals: ElementInternals;
   #gutterScroll = 0;
+  #resizeObserver: ResizeObserver | undefined;
+  #observedControl: HTMLTextAreaElement | null = null;
+  #beforeInput: { start: number; end: number; inputType: string } | undefined;
+  #pendingChanges: EditorTextChange[] | undefined;
   #fieldDescription = "";
   #fieldInvalid = false;
 
@@ -257,6 +295,9 @@ export class UIEditor extends LitElement {
     this.softWrap = false;
     this.highlight = true;
     this.tabSize = 2;
+    this.hardTabs = false;
+    this.showWhitespace = false;
+    this.decorations = [];
     this.searchQuery = "";
     this.caseSensitive = false;
     this.searchOpen = false;
@@ -284,6 +325,73 @@ export class UIEditor extends LitElement {
     `,
   ];
 
+  override disconnectedCallback(): void {
+    this.#resizeObserver?.disconnect();
+    this.#resizeObserver = undefined;
+    this.#observedControl = null;
+    super.disconnectedCallback();
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    void this.updateComplete.then(() => {
+      if (this.isConnected) this.#observeControl();
+    });
+  }
+
+  #observeControl(): void {
+    const control = this.control;
+    if (!control || control === this.#observedControl) return;
+    this.#resizeObserver?.disconnect();
+    this.#resizeObserver = new ResizeObserver(() => this.#syncPaint());
+    this.#resizeObserver.observe(control);
+    this.#observedControl = control;
+    this.#syncPaint();
+  }
+
+  #syncPaint(): void {
+    const control = this.control;
+    const syntax = this.renderRoot.querySelector<HTMLElement>('[part="syntax"]');
+    if (!control || !syntax || control.clientWidth === 0) return;
+    // The mirror excludes native scrollbar gutters, just like textarea text.
+    syntax.style.width = control.clientWidth + "px";
+    syntax.style.height = control.clientHeight + "px";
+    syntax.scrollTop = control.scrollTop;
+    syntax.scrollLeft = control.scrollLeft;
+    const numbers = this.renderRoot.querySelectorAll<HTMLElement>('[part="line-number"]');
+    if (!numbers.length) return;
+    if (!this.softWrap) {
+      numbers.forEach((number) => number.style.removeProperty("height"));
+      return;
+    }
+    const lineHeight = Number.parseFloat(getComputedStyle(control).lineHeight);
+    if (!Number.isFinite(lineHeight)) return;
+    const walker = document.createTreeWalker(syntax, NodeFilter.SHOW_TEXT);
+    const nodes: { node: Text; start: number; end: number }[] = [];
+    let length = 0;
+    while (walker.nextNode()) {
+      const node = walker.currentNode as Text;
+      nodes.push({ node, start: length, end: length + node.length });
+      length += node.length;
+    }
+    const point = (offset: number) => nodes.find((node) => offset < node.end) ?? nodes.at(-1);
+    let start = 0;
+    this.value.split("\n").forEach((line, index) => {
+      const first = point(start);
+      const last = point(start + line.length);
+      const tops = new Set<number>();
+      if (line.length && first && last) {
+        const range = document.createRange();
+        range.setStart(first.node, Math.min(first.node.length, start - first.start));
+        range.setEnd(last.node, Math.min(last.node.length, start + line.length - last.start));
+        for (const rect of range.getClientRects())
+          if (rect.width > 0) tops.add(Math.round(rect.top));
+      }
+      if (numbers[index]) numbers[index]!.style.height = Math.max(1, tops.size) * lineHeight + "px";
+      start += line.length + 1;
+    });
+  }
+
   #onSlotChange = (event: Event): void => {
     const slot = event.target as HTMLSlotElement;
     const next = new Set(this._filledSlots);
@@ -304,9 +412,53 @@ export class UIEditor extends LitElement {
     return this.renderRoot.querySelector<HTMLTextAreaElement>("[part='control']");
   }
 
+  /** Focuses the native source even when a slotted diagnostic or search control has focus. */
+  override focus(options?: FocusOptions): void {
+    this.control?.focus(options);
+  }
+
+  #onBeforeInput = (event: InputEvent): void => {
+    const control = event.currentTarget as HTMLTextAreaElement;
+    this.#beforeInput = {
+      start: control.selectionStart,
+      end: control.selectionEnd,
+      inputType: event.inputType,
+    };
+  };
+
+  #mapChanges(changes: readonly EditorTextChange[], length: number): void {
+    if (!this.decorations.length) return;
+    let ranges = [...this.decorations];
+    for (const change of changes) ranges = mapDecorations(ranges, change);
+    this.decorations = normalizeDecorations(ranges, length);
+    this.dispatchEvent(
+      new CustomEvent<{ decorations: readonly EditorDecoration[] }>(
+        "ui-editor-decorations-change",
+        {
+          bubbles: true,
+          composed: true,
+          detail: { decorations: this.decorations },
+        },
+      ),
+    );
+  }
+
   #onInput = (event: Event): void => {
-    this.value = (event.currentTarget as HTMLTextAreaElement).value;
-    if (this.searchQuery) queueMicrotask(() => this.#reportSearch());
+    const next = (event.currentTarget as HTMLTextAreaElement).value;
+    const previous = this.value;
+    this.value = next;
+    this.#mapChanges(
+      this.#pendingChanges ?? [inferTextChange(previous, next, this.#beforeInput)],
+      next.length,
+    );
+    this.#pendingChanges = undefined;
+    this.#beforeInput = undefined;
+  };
+
+  #onChange = (event: Event): void => {
+    // Native textarea change does not cross a shadow boundary.
+    event.stopPropagation();
+    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   };
 
   #onScroll = (event: Event): void => {
@@ -393,22 +545,34 @@ export class UIEditor extends LitElement {
       this.#requestCommand("accept-completion");
       return;
     }
-    if (event.key !== "Tab" || this.disabled || this.readonly) return;
+    if (event.key !== "Tab" || this.disabled || this.readonly || event.isComposing) return;
     const control = event.currentTarget as HTMLTextAreaElement;
     event.preventDefault();
     const size = Math.max(1, Math.trunc(this.tabSize) || 2);
     const selectionStart = control.selectionStart;
     const selectionEnd = control.selectionEnd;
     const lineStart = control.value.lastIndexOf("\n", selectionStart - 1) + 1;
-    const lineEnd = control.value.indexOf("\n", selectionEnd);
+    // A selection ending at the start of a line does not indent that next line.
+    const selectedEnd =
+      selectionEnd > selectionStart && control.value[selectionEnd - 1] === "\n"
+        ? selectionEnd - 1
+        : selectionEnd;
+    const lineEnd = control.value.indexOf("\n", selectedEnd);
     const blockEnd = lineEnd === -1 ? control.value.length : lineEnd;
     const selectedLines = control.value.slice(lineStart, blockEnd).split("\n");
+    const starts = selectedLines.map(
+      (_, index) =>
+        lineStart + selectedLines.slice(0, index).reduce((sum, line) => sum + line.length + 1, 0),
+    );
 
     if (event.shiftKey) {
       const removed = selectedLines.map((line) =>
-        Math.min(line.match(/^ */)?.[0].length ?? 0, size),
+        line.startsWith("\t") ? 1 : Math.min(line.match(/^ */)?.[0].length ?? 0, size),
       );
       const replacement = selectedLines.map((line, index) => line.slice(removed[index])).join("\n");
+      this.#pendingChanges = starts
+        .map((from, index) => ({ from, to: from + removed[index]!, insert: "" }))
+        .sort((a, b) => b.from - a.from);
       control.setRangeText(replacement, lineStart, blockEnd, "select");
       control.setSelectionRange(
         Math.max(lineStart, selectionStart - removed[0]!),
@@ -420,17 +584,27 @@ export class UIEditor extends LitElement {
     }
 
     if (selectionStart !== selectionEnd) {
-      const prefix = " ".repeat(size);
+      const prefix = this.hardTabs ? "\t" : " ".repeat(size);
       const replacement = selectedLines.map((line) => prefix + line).join("\n");
       control.setRangeText(replacement, lineStart, blockEnd, "select");
-      control.setSelectionRange(selectionStart + size, selectionEnd + size * selectedLines.length);
+      this.#pendingChanges = starts
+        .map((from) => ({ from, to: from, insert: prefix }))
+        .sort((a, b) => b.from - a.from);
+      control.setSelectionRange(
+        selectionStart + prefix.length,
+        selectionEnd + prefix.length * selectedLines.length,
+      );
       this.#commitNativeEdit(control, prefix, "insertText");
       this.#requestCommand("indent");
       return;
     }
 
-    const column = selectionStart - lineStart;
-    const text = " ".repeat(size - (column % size));
+    let visualColumn = 0;
+    for (const character of control.value.slice(lineStart, selectionStart)) {
+      visualColumn += character === "\t" ? size - (visualColumn % size) : 1;
+    }
+    const text = this.hardTabs ? "\t" : " ".repeat(size - (visualColumn % size));
+    this.#pendingChanges = [{ from: selectionStart, to: selectionEnd, insert: text }];
     control.setRangeText(text, selectionStart, selectionEnd, "end");
     this.#commitNativeEdit(control, text, "insertText");
     this.#requestCommand("indent");
@@ -521,6 +695,9 @@ export class UIEditor extends LitElement {
   replaceSelection(text: string): void {
     const control = this.control;
     if (!control || this.disabled || this.readonly) return;
+    this.#pendingChanges = [
+      { from: control.selectionStart, to: control.selectionEnd, insert: text },
+    ];
     control.setRangeText(text, control.selectionStart, control.selectionEnd, "end");
     this.#commitNativeEdit(control, text, "insertReplacementText");
   }
@@ -537,6 +714,9 @@ export class UIEditor extends LitElement {
     }
     const control = this.control;
     if (control) {
+      this.#pendingChanges = matches
+        .map((match) => ({ from: match.start, to: match.end, insert: replacement }))
+        .sort((a, b) => b.from - a.from);
       control.value = next;
       control.setSelectionRange(0, 0);
       this.#commitNativeEdit(control, replacement, "insertReplacementText");
@@ -576,7 +756,21 @@ export class UIEditor extends LitElement {
     this.value = state ?? "";
   }
 
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    if (changed.has("value") && !changed.has("decorations")) {
+      const previous = changed.get("value");
+      if (typeof previous === "string")
+        this.#mapChanges([inferTextChange(previous, this.value)], this.value.length);
+    }
+    if (changed.has("decorations"))
+      this.decorations = normalizeDecorations(this.decorations, this.value.length);
+  }
+
   protected override updated(changed: PropertyValues<this>): void {
+    this.#observeControl();
+    this.#syncPaint();
+    if (changed.has("value") || changed.has("searchQuery") || changed.has("caseSensitive"))
+      this.#reportSearch();
     if (changed.has("value") || changed.has("name") || changed.has("disabled")) {
       this.#internals.setFormValue(this.disabled || !this.name ? null : this.value);
     }
@@ -596,6 +790,54 @@ export class UIEditor extends LitElement {
     else this.#internals.states.delete("invalid");
   }
 
+  #renderSource(): (TemplateResult | string)[] {
+    const tokens = this.highlight
+      ? sourceTokens(this.value)
+      : [{ kind: "plain", text: this.value }];
+    let offset = 0;
+    return tokens.flatMap((token) => {
+      const start = offset;
+      const end = start + token.text.length;
+      offset = end;
+      const ranges = this.decorations.filter((range) => range.start < end && range.end > start);
+      const boundaries = new Set([start, end]);
+      for (const range of ranges) {
+        boundaries.add(Math.max(start, range.start));
+        boundaries.add(Math.min(end, range.end));
+      }
+      if (this.showWhitespace)
+        for (let index = start; index < end; index++) {
+          if (this.value[index] === " " || this.value[index] === "\t") {
+            boundaries.add(index);
+            boundaries.add(index + 1);
+          }
+        }
+      const points = [...boundaries].sort((a, b) => a - b);
+      return points.slice(0, -1).map((from, index) => {
+        const to = points[index + 1]!;
+        const text = this.value.slice(from, to);
+        const active = ranges.filter((range) => range.start < to && range.end > from);
+        const whitespace = this.showWhitespace && (text === " " || text === "\t");
+        const parts = [
+          token.kind === "plain" ? "" : token.kind,
+          ...active.flatMap((range) => ["range", "range-" + range.kind]),
+          whitespace ? "whitespace" : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        return parts
+          ? html`<span
+              part=${parts}
+              data-start=${from}
+              data-end=${to}
+              data-whitespace=${whitespace ? (text === "\t" ? "→" : "·") : nothing}
+              >${text}</span
+            >`
+          : text;
+      });
+    });
+  }
+
   protected override render(): TemplateResult {
     return html`
       <div part="root">
@@ -612,7 +854,12 @@ export class UIEditor extends LitElement {
             : nothing
         }
         <div part="scroller">
-          ${this.highlight ? html`<pre part="syntax" aria-hidden="true" style=${`tab-size:${Math.max(1, Math.trunc(this.tabSize) || 2)}`}>${sourceTokens(this.value).map((token) => (token.kind === "comment" ? html`<span part="comment">${token.text}</span>` : token.kind === "string" ? html`<span part="string">${token.text}</span>` : token.kind === "keyword" ? html`<span part="keyword">${token.text}</span>` : token.kind === "number" ? html`<span part="number">${token.text}</span>` : token.text))}${"\n"}</pre>` : nothing}
+          <pre
+            part="syntax"
+            aria-hidden="true"
+            style=${`tab-size:${Math.max(1, Math.trunc(this.tabSize) || 2)}`}
+          >
+${this.#renderSource()}${"\n"}</pre>
           <div part="indent-guides" ?hidden=${!this.#hasSlot("indent-guides")}>
             <slot name="indent-guides" @slotchange=${this.#onSlotChange}></slot>
           </div>
@@ -630,7 +877,9 @@ export class UIEditor extends LitElement {
             style=${`tab-size:${Math.max(1, Math.trunc(this.tabSize) || 2)}`}
             ?disabled=${this.disabled}
             ?readonly=${this.readonly}
+            @beforeinput=${this.#onBeforeInput}
             @input=${this.#onInput}
+            @change=${this.#onChange}
             @scroll=${this.#onScroll}
             @select=${this.#reportSelection}
             @click=${this.#reportSelection}
@@ -657,15 +906,15 @@ export class UIEditor extends LitElement {
           <div part="completion" ?hidden=${!this.#hasSlot("completion") || !this.completionOpen}>
             <slot name="completion" @slotchange=${this.#onSlotChange}></slot>
           </div>
-          <div part="diagnostics" ?hidden=${!this.#hasSlot("diagnostics")}>
-            <slot name="diagnostics" @slotchange=${this.#onSlotChange}></slot>
-          </div>
         </div>
         <div part="fold-controls" ?hidden=${!this.#hasSlot("fold-controls")}>
           <slot name="fold-controls" @slotchange=${this.#onSlotChange}></slot>
         </div>
         <div part="search" ?hidden=${!this.#hasSlot("search") || !this.searchOpen}>
           <slot name="search" @slotchange=${this.#onSlotChange}></slot>
+        </div>
+        <div part="diagnostics" ?hidden=${!this.#hasSlot("diagnostics")}>
+          <slot name="diagnostics" @slotchange=${this.#onSlotChange}></slot>
         </div>
         <div part="status" aria-live="polite" ?hidden=${!this.#hasSlot("status")}>
           <slot name="status" @slotchange=${this.#onSlotChange}></slot>

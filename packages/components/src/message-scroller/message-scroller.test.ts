@@ -68,4 +68,21 @@ describe("message scroller", () => {
     scroller.scrollToLatest();
     expect(scroller.atEnd).toBe(true);
   });
+  it("supports owner navigation with the built-in latest action hidden", async () => {
+    const scroller = await fixture<UIMessageScroller>(
+      `<ui-message-scroller hide-latest>${Array.from({ length: 12 }, (_, index) => `<div id="row-${index}" style="height:80px;flex:none">Message ${index}</div>`).join("")}</ui-message-scroller>`,
+    );
+    await settled(scroller);
+    expect(scroller.scrollToMessage("row-0")).toBe(true);
+    await settled(scroller);
+    expect(scroller.atEnd).toBe(false);
+    expect(inShadow<HTMLButtonElement>(scroller, '[part="latest"]').hidden).toBe(true);
+    scroller.hideLatest = false;
+    await settled(scroller);
+    expect(inShadow<HTMLButtonElement>(scroller, '[part="latest"]').hidden).toBe(false);
+    scroller.scrollToLatest();
+    await settled(scroller);
+    expect(scroller.atEnd).toBe(true);
+    expect(inShadow<HTMLButtonElement>(scroller, '[part="latest"]').hidden).toBe(true);
+  });
 });

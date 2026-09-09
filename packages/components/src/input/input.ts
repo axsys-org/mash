@@ -140,6 +140,7 @@ export class UIInput extends LitElement {
   #fieldInvalid = false;
   #nativeInvalid = false;
   #defaultValue: string | undefined;
+  #formDisabled = false;
 
   constructor() {
     super();
@@ -169,7 +170,7 @@ export class UIInput extends LitElement {
   }
 
   get control(): HTMLInputElement | null {
-    return this.renderRoot.querySelector<HTMLInputElement>("[part='control']");
+    return this.renderRoot?.querySelector<HTMLInputElement>("[part='control']") ?? null;
   }
 
   override focus(options?: FocusOptions): void {
@@ -195,11 +196,17 @@ export class UIInput extends LitElement {
     this.#syncValidity();
   };
 
-  #onChange = (): void => {
+  #onChange = (event: Event): void => {
+    this.value = (event.currentTarget as HTMLInputElement).value;
     this.#syncValidity();
+    // Native change is not composed. Publish the committed value at the host
+    // so ordinary form owners receive the documented event across shadow DOM.
+    event.stopPropagation();
+    this.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
+    if (this.#effectiveDisabled) return;
     if (event.key === "Enter" && !event.isComposing) {
       this.dispatchEvent(
         new CustomEvent<InputEnterDetail>("ui-input-enter", {
@@ -209,14 +216,7 @@ export class UIInput extends LitElement {
         }),
       );
     }
-    if (
-      event.key !== "Escape" ||
-      !this.cleanOnEscape ||
-      !this.value ||
-      this.disabled ||
-      this.readonly
-    )
-      return;
+    if (event.key !== "Escape" || !this.cleanOnEscape || !this.value || this.readonly) return;
     event.preventDefault();
     const control = event.currentTarget as HTMLInputElement;
     control.value = "";
@@ -260,13 +260,14 @@ export class UIInput extends LitElement {
   }
 
   #syncInvalidState(): void {
-    if (this.#fieldInvalid || this.#nativeInvalid) this.#internals.states.add("invalid");
+    if (!this.#effectiveDisabled && (this.#fieldInvalid || this.#nativeInvalid))
+      this.#internals.states.add("invalid");
     else this.#internals.states.delete("invalid");
   }
 
   #syncValidity(): void {
-    const control = this.renderRoot.querySelector<HTMLInputElement>("[part='control']");
-    if (!control || this.disabled) {
+    const control = this.control;
+    if (!control || this.#effectiveDisabled) {
       this.#internals.setValidity({});
       this.#nativeInvalid = false;
       this.#syncInvalidState();
@@ -294,6 +295,29 @@ export class UIInput extends LitElement {
     this.#syncValidity();
   }
 
+  get #effectiveDisabled(): boolean {
+    return this.disabled || this.#formDisabled;
+  }
+
+  /** Receives the browser's disabled state, including ancestor fieldsets. */
+  formDisabledCallback(disabled: boolean): void {
+    if (this.#formDisabled === disabled) return;
+    this.#formDisabled = disabled;
+    // Apply immediately so fieldset mutations cannot leave an editable control
+    // between the browser callback and the next rendering update.
+    if (this.control) this.control.disabled = this.#effectiveDisabled;
+    this.#syncFormState();
+    this.requestUpdate();
+  }
+
+  #syncFormState(): void {
+    const disabled = this.#effectiveDisabled;
+    this.#internals.setFormValue(disabled || !this.name ? null : this.value);
+    if (disabled) this.#internals.states.add("disabled");
+    else this.#internals.states.delete("disabled");
+    this.#syncValidity();
+  }
+
   formResetCallback(): void {
     this.value = this.#defaultValue ?? "";
   }
@@ -303,16 +327,12 @@ export class UIInput extends LitElement {
   }
 
   protected override updated(changed: PropertyValues<this>): void {
-    if (changed.has("value") || changed.has("name") || changed.has("disabled")) {
-      this.#internals.setFormValue(this.disabled || !this.name ? null : this.value);
-    }
-    for (const state of ["disabled", "readonly", "required"] as const) {
+    this.#syncFormState();
+    for (const state of ["readonly", "required"] as const) {
       if (!changed.has(state)) continue;
       if (this[state]) this.#internals.states.add(state);
       else this.#internals.states.delete(state);
     }
-    this.#syncInvalidState();
-    this.#syncValidity();
   }
 
   protected override render(): TemplateResult {
@@ -329,8 +349,8 @@ export class UIInput extends LitElement {
         maxlength=${this.maxLength >= 0 ? this.maxLength : nothing}
         aria-label=${this.label || nothing}
         aria-description=${this.#fieldDescription || nothing}
-        aria-invalid=${this.#fieldInvalid ? "true" : nothing}
-        ?disabled=${this.disabled}
+        aria-invalid=${!this.#effectiveDisabled && this.#fieldInvalid ? "true" : nothing}
+        ?disabled=${this.#effectiveDisabled}
         ?readonly=${this.readonly}
         ?required=${this.required}
         @input=${this.#onInput}

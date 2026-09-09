@@ -33,6 +33,7 @@ export class UIMessageScroller extends LitElement {
   static override properties = {
     label: { type: String, reflect: true },
     follow: { type: Boolean, reflect: true },
+    hideLatest: { type: Boolean, attribute: "hide-latest", reflect: true },
     items: { attribute: false },
     renderMessage: { attribute: false },
     estimatedSize: { type: Number, attribute: "estimated-size" },
@@ -44,6 +45,8 @@ export class UIMessageScroller extends LitElement {
   declare label: string;
   /** Start at the newest message and follow appends while at the end. */
   declare follow: boolean;
+  /** Suppress the built-in latest button when the owner provides navigation. */
+  declare hideLatest: boolean;
   /** Optional immutable records with stable IDs. Null uses authored slotted rows. */
   declare items: readonly MessageRecord[] | null;
   /** Creates a virtual row's content. Called only for rows entering the window or changing identity. */
@@ -63,6 +66,7 @@ export class UIMessageScroller extends LitElement {
     super();
     this.label = "Conversation";
     this.follow = true;
+    this.hideLatest = false;
     this.items = null;
     this.estimatedSize = 80;
     this.overscan = 3;
@@ -228,7 +232,7 @@ export class UIMessageScroller extends LitElement {
       <button
         part="latest"
         type="button"
-        ?hidden=${this._atEnd || this._empty}
+        ?hidden=${this.hideLatest || this._atEnd || this._empty}
         @click=${this.scrollToLatest}
       >
         <slot name="latest">↓ Latest</slot>

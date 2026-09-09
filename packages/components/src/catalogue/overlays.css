@@ -281,8 +281,8 @@
   :where([data-mash-catalogue="mash"]) ui-calendar::part(day),
   :where([data-mash-catalogue="mash"]) ui-calendar::part(month-option),
   :where([data-mash-catalogue="mash"]) ui-calendar::part(year-option) {
-    min-inline-size: calc(var(--space-container-inline) + var(--space-control-inline));
-    min-block-size: calc(var(--space-container-inline) + var(--space-control-inline));
+    min-inline-size: var(--_mash-control-height);
+    min-block-size: var(--_mash-control-height);
     border: var(--layout-dimension-zero) solid transparent;
     border-radius: var(--radius-control);
     padding: var(--space-control-block);
@@ -374,6 +374,14 @@
 
   :where([data-mash-catalogue="mash"]) ui-calendar::part(disabled) {
     color: var(--color-text-disabled);
+    cursor: not-allowed;
+  }
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-option):disabled,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(year-option):disabled,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(previous):disabled,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(next):disabled {
+    color: var(--color-text-disabled);
+    background: transparent;
     cursor: not-allowed;
   }
 
@@ -1036,7 +1044,7 @@
 @layer mash.catalogue {
   :where([data-mash-catalogue="mash"]) ui-color-picker[inline] {
     display: block;
-    inline-size: var(--layout-dimension-panel);
+    inline-size: var(--_mash-color-width, var(--layout-dimension-panel));
     max-inline-size: 100%;
     flex: none;
   }
@@ -1044,6 +1052,25 @@
     inline-size: 100%;
   }
   :where([data-mash-catalogue="mash"]) ui-color-picker::part(plane) {
-    block-size: calc(var(--layout-dimension-compact) + var(--layout-dimension-control-medium));
+    block-size: calc(var(--layout-dimension-compact) + var(--_mash-control-height));
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker[data-mash-size="small"] {
+    --_mash-color-width: calc(var(--layout-dimension-panel) * 0.85);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker[data-mash-size="large"] {
+    --_mash-color-width: calc(var(--layout-dimension-panel) * 1.15);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])
+    :is(ui-popover, ui-date-picker, ui-preview-card, ui-color-picker:not([inline]))::part(popup) {
+    max-block-size: calc(100dvh - var(--space-region) * 2);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  :where([data-mash-catalogue="mash"]) ui-date-picker::part(popup) {
+    inline-size: max-content;
+    max-inline-size: calc(100vw - var(--space-region) * 2);
   }
 }

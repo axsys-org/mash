@@ -230,6 +230,8 @@ h2 {
   background: var(--color-surface-hover);
 }
 .preview-viewport {
+  /* Frame owners compensate late content above the focused example. */
+  overflow-anchor: none;
   height: clamp(480px, 72dvh, 840px);
   min-height: 0;
   overflow: auto;

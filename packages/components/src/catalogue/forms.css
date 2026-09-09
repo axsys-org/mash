@@ -242,14 +242,15 @@
     outline-offset: var(--border-focus-ring-offset);
   }
 
-  :where([data-mash-catalogue="mash"]) ui-checkbox[disabled]::part(root),
-  :where([data-mash-catalogue="mash"]) ui-radio[disabled]::part(root),
+  :where([data-mash-catalogue="mash"]) ui-checkbox:is([disabled], :state(disabled))::part(root),
+  :where([data-mash-catalogue="mash"]) ui-radio:is([disabled], :state(disabled))::part(root),
   :where([data-mash-catalogue="mash"]) ui-switch[disabled]::part(root) {
     color: var(--color-text-disabled);
   }
 
-  :where([data-mash-catalogue="mash"]) ui-checkbox[disabled]::part(indicator),
-  :where([data-mash-catalogue="mash"]) ui-radio[disabled]::part(indicator),
+  :where([data-mash-catalogue="mash"])
+    ui-checkbox:is([disabled], :state(disabled))::part(indicator),
+  :where([data-mash-catalogue="mash"]) ui-radio:is([disabled], :state(disabled))::part(indicator),
   :where([data-mash-catalogue="mash"]) ui-switch[disabled]::part(track) {
     background: var(--color-neutral);
     color: var(--color-text-disabled);
@@ -960,14 +961,14 @@
     color: var(--color-on-selection);
   }
   :where([data-mash-catalogue="mash"])
-    :is(ui-checkbox, ui-radio):not([disabled]):hover::part(indicator) {
+    :is(ui-checkbox, ui-radio):not([disabled], :state(disabled)):hover::part(indicator) {
     border-color: var(--color-focus-ring);
     background: var(--color-surface-hover);
   }
   :where([data-mash-catalogue="mash"])
-    :is(ui-checkbox, ui-radio)[checked]:not([disabled]):hover::part(indicator),
+    :is(ui-checkbox, ui-radio)[checked]:not([disabled], :state(disabled)):hover::part(indicator),
   :where([data-mash-catalogue="mash"])
-    ui-checkbox[indeterminate]:not([disabled]):hover::part(indicator),
+    ui-checkbox[indeterminate]:not([disabled], :state(disabled)):hover::part(indicator),
   :where([data-mash-catalogue="mash"]) ui-switch[checked]:not([disabled]):hover::part(track) {
     background: var(--color-action-hover);
     border-color: var(--color-action-hover);

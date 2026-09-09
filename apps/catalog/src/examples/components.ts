@@ -1,4 +1,19 @@
+import { controlExamples } from "./controls.js";
+import { finalControlExamples } from "./final-control-examples.js";
+import { navigationOverlayExamples } from "./navigation-overlays.js";
+import { editorExamples } from "./editor.js";
+import { menuExtensionExamples } from "./menu-extensions.js";
+import { workflowExamples } from "./workflows.js";
+import { mergeControlStateExamples } from "./control-states.js";
+import { tableWorkflowExamples } from "./table-workflows.js";
+import { mergeSelectionExamples, selectionExamples } from "./selection.js";
+import { layoutPatternExamples } from "./layout-patterns.js";
+import { feedbackExamples } from "./feedback.js";
+import { collectionExamples } from "./collections.js";
+import { displayExamples } from "./display.js";
 import { treeExamples } from "./command-tree.js";
+import { dateExamples } from "./dates.js";
+import { colorExamples } from "./colors.js";
 import { menuExamples } from "./menus.js";
 import { refinements } from "./refinements.js";
 import { patternExamples } from "./patterns.js";
@@ -124,15 +139,7 @@ export const componentExamples: Record<string, CatalogExample[]> = {
   "ui-fieldset": [
     sample("Related fields", `<ui-fieldset legend="Project">${fields}</ui-fieldset>`),
   ],
-  "ui-form": [
-    sample(
-      "Form",
-      `<ui-form class="mash-stack">
-  <ui-fieldset legend="New project">${fields}</ui-fieldset>
-  <div class="mash-row" data-mash-size="small"><ui-button type="submit" variant="primary">Create</ui-button><ui-button type="reset">Reset</ui-button></div>
-</ui-form>`,
-    ),
-  ],
+  "ui-form": [selectionExamples["ui-form"]![0]!],
   "ui-autocomplete": [
     sample(
       "Suggestions",
@@ -147,36 +154,6 @@ export const componentExamples: Record<string, CatalogExample[]> = {
     sample(
       "Range",
       `<ui-slider label="Range" values="[20,80]" min="0" max="100" step="5"></ui-slider>`,
-    ),
-  ],
-  "ui-calendar": [
-    sample(
-      "Calendar",
-      `<ui-calendar label="Date" month="2026-09" value="2026-09-08"></ui-calendar>`,
-    ),
-    sample(
-      "Date range",
-      `<ui-calendar label="Date range" month="2026-09" months="2" mode="range" value="2026-09-08/2026-09-16"></ui-calendar>`,
-    ),
-    sample(
-      "Month and year selection",
-      `<div class="mash-row mash-wrap"><ui-calendar month="2026-09" label="Choose month" view="month"></ui-calendar><ui-calendar month="2026-09" label="Choose year" view="year"></ui-calendar></div>`,
-    ),
-    {
-      ...sample(
-        "Restrictions",
-        `<ui-calendar id="availability" month="2026-09" label="Available dates" min="2026-09-08" max="2026-09-25"></ui-calendar>`,
-        "Bounds and explicit unavailable dates stay disabled for pointer and keyboard input.",
-      ),
-      script: `document.querySelector("#availability").disabledValues = ["2026-09-12", "2026-09-13", "2026-09-19", "2026-09-20"];`,
-    },
-  ],
-  "ui-date-picker": [
-    sample(
-      "Date picker",
-      `<ui-date-picker label="Due date" value="2026-09-08">
-  <ui-button slot="trigger">Choose date</ui-button><ui-calendar month="2026-09" label="Due date"></ui-calendar>
-</ui-date-picker>`,
     ),
   ],
   "ui-accordion": [
@@ -229,12 +206,6 @@ sections.addEventListener("ui-accordion-change", event => {
   document.querySelector("#expanded-sections").textContent = "Expanded: " + (event.detail.values.join(", ") || "none");
 });`,
     },
-  ],
-  "ui-collapsible": [
-    sample(
-      "Disclosure",
-      `<ui-collapsible><span slot="trigger">Details</span>Additional information appears here.</ui-collapsible>`,
-    ),
   ],
   "ui-menu": [
     sample("Menu", menu),
@@ -299,28 +270,10 @@ sections.addEventListener("ui-accordion-change", event => {
 </ui-alert-dialog>`,
     ),
   ],
-  "ui-drawer": [
-    sample(
-      "Drawer",
-      `<ui-drawer label="Details" side="right"><ui-button slot="trigger">Show details</ui-button><strong slot="title">Details</strong><span slot="description">Additional project information.</span><ui-button slot="close" size="small">Done</ui-button></ui-drawer>`,
-    ),
-  ],
   "ui-popover": [
     sample(
       "Popover",
       `<ui-popover label="Dimensions"><ui-button slot="trigger">Dimensions</ui-button><strong slot="title">Dimensions</strong><span slot="description">Set the size of the object.</span><ui-field label="Width"><ui-input slot="control" type="number" value="320"></ui-input></ui-field><ui-button slot="close" size="small">Done</ui-button></ui-popover>`,
-    ),
-  ],
-  "ui-tooltip": [
-    sample(
-      "Tooltip",
-      `<ui-tooltip label="Save changes"><ui-button slot="trigger">Save</ui-button>Save changes</ui-tooltip>`,
-    ),
-  ],
-  "ui-preview-card": [
-    sample(
-      "Preview",
-      `<ui-preview-card label="Project preview"><ui-link slot="trigger" href="#project">Website</ui-link><strong slot="title">Website</strong><span slot="description">A preview of the project.</span></ui-preview-card>`,
     ),
   ],
   "ui-table": [sample("Table", table)],
@@ -363,49 +316,6 @@ renderPage();`,
 });`,
     },
   ],
-  "ui-badge": [
-    sample(
-      "Meanings",
-      `<div class="mash-row mash-wrap"><ui-badge tone="neutral">Draft</ui-badge><ui-badge tone="positive">Ready</ui-badge><ui-badge tone="warning">Review</ui-badge><ui-badge tone="critical">Blocked</ui-badge></div>`,
-    ),
-    sample(
-      "Count",
-      `<ui-badge variant="count" count="12" max="9" label="12 updates"><ui-button slot="target" size="small">Updates</ui-button></ui-badge>`,
-    ),
-  ],
-  "ui-avatar": [
-    sample(
-      "Avatars",
-      `<div class="mash-row"><ui-avatar size="small" alt="Alex">AL</ui-avatar><ui-avatar alt="Sam">SA</ui-avatar><ui-avatar size="large" alt="Morgan">MO</ui-avatar></div>`,
-    ),
-  ],
-  "ui-card": [
-    sample(
-      "Card",
-      `<ui-card><strong slot="title">Project</strong><span slot="description">Everything in one place.</span><p>A simple container for related content.</p><ui-button slot="footer" size="small">Open project</ui-button></ui-card>`,
-    ),
-  ],
-
-  "ui-progress": [
-    sample(
-      "Progress",
-      `<ui-progress value="64" label="Upload progress"></ui-progress><ui-progress value="100" tone="positive" label="Complete"></ui-progress><ui-progress shape="circular" value="72" label="Processing"></ui-progress>`,
-    ),
-  ],
-  "ui-toast": [
-    sample(
-      "Notification",
-      `<ui-toast open duration="0"><strong slot="title">Saved</strong>Your changes have been saved.<ui-button slot="actions" size="small">Undo</ui-button></ui-toast>`,
-    ),
-    sample(
-      "Meanings",
-      `<ui-toast open duration="0" tone="positive"><strong slot="title">Complete</strong>Everything is up to date.</ui-toast><ui-toast open duration="0" tone="warning"><strong slot="title">Offline</strong>Waiting for a connection.</ui-toast><ui-toast open duration="0" tone="critical"><strong slot="title">Failed</strong>Please try again.</ui-toast>`,
-    ),
-  ],
-  "ui-separator": [
-    sample("Separator", `<span>Above</span><ui-separator></ui-separator><span>Below</span>`),
-  ],
-  "ui-spinner": [sample("Loading", `<ui-spinner label="Loading"></ui-spinner>`)],
   "ui-link": [
     sample(
       "Links",
@@ -413,14 +323,46 @@ renderPage();`,
     ),
   ],
   ...navigationExamples,
+  "ui-dock": refinements["ui-dock"]!,
+  ...displayExamples,
+  ...feedbackExamples,
+  ...layoutPatternExamples,
+  ...editorExamples,
+  ...collectionExamples,
+  ...dateExamples,
+  ...colorExamples,
 };
 
-Object.assign(componentExamples, refinements);
-
 for (const [tag, examples] of Object.entries(patternExamples)) {
+  if (controlExamples[tag]) continue;
   componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
 }
 
 for (const [tag, examples] of Object.entries(menuExamples)) {
+  componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
+}
+
+mergeSelectionExamples(componentExamples, true);
+
+for (const [tag, examples] of Object.entries(tableWorkflowExamples))
+  componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
+
+mergeControlStateExamples(componentExamples, true);
+
+for (const [tag, examples] of Object.entries(workflowExamples)) {
+  componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
+}
+
+for (const [tag, examples] of Object.entries(menuExtensionExamples)) {
+  if (controlExamples[tag]) continue;
+  componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
+}
+
+for (const [tag, examples] of Object.entries(navigationOverlayExamples)) {
+  componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
+}
+
+for (const [tag, examples] of Object.entries(finalControlExamples)) {
+  if (controlExamples[tag]) continue;
   componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
 }

@@ -40,10 +40,13 @@
     "//test:browser": "An alias for `test`, named for what it is: component tests in a real browser. CI uses the explicit name.",
     "test:browser": "pnpm run test",
     "test:integration": "pnpm --filter @mash/integration-tests test",
-    "test:catalogue": "pnpm --filter @mash/visual-tests exec playwright test specs/portable-examples.spec.ts specs/example-variants.spec.ts specs/catalogue-conformance.spec.ts specs/catalog-shell.spec.ts specs/slots.spec.ts specs/resizable.spec.ts specs/parity-interactions.spec.ts specs/composer-pattern.spec.ts specs/preview-window.spec.ts specs/control-patterns.spec.ts specs/menu-patterns.spec.ts specs/chart-examples.spec.ts specs/tabs-examples.spec.ts specs/dock-drag.spec.ts specs/tree-command-patterns.spec.ts --workers=2",
+    "test:catalogue": "pnpm --filter @mash/visual-tests exec playwright test specs/portable-examples.spec.ts specs/example-variants.spec.ts specs/catalogue-conformance.spec.ts specs/catalog-shell.spec.ts specs/slots.spec.ts specs/resizable.spec.ts specs/parity-interactions.spec.ts specs/composer-pattern.spec.ts specs/preview-window.spec.ts specs/control-patterns.spec.ts specs/menu-patterns.spec.ts specs/chart-examples.spec.ts specs/tabs-examples.spec.ts specs/dock-drag.spec.ts specs/tree-command-patterns.spec.ts specs/catalog-performance.spec.ts specs/chat-lifecycle.spec.ts specs/collection-table-patterns.spec.ts specs/date-color-patterns.spec.ts specs/display-patterns.spec.ts specs/editor-patterns.spec.ts specs/preview-anchoring.spec.ts specs/rendered-content.spec.ts --workers=1",
     "//test:visual": "Screenshot baselines are platform-specific; see tests/visual/README.md before running this outside CI.",
     "test:visual": "pnpm --filter @mash/visual-tests test",
-    "clean": "pnpm -r run clean && rm -rf node_modules/.vite"
+    "clean": "pnpm -r run clean && rm -rf node_modules/.vite",
+    "dev:catalog": "pnpm --filter @mash/tokens --filter @mash/ui --filter @mash/catalog --parallel run dev",
+    "build:preview": "pnpm build && pnpm --filter @mash/catalog run build:site",
+    "test:stories": "pnpm --filter @mash/visual-tests exec playwright test specs/stories-shell.spec.ts specs/studio-story.spec.ts specs/studio-model.spec.ts specs/documents-story.spec.ts specs/projects-launcher-story.spec.ts specs/community-story.spec.ts --workers=1"
   },
   "devDependencies": {
     "@vercel/blob": "^2.8.0",

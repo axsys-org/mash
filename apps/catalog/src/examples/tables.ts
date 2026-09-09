@@ -47,10 +47,11 @@ grid.addEventListener("ui-data-table-select", event => { grid.selected = event.d
       script: `const table = document.querySelector("#sortable");
 const header = table.querySelector("ui-table-head");
 const body = table.querySelector("ui-table-body");
+const original = [...body.children];
 document.querySelector("#sort-project").addEventListener("click", () => {
-  header.sort = header.sort === "ascending" ? "descending" : "ascending";
+  header.sort = header.sort === "none" ? "ascending" : header.sort === "ascending" ? "descending" : "none";
   const direction = header.sort === "ascending" ? 1 : -1;
-  const rows = [...body.children].sort((a, b) => direction * a.firstElementChild.textContent.localeCompare(b.firstElementChild.textContent));
+  const rows = header.sort === "none" ? original : [...body.children].sort((a, b) => direction * a.firstElementChild.textContent.localeCompare(b.firstElementChild.textContent));
   rows.forEach((row, index) => row.rowIndex = index + 2);
   body.append(...rows);
 });`,

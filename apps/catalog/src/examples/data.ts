@@ -1,5 +1,7 @@
 import type { CatalogExample } from "../examples.js";
 import { sample } from "./shared.js";
+import { chartGallery } from "./chart-gallery.js";
+import { customChartExamples } from "./chart-custom.js";
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 const desktop = [186, 205, 237, 173, 209, 214];
@@ -425,5 +427,7 @@ export const dataExamples: Record<string, CatalogExample[]> = {
       "canvas",
     ),
     ...chartExplorations,
+    ...chartGallery(chart, months, desktop, mobile),
+    ...customChartExamples,
   ],
 };

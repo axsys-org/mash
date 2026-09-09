@@ -1,12 +1,9 @@
 import { resolve } from "node:path";
 import process from "node:process";
 
-import tailwindcss from "@tailwindcss/vite";
-import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin";
-import { transform } from "esbuild";
-import { defineConfig, type Plugin } from "vite";
-import wasmPlugin from "vite-plugin-wasm";
+import { defineConfig } from "vite";
 
+import { catalogData } from "./vite.catalog-data.js";
 import { requireBuiltPackages } from "./vite.shared.js";
 
 /**
@@ -51,46 +48,8 @@ function buildInfo() {
   };
 }
 
-const wasm = wasmPlugin as unknown as () => Plugin;
-
-const compileBlockSuiteSources = (): Plugin => ({
-  name: "compile-blocksuite-sources",
-  enforce: "pre",
-  async transform(code, id) {
-    const sourceId = id.split("?", 1)[0] ?? id;
-    if (!sourceId.endsWith(".ts") || !sourceId.includes("/node_modules/.pnpm/@blocksuite+")) {
-      return null;
-    }
-    const result = await transform(code, {
-      loader: "ts",
-      target: "es2022",
-      sourcefile: sourceId,
-      sourcemap: true,
-      tsconfigRaw: {
-        compilerOptions: {
-          useDefineForClassFields: false,
-        },
-      },
-    });
-    return { code: result.code, map: result.map };
-  },
-});
-
 export default defineConfig({
-  plugins: [
-    compileBlockSuiteSources(),
-    tailwindcss(),
-    wasm(),
-    vanillaExtractPlugin(),
-    requireBuiltPackages(),
-  ],
-
-  // BlockSuite publishes TypeScript source and uses standard decorators. Its
-  // package tsconfig targets `esnext`, so pin the catalogue transform target
-  // here instead of leaking decorator syntax into the browser bundle.
-  esbuild: {
-    target: "es2022",
-  },
+  plugins: [catalogData(), requireBuiltPackages()],
 
   // Frozen into the bundle at build time. Vite's own `import.meta.env` would
   // require every variable to be renamed with a VITE_ prefix in the deployment
@@ -103,11 +62,21 @@ export default defineConfig({
   // needs to be a real document rather than a srcdoc blob so that its module
   // imports resolve the same way the catalog's do.
   build: {
-    // Rolldown's default minifier currently emits an invalid template literal
-    // for brace-expansion's single-backslash replacement inside BlockSuite's
-    // lazy editor chunk. esbuild preserves the string correctly.
     minify: "esbuild",
     rollupOptions: {
+      output: {
+        // Keep renderer dependencies lazy; an explicit group also isolates the
+        // bundler runtime instead of hoisting shared helpers into the chart chunk.
+        codeSplitting: {
+          groups: [
+            {
+              name: "chart-engine",
+              test: /node_modules\/(?:echarts|zrender|tslib)\//,
+              includeDependenciesRecursively: false,
+            },
+          ],
+        },
+      },
       input: {
         index: resolve(import.meta.dirname, "index.html"),
         fixture: resolve(import.meta.dirname, "fixture.html"),

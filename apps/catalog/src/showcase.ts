@@ -1,7 +1,8 @@
-import { components, type ComponentSchema } from "./schema.js";
-import { examplesFor } from "./examples.js";
+import type { ComponentSchema } from "./schema.js";
+import { catalogue } from "virtual:mash/catalog-index";
 import { formatMarkup } from "./format-markup.js";
 import type { UIOption, UISelect } from "@mash/ui";
+import { siteHeader } from "./site-header.js";
 
 export const nameOf = (tag: string) =>
   tag
@@ -21,9 +22,41 @@ export function node<K extends keyof HTMLElementTagNameMap>(
   element.textContent = text;
   return element;
 }
-const catalogue = components.filter((component) => component.packageName === "@mash/ui");
 let dispose = () => {};
-export function showCatalogue(root: HTMLElement): void {
+let routeVersion = 0;
+export function leaveCatalogue(): void {
+  ++routeVersion;
+  dispose();
+  dispose = () => {};
+}
+export async function showCatalogue(root: HTMLElement): Promise<void> {
+  const version = ++routeVersion;
+  const tag = location.pathname.split("/")[2];
+  const route =
+    catalogue.find((item) => item.tagName === tag) ??
+    catalogue.find((item) => item.tagName === "ui-button")!;
+  root.setAttribute("aria-busy", "true");
+  let page;
+  try {
+    ({ default: page } = await route.load());
+  } catch {
+    if (version !== routeVersion) return;
+    root.removeAttribute("aria-busy");
+    const error = node("p", "route-error", "This page could not load. ");
+    error.setAttribute("role", "alert");
+    const retry = node("button", "", "Try again");
+    retry.addEventListener("click", () => {
+      error.remove();
+      void showCatalogue(root);
+    });
+    error.append(retry);
+    root.prepend(error);
+    return;
+  }
+  if (version !== routeVersion) return;
+  root.removeAttribute("aria-busy");
+  const sidebarScroll = root.querySelector(".component-sidebar")?.scrollTop ?? 0;
+  const { component, variants } = page;
   dispose();
   const abort = new AbortController();
   const observers: ResizeObserver[] = [];
@@ -33,26 +66,28 @@ export function showCatalogue(root: HTMLElement): void {
     observers.forEach((item) => item.disconnect());
     restorePreview();
   };
+  const mountFrame = (frame: HTMLIFrameElement) => {
+    const url = new URL(frame.dataset.src!, location.href);
+    url.searchParams.set("theme", document.documentElement.dataset.theme ?? "light");
+    frame.src = url.href;
+  };
   const observer = new IntersectionObserver(
     (entries) =>
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
         observer.unobserve(entry.target);
         const frame = entry.target as HTMLIFrameElement;
-        frame.src = `/fixture.html?theme=${document.documentElement.dataset.theme}`;
+        mountFrame(frame);
       }),
     { rootMargin: "400px" },
   );
-  const tag = location.pathname.split("/")[2];
-  const component =
-    catalogue.find((item) => item.tagName === tag) ??
-    catalogue.find((item) => item.tagName === "ui-button")!;
   const theme =
     new URL(location.href).searchParams.get("theme") ??
     localStorage.getItem("mash-theme") ??
     "light";
   document.documentElement.dataset.theme = theme;
-  root.innerHTML = `<header class="site-header"><a class="wordmark" href="/components/ui-button">mash<span> / </span></a><nav aria-label="Site"><a aria-current="page" href="/components/ui-button">Components</a></nav><button class="theme-toggle" aria-label="Switch color theme">${theme === "dark" ? "☀" : "☾"}</button></header><div class="showcase-layout"><aside class="component-sidebar"><input type="search" placeholder="Find component…" aria-label="Find component"><nav aria-label="Components">${catalogue.map((item) => `<a href="/components/${item.tagName}" ${item === component ? 'aria-current="page"' : ""}>${nameOf(item.tagName)}</a>`).join("")}</nav></aside><main class="showcase-main"><header class="component-heading"><code>${component.tagName}</code><h1>${nameOf(component.tagName)}</h1><p>${escape(component.summary ?? "")}</p></header><div class="showcase-variants"></div></main><aside class="page-index"><span>On this page</span></aside></div>`;
+  root.innerHTML = `${siteHeader("components", theme)}<div class="showcase-layout"><aside class="component-sidebar"><input type="search" placeholder="Find component…" aria-label="Find component"><nav aria-label="Components">${catalogue.map((item) => `<a href="/components/${item.tagName}" ${item.tagName === component.tagName ? 'aria-current="page"' : ""}>${nameOf(item.tagName)}</a>`).join("")}</nav></aside><main class="showcase-main"><header class="component-heading"><code>${component.tagName}</code><h1>${nameOf(component.tagName)}</h1><p>${escape(component.summary ?? "")}</p></header><div class="showcase-variants"></div></main><aside class="page-index"><span>On this page</span></aside></div>`;
+  root.querySelector(".component-sidebar")!.scrollTop = sidebarScroll;
   root.querySelector<HTMLInputElement>('input[type="search"]')!.addEventListener(
     "input",
     (event) => {
@@ -78,9 +113,6 @@ export function showCatalogue(root: HTMLElement): void {
       history.replaceState(null, "", url);
     },
     { signal: abort.signal },
-  );
-  const variants = examplesFor(component).filter(
-    (example) => !/<(?:sh-|shrine-)/.test(example.code),
   );
   const target = root.querySelector<HTMLElement>(".showcase-variants")!;
   const preview = node("dialog", "preview-window");
@@ -180,19 +212,27 @@ export function showCatalogue(root: HTMLElement): void {
     );
     frame.title = `${nameOf(component.tagName)} — ${variant.name}`;
     frame.dataset.variant = variant.name;
-    frame.setAttribute("loading", "lazy");
+    frame.dataset.src = `/fixture.html?theme=${document.documentElement.dataset.theme}&elements=${encodeURIComponent(variant.elements.join(","))}`;
     section.append(frame);
     target.append(section);
     const details = node("details", "reference-code");
     details.append(node("summary", "", "Code"));
-    const code = node(
-      "pre",
-      "",
-      `import "@mash/ui";\nimport "@mash/tokens/tokens.css";\nimport "@mash/ui/catalogue/mash.css";\n\n${formatMarkup(variant.code)}${variant.script ? `\n\n<script type="module">\n${variant.script}\n</script>` : ""}`,
+    const code = node("pre");
+    const prepareCode = () => {
+      if (!code.textContent)
+        code.textContent = `import "@mash/ui";\nimport "@mash/tokens/tokens.css";\nimport "@mash/ui/catalogue/mash.css";\n\n${formatMarkup(variant.code)}${variant.script ? `\n\n<script type="module">\n${variant.script}\n</script>` : ""}`;
+    };
+    details.addEventListener(
+      "toggle",
+      () => {
+        if (details.open) prepareCode();
+      },
+      { signal: abort.signal },
     );
     const copy = node("button", "copy-code", "Copy");
     copy.addEventListener("click", async () => {
       try {
+        prepareCode();
         await navigator.clipboard.writeText(code.textContent!);
         copy.textContent = "Copied";
       } catch {
@@ -208,13 +248,13 @@ export function showCatalogue(root: HTMLElement): void {
       "load",
       async () => {
         const doc = frame.contentDocument;
-        if (!doc) return;
-        while (
-          doc.documentElement.dataset.stageReady !== "true" &&
-          frame.isConnected &&
-          !abort.signal.aborted
-        )
-          await new Promise((resolve) => setTimeout(resolve, 25));
+        if (!doc || frame.contentWindow?.location.pathname !== "/fixture.html") return;
+        try {
+          await frame.contentWindow!.mashPreviewReady;
+        } catch (error) {
+          section.append(node("p", "preview-error", `Preview could not load: ${String(error)}`));
+          return;
+        }
         if (abort.signal.aborted || !frame.isConnected) return;
         doc.documentElement.dataset.theme = document.documentElement.dataset.theme;
         doc.documentElement.dataset.layout = "start";
@@ -234,7 +274,7 @@ export function showCatalogue(root: HTMLElement): void {
         doc.body.innerHTML = variant.code;
         if (
           doc.body.querySelector(
-            "ui-menu, ui-context-menu, ui-select, ui-combobox, ui-date-picker, ui-popover, ui-hover-card, ui-color-picker:not([inline])",
+            "ui-menu, ui-context-menu, ui-select, ui-combobox, ui-date-picker, ui-popover, ui-preview-card, ui-color-picker:not([inline])",
           )
         ) {
           // Floating surfaces do not contribute to body height. Reserve the public
@@ -251,35 +291,61 @@ export function showCatalogue(root: HTMLElement): void {
           "ui-select-open-change",
           "ui-popover-open-change",
           "ui-combobox-open-change",
+          "ui-date-picker-open-change",
+          "ui-color-picker-open-change",
+          "ui-preview-card-open-change",
+          "ui-context-menu-open-change",
         ]) {
           doc.addEventListener(
             name,
             (event) => {
               const surface = event.composedPath()[0]!;
               const open = (event as CustomEvent<{ open: boolean }>).detail.open;
-              if (open) openFloatingSurfaces.add(surface);
-              else openFloatingSurfaces.delete(surface);
+              if (open) {
+                openFloatingSurfaces.add(surface);
+                const host = surface as HTMLElement & { updateComplete?: Promise<unknown> };
+                void Promise.resolve(host.updateComplete).then(() => {
+                  if (abort.signal.aborted) return;
+                  const popup = host.shadowRoot?.querySelector<HTMLElement>("[part~='popup']");
+                  if (popup) size.observe(popup);
+                  resize();
+                  requestAnimationFrame(() => {
+                    if (abort.signal.aborted || !popup?.getClientRects().length) return;
+                    const zoomFactor = parseFloat(getComputedStyle(target).zoom) || 1;
+                    const frameBounds = frame.getBoundingClientRect();
+                    const popupBounds = popup.getBoundingClientRect();
+                    const viewportBounds = viewport.getBoundingClientRect();
+                    const top = Math.max(viewportBounds.top, 0) + 12;
+                    const bottom = Math.min(viewportBounds.bottom, innerHeight) - 12;
+                    const popupTop = frameBounds.top + popupBounds.top * zoomFactor;
+                    const popupBottom = frameBounds.top + popupBounds.bottom * zoomFactor;
+                    // Reveal the open surface, not the middle of a potentially
+                    // very tall example with an expanded source-data table.
+                    if (popupTop < top || popupBottom - popupTop > bottom - top)
+                      viewport.scrollTop += popupTop - top;
+                    else if (popupBottom > bottom) viewport.scrollTop += popupBottom - bottom;
+                  });
+                });
+              } else openFloatingSurfaces.delete(surface);
               if (!openFloatingSurfaces.size) {
                 frame.style.minHeight = restingMinHeight;
+                requestAnimationFrame(resize);
                 return;
               }
               frame.style.minHeight =
                 "calc(var(--layout-menu-row-regular) * 10 + var(--layout-dimension-control-medium) * 2 + var(--space-region) * 4)";
-              if (!open) return;
-              requestAnimationFrame(() => {
-                if (frame.isConnected && !abort.signal.aborted)
-                  frame.scrollIntoView({ block: "center", inline: "nearest" });
-              });
             },
             { signal: abort.signal },
           );
         }
         if (variant.script) {
+          doc.documentElement.dataset.exampleReady = "loading";
           const script = doc.createElement("script");
           script.type = "module";
-          script.textContent = variant.script;
+          script.textContent =
+            variant.script + '\n;document.documentElement.dataset.exampleReady = "true";';
           doc.body.append(script);
-        }
+        } else doc.documentElement.dataset.exampleReady = "true";
         const modalSurfaces: { popup: HTMLElement; backdrop: HTMLElement }[] = [];
         let modalVisible = false;
         const resize = () => {
@@ -307,8 +373,42 @@ export function showCatalogue(root: HTMLElement): void {
               Math.min(modalLimit, Math.ceil(popup.scrollHeight + border + padding)),
             );
           }
+          for (const surface of openFloatingSurfaces) {
+            const host = surface as HTMLElement;
+            const popup = host.shadowRoot?.querySelector<HTMLElement>("[part~='popup']");
+            if (!popup?.getClientRects().length) continue;
+            const trigger = host.querySelector<HTMLElement>("[slot='trigger']");
+            const triggerHeight = trigger?.getBoundingClientRect().height ?? 32;
+            // Reserve actual content plus its anchor. The popup retains its own
+            // scrolling when its contents exceed the expanded preview viewport.
+            height = Math.max(
+              height,
+              Math.min(Math.max(320, modalLimit), popup.scrollHeight + triggerHeight + 96),
+            );
+          }
           const heightChanged = frame.height !== String(Math.ceil(height));
-          if (heightChanged) frame.height = String(Math.ceil(height));
+          if (heightChanged) {
+            // A late-loading example above the reader must not move the control
+            // they are using. Only the focused, visible frame owns this anchor;
+            // explicit navigation, zoom controls and an offscreen old focus do not.
+            const focused = document.activeElement;
+            const anchor =
+              focused instanceof HTMLIFrameElement &&
+              focused !== frame &&
+              viewport.contains(focused) &&
+              frame.compareDocumentPosition(focused) & Node.DOCUMENT_POSITION_FOLLOWING
+                ? focused
+                : null;
+            const anchorBounds = anchor?.getBoundingClientRect();
+            const viewportBounds = viewport.getBoundingClientRect();
+            const visible =
+              anchorBounds &&
+              anchorBounds.bottom > Math.max(viewportBounds.top, 0) &&
+              anchorBounds.top < Math.min(viewportBounds.bottom, window.innerHeight);
+            frame.height = String(Math.ceil(height));
+            if (anchor && anchorBounds && visible)
+              viewport.scrollTop += anchor.getBoundingClientRect().top - anchorBounds.top;
+          }
           // A child document cannot reveal the portion clipped by its parent's
           // scrollport. Bring the live frame into that scrollport as its modal opens.
           if (hasVisibleModal && (!modalVisible || heightChanged)) {
@@ -345,8 +445,7 @@ export function showCatalogue(root: HTMLElement): void {
       },
       { signal: abort.signal },
     );
-    if (index === 0 || variant === selectedVariant)
-      frame.src = `/fixture.html?theme=${document.documentElement.dataset.theme}`;
+    if (index === 0 || variant === selectedVariant) mountFrame(frame);
     else observer.observe(frame);
   });
   preview.after(api(component));
@@ -354,7 +453,10 @@ export function showCatalogue(root: HTMLElement): void {
   const anchor = location.hash.slice(1) || oldVariant?.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   if (anchor)
     requestAnimationFrame(() => {
-      document.getElementById(anchor)?.scrollIntoView({ block: "nearest" });
+      const section = document.getElementById(anchor);
+      if (abort.signal.aborted || !section) return;
+      viewport.scrollTop +=
+        section.getBoundingClientRect().top - viewport.getBoundingClientRect().top - 24;
     });
 }
 function api(component: ComponentSchema): HTMLElement {

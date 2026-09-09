@@ -63,7 +63,7 @@ export class UIToggleGroup extends LitElement {
   /** Prevents activation throughout the group. */
   declare disabled: boolean;
 
-  readonly #childDisabled = new WeakMap<UIToggle, boolean>();
+  readonly #groupChildren = new Set<UIToggle>();
   readonly #internals: ElementInternals;
 
   constructor() {
@@ -83,10 +83,16 @@ export class UIToggleGroup extends LitElement {
   }
 
   #syncOptions(): void {
-    for (const toggle of this.#toggles()) {
-      const original = this.#childDisabled.get(toggle);
-      if (original === undefined) this.#childDisabled.set(toggle, toggle.disabled);
-      toggle.disabled = this.disabled || (original ?? false);
+    const children = this.#toggles();
+    for (const child of this.#groupChildren) {
+      if (!children.includes(child)) {
+        child._setGroupDisabled(false);
+        this.#groupChildren.delete(child);
+      }
+    }
+    for (const toggle of children) {
+      this.#groupChildren.add(toggle);
+      toggle._setGroupDisabled(this.disabled);
       if (this.mode === "single") toggle.pressed = toggle.value === this.value;
     }
   }
@@ -122,8 +128,9 @@ export class UIToggleGroup extends LitElement {
     if (!(toggle instanceof HTMLElement) || toggle.localName !== "ui-toggle" || this.disabled)
       return;
     const option = toggle as UIToggle;
-    if (this.mode === "single" && option.pressed) {
-      this.value = option.value;
+    if (!this.#toggles().includes(option)) return;
+    if (this.mode === "single") {
+      this.value = option.pressed ? option.value : "";
       this.#syncOptions();
     }
     this.#emitChange();

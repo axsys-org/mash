@@ -10,6 +10,7 @@ import {
   HeatmapChart,
   GraphChart,
   TreemapChart,
+  CustomChart,
 } from "echarts/charts";
 import {
   RadarComponent,
@@ -36,6 +37,7 @@ use([
   HeatmapChart,
   GraphChart,
   TreemapChart,
+  CustomChart,
   RadarComponent,
   GridComponent,
   LegendComponent,
@@ -107,6 +109,15 @@ export function drawChart(
         icon: "circle",
         itemWidth: 8,
         itemHeight: 8,
+      },
+      radar: {
+        axisName: { color: muted, fontFamily, fontSize },
+        axisLine: { lineStyle: { color: border } },
+        splitLine: { lineStyle: { color: border } },
+        splitArea: { show: false },
+      },
+      sankey: {
+        label: { color: text, textBorderWidth: 0, textBorderColor: "transparent" },
       },
       line: { symbolSize: 6, lineStyle: { width: 2 } },
       bar: { itemStyle: { borderRadius: [4, 4, 0, 0] } },

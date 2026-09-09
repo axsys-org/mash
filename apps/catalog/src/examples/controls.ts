@@ -1,3 +1,8 @@
+import { finalControlExamples } from "./final-control-examples.js";
+import { menuExtensionExamples } from "./menu-extensions.js";
+import { mergeControlStateExamples } from "./control-states.js";
+import { mergeSelectionExamples } from "./selection.js";
+import { toolbarExamples } from "./display.js";
 import { patternExamples } from "./patterns.js";
 import type { CatalogExample } from "../examples.js";
 
@@ -111,37 +116,7 @@ export const controlExamples: Record<string, CatalogExample[]> = {
 </ui-toggle-group>`,
     ),
   ],
-  "ui-toolbar": [
-    sample(
-      "Formatting",
-      `<ui-toolbar label="Text formatting" data-mash-size="small">
-  <ui-toggle pressed>Bold</ui-toggle>
-  <ui-toggle>Italic</ui-toggle>
-  <ui-toggle>Underline</ui-toggle>
-  <ui-button variant="primary">Publish</ui-button>
-</ui-toolbar>`,
-      "Arrow keys move between controls. The toolbar supplies size and spacing.",
-    ),
-    sample(
-      "Mixed controls",
-      `<ui-toolbar label="Document tools" data-mash-size="small">
-  <ui-button>New</ui-button>
-  <ui-input label="Find in document" placeholder="Find"></ui-input>
-  <ui-select label="Status" value="draft">${choices}
-  </ui-select>
-  <ui-button variant="primary">Save</ui-button>
-</ui-toolbar>`,
-      "Buttons, text input, and select share the same control height.",
-    ),
-    sample(
-      "Vertical",
-      `<ui-toolbar orientation="vertical" label="Drawing tools" data-mash-size="small">
-  <ui-toggle pressed>Select</ui-toggle>
-  <ui-toggle>Draw</ui-toggle>
-  <ui-toggle>Erase</ui-toggle>
-</ui-toolbar>`,
-    ),
-  ],
+  "ui-toolbar": toolbarExamples,
   "ui-select": [
     sample(
       "Select",
@@ -200,4 +175,18 @@ combo.addEventListener("ui-combobox-change", renderChips);`,
 
 for (const [tag, examples] of Object.entries(patternExamples)) {
   if (controlExamples[tag]) controlExamples[tag] = [...controlExamples[tag], ...examples];
+}
+
+mergeSelectionExamples(controlExamples, true);
+
+mergeControlStateExamples(controlExamples, true);
+
+for (const [tag, examples] of Object.entries(menuExtensionExamples)) {
+  if (!controlExamples[tag]) continue;
+  controlExamples[tag] = [...(controlExamples[tag] ?? []), ...examples];
+}
+
+for (const [tag, examples] of Object.entries(finalControlExamples)) {
+  if (!controlExamples[tag]) continue;
+  controlExamples[tag] = [...(controlExamples[tag] ?? []), ...examples];
 }

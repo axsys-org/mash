@@ -102,6 +102,8 @@ document.querySelector("#reset-order").addEventListener("click", () => tabs.setO
 #documents ui-tab { min-inline-size:7rem; max-inline-size:12rem; }
 #documents ui-tab::part(root), #documents ui-tab::part(control) { inline-size:100%; }
 #documents ui-tab::part(control) { justify-content:flex-start; }
+#documents ui-tab[selected]::part(control) { background:var(--color-surface); color:var(--color-text); box-shadow:0 var(--border-hairline) var(--space-control-gap) var(--color-shadow); }
+#documents ui-tab[selected]::part(control):hover { background:var(--color-surface-hover); }
 #documents ui-textarea::part(control) { min-block-size:10rem; border:0; background:transparent; padding:0; box-shadow:none; resize:vertical; }
 #documents ui-textarea::part(control):focus { outline:none; }
 </style><ui-tabs id="documents" size="small" variant="default" value="notes" label="Open documents" reorderable>

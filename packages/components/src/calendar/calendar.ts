@@ -17,7 +17,7 @@ const DAY = 86_400_000;
 function parseDate(value: string | null | undefined): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const date = new Date(`${value}T00:00:00Z`);
-  return Number.isNaN(date.valueOf()) ? null : date;
+  return Number.isNaN(date.valueOf()) || formatDate(date) !== value ? null : date;
 }
 
 function formatDate(date: Date): string {
@@ -282,10 +282,30 @@ export class UICalendar extends LitElement {
   }
 
   #navigate(months: number): void {
-    if (this.view === "month") return;
+    if (!this.#canNavigate(months)) return;
     const amount = this.view === "year" ? months * 20 * 12 : months;
     this.month = monthValue(addMonths(startOfMonth(this.month), amount));
     this.#announceMonth();
+  }
+
+  #periodAllowed(first: Date, last: Date): boolean {
+    const minimum = parseDate(this.min);
+    const maximum = parseDate(this.max);
+    return !(minimum && last < minimum) && !(maximum && first > maximum);
+  }
+
+  #canNavigate(direction: number): boolean {
+    if (this.view === "month") return false;
+    const current = startOfMonth(this.month);
+    if (this.view === "year") {
+      const year = Math.floor(current.getUTCFullYear() / 20) * 20 + direction * 20;
+      return this.#periodAllowed(
+        new Date(Date.UTC(year, 0, 1)),
+        new Date(Date.UTC(year + 20, 0, 0)),
+      );
+    }
+    const first = addMonths(current, direction);
+    return this.#periodAllowed(first, addDays(addMonths(first, Math.max(1, this.months)), -1));
   }
 
   #announceMonth(): void {
@@ -316,14 +336,23 @@ export class UICalendar extends LitElement {
 
   #selectMonth(month: number): void {
     const current = startOfMonth(this.month);
-    this.month = monthValue(new Date(Date.UTC(current.getUTCFullYear(), month, 1)));
+    const first = new Date(Date.UTC(current.getUTCFullYear(), month, 1));
+    if (!this.#periodAllowed(first, addDays(addMonths(first, 1), -1))) return;
+    this.month = monthValue(first);
     this.#setView("day");
     this.#announceMonth();
   }
 
   #selectYear(year: number): void {
     const current = startOfMonth(this.month);
-    this.month = monthValue(new Date(Date.UTC(year, current.getUTCMonth(), 1)));
+    if (!this.#periodAllowed(new Date(Date.UTC(year, 0, 1)), new Date(Date.UTC(year + 1, 0, 0))))
+      return;
+    let next = new Date(Date.UTC(year, current.getUTCMonth(), 1));
+    const minimum = parseDate(this.min);
+    const maximum = parseDate(this.max);
+    if (minimum && monthValue(next) < monthValue(minimum)) next = startOfMonth(monthValue(minimum));
+    if (maximum && monthValue(next) > monthValue(maximum)) next = startOfMonth(monthValue(maximum));
+    this.month = monthValue(next);
     this.#setView("day");
     this.#announceMonth();
   }
@@ -364,7 +393,13 @@ export class UICalendar extends LitElement {
       event.preventDefault();
       const month = addMonths(current, event.key === "PageUp" ? -1 : 1);
       this.#focusDate(
-        new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), current.getUTCDate())),
+        new Date(
+          Date.UTC(
+            month.getUTCFullYear(),
+            month.getUTCMonth(),
+            Math.min(current.getUTCDate(), addDays(addMonths(month, 1), -1).getUTCDate()),
+          ),
+        ),
       );
       return;
     }
@@ -405,7 +440,6 @@ export class UICalendar extends LitElement {
     const weekdays = Array.from({ length: 7 }, (_, weekday) => addDays(weekdayOrigin, weekday));
     return html`
       <section part="month-panel" aria-label=${monthLabel} data-month=${monthValue(month)}>
-        ${this.months > 1 ? html`<div part="title">${monthLabel}</div>` : ""}
         <div part="weekdays" aria-hidden="true">
           ${weekdays.map(
             (date) =>
@@ -466,7 +500,7 @@ export class UICalendar extends LitElement {
               part="previous"
               type="button"
               aria-label=${this.view === "year" ? "Previous years" : "Previous month"}
-              ?disabled=${this.view === "month"}
+              ?disabled=${!this.#canNavigate(-1)}
               @click=${() => this.#navigate(-1)}
             >
               ‹
@@ -514,7 +548,7 @@ export class UICalendar extends LitElement {
               part="next"
               type="button"
               aria-label=${this.view === "year" ? "Next years" : "Next month"}
-              ?disabled=${this.view === "month"}
+              ?disabled=${!this.#canNavigate(1)}
               @click=${() => this.#navigate(1)}
             >
               ›
@@ -537,6 +571,7 @@ export class UICalendar extends LitElement {
                       type="button"
                       role="gridcell"
                       aria-selected=${index === month.getUTCMonth() ? "true" : "false"}
+                      ?disabled=${!this.#periodAllowed(date, addDays(addMonths(date, 1), -1))}
                       @click=${() => this.#selectMonth(index)}
                     >
                       ${date.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" })}
@@ -551,6 +586,7 @@ export class UICalendar extends LitElement {
                         type="button"
                         role="gridcell"
                         aria-selected=${option === year ? "true" : "false"}
+                        ?disabled=${!this.#periodAllowed(new Date(Date.UTC(option, 0, 1)), new Date(Date.UTC(option + 1, 0, 0)))}
                         @click=${() => this.#selectYear(option)}
                       >
                         ${option}

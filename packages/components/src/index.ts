@@ -168,7 +168,7 @@ export type {
   DataTableSelectionRange,
 } from "./data-table/data-table.js";
 export { UIEditor } from "./editor/editor.js";
-export type { EditorSelectionDetail } from "./editor/editor.js";
+export type { EditorSelectionDetail, EditorDecoration } from "./editor/editor.js";
 export type { DrawerSide } from "./drawer/drawer.js";
 export { UIMeter } from "./meter/meter.js";
 export { UIMotion } from "./motion/motion.js";
@@ -265,7 +265,11 @@ export { UITree } from "./tree/tree.js";
 export { UITreeItem } from "./tree-item/tree-item.js";
 export type { TreeItemKind, TreeItemSize } from "./tree-item/tree-item.js";
 export { UIVirtualItem, UIVirtualList } from "./virtual-list/virtual-list.js";
-export type { VirtualListAlignment, VirtualListOrientation } from "./virtual-list/virtual-list.js";
+export type {
+  VirtualListAlignment,
+  VirtualListOrientation,
+  VirtualListSource,
+} from "./virtual-list/virtual-list.js";
 export * from "./drag/drag.js";
 export { UIDraggable } from "./draggable/draggable.js";
 export type { DraggableContainment } from "./draggable/draggable.js";

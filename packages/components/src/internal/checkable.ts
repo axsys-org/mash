@@ -25,6 +25,7 @@ export abstract class UICheckable extends LitElement {
     required: { type: Boolean, reflect: true },
     value: { type: String, reflect: true },
     _hasCheckableLabel: { state: true },
+    _groupDisabled: { state: true },
   };
 
   static override styles = baseStyles;
@@ -59,6 +60,7 @@ export abstract class UICheckable extends LitElement {
   #defaultChecked: boolean | undefined;
   #formDisabled = false;
   protected _hasCheckableLabel = false;
+  protected _groupDisabled = false;
 
   constructor() {
     super();
@@ -78,7 +80,12 @@ export abstract class UICheckable extends LitElement {
   }
 
   get #isDisabled(): boolean {
-    return this.disabled || this.#formDisabled;
+    return this.disabled || this.#formDisabled || this._groupDisabled;
+  }
+
+  /** @internal Parent group policy remains separate from authored disabled state. */
+  _setGroupDisabled(disabled: boolean): void {
+    this._groupDisabled = disabled;
   }
 
   /** Optional three-state visual state supplied by a concrete checkbox. */
@@ -141,8 +148,9 @@ export abstract class UICheckable extends LitElement {
     this.#syncStates();
   }
 
-  protected override updated(changed: PropertyValues<this>): void {
+  protected override updated(changed: PropertyValues): void {
     if (
+      changed.has("_groupDisabled") ||
       changed.has("checked") ||
       changed.has("disabled") ||
       changed.has("name") ||

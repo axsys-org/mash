@@ -1,5 +1,11 @@
 /** Public authored layout. Parents own spacing; children own their control frame. */
 @layer mash.catalogue {
+  /* Layout recipes must not override an owner's native visibility boundary. */
+  :where([data-mash-catalogue="mash"]):is(.mash-row, .mash-stack, .mash-grid)[hidden],
+  :where([data-mash-catalogue="mash"]) :is(.mash-row, .mash-stack, .mash-grid)[hidden] {
+    display: none !important;
+  }
+
   :where([data-mash-catalogue="mash"]).mash-row,
   :where([data-mash-catalogue="mash"]) .mash-row {
     display: flex;

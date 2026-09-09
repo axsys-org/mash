@@ -348,6 +348,82 @@ describe("ui-button: accessibility", () => {
 });
 
 describe("ui-button: form association", () => {
+  it("inherits a disabled fieldset for actions and focus without changing authored state", async () => {
+    const form = await fixture<HTMLFormElement>(`
+      <form><input value="initial"><fieldset disabled>
+        <ui-button type="submit">Save</ui-button>
+        <ui-button type="reset">Reset</ui-button>
+        <ui-button variant="link">Inline action</ui-button>
+        <ui-button disabled>Unavailable</ui-button>
+      </fieldset></form>
+    `);
+    const fieldset = form.querySelector("fieldset")!;
+    const buttons = [...form.querySelectorAll<UIButton>("ui-button")];
+    const input = form.querySelector("input")!;
+    let submissions = 0;
+    let clicks = 0;
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submissions++;
+    });
+    for (const button of buttons) button.addEventListener("click", () => clicks++);
+    input.value = "edited";
+    input.focus();
+    for (const button of buttons) {
+      expect(control(button).disabled).toBe(true);
+      expect(button.matches(":state(disabled)")).toBe(true);
+      button.focus();
+      expect(document.activeElement).toBe(input);
+      button.click();
+      control(button).click();
+    }
+    expect(clicks).toBe(0);
+    expect(submissions).toBe(0);
+    expect(input.value).toBe("edited");
+    expect(buttons.map((button) => button.disabled)).toEqual([false, false, false, true]);
+    expect(buttons.slice(0, 3).every((button) => !button.hasAttribute("disabled"))).toBe(true);
+
+    fieldset.disabled = false;
+    await settled(form);
+    expect(buttons.map((button) => control(button).disabled)).toEqual([false, false, false, true]);
+    buttons[0]!.click();
+    expect(submissions).toBe(1);
+    buttons[1]!.click();
+    expect(input.value).toBe("initial");
+    buttons[2]!.focus();
+    expect(shadow(buttons[2]!).activeElement).toBe(control(buttons[2]!));
+    buttons[2]!.click();
+    expect(clicks).toBe(3);
+    expect(buttons[2]!.variant).toBe("link");
+  });
+
+  it("respects the first legend exception and clears an active press on inherited disable", async () => {
+    const fieldset = await fixture<HTMLFieldSetElement>(`
+      <fieldset><legend><ui-button>Legend action</ui-button></legend>
+        <ui-button>Body action</ui-button>
+      </fieldset>
+    `);
+    const [legend, body] = [...fieldset.querySelectorAll<UIButton>("ui-button")];
+    control(body!).dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, composed: true }),
+    );
+    expect(body!.matches(":state(pressed)")).toBe(true);
+    fieldset.disabled = true;
+    await settled(fieldset);
+    expect(control(legend!).disabled).toBe(false);
+    expect(control(body!).disabled).toBe(true);
+    expect(body!.matches(":state(pressed)")).toBe(false);
+
+    body!.disabled = true;
+    await settled(fieldset);
+    fieldset.disabled = false;
+    await settled(fieldset);
+    expect(control(body!).disabled).toBe(true);
+    body!.disabled = false;
+    await settled(fieldset);
+    expect(control(body!).disabled).toBe(false);
+    expect(body!.matches(":state(disabled)")).toBe(false);
+  });
   it("submits its form from inside the shadow root", async () => {
     const form = await fixture<HTMLFormElement>(`
       <form><ui-button type="submit">Save</ui-button></form>

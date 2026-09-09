@@ -49,7 +49,7 @@ export class UICheckboxGroup extends LitElement {
   /** Prevents selection changes throughout the group. */
   declare disabled: boolean;
 
-  readonly #childDisabled = new WeakMap<UICheckbox, boolean>();
+  readonly #groupChildren = new Set<UICheckbox>();
   readonly #internals: ElementInternals;
 
   constructor() {
@@ -67,10 +67,16 @@ export class UICheckboxGroup extends LitElement {
   }
 
   #syncOptions(): void {
-    for (const checkbox of this.#checkboxes()) {
-      const original = this.#childDisabled.get(checkbox);
-      if (original === undefined) this.#childDisabled.set(checkbox, checkbox.disabled);
-      checkbox.disabled = this.disabled || (original ?? false);
+    const children = this.#checkboxes();
+    for (const child of this.#groupChildren) {
+      if (!children.includes(child)) {
+        child._setGroupDisabled(false);
+        this.#groupChildren.delete(child);
+      }
+    }
+    for (const checkbox of children) {
+      this.#groupChildren.add(checkbox);
+      checkbox._setGroupDisabled(this.disabled);
     }
   }
 
@@ -84,7 +90,8 @@ export class UICheckboxGroup extends LitElement {
 
   #onSlotChange = (): void => this.#syncOptions();
 
-  #onCheckboxChange = (): void => {
+  #onCheckboxChange = (event: Event): void => {
+    if (this.disabled || !this.#checkboxes().includes(event.target as UICheckbox)) return;
     this.dispatchEvent(
       new CustomEvent<{ values: string[] }>("ui-checkbox-group-change", {
         bubbles: true,

@@ -205,11 +205,28 @@ export class UIImage extends LitElement {
     }));
   };
 
+  #reusedLoadedSource = false;
+
   protected override willUpdate(changed: PropertyValues<this>): void {
-    if (!changed.has("src") && !changed.has("fallbackSrc")) return;
-    this._activeSrc = this.src;
-    this._usingFallback = false;
-    this._status = this.src ? "loading" : "empty";
+    if (changed.has("src")) {
+      this.#reusedLoadedSource =
+        this._status === "loaded" &&
+        this._activeSrc === this.src &&
+        !this.srcset &&
+        this._sources.length === 0;
+      this._activeSrc = this.src;
+      this._usingFallback = false;
+      this._status = this.#reusedLoadedSource ? "loaded" : this.src ? "loading" : "empty";
+      return;
+    }
+    if (!changed.has("fallbackSrc")) return;
+    // A new recovery source must initiate its own request after a terminal
+    // failure. Reassigning the unchanged failed primary URL emits no event.
+    if (this._usingFallback || (this._status === "error" && this.fallbackSrc)) {
+      this._usingFallback = Boolean(this.fallbackSrc);
+      this._activeSrc = this.fallbackSrc || this.src;
+      this._status = this._activeSrc ? "loading" : "empty";
+    }
   }
 
   protected override updated(): void {
@@ -219,11 +236,19 @@ export class UIImage extends LitElement {
     }
     if (this._usingFallback) this.#internals.states.add("fallback");
     else this.#internals.states.delete("fallback");
+    if (this.#reusedLoadedSource) {
+      this.#reusedLoadedSource = false;
+      const image = this.renderRoot.querySelector<HTMLImageElement>("img");
+      if (image) this.#reportLoad(image);
+    }
   }
 
   #onLoad = (event: Event): void => {
     if (this._status === "error") return;
-    const image = event.currentTarget as HTMLImageElement;
+    this.#reportLoad(event.currentTarget as HTMLImageElement);
+  };
+
+  #reportLoad(image: HTMLImageElement): void {
     this._status = "loaded";
     this.dispatchEvent(
       new CustomEvent<ImageLoadDetail>("ui-image-load", {
@@ -238,7 +263,7 @@ export class UIImage extends LitElement {
         },
       }),
     );
-  };
+  }
 
   #onError = (): void => {
     const failedSrc = this._activeSrc;

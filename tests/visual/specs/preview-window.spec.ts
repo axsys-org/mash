@@ -86,7 +86,7 @@ for (const width of [390, 1280]) {
 test("calendar popup and its final date remain reachable inside the preview", async ({ page }) => {
   await page.goto("/components/ui-date-picker", { waitUntil: "domcontentloaded" });
   const stage = page.frameLocator("iframe.stage-frame");
-  await stage.getByRole("button", { name: "Choose date", exact: true }).click();
+  await stage.getByRole("button", { name: "Sep 8, 2026", exact: true }).click();
   const popup = stage.locator("ui-date-picker").locator('[part="popup"]');
   await expect(popup).toBeVisible();
   await expect

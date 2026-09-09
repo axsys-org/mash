@@ -39,6 +39,7 @@ async function main() {
         "apps/catalog/src/examples/data.ts",
         "apps/catalog/src/examples/tables.ts",
         "apps/catalog/src/examples/utility.ts",
+        "apps/catalog/src/examples/collections.ts",
         "apps/catalog/src/examples/patterns.ts",
       ].map((file) => readFile(path.join(ROOT, file), "utf8")),
     )

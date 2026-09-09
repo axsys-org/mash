@@ -295,6 +295,7 @@ export class UIColorPicker extends UIAnchoredOverlay {
   }
 
   #onChannelInput = (event: CustomEvent<{ value: number }>): void => {
+    if (this.disabled) return;
     const control = this.#authoredControl(event);
     const channel = control?.slot;
     if (!channel || !["hue", "saturation", "lightness", "alpha"].includes(channel)) return;
@@ -304,6 +305,7 @@ export class UIColorPicker extends UIAnchoredOverlay {
   };
 
   #onChannelChange = (event: CustomEvent<{ value: number }>): void => {
+    if (this.disabled) return;
     const control = this.#authoredControl(event);
     const channel = control?.slot;
     if (!channel || !["hue", "saturation", "lightness", "alpha"].includes(channel)) return;
@@ -314,18 +316,21 @@ export class UIColorPicker extends UIAnchoredOverlay {
   };
 
   #onHexInput = (event: Event): void => {
+    if (this.disabled) return;
     const control = this.#authoredControl(event) as (HTMLElement & { value?: string }) | null;
     if (control?.slot !== "hex") return;
     this.previewColor(control.value ?? control.getAttribute("value") ?? "");
   };
 
   #onHexChange = (event: Event): void => {
+    if (this.disabled) return;
     const control = this.#authoredControl(event) as (HTMLElement & { value?: string }) | null;
     if (control?.slot !== "hex") return;
     this.commitColor(control.value ?? control.getAttribute("value") ?? "", false);
   };
 
   #onHexKeydown = (event: KeyboardEvent): void => {
+    if (this.disabled) return;
     if (event.key !== "Enter") return;
     const control = this.#authoredControl(event) as (HTMLElement & { value?: string }) | null;
     if (control?.slot !== "hex") return;
@@ -335,6 +340,7 @@ export class UIColorPicker extends UIAnchoredOverlay {
   };
 
   #onClearClick = (event: Event): void => {
+    if (this.disabled) return;
     const control = this.#authoredControl(event);
     if (control?.slot !== "clear") return;
     this.clearColor();
@@ -366,7 +372,7 @@ export class UIColorPicker extends UIAnchoredOverlay {
     const normalized = value === null ? null : normalizeHexColor(value);
     if (value !== null && !normalized) return false;
     this.preview = normalized ?? "";
-    if (normalized) this.#applyChannels(normalized);
+    this.#applyChannels(normalized || this.value);
     this.dispatchEvent(
       new CustomEvent<{ value: string | null }>("ui-color-preview", {
         detail: { value: normalized },
@@ -415,16 +421,22 @@ export class UIColorPicker extends UIAnchoredOverlay {
 
   #onSelect = (event: CustomEvent<{ value: string }>): void => {
     event.stopPropagation();
+    if (this.disabled) return;
     this.commitColor(event.detail.value);
   };
 
   #onPreview = (event: CustomEvent<{ value: string | null }>): void => {
     event.stopPropagation();
+    if (this.disabled) return;
     this.previewColor(event.detail.value);
   };
 
   protected override willUpdate(changed: PropertyValues<this>): void {
-    if (changed.has("value") && this.value) this.#applyChannels(this.value);
+    super.willUpdate(changed);
+    if (changed.has("value")) {
+      if (this.value) this.#applyChannels(this.value);
+      if (!changed.has("preview")) this.preview = "";
+    }
   }
 
   protected override updated(changed: PropertyValues<this>): void {

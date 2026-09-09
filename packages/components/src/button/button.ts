@@ -170,6 +170,7 @@ export class UIButton extends LitElement {
   declare private _hasSuffix: boolean;
 
   readonly #internals: ElementInternals;
+  #formDisabled = false;
 
   constructor() {
     super();
@@ -208,7 +209,17 @@ export class UIButton extends LitElement {
 
   /** True when the button cannot currently be activated. */
   get #inert(): boolean {
-    return this.disabled || this.loading;
+    return this.disabled || this.#formDisabled || this.loading;
+  }
+
+  /** Mirrors native fieldset disabled inheritance without changing authored disabled. */
+  formDisabledCallback(disabled: boolean): void {
+    this.#formDisabled = disabled;
+    this.requestUpdate();
+  }
+
+  override focus(options?: FocusOptions): void {
+    if (!this.#inert) super.focus(options);
   }
 
   #onHostClick = (event: MouseEvent): void => {
@@ -243,21 +254,23 @@ export class UIButton extends LitElement {
   };
 
   protected override updated(changed: PropertyValues<this>): void {
+    // Attribute reflection can invoke formDisabledCallback after render() has
+    // read the old native state. Reconcile the final callback value here too.
+    const control = this.renderRoot.querySelector<HTMLButtonElement>("button");
+    if (control) control.disabled = this.#inert;
     if (changed.has("loading")) {
       if (this.loading) this.#internals.states.add("loading");
       else this.#internals.states.delete("loading");
     }
-    if (changed.has("disabled")) {
-      if (this.disabled) this.#internals.states.add("disabled");
-      else this.#internals.states.delete("disabled");
-    }
+    if (this.disabled || this.#formDisabled) this.#internals.states.add("disabled");
+    else this.#internals.states.delete("disabled");
     if (changed.has("selected")) {
       if (this.selected) this.#internals.states.add("selected");
       else this.#internals.states.delete("selected");
     }
 
     // A button that goes inert mid-press must not stay stuck in :state(pressed).
-    if ((changed.has("disabled") || changed.has("loading")) && this.#inert) {
+    if (this.#inert) {
       this.#internals.states.delete("pressed");
     }
   }

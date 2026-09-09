@@ -644,8 +644,7 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-editor::part(overlay),
-  :where([data-mash-catalogue="mash"]) ui-editor::part(completion),
-  :where([data-mash-catalogue="mash"]) ui-editor::part(diagnostics) {
+  :where([data-mash-catalogue="mash"]) ui-editor::part(completion) {
     position: absolute;
     z-index: var(--layer-raised);
     inset-inline: var(--space-container-inline);
@@ -716,7 +715,11 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-editor::part(diagnostics) {
-    inset-block-end: var(--space-container-block);
+    grid-column: 1 / -1;
+    min-inline-size: 0;
+    border-block-start: var(--border-hairline) solid var(--_mash-component-divider);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--_mash-component-surface);
     color: var(--color-critical-text);
     font: var(--type-label-font-weight) var(--type-label-small-font-size) /
       var(--type-label-small-line-height) var(--type-label-font-family);
@@ -1110,7 +1113,7 @@
     white-space: pre-wrap;
     overflow-wrap: break-word;
   }
-  :where([data-mash-catalogue="mash"]) ui-editor[highlight]::part(control) {
+  :where([data-mash-catalogue="mash"]) ui-editor::part(control) {
     position: relative;
     color: transparent;
   }
@@ -1130,8 +1133,37 @@
     :where([data-mash-catalogue="mash"]) ui-editor::part(syntax) {
       display: none;
     }
-    :where([data-mash-catalogue="mash"]) ui-editor[highlight]::part(control) {
+    :where([data-mash-catalogue="mash"]) ui-editor::part(control) {
       color: CanvasText;
     }
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-editor::part(range-highlight) {
+    background: color-mix(in srgb, var(--color-action) 18%, transparent);
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor::part(range-error),
+  :where([data-mash-catalogue="mash"]) ui-editor::part(range-warning) {
+    text-decoration-line: underline;
+    text-decoration-style: wavy;
+    text-underline-offset: 0.15em;
+    text-decoration-color: var(--color-critical);
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor::part(range-warning) {
+    text-decoration-color: var(--color-warning);
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor::part(range-info) {
+    background: color-mix(in srgb, var(--color-action) 10%, transparent);
+    text-decoration: underline dotted var(--color-action);
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor::part(whitespace) {
+    position: relative;
+  }
+  :where([data-mash-catalogue="mash"]) ui-editor::part(whitespace)::after {
+    position: absolute;
+    inset-inline-start: 0;
+    color: var(--color-text-muted);
+    content: attr(data-whitespace);
   }
 }

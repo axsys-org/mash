@@ -68,6 +68,27 @@ describe("ui-image", () => {
     expect(inShadow<HTMLElement>(image, '[part="error"]').hidden).toBe(false);
   });
 
+  it("loads a fallback assigned after the primary request has already failed", async () => {
+    const good =
+      "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='8'%20height='8'%3E%3C/svg%3E";
+    const image = await fixture<UIImage>(
+      `<ui-image loading="eager" src="data:image/png;base64,invalid"></ui-image>`,
+    );
+    await vi.waitFor(() => expect(image.matches(":state(error)")).toBe(true));
+    image.fallbackSrc = good;
+    await vi.waitFor(() => expect(image.matches(":state(loaded)")).toBe(true));
+    expect(image.matches(":state(fallback)")).toBe(true);
+    expect(inShadow<HTMLImageElement>(image, "img").getAttribute("src")).toBe(good);
+    const loaded = vi.fn();
+    image.addEventListener("ui-image-load", loaded);
+    image.src = good;
+    image.fallbackSrc = "";
+    await settled(image);
+    expect(image.matches(":state(loaded)")).toBe(true);
+    expect(image.matches(":state(fallback)")).toBe(false);
+    expect(loaded.mock.calls.at(-1)?.[0].detail).toMatchObject({ src: good, fallback: false });
+  });
+
   it("reports successful intrinsic image metadata", async () => {
     const source =
       "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201%201%22%2F%3E";

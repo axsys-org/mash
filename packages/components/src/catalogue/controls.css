@@ -229,18 +229,20 @@
     cursor: pointer;
   }
   :where([data-mash-catalogue="mash"]) ui-button[disabled]::part(control),
-  :where([data-mash-catalogue="mash"]) ui-toggle[disabled]::part(control) {
+  :where([data-mash-catalogue="mash"]) ui-toggle:is([disabled], :state(disabled))::part(control) {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  :where([data-mash-catalogue="mash"]) ui-toggle:not([disabled]):hover::part(control) {
+  :where([data-mash-catalogue="mash"])
+    ui-toggle:not([disabled], :state(disabled)):hover::part(control) {
     background: var(--color-surface-hover);
   }
   :where([data-mash-catalogue="mash"]) ui-toggle[pressed]::part(control) {
     background: var(--color-selection);
     color: var(--color-on-selection);
   }
-  :where([data-mash-catalogue="mash"]) ui-toggle[pressed]:not([disabled]):hover::part(control) {
+  :where([data-mash-catalogue="mash"])
+    ui-toggle[pressed]:not([disabled], :state(disabled)):hover::part(control) {
     background: var(--color-selection-hover);
   }
   :where([data-mash-catalogue="mash"]) ui-button::part(control):focus-visible,
