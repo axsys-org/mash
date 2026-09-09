@@ -18,6 +18,59 @@ const choiceStates = (tag: string) =>
   );
 
 export const selectionExamples: Record<string, CatalogExample[]> = {
+  "ui-autocomplete": [
+    demo(
+      "Typeahead",
+      `<div class="mash-stack" style="inline-size:30rem;max-inline-size:100%">
+  <ui-autocomplete id="project-typeahead" label="Find a project" placeholder="Search projects or people…" filter="none" style="inline-size:100%">
+    <ui-icon slot="icon" name="action.search"></ui-icon>
+    <ui-button slot="clear" variant="ghost" size="xsmall" aria-label="Clear project search">Clear</ui-button>
+    <span slot="empty" id="typeahead-empty">Start typing to find a project.</span>
+    <span slot="footer"><ui-kbd>↑</ui-kbd> <ui-kbd>↓</ui-kbd> to navigate · <ui-kbd>Enter</ui-kbd> to select</span>
+  </ui-autocomplete>
+  <output id="typeahead-result" aria-live="polite">No project selected.</output>
+</div>`,
+      `const search = document.querySelector("#project-typeahead");
+const empty = document.querySelector("#typeahead-empty");
+const result = document.querySelector("#typeahead-result");
+const projects = [
+  { name: "Design system", owner: "Alex Morgan" },
+  { name: "Developer documentation", owner: "Sam Chen" },
+  { name: "Documentation search", owner: "Jordan Lee" },
+  { name: "Mobile navigation", owner: "Alex Morgan" },
+  { name: "Release planning", owner: "River Park" },
+  { name: "Website redesign", owner: "Sam Chen" },
+];
+search.addEventListener("ui-combobox-input", () => {
+  const query = search.value.trim().toLocaleLowerCase();
+  const matches = query ? projects.filter(project =>
+    (project.name + " " + project.owner).toLocaleLowerCase().includes(query)
+  ).sort((a, b) => Number(b.name.toLocaleLowerCase().startsWith(query)) - Number(a.name.toLocaleLowerCase().startsWith(query)) || a.name.localeCompare(b.name)) : [];
+  search.querySelectorAll("ui-option").forEach(option => option.remove());
+  for (const project of matches) {
+    const option = document.createElement("ui-option");
+    option.value = project.name;
+    const label = document.createElement("span");
+    label.className = "mash-stack";
+    label.style.gap = "0";
+    const title = document.createElement("strong");
+    title.textContent = project.name;
+    const owner = document.createElement("small");
+    owner.textContent = project.owner;
+    label.append(title, owner);
+    option.append(label);
+    search.append(option);
+  }
+  empty.textContent = query ? 'No projects match “' + search.value.trim() + '”. Try another name.' : "Start typing to find a project.";
+  result.textContent = "No project selected.";
+});
+search.addEventListener("ui-combobox-change", () => {
+  const project = projects.find(item => item.name === search.value);
+  result.textContent = project ? "Selected: " + project.name + " · " + project.owner : "No project selected.";
+});`,
+      "Suggestions update as you type. Search by project or owner; matching project names appear first.",
+    ),
+  ],
   "ui-select": [
     choiceStates("ui-select"),
     demo(
