@@ -21,6 +21,8 @@ export class VirtualHistory {
   #following = true;
   #estimate = 80;
   #overscan = 3;
+  #readingAnchor?: { id: string; offset: number };
+  #position = 0;
   #resize = new ResizeObserver((entries) => {
     let changed = false;
     for (const entry of entries) {
@@ -34,7 +36,7 @@ export class VirtualHistory {
     if (changed && !this.#frame)
       this.#frame = requestAnimationFrame(() => {
         this.#frame = 0;
-        this.#rebuild(this.#anchor());
+        this.#rebuild(this.#readingAnchor ?? this.#anchor());
       });
   });
   constructor(
@@ -78,7 +80,7 @@ export class VirtualHistory {
     estimate: number,
     overscan: number,
   ): void {
-    const anchor = this.#anchor();
+    const anchor = this.#readingAnchor ?? this.#anchor();
     const ids = new Set(items.map((item) => item.id));
     if (ids.size !== items.length) throw new Error("Message history requires unique stable IDs.");
     if (renderer && renderer !== this.#renderer) {
@@ -114,6 +116,8 @@ export class VirtualHistory {
           this.viewport.getBoundingClientRect().top +
           anchor.offset;
     }
+    this.#position = this.viewport.scrollTop;
+    this.#readingAnchor = this.#following ? undefined : anchor;
   }
   #render(top = this.viewport.scrollTop): void {
     const start = Math.max(0, this.#index(top) - this.#overscan);
@@ -152,7 +156,12 @@ export class VirtualHistory {
   }
   scroll(follow: boolean): void {
     this.#following = follow;
+    // Our own positioning already rendered the requested window. Rendering it
+    // again against estimates before custom rows finish layout loses that anchor.
+    if (this.viewport.scrollTop === this.#position) return;
+    this.#readingAnchor = this.#anchor();
     this.#render();
+    this.#position = this.viewport.scrollTop;
   }
   latest(): void {
     this.#following = true;
@@ -162,13 +171,7 @@ export class VirtualHistory {
     const index = this.#items.findIndex((item) => item.id === id);
     if (index < 0) return false;
     this.#following = false;
-    const top = this.#offsets[index]!;
-    this.#render(top);
-    this.viewport.scrollTop = top;
-    const row = this.#rows.get(id)?.element;
-    if (row)
-      this.viewport.scrollTop +=
-        row.getBoundingClientRect().top - this.viewport.getBoundingClientRect().top;
+    this.#rebuild({ id, offset: 0 });
     return true;
   }
   disconnect(): void {

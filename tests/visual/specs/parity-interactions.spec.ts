@@ -29,9 +29,17 @@ test("virtual history keeps a bounded window and an unread anchor while older ro
   await frame.getByRole("button", { name: "Jump to unread", exact: true }).click();
   const row = frame.locator('[data-message-id="message-9750"]');
   await expect(row).toBeVisible();
-  const before = (await row.boundingBox())!.y;
+  const readingOffset = () =>
+    row.evaluate((element) => {
+      const viewport = element
+        .closest("ui-message-scroller")!
+        .shadowRoot!.querySelector('[part="viewport"]')!;
+      return element.getBoundingClientRect().top - viewport.getBoundingClientRect().top;
+    });
+  await expect.poll(async () => Math.abs(await readingOffset())).toBeLessThan(2);
+  const before = await readingOffset();
   await frame.getByRole("button", { name: "Load 100 earlier", exact: true }).click();
-  await expect.poll(async () => Math.abs((await row.boundingBox())!.y - before)).toBeLessThan(2);
+  await expect.poll(async () => Math.abs((await readingOffset()) - before)).toBeLessThan(2);
   expect(await frame.locator("[data-message-id]").count()).toBeLessThan(40);
   const bubble = row.locator("ui-bubble");
   expect(
