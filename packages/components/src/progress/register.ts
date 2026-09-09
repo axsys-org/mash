@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIProgress };
+
+export * from "./progress.js";

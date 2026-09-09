@@ -1,0 +1,127 @@
+diff --git a/charts.d.ts b/charts.d.ts
+index 5c9edfcd9b61565b3d4160caee66d13bc06e77c7..f632fcd16c58d95005d1465f1ddf466ded412324 100644
+--- a/charts.d.ts
++++ b/charts.d.ts
+@@ -17,4 +17,4 @@
+ * under the License.
+ */
+ 
+-export * from './types/dist/charts';
+\ No newline at end of file
++export * from './types/dist/charts.js';
+\ No newline at end of file
+diff --git a/components.d.ts b/components.d.ts
+index 5bb38bef14ecf4cd9ec174139e7bb47e395d1f3e..f22bac411354f94b95a1368a1e01d5175b117bea 100644
+--- a/components.d.ts
++++ b/components.d.ts
+@@ -17,4 +17,4 @@
+ * under the License.
+ */
+ 
+-export * from './types/dist/components';
+\ No newline at end of file
++export * from './types/dist/components.js';
+\ No newline at end of file
+diff --git a/core.d.ts b/core.d.ts
+index c3f461a0eb72e48ec3373db70942a5491c1c979d..f9533b6c0dcd5d3459808ff95f3860bcd2b8736b 100644
+--- a/core.d.ts
++++ b/core.d.ts
+@@ -17,4 +17,4 @@
+ * under the License.
+ */
+ 
+-export * from './types/dist/core';
+\ No newline at end of file
++export * from './types/dist/core.js';
+\ No newline at end of file
+diff --git a/features.d.ts b/features.d.ts
+index 0e9a6fce1c72396ff07c3149e8a433c06f512e59..52d125c30b7ce742ab38c1c560eba665b8e54d5d 100644
+--- a/features.d.ts
++++ b/features.d.ts
+@@ -17,4 +17,4 @@
+ * under the License.
+ */
+ 
+-export * from './types/dist/features';
+\ No newline at end of file
++export * from './types/dist/features.js';
+\ No newline at end of file
+diff --git a/index.d.ts b/index.d.ts
+index 811908a8734db3b4fb270e95ef47cc39eb6bc05c..60b4081d176af92ed380a74a393b69d7408f9a46 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -17,7 +17,7 @@
+ * under the License.
+ */
+ 
+-import * as echarts from './types/dist/echarts';
++import * as echarts from './types/dist/echarts.js';
+ // Export for UMD module.
+ export as namespace echarts;
+ export = echarts;
+\ No newline at end of file
+diff --git a/renderers.d.ts b/renderers.d.ts
+index 2fb46e91d354ad98aa62cd50f10e0f54f88eab56..4fa5c2b9094a8a3f6e888f08238ab6a90c99c1a9 100644
+--- a/renderers.d.ts
++++ b/renderers.d.ts
+@@ -17,4 +17,4 @@
+ * under the License.
+ */
+ 
+-export * from './types/dist/renderers';
+\ No newline at end of file
++export * from './types/dist/renderers.js';
+\ No newline at end of file
+diff --git a/types/dist/charts.d.ts b/types/dist/charts.d.ts
+index 81fb1525127fd8fcf51e1132f635847bc2a315fc..e260be70fdb5d5e67f73cbe96ecadb24e0602555 100644
+--- a/types/dist/charts.d.ts
++++ b/types/dist/charts.d.ts
+@@ -1 +1 @@
+-export { install$1 as BarChart, BarSeriesOption, install$14 as BoxplotChart, BoxplotSeriesOption, install$15 as CandlestickChart, CandlestickSeriesOption, install$9 as ChordChart, ChordSeriesOption, install$22 as CustomChart, CustomSeriesOption, install$16 as EffectScatterChart, EffectScatterSeriesOption, install$11 as FunnelChart, FunnelSeriesOption, install$10 as GaugeChart, GaugeSeriesOption, install$8 as GraphChart, GraphSeriesOption, install$18 as HeatmapChart, HeatmapSeriesOption, install as LineChart, LineSeriesOption, install$17 as LinesChart, LinesSeriesOption, install$5 as MapChart, MapSeriesOption, install$12 as ParallelChart, ParallelSeriesOption, install$19 as PictorialBarChart, PictorialBarSeriesOption, install$2 as PieChart, PieSeriesOption, install$4 as RadarChart, RadarSeriesOption, install$13 as SankeyChart, SankeySeriesOption, install$3 as ScatterChart, ScatterSeriesOption, install$21 as SunburstChart, SunburstSeriesOption, install$20 as ThemeRiverChart, ThemeRiverSeriesOption, install$6 as TreeChart, TreeSeriesOption, install$7 as TreemapChart, TreemapSeriesOption } from './shared';
+\ No newline at end of file
++export { install$1 as BarChart, BarSeriesOption, install$14 as BoxplotChart, BoxplotSeriesOption, install$15 as CandlestickChart, CandlestickSeriesOption, install$9 as ChordChart, ChordSeriesOption, install$22 as CustomChart, CustomSeriesOption, install$16 as EffectScatterChart, EffectScatterSeriesOption, install$11 as FunnelChart, FunnelSeriesOption, install$10 as GaugeChart, GaugeSeriesOption, install$8 as GraphChart, GraphSeriesOption, install$18 as HeatmapChart, HeatmapSeriesOption, install as LineChart, LineSeriesOption, install$17 as LinesChart, LinesSeriesOption, install$5 as MapChart, MapSeriesOption, install$12 as ParallelChart, ParallelSeriesOption, install$19 as PictorialBarChart, PictorialBarSeriesOption, install$2 as PieChart, PieSeriesOption, install$4 as RadarChart, RadarSeriesOption, install$13 as SankeyChart, SankeySeriesOption, install$3 as ScatterChart, ScatterSeriesOption, install$21 as SunburstChart, SunburstSeriesOption, install$20 as ThemeRiverChart, ThemeRiverSeriesOption, install$6 as TreeChart, TreeSeriesOption, install$7 as TreemapChart, TreemapSeriesOption } from './shared.js';
+\ No newline at end of file
+diff --git a/types/dist/components.d.ts b/types/dist/components.d.ts
+index e905130c694fe5d6739c1be08856277df92861fa..f03cf34a0bd698fb43f76b2d465915a46d467678 100644
+--- a/types/dist/components.d.ts
++++ b/types/dist/components.d.ts
+@@ -1 +1 @@
+-export { install$52 as AriaComponent, AriaOption as AriaComponentOption, install$35 as AxisPointerComponent, AxisPointerOption as AxisPointerComponentOption, install$36 as BrushComponent, BrushOption as BrushComponentOption, install$30 as CalendarComponent, CalendarOption as CalendarComponentOption, install$45 as DataZoomComponent, DataZoomComponentOption, install$46 as DataZoomInsideComponent, install$47 as DataZoomSliderComponent, install$54 as DatasetComponent, DatasetOption as DatasetComponentOption, install$27 as GeoComponent, GeoOption as GeoComponentOption, install$32 as GraphicComponent, GraphicComponentLooseOption as GraphicComponentOption, install$24 as GridComponent, GridOption as GridComponentOption, install$23 as GridSimpleComponent, install$42 as LegendComponent, LegendComponentOption, install$44 as LegendPlainComponent, install$43 as LegendScrollComponent, install$41 as MarkAreaComponent, MarkAreaOption as MarkAreaComponentOption, install$40 as MarkLineComponent, MarkLineOption as MarkLineComponentOption, install$39 as MarkPointComponent, MarkPointOption as MarkPointComponentOption, install$31 as MatrixComponent, MatrixOption as MatrixComponentOption, install$29 as ParallelComponent, ParallelCoordinateSystemOption as ParallelComponentOption, install$25 as PolarComponent, PolarOption as PolarComponentOption, install$26 as RadarComponent, RadarOption as RadarComponentOption, install$28 as SingleAxisComponent, SingleAxisOption as SingleAxisComponentOption, install$51 as ThumbnailComponent, ThumbnailOption as ThumbnailComponentOption, install$38 as TimelineComponent, TimelineOption as TimelineComponentOption, install$37 as TitleComponent, TitleOption as TitleComponentOption, install$33 as ToolboxComponent, ToolboxComponentOption, install$34 as TooltipComponent, TooltipOption as TooltipComponentOption, install$53 as TransformComponent, install$48 as VisualMapComponent, VisualMapComponentOption, install$49 as VisualMapContinuousComponent, install$50 as VisualMapPiecewiseComponent } from './shared';
+\ No newline at end of file
++export { install$52 as AriaComponent, AriaOption as AriaComponentOption, install$35 as AxisPointerComponent, AxisPointerOption as AxisPointerComponentOption, install$36 as BrushComponent, BrushOption as BrushComponentOption, install$30 as CalendarComponent, CalendarOption as CalendarComponentOption, install$45 as DataZoomComponent, DataZoomComponentOption, install$46 as DataZoomInsideComponent, install$47 as DataZoomSliderComponent, install$54 as DatasetComponent, DatasetOption as DatasetComponentOption, install$27 as GeoComponent, GeoOption as GeoComponentOption, install$32 as GraphicComponent, GraphicComponentLooseOption as GraphicComponentOption, install$24 as GridComponent, GridOption as GridComponentOption, install$23 as GridSimpleComponent, install$42 as LegendComponent, LegendComponentOption, install$44 as LegendPlainComponent, install$43 as LegendScrollComponent, install$41 as MarkAreaComponent, MarkAreaOption as MarkAreaComponentOption, install$40 as MarkLineComponent, MarkLineOption as MarkLineComponentOption, install$39 as MarkPointComponent, MarkPointOption as MarkPointComponentOption, install$31 as MatrixComponent, MatrixOption as MatrixComponentOption, install$29 as ParallelComponent, ParallelCoordinateSystemOption as ParallelComponentOption, install$25 as PolarComponent, PolarOption as PolarComponentOption, install$26 as RadarComponent, RadarOption as RadarComponentOption, install$28 as SingleAxisComponent, SingleAxisOption as SingleAxisComponentOption, install$51 as ThumbnailComponent, ThumbnailOption as ThumbnailComponentOption, install$38 as TimelineComponent, TimelineOption as TimelineComponentOption, install$37 as TitleComponent, TitleOption as TitleComponentOption, install$33 as ToolboxComponent, ToolboxComponentOption, install$34 as TooltipComponent, TooltipOption as TooltipComponentOption, install$53 as TransformComponent, install$48 as VisualMapComponent, VisualMapComponentOption, install$49 as VisualMapContinuousComponent, install$50 as VisualMapPiecewiseComponent } from './shared.js';
+\ No newline at end of file
+diff --git a/types/dist/core.d.ts b/types/dist/core.d.ts
+index 5ab248f6be25a6cd3f73467dd2d9b209c85c09e5..83c78b8c9a07f5501ffc847387e5889f3def9f68 100644
+--- a/types/dist/core.d.ts
++++ b/types/dist/core.d.ts
+@@ -1 +1 @@
+-export { Axis, AxisBreakChangedEvent, ChartView, CollapseAxisBreakPayload, ZRColor as Color, ComponentModel, ComponentView, ComposeOption, DownplayPayload, ECElementEvent, EChartsType as ECharts, ECBasicOption as EChartsCoreOption, EChartsInitOpts, EChartsType, ElementEvent, ExpandAxisBreakPayload, HighlightPayload, ImagePatternObject, LinearGradientObject, SeriesData as List, Model, PRIORITY, PatternObject, Payload, RadialGradientObject, ResizeOpts, SVGPatternObject, SelectChangedEvent, SelectChangedPayload, SeriesModel, SetOptionOpts, SetOptionTransitionOpt, SetOptionTransitionOptItem, SetThemeOpts, ToggleAxisBreakPayload, color_d as color, connect, dataTool, dependencies, disConnect, disconnect, dispose, env, extendChartView, extendComponentModel, extendComponentView, extendSeriesModel, format_d as format, getCoordinateSystemDimensions, getInstanceByDom, getInstanceById, getMap, graphic_d as graphic, helper_d as helper, init, brushSingle as innerDrawElementOnCanvas, matrix_d as matrix, number_d as number, parseGeoJSON, parseGeoJSON as parseGeoJson, registerAction, registerCoordinateSystem, registerCustomSeries, registerLayout, registerLoading, registerLocale, registerMap, registerPostInit, registerPostUpdate, registerPreprocessor, registerProcessor, registerTheme, registerTransform, registerUpdateLifecycle, registerVisual, setCanvasCreator, setPlatformAPI, throttle, time_d as time, use, util_d$1 as util, vector_d as vector, version, util_d as zrUtil, zrender_d as zrender } from './shared';
+\ No newline at end of file
++export { Axis, AxisBreakChangedEvent, ChartView, CollapseAxisBreakPayload, ZRColor as Color, ComponentModel, ComponentView, ComposeOption, DownplayPayload, ECElementEvent, EChartsType as ECharts, ECBasicOption as EChartsCoreOption, EChartsInitOpts, EChartsType, ElementEvent, ExpandAxisBreakPayload, HighlightPayload, ImagePatternObject, LinearGradientObject, SeriesData as List, Model, PRIORITY, PatternObject, Payload, RadialGradientObject, ResizeOpts, SVGPatternObject, SelectChangedEvent, SelectChangedPayload, SeriesModel, SetOptionOpts, SetOptionTransitionOpt, SetOptionTransitionOptItem, SetThemeOpts, ToggleAxisBreakPayload, color_d as color, connect, dataTool, dependencies, disConnect, disconnect, dispose, env, extendChartView, extendComponentModel, extendComponentView, extendSeriesModel, format_d as format, getCoordinateSystemDimensions, getInstanceByDom, getInstanceById, getMap, graphic_d as graphic, helper_d as helper, init, brushSingle as innerDrawElementOnCanvas, matrix_d as matrix, number_d as number, parseGeoJSON, parseGeoJSON as parseGeoJson, registerAction, registerCoordinateSystem, registerCustomSeries, registerLayout, registerLoading, registerLocale, registerMap, registerPostInit, registerPostUpdate, registerPreprocessor, registerProcessor, registerTheme, registerTransform, registerUpdateLifecycle, registerVisual, setCanvasCreator, setPlatformAPI, throttle, time_d as time, use, util_d$1 as util, vector_d as vector, version, util_d as zrUtil, zrender_d as zrender } from './shared.js';
+\ No newline at end of file
+diff --git a/types/dist/features.d.ts b/types/dist/features.d.ts
+index e137067a6fcc3a0a220f10815bc74d3c0e55a6d7..b02242383c5942e70c9bf319a8145cbad68a1551 100644
+--- a/types/dist/features.d.ts
++++ b/types/dist/features.d.ts
+@@ -1 +1 @@
+-export { installAxisBreak as AxisBreak, installLabelLayout as LabelLayout, installLegacyGridContainLabel as LegacyGridContainLabel, installScatterJitter as ScatterJitter, installUniversalTransition as UniversalTransition } from './shared';
+\ No newline at end of file
++export { installAxisBreak as AxisBreak, installLabelLayout as LabelLayout, installLegacyGridContainLabel as LegacyGridContainLabel, installScatterJitter as ScatterJitter, installUniversalTransition as UniversalTransition } from './shared.js';
+\ No newline at end of file
+diff --git a/types/dist/option.d.ts b/types/dist/option.d.ts
+index b20df2168c468ec16c6c5205a40c4ac8ea57a3fe..8e99e78d7abe851a86f10aa8116f644660803e4e 100644
+--- a/types/dist/option.d.ts
++++ b/types/dist/option.d.ts
+@@ -1 +1 @@
+-export { AngleAxisOption as AngleAxisComponentOption, AnimationDelayCallback, AnimationDelayCallbackParam as AnimationDelayCallbackParams, AnimationDurationCallback, AriaOption as AriaComponentOption, AxisPointerOption as AxisPointerComponentOption, BarSeriesOption, BoxplotSeriesOption, BrushOption as BrushComponentOption, CalendarOption as CalendarComponentOption, CandlestickSeriesOption, ChordSeriesOption, ContinousVisualMapOption as ContinousVisualMapComponentOption, CustomSeriesOption, CustomSeriesRenderItem, CustomSeriesRenderItemAPI, CustomSeriesRenderItemParams, CustomSeriesRenderItemReturn, DataZoomComponentOption, DatasetOption as DatasetComponentOption, CallbackDataParams as DefaultLabelFormatterCallbackParams, EChartsOption, EffectScatterSeriesOption, FunnelSeriesOption, GaugeSeriesOption, GeoOption as GeoComponentOption, GraphSeriesOption, GraphicComponentLooseOption as GraphicComponentOption, GridOption as GridComponentOption, HeatmapSeriesOption, InsideDataZoomOption as InsideDataZoomComponentOption, LabelFormatterCallback, LabelLayoutOptionCallback, LabelLayoutOptionCallbackParams, LegendComponentOption, LineSeriesOption, LinesSeriesOption, MapSeriesOption, MarkAreaOption as MarkAreaComponentOption, MarkLineOption as MarkLineComponentOption, MarkPointOption as MarkPointComponentOption, MatrixOption as MatrixComponentOption, ParallelCoordinateSystemOption as ParallelComponentOption, ParallelSeriesOption, PictorialBarSeriesOption, PieSeriesOption, PiecewiseVisualMapOption as PiecewiseVisualMapComponentOption, LegendOption as PlainLegendComponentOption, PolarOption as PolarComponentOption, RadarOption as RadarComponentOption, RadarSeriesOption, RadiusAxisOption as RadiusAxisComponentOption, RegisteredSeriesOption, SankeySeriesOption, ScatterSeriesOption, ScrollableLegendOption as ScrollableLegendComponentOption, SeriesOption, SingleAxisOption as SingleAxisComponentOption, SliderDataZoomOption as SliderDataZoomComponentOption, SunburstSeriesOption, ThemeRiverSeriesOption, ThumbnailOption as ThumbnailComponentOption, TimelineOption as TimelineComponentOption, TitleOption as TitleComponentOption, ToolboxComponentOption, TooltipFormatterCallback as TooltipComponentFormatterCallback, TopLevelFormatterParams as TooltipComponentFormatterCallbackParams, TooltipOption as TooltipComponentOption, TooltipPositionCallback as TooltipComponentPositionCallback, TooltipPositionCallbackParams as TooltipComponentPositionCallbackParams, TreeSeriesOption, TreemapSeriesOption, VisualMapComponentOption, XAXisOption as XAXisComponentOption, YAXisOption as YAXisComponentOption } from './shared';
+\ No newline at end of file
++export { AngleAxisOption as AngleAxisComponentOption, AnimationDelayCallback, AnimationDelayCallbackParam as AnimationDelayCallbackParams, AnimationDurationCallback, AriaOption as AriaComponentOption, AxisPointerOption as AxisPointerComponentOption, BarSeriesOption, BoxplotSeriesOption, BrushOption as BrushComponentOption, CalendarOption as CalendarComponentOption, CandlestickSeriesOption, ChordSeriesOption, ContinousVisualMapOption as ContinousVisualMapComponentOption, CustomSeriesOption, CustomSeriesRenderItem, CustomSeriesRenderItemAPI, CustomSeriesRenderItemParams, CustomSeriesRenderItemReturn, DataZoomComponentOption, DatasetOption as DatasetComponentOption, CallbackDataParams as DefaultLabelFormatterCallbackParams, EChartsOption, EffectScatterSeriesOption, FunnelSeriesOption, GaugeSeriesOption, GeoOption as GeoComponentOption, GraphSeriesOption, GraphicComponentLooseOption as GraphicComponentOption, GridOption as GridComponentOption, HeatmapSeriesOption, InsideDataZoomOption as InsideDataZoomComponentOption, LabelFormatterCallback, LabelLayoutOptionCallback, LabelLayoutOptionCallbackParams, LegendComponentOption, LineSeriesOption, LinesSeriesOption, MapSeriesOption, MarkAreaOption as MarkAreaComponentOption, MarkLineOption as MarkLineComponentOption, MarkPointOption as MarkPointComponentOption, MatrixOption as MatrixComponentOption, ParallelCoordinateSystemOption as ParallelComponentOption, ParallelSeriesOption, PictorialBarSeriesOption, PieSeriesOption, PiecewiseVisualMapOption as PiecewiseVisualMapComponentOption, LegendOption as PlainLegendComponentOption, PolarOption as PolarComponentOption, RadarOption as RadarComponentOption, RadarSeriesOption, RadiusAxisOption as RadiusAxisComponentOption, RegisteredSeriesOption, SankeySeriesOption, ScatterSeriesOption, ScrollableLegendOption as ScrollableLegendComponentOption, SeriesOption, SingleAxisOption as SingleAxisComponentOption, SliderDataZoomOption as SliderDataZoomComponentOption, SunburstSeriesOption, ThemeRiverSeriesOption, ThumbnailOption as ThumbnailComponentOption, TimelineOption as TimelineComponentOption, TitleOption as TitleComponentOption, ToolboxComponentOption, TooltipFormatterCallback as TooltipComponentFormatterCallback, TopLevelFormatterParams as TooltipComponentFormatterCallbackParams, TooltipOption as TooltipComponentOption, TooltipPositionCallback as TooltipComponentPositionCallback, TooltipPositionCallbackParams as TooltipComponentPositionCallbackParams, TreeSeriesOption, TreemapSeriesOption, VisualMapComponentOption, XAXisOption as XAXisComponentOption, YAXisOption as YAXisComponentOption } from './shared.js';
+\ No newline at end of file
+diff --git a/types/dist/renderers.d.ts b/types/dist/renderers.d.ts
+index 0cd84b9066ba712c0d63f776805622baffbbe5e2..57a5aadb3438756f2a90cba1c7c19f9a5077aad6 100644
+--- a/types/dist/renderers.d.ts
++++ b/types/dist/renderers.d.ts
+@@ -1 +1 @@
+-export { install$56 as CanvasRenderer, install$55 as SVGRenderer } from './shared';
+\ No newline at end of file
++export { install$56 as CanvasRenderer, install$55 as SVGRenderer } from './shared.js';

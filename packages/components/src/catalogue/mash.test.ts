@@ -21,6 +21,7 @@ describe("Mash catalogue", () => {
   afterEach(() => {
     delete document.documentElement.dataset.mashCatalogue;
     document.documentElement.style.removeProperty("--mash-material-luminance");
+    document.documentElement.style.removeProperty("--mash-material-display");
     document.documentElement.style.removeProperty("--mash-material-selection-background");
   });
 
@@ -98,14 +99,14 @@ describe("Mash catalogue", () => {
     const item = menu.querySelector("ui-menu-item")!;
     const itemControl = inShadow<HTMLElement>(item, '[part="control"]');
 
-    expect(menu.getAttribute("density")).toBe("compact");
-    expect(getComputedStyle(itemControl).blockSize).toBe("20px");
+    expect(menu.getAttribute("density")).toBe("regular");
+    expect(getComputedStyle(itemControl).blockSize).toBe("26px");
     expect(getComputedStyle(keyRoot).borderTopWidth).toBe("0px");
     expect(getComputedStyle(keyRoot).backgroundColor).toBe("rgba(0, 0, 0, 0)");
     expect(getComputedStyle(keyRoot).boxShadow).toBe("none");
   });
 
-  it("defaults context menus to the same compact command rhythm", async () => {
+  it("defaults context menus to the same regular command rhythm", async () => {
     document.documentElement.dataset.mashCatalogue = "mash";
     const menu = await fixture(`
       <ui-context-menu label="Project actions">
@@ -116,8 +117,8 @@ describe("Mash catalogue", () => {
     const item = menu.querySelector("ui-menu-item")!;
     const itemControl = inShadow<HTMLElement>(item, '[part="control"]');
 
-    expect(menu.getAttribute("density")).toBe("compact");
-    expect(getComputedStyle(itemControl).blockSize).toBe("20px");
+    expect(menu.getAttribute("density")).toBe("regular");
+    expect(getComputedStyle(itemControl).blockSize).toBe("26px");
   });
 
   it("opens menus instantly and closes root menus with an optical transient", async () => {
@@ -248,7 +249,7 @@ describe("Mash catalogue", () => {
     branchControl.focus();
 
     const probe = document.createElement("span");
-    probe.style.backgroundColor = "var(--color-neutral-hover)";
+    probe.style.backgroundColor = "var(--color-surface-hover)";
     menu.append(probe);
     const branchBackground = getComputedStyle(branchControl).backgroundColor;
     const neutralBackground = getComputedStyle(probe).backgroundColor;
@@ -261,6 +262,7 @@ describe("Mash catalogue", () => {
   });
 
   it("routes menu material headroom and selection through shared runtime variables", async () => {
+    document.documentElement.style.setProperty("--mash-material-display", "block");
     document.documentElement.dataset.mashCatalogue = "mash";
     const host = await fixture<HTMLElement>(`
       <div data-theme="dark">
@@ -286,6 +288,7 @@ describe("Mash catalogue", () => {
   });
 
   it("preserves light menu luminance outside the backdrop chain", async () => {
+    document.documentElement.style.setProperty("--mash-material-display", "block");
     document.documentElement.dataset.mashCatalogue = "mash";
     const host = await fixture<HTMLElement>(`
       <div data-theme="light">
@@ -306,6 +309,7 @@ describe("Mash catalogue", () => {
   });
 
   it("uses the dense material tier for dark nested menus", async () => {
+    document.documentElement.style.setProperty("--mash-material-display", "block");
     document.documentElement.dataset.mashCatalogue = "mash";
     const host = await fixture<HTMLElement>(`
       <div data-theme="dark" data-vibrancy="vibrant">
@@ -341,6 +345,7 @@ describe("Mash catalogue", () => {
   });
 
   it("keeps context-menu submenus on the same frosted material plane", async () => {
+    document.documentElement.style.setProperty("--mash-material-display", "block");
     document.documentElement.dataset.mashCatalogue = "mash";
     const host = await fixture<HTMLElement>(`
       <div data-theme="dark" data-vibrancy="vibrant">

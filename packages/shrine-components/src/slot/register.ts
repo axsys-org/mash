@@ -11,3 +11,5 @@ declare global {
 }
 
 export { ShrineSlot };
+
+export * from "./slot.js";

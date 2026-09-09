@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UITabPanel };
+
+export * from "./tab-panel.js";

@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIDatePicker };
+
+export * from "./date-picker.js";

@@ -35,6 +35,9 @@ for (const name of browsers) {
 }
 
 export default defineConfig({
+  optimizeDeps: {
+    include: ["echarts/core", "echarts/charts", "echarts/components", "echarts/renderers"],
+  },
   test: {
     include: ["src/**/*.test.ts"],
     setupFiles: ["./src/test-support/setup.ts"],

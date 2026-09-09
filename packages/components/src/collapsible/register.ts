@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UICollapsible };
+
+export * from "./collapsible.js";

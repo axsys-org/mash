@@ -9,3 +9,5 @@ declare global {
 }
 
 export { UIOption };
+
+export * from "./option.js";

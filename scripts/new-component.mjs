@@ -162,9 +162,9 @@ export class ${className} extends LitElement {
 const registration = () => `import { ${className} } from "./${dirName}.js";
 
 // If this component composes elements from another package, import their
-// register modules here too, so that importing this one is sufficient:
+// normal component modules here so the composed elements are available:
 //
-//   import "@mash/ui/button/register";
+//   import "@mash/ui/button";
 
 if (!customElements.get("${tag}")) {
   customElements.define("${tag}", ${className});
@@ -176,7 +176,7 @@ declare global {
   }
 }
 
-export { ${className} };
+export * from "./${dirName}.js";
 `;
 
 const test = () => `import { describe, expect, it } from "vitest";
@@ -266,8 +266,8 @@ if (pkg.exports[`./${dirName}`]) {
   entries.forEach(([key, value], i) => {
     if (i === tailAt) {
       rebuilt[`./${dirName}`] = {
-        types: `./dist/${dirName}/${dirName}.d.ts`,
-        import: `./dist/${dirName}/${dirName}.js`,
+        types: `./dist/${dirName}/register.d.ts`,
+        import: `./dist/${dirName}/register.js`,
       };
       rebuilt[`./${dirName}/register`] = {
         types: `./dist/${dirName}/register.d.ts`,

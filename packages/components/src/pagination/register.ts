@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIPagination };
+
+export * from "./pagination.js";

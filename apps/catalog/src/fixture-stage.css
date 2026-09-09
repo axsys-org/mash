@@ -18,3 +18,17 @@ body {
 body > * {
   max-inline-size: 100%;
 }
+body > .mash-stack {
+  inline-size: min(100%, 44rem);
+}
+html[data-layout="start"] body {
+  align-content: start;
+}
+html[data-layout="fill"] body {
+  align-content: stretch;
+}
+@media (max-width: 36rem) {
+  body {
+    padding: var(--space-container-gap);
+  }
+}

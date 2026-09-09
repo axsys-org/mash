@@ -10,7 +10,13 @@
   }
   :where([data-mash-catalogue="mash"])[data-mash-size="xsmall"],
   :where([data-mash-catalogue="mash"])
-    :is([data-mash-size="xsmall"], ui-button[size="xs"], ui-button[size="xsmall"]) {
+    :is(
+      [data-mash-size="xsmall"],
+      ui-button[size="xs"],
+      ui-button[size="xsmall"],
+      ui-tabs[size="xsmall"],
+      ui-stepper[size="xsmall"]
+    ) {
     --_mash-control-height: var(--layout-dimension-control-xsmall);
     --_mash-control-input-height: var(--layout-dimension-control-xsmall);
     --_mash-control-inline: var(--space-button-inline-xsmall);
@@ -26,7 +32,9 @@
       ui-button[size="small"],
       ui-input[size="small"],
       ui-select[size="small"],
-      ui-combobox[size="small"]
+      ui-combobox[size="small"],
+      ui-tabs[size="small"],
+      ui-stepper[size="small"]
     ) {
     --_mash-control-height: var(--layout-dimension-control-small);
     --_mash-control-input-height: var(--layout-dimension-control-small);
@@ -43,7 +51,9 @@
       ui-button[size="medium"],
       ui-input[size="medium"],
       ui-select[size="medium"],
-      ui-combobox[size="medium"]
+      ui-combobox[size="medium"],
+      ui-tabs[size="medium"],
+      ui-stepper[size="medium"]
     ) {
     --_mash-control-height: var(--layout-dimension-control-medium);
     --_mash-control-input-height: var(--layout-dimension-control-medium);
@@ -60,7 +70,9 @@
       ui-button[size="large"],
       ui-input[size="large"],
       ui-select[size="large"],
-      ui-combobox[size="large"]
+      ui-combobox[size="large"],
+      ui-tabs[size="large"],
+      ui-stepper[size="large"]
     ) {
     --_mash-control-height: var(--layout-dimension-control-large);
     --_mash-control-input-height: var(--layout-dimension-input-large);
@@ -80,8 +92,8 @@
     --_mash-button-background: var(--_mash-component-surface);
     --_mash-button-foreground: var(--color-text);
     --_mash-button-border: var(--_mash-component-boundary);
-    --_mash-button-hover: var(--_mash-component-surface-sunken);
-    --_mash-button-active: var(--color-neutral);
+    --_mash-button-hover: var(--color-surface-hover);
+    --_mash-button-active: var(--color-surface-pressed);
   }
   :where([data-mash-catalogue="mash"]) ui-button[variant="primary"] {
     --_mash-button-background: var(--color-action);
@@ -98,16 +110,32 @@
     --_mash-button-active: var(--color-neutral-pressed);
   }
   :where([data-mash-catalogue="mash"]) ui-button:is([tone="critical"], [variant="danger"]) {
-    --_mash-button-color: var(--color-critical);
+    --_mash-button-color: var(--color-critical-text);
+    --_mash-button-fill: var(--color-critical);
+    --_mash-button-on-fill: var(--color-on-critical);
+    --_mash-button-fill-hover: var(--color-critical-hover);
+    --_mash-button-fill-pressed: var(--color-critical-pressed);
   }
   :where([data-mash-catalogue="mash"]) ui-button:is([tone="positive"], [variant="success"]) {
-    --_mash-button-color: var(--color-positive);
+    --_mash-button-color: var(--color-positive-text);
+    --_mash-button-fill: var(--color-positive);
+    --_mash-button-on-fill: var(--color-on-positive);
+    --_mash-button-fill-hover: var(--color-positive-hover);
+    --_mash-button-fill-pressed: var(--color-positive-pressed);
   }
   :where([data-mash-catalogue="mash"]) ui-button:is([tone="warning"], [variant="warning"]) {
-    --_mash-button-color: var(--color-warning);
+    --_mash-button-color: var(--color-warning-text);
+    --_mash-button-fill: var(--color-warning);
+    --_mash-button-on-fill: var(--color-on-warning);
+    --_mash-button-fill-hover: var(--color-warning-hover);
+    --_mash-button-fill-pressed: var(--color-warning-pressed);
   }
   :where([data-mash-catalogue="mash"]) ui-button:is([tone="info"], [variant="info"]) {
-    --_mash-button-color: var(--color-info);
+    --_mash-button-color: var(--color-info-text);
+    --_mash-button-fill: var(--color-info);
+    --_mash-button-on-fill: var(--color-on-info);
+    --_mash-button-fill-hover: var(--color-info-hover);
+    --_mash-button-fill-pressed: var(--color-info-pressed);
   }
   :where([data-mash-catalogue="mash"])
     ui-button:is(
@@ -120,26 +148,38 @@
       [variant="warning"],
       [variant="info"]
     ) {
-    --_mash-button-background: color-mix(in srgb, var(--_mash-button-color) 15%, transparent);
+    --_mash-button-background: color-mix(in srgb, var(--_mash-button-color) 10%, transparent);
     --_mash-button-foreground: var(--_mash-button-color);
     --_mash-button-border: transparent;
-    --_mash-button-hover: color-mix(in srgb, var(--_mash-button-color) 25%, transparent);
-    --_mash-button-active: color-mix(in srgb, var(--_mash-button-color) 35%, transparent);
+    --_mash-button-hover: color-mix(in srgb, var(--_mash-button-color) 15%, transparent);
+    --_mash-button-active: color-mix(in srgb, var(--_mash-button-color) 20%, transparent);
   }
   :where([data-mash-catalogue="mash"])
     ui-button:is([variant="ghost"], [variant="quiet"], [variant="link"], [variant="text"]) {
     --_mash-button-background: transparent;
     --_mash-button-foreground: var(--_mash-button-color);
     --_mash-button-border: transparent;
-    --_mash-button-hover: var(--_mash-component-surface-sunken);
-    --_mash-button-active: var(--color-neutral);
+    --_mash-button-hover: var(--color-surface-hover);
+    --_mash-button-active: var(--color-surface-pressed);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-button[variant="primary"]:is(
+      [tone="positive"],
+      [tone="warning"],
+      [tone="critical"],
+      [tone="info"]
+    ) {
+    --_mash-button-background: var(--_mash-button-fill);
+    --_mash-button-foreground: var(--_mash-button-on-fill);
+    --_mash-button-hover: var(--_mash-button-fill-hover);
+    --_mash-button-active: var(--_mash-button-fill-pressed);
   }
   :where([data-mash-catalogue="mash"]) ui-button[outline] {
     --_mash-button-background: color-mix(in srgb, var(--_mash-button-color) 10%, transparent);
     --_mash-button-foreground: var(--_mash-button-color);
     --_mash-button-border: var(--_mash-button-color);
     --_mash-button-hover: color-mix(in srgb, var(--_mash-button-color) 20%, transparent);
-    --_mash-button-active: color-mix(in srgb, var(--_mash-button-color) 40%, transparent);
+    --_mash-button-active: color-mix(in srgb, var(--_mash-button-color) 20%, transparent);
   }
   :where([data-mash-catalogue="mash"]) ui-button::part(control),
   :where([data-mash-catalogue="mash"]) ui-toggle::part(control) {
@@ -194,10 +234,14 @@
     cursor: not-allowed;
   }
   :where([data-mash-catalogue="mash"]) ui-toggle:not([disabled]):hover::part(control) {
-    background: var(--_mash-component-surface-sunken);
+    background: var(--color-surface-hover);
   }
   :where([data-mash-catalogue="mash"]) ui-toggle[pressed]::part(control) {
-    background: var(--color-neutral);
+    background: var(--color-selection);
+    color: var(--color-on-selection);
+  }
+  :where([data-mash-catalogue="mash"]) ui-toggle[pressed]:not([disabled]):hover::part(control) {
+    background: var(--color-selection-hover);
   }
   :where([data-mash-catalogue="mash"]) ui-button::part(control):focus-visible,
   :where([data-mash-catalogue="mash"]) ui-toggle::part(control):focus-visible {

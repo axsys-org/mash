@@ -13,3 +13,5 @@ declare global {
 }
 
 export { UICombobox };
+
+export * from "./combobox.js";

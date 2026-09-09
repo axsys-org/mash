@@ -88,3 +88,21 @@ import "./typeset/register.js";
 import "./menu-label/register.js";
 import "./stagger/register.js";
 import "./reveal/register.js";
+
+import "./chart/register.js";
+
+import "./message/register.js";
+
+import "./attachment/register.js";
+
+import "./marker/register.js";
+
+import "./alert/register.js";
+
+import "./rating/register.js";
+
+import "./message-scroller/register.js";
+
+import "./command-palette/register.js";
+
+import "./stepper/register.js";

@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIClipboard };
+
+export * from "./clipboard.js";

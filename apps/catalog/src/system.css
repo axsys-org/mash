@@ -16,3 +16,6 @@
 @import "@mash/tokens/tailwind.css";
 @import "@mash/ui/tailwind.css";
 @import "@mash/shrine/tailwind.css";
+
+/* Application prototypes are built separately when their showcase returns. */
+@source not "./application-recipes.ts";

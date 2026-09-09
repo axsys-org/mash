@@ -1,17 +1,5 @@
-/**
- * The package's definition entry point.
- *
- * Importing this gives you the classes and their types. It deliberately
- * registers nothing: no custom element is defined as a side effect of importing
- * a definition, which is what lets a bundler drop the components an application
- * never uses.
- *
- * To actually get `<ui-button>` working in markup, import a registration
- * module instead:
- *
- *   import "@mash/ui/button/register";   // one component
- *   import "@mash/ui/register";          // the whole system
- */
+/** Normal imports make the Mash elements available and export their classes and types. */
+import "./register.js";
 
 export { UIButton } from "./button/button.js";
 export type { ButtonSize, ButtonTone, ButtonType, ButtonVariant } from "./button/button.js";
@@ -288,3 +276,21 @@ export { UIStagger } from "./stagger/stagger.js";
 export type { StaggerChangeDetail, StaggerOrigin } from "./stagger/stagger.js";
 export { UIReveal } from "./reveal/reveal.js";
 export type { RevealAxis, RevealEventDetail, RevealState } from "./reveal/reveal.js";
+
+export { UIChart } from "./chart/chart.js";
+
+export { UIMessage } from "./message/message.js";
+
+export { UIAttachment } from "./attachment/attachment.js";
+
+export { UIMarker } from "./marker/marker.js";
+
+export { UIAlert } from "./alert/alert.js";
+
+export { UIRating } from "./rating/rating.js";
+
+export { UIMessageScroller } from "./message-scroller/message-scroller.js";
+
+export { UICommand, UICommandItem } from "./command-palette/command-palette.js";
+
+export { UIStepper, UIStep } from "./stepper/stepper.js";

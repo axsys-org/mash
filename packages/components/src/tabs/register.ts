@@ -1,3 +1,5 @@
+import "../tab-panel/register.js";
+import "../tab/register.js";
 import { UITabs } from "./tabs.js";
 
 if (!customElements.get("ui-tabs")) {
@@ -11,3 +13,5 @@ declare global {
 }
 
 export { UITabs };
+
+export * from "./tabs.js";

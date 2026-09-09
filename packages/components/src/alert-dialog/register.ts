@@ -9,3 +9,5 @@ declare global {
 }
 
 export { UIAlertDialog };
+
+export * from "./alert-dialog.js";

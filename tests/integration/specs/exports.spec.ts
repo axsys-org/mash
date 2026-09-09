@@ -11,18 +11,19 @@ import { expect, test } from "@playwright/test";
  *
  * So this loads them in a real browser, through the published subpaths, and
  * asserts the three things that break silently: the paths resolve, the classes
- * are exported under the documented names, and a definition import registers
- * nothing.
+ * are exported under the documented names, and normal imports define usable elements.
  *
  * Deliberately small. This is a smoke test for the package topology, not a
  * simulation of publishing.
  */
 
 interface ExportReport {
-  definedAfterDefinitionImports: string[];
-  definedAfterRegisterImports: string[];
+  definedAfterComponentImports: string[];
+  definedAfterPackageImports: string[];
   identical: Record<string, boolean>;
   constructible: Record<string, boolean>;
+  completePackage: boolean;
+  requiredChildrenDefined: boolean;
   error: string | null;
 }
 
@@ -42,16 +43,18 @@ test.describe("package exports", () => {
     expect(failures).toEqual([]);
     expect(report.error).toBeNull();
 
-    // The contract that makes tree-shaking possible: importing `@mash/ui`,
-    // `@mash/ui/button` or `@mash/shrine/confirm` defines no element.
-    expect(report.definedAfterDefinitionImports).toEqual([]);
-
-    // ...and importing the register modules defines all of them.
-    expect(report.definedAfterRegisterImports.sort()).toEqual([
+    expect(report.definedAfterComponentImports.sort()).toEqual([
       "shrine-confirm",
       "ui-button",
       "ui-card",
     ]);
+    expect(report.definedAfterPackageImports.sort()).toEqual([
+      "shrine-confirm",
+      "ui-button",
+      "ui-card",
+    ]);
+    expect(report.completePackage).toBe(true);
+    expect(report.requiredChildrenDefined).toBe(true);
 
     // The barrel and the granular subpath must be the same module instance, not
     // two copies of the class — otherwise `instanceof` fails for consumers who

@@ -1,0 +1,958 @@
+/** Mash overlays recipes. Included by catalogue/mash.css. */
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-popover::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-date-picker::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-menu::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-tooltip::part(backdrop) {
+    position: fixed;
+    z-index: var(--layer-overlay);
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: var(--space-container-inline);
+  }
+  :where([data-mash-catalogue="mash"]) ui-dialog:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-drawer:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-popover:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-date-picker:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-color-picker:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-menu:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-preview-card:not(:state(present))::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-tooltip:not(:state(present))::part(backdrop) {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(
+      ui-dialog,
+      ui-alert-dialog,
+      ui-drawer,
+      ui-popover,
+      ui-date-picker,
+      ui-color-picker,
+      ui-menu,
+      ui-context-menu,
+      ui-preview-card,
+      ui-tooltip
+    ):state(entering)::part(popup) {
+    animation: mash-overlay-enter var(--duration-surface) var(--easing-spring-gentle) both;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(
+      ui-dialog,
+      ui-alert-dialog,
+      ui-drawer,
+      ui-popover,
+      ui-date-picker,
+      ui-color-picker,
+      ui-menu,
+      ui-context-menu,
+      ui-preview-card,
+      ui-tooltip
+    ):state(exiting)::part(popup) {
+    animation: mash-overlay-exit var(--duration-surface) var(--easing-surface) both;
+    pointer-events: none;
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu):state(entering)::part(popup) {
+    animation: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(popup) {
+    animation: mash-menu-presence-closeout var(--duration-transient) var(--easing-control) both;
+    pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(material),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(material),
+  :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(header),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(header),
+  :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(viewport),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(viewport),
+  :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(footer),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(footer) {
+    animation: mash-menu-closeout var(--duration-transient) var(--easing-control) both;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu[nested]:state(exiting)::part(popup) {
+    animation: none;
+    pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(backdrop) {
+    background: var(--color-overlay);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-popover::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-date-picker::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-menu::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-tooltip::part(popup) {
+    max-inline-size: min(100%, calc(var(--space-container-inline) * 18));
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    padding: var(--space-container-block) var(--space-container-inline);
+    background: var(--_mash-component-surface-raised);
+    box-shadow: 0 4px 12px var(--_mash-component-shadow);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(popup) {
+    inline-size: min(var(--layout-dimension-dialog), calc(100vw - var(--space-region) * 2));
+    max-inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-popover::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-date-picker::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(popup) {
+    display: grid;
+    gap: var(--space-container-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(title),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(title),
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(title),
+  :where([data-mash-catalogue="mash"]) ui-popover::part(title),
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(title) {
+    color: var(--color-text);
+    font-family: var(--type-heading-font-family);
+    font-size: var(--type-heading-font-size);
+    font-weight: var(--type-heading-font-weight);
+    line-height: var(--type-heading-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(description),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(description),
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(description),
+  :where([data-mash-catalogue="mash"]) ui-popover::part(description),
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(description) {
+    color: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(content),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(content),
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(content),
+  :where([data-mash-catalogue="mash"]) ui-popover::part(content),
+  :where([data-mash-catalogue="mash"]) ui-date-picker::part(content),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(content),
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(content) {
+    display: grid;
+    gap: var(--space-group-block);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-dialog::part(actions),
+  :where([data-mash-catalogue="mash"]) ui-alert-dialog::part(actions),
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(actions),
+  :where([data-mash-catalogue="mash"]) ui-popover::part(actions) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: end;
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(backdrop) {
+    justify-items: end;
+    padding: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer[side="start"]::part(backdrop) {
+    justify-items: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer[side="top"]::part(backdrop) {
+    align-items: start;
+    justify-items: stretch;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer[side="bottom"]::part(backdrop) {
+    align-items: end;
+    justify-items: stretch;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer::part(popup) {
+    min-block-size: 100%;
+    max-inline-size: min(100%, calc(var(--space-container-inline) * 16));
+    border-radius: 0;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-drawer[side="top"]::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-drawer[side="bottom"]::part(popup) {
+    min-block-size: auto;
+    max-inline-size: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-popover::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-date-picker::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-menu::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(backdrop),
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(backdrop) {
+    align-items: start;
+    justify-items: start;
+    background: transparent;
+    padding: calc(var(--space-container-block) * 2);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-tooltip::part(backdrop) {
+    pointer-events: none;
+    background: transparent;
+  }
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(backdrop) {
+    pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-preview-card::part(popup) {
+    pointer-events: auto;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-tooltip::part(popup) {
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--color-surface-inverse);
+    color: var(--_mash-component-inverse-label);
+    font-family: var(--type-label-font-family);
+    font-size: var(--type-label-small-font-size);
+    line-height: var(--type-label-small-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(header) {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-control-gap);
+    align-items: center;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(title) {
+    color: var(--color-text);
+    font: var(--type-heading-font-weight) var(--type-heading-font-size) /
+      var(--type-heading-line-height) var(--type-heading-font-family);
+    text-align: center;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(titles),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-panels) {
+    display: flex;
+    gap: var(--space-container-gap);
+    align-items: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(titles) {
+    justify-content: space-around;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-panel) {
+    display: grid;
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(previous),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(next),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(day),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-option),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(year-option) {
+    min-inline-size: calc(var(--space-container-inline) + var(--space-control-inline));
+    min-block-size: calc(var(--space-container-inline) + var(--space-control-inline));
+    border: var(--layout-dimension-zero) solid transparent;
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block);
+    background: transparent;
+    color: var(--color-text);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-toggle),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(year-toggle) {
+    border: 0;
+    padding: var(--space-control-block);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(weekdays),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(grid) {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(var(--layout-dimension-zero), 1fr));
+    gap: var(--border-hairline);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(picker-grid) {
+    display: grid;
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar[view="month"]::part(picker-grid) {
+    grid-template-columns: repeat(3, minmax(var(--layout-dimension-zero), 1fr));
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar[view="year"]::part(picker-grid) {
+    grid-template-columns: repeat(5, minmax(var(--layout-dimension-zero), 1fr));
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(weekday) {
+    padding: var(--space-control-block);
+    color: var(--color-text-muted);
+    font: var(--type-label-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-font-family);
+    text-align: center;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(day):hover,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-option):hover,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(year-option):hover,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-toggle):hover,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(year-toggle):hover,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(previous):hover,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(next):hover {
+    background: var(--color-surface-hover);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(day):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-option):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(year-option):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-toggle):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(year-toggle):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(previous):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(next):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(outside) {
+    color: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(today) {
+    border-color: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(in-range) {
+    border-radius: var(--layout-dimension-zero);
+    background: var(--color-selection);
+    color: var(--color-on-selection);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(selected),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(range-start),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(range-end) {
+    border-radius: var(--radius-control);
+    background: var(--color-action);
+    color: var(--color-on-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(disabled) {
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(palette) {
+    display: grid;
+    gap: var(--space-control-gap);
+    grid-template-columns: repeat(auto-fit, minmax(var(--layout-dimension-compact), 1fr));
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(controls) {
+    display: grid;
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(hue),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(saturation),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(lightness),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(alpha) {
+    display: grid;
+    grid-template-columns: minmax(var(--layout-dimension-zero), 1fr);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(actions) {
+    display: flex;
+    gap: var(--space-control-gap);
+    justify-content: flex-end;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-color-swatch {
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-color-swatch::part(control) {
+    display: flex;
+    gap: var(--space-control-gap);
+    align-items: center;
+    inline-size: 100%;
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+    text-align: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-color-swatch::part(swatch) {
+    inline-size: var(--layout-dimension-glyph);
+    block-size: var(--layout-dimension-glyph);
+    flex: none;
+    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
+    border-radius: var(--radius-pill);
+    box-shadow: inset var(--layout-dimension-zero) var(--layout-dimension-zero)
+      var(--layout-dimension-zero) var(--border-hairline) var(--_mash-component-shadow);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-color-swatch:not([disabled]):hover::part(control),
+  :where([data-mash-catalogue="mash"]) ui-color-swatch[selected]::part(control) {
+    border-color: var(--color-action);
+    background: var(--color-surface-hover);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-color-swatch::part(control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-color-swatch[disabled]::part(control) {
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(popup) {
+    display: grid;
+    grid-template-rows: auto minmax(var(--layout-dimension-zero), 1fr) auto;
+    inline-size: var(--_mash-menu-inline-size);
+    min-inline-size: min(
+      var(--_mash-menu-min-inline-size),
+      calc(100vw - var(--space-container-inline))
+    );
+    max-inline-size: min(
+      var(--_mash-menu-max-inline-size),
+      calc(100vw - var(--space-container-inline))
+    );
+    max-block-size: calc(100vh - var(--space-region) * 2);
+    gap: var(--layout-dimension-zero);
+    padding: var(--space-menu-shell);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-menu);
+    position: relative;
+    /* Nested fixed-position materials must sample through the parent popup. */
+    isolation: auto;
+    background-color: var(--_mash-component-surface-raised);
+    color: var(--mash-material-label-primary, var(--color-text));
+    transform-origin: var(--_mash-menu-transform-origin);
+    box-shadow: 0 var(--space-control-block) var(--space-container-inline)
+      var(--_mash-component-shadow);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu::part(material),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(material) {
+    display: var(--mash-material-display, none);
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    border-radius: var(--radius-menu);
+    pointer-events: none;
+    background-color: var(
+      --_mash-menu-material-background,
+      var(--mash-material-background, var(--color-background-material-regular))
+    );
+    background-image: linear-gradient(
+      to bottom,
+      var(
+        --_mash-menu-material-highlight,
+        var(--mash-material-background-highlight, var(--color-background-material-highlight))
+      ),
+      transparent var(--_mash-menu-material-highlight-stop, 62%)
+    );
+    background-blend-mode: normal;
+    -webkit-backdrop-filter: var(
+      --mash-material-backdrop,
+      blur(var(--blur-menu))
+        saturate(
+          var(
+            --mash-material-backdrop-saturation,
+            var(--effect-material-backdrop-saturation-standard)
+          )
+        )
+        var(--_mash-menu-material-backdrop-luminance)
+    );
+    backdrop-filter: var(
+      --mash-material-backdrop,
+      blur(var(--blur-menu))
+        saturate(
+          var(
+            --mash-material-backdrop-saturation,
+            var(--effect-material-backdrop-saturation-standard)
+          )
+        )
+        var(--_mash-menu-material-backdrop-luminance)
+    );
+    filter: var(--_mash-menu-material-luminance-filter);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu::part(actions),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(actions) {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: var(--layout-dimension-zero);
+    min-inline-size: 0;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu:state(has-header)::part(header),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(has-header)::part(header),
+  :where([data-mash-catalogue="mash"]) ui-menu:state(has-footer)::part(footer),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(has-footer)::part(footer) {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-control-gap);
+    min-inline-size: var(--layout-dimension-zero);
+    min-block-size: var(--layout-menu-row-compact);
+    padding: var(--space-menu-chrome-block) var(--space-menu-chrome-inline);
+    color: var(--mash-material-label-secondary, var(--color-text-muted));
+    font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-small-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu:state(has-header)::part(header),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(has-header)::part(header) {
+    border-block-end: var(--border-hairline) solid var(--_mash-component-boundary);
+    margin-block-end: var(--space-menu-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu:state(has-footer)::part(footer),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(has-footer)::part(footer) {
+    border-block-start: var(--border-hairline) solid var(--_mash-component-boundary);
+    margin-block-start: var(--space-menu-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu::part(viewport),
+  :where([data-mash-catalogue="mash"]) ui-context-menu::part(viewport) {
+    position: relative;
+    z-index: 1;
+    min-block-size: var(--layout-dimension-zero);
+    max-block-size: min(
+      calc(var(--_mash-menu-row-size) * 10),
+      calc(100vh - var(--space-region) * 2)
+    );
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu) {
+    --_mash-menu-transform-origin: top left;
+    --_mash-menu-enter-x: var(--layout-dimension-zero);
+    --_mash-menu-enter-y: calc(-1 * var(--space-menu-gap));
+    --_mash-menu-material-background: var(
+      --mash-material-background,
+      var(--color-background-material-regular)
+    );
+    --_mash-menu-material-highlight: color-mix(
+      in srgb,
+      var(--mash-material-background-highlight, var(--color-background-material-highlight)) 56%,
+      transparent
+    );
+    --_mash-menu-material-highlight-stop: calc(
+      var(--space-menu-shell) + var(--_mash-menu-row-size)
+    );
+    --_mash-menu-material-backdrop-luminance: brightness(1);
+    --_mash-menu-material-luminance-filter: brightness(
+      var(--mash-material-luminance, var(--effect-material-luminance-standard))
+    );
+    --_mash-menu-content-scrim: color-mix(
+      in srgb,
+      var(--_mash-component-surface-raised) 86%,
+      transparent
+    );
+    --_mash-menu-density-inline-size: var(--layout-menu-inline-regular);
+    --_mash-menu-inline-size: max-content;
+    --_mash-menu-min-inline-size: var(--layout-menu-inline-mini);
+    --_mash-menu-max-inline-size: var(--_mash-menu-density-inline-size);
+    --_mash-menu-row-size: var(--layout-menu-row-regular);
+    --_mash-menu-selection-lane: var(--layout-dimension-zero);
+    --_mash-menu-prefix-lane: var(--layout-dimension-zero);
+  }
+  :where([data-mash-catalogue="mash"][data-theme="light"]) :is(ui-menu, ui-context-menu),
+  :where([data-mash-catalogue="mash"]) :where([data-theme="light"]) :is(ui-menu, ui-context-menu) {
+    --_mash-menu-material-background: var(
+      --mash-material-background,
+      var(--color-background-material-thick)
+    );
+    --_mash-menu-material-highlight: color-mix(
+      in srgb,
+      var(--mash-material-background-highlight, var(--color-background-material-highlight)) 64%,
+      transparent
+    );
+  }
+
+  :where([data-mash-catalogue="mash"][data-theme="dark"]) :is(ui-menu, ui-context-menu),
+  :where([data-mash-catalogue="mash"]) :where([data-theme="dark"]) :is(ui-menu, ui-context-menu) {
+    --_mash-menu-content-scrim: color-mix(
+      in srgb,
+      var(--_mash-component-surface-raised) 96%,
+      transparent
+    );
+    --_mash-menu-material-backdrop-luminance: brightness(
+      var(--mash-material-luminance, var(--effect-material-luminance-standard))
+    );
+    --_mash-menu-material-luminance-filter: none;
+    --_mash-menu-material-highlight: color-mix(
+      in srgb,
+      var(--mash-material-background-highlight, var(--color-background-material-highlight)) 38%,
+      transparent
+    );
+  }
+
+  :where([data-mash-catalogue="mash"][data-theme="dark"]) ui-menu[nested],
+  :where([data-mash-catalogue="mash"]) :where([data-theme="dark"]) ui-menu[nested] {
+    --_mash-menu-material-background: var(
+      --mash-material-background,
+      var(--color-background-material-thick)
+    );
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[placement="top"] {
+    --_mash-menu-transform-origin: bottom left;
+    --_mash-menu-enter-y: var(--space-menu-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[placement="right"] {
+    --_mash-menu-transform-origin: left top;
+    --_mash-menu-enter-x: calc(-1 * var(--space-menu-gap));
+    --_mash-menu-enter-y: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[placement="left"] {
+    --_mash-menu-transform-origin: right top;
+    --_mash-menu-enter-x: var(--space-menu-gap);
+    --_mash-menu-enter-y: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(ui-menu, ui-context-menu):has(
+      > ui-menu-item[kind="checkbox"],
+      > ui-menu-item[kind="radio"],
+      > ui-menu-item[checked],
+      > ui-menu-item > [slot="selection"]
+    ) {
+    --_mash-menu-selection-lane: calc(
+      var(--layout-dimension-glyph) + var(--space-control-block-small)
+    );
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(ui-menu, ui-context-menu):has(> ui-menu-item > [slot="prefix"]) {
+    --_mash-menu-prefix-lane: calc(
+      var(--layout-dimension-glyph) + var(--space-control-block-small)
+    );
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[density="compact"] {
+    --_mash-menu-density-inline-size: var(--layout-menu-inline-compact);
+    --_mash-menu-row-size: var(--layout-menu-row-compact);
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[density="mini"] {
+    --_mash-menu-density-inline-size: var(--layout-menu-inline-mini);
+    --_mash-menu-min-inline-size: var(--layout-menu-inline-mini);
+    --_mash-menu-row-size: var(--layout-menu-row-mini);
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[sizing="fixed"] {
+    --_mash-menu-inline-size: var(--_mash-menu-density-inline-size);
+    --_mash-menu-min-inline-size: var(--_mash-menu-density-inline-size);
+    --_mash-menu-max-inline-size: var(--_mash-menu-density-inline-size);
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[sizing="stretch"] {
+    --_mash-menu-inline-size: calc(100vw - var(--space-container-inline));
+    --_mash-menu-max-inline-size: var(--layout-dimension-dialog);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu[nested]::part(backdrop) {
+    pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu[nested]::part(popup) {
+    pointer-events: auto;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item {
+    --_mash-menu-item-foreground: var(--mash-material-label-primary, var(--color-text));
+    --_mash-menu-item-selection-background: var(
+      --mash-material-selection-background,
+      var(--color-menu-selection)
+    );
+    --_mash-menu-item-selection-color: var(--color-on-menu-selection);
+    --_mash-menu-item-submenu-background: var(--color-surface-hover);
+    --_mash-menu-item-submenu-color: var(--_mash-menu-item-foreground);
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item[tone="critical"] {
+    --_mash-menu-item-foreground: var(--color-critical-text);
+    --_mash-menu-item-selection-background: var(--color-critical);
+    --_mash-menu-item-selection-color: var(--color-on-critical);
+    --_mash-menu-item-submenu-background: var(--color-critical);
+    --_mash-menu-item-submenu-color: var(--color-on-critical);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(root) {
+    position: relative;
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(control) {
+    display: grid;
+    grid-template-columns:
+      var(--_mash-menu-selection-lane) var(--_mash-menu-prefix-lane)
+      minmax(var(--layout-dimension-zero), 1fr) auto auto;
+    align-items: center;
+    column-gap: var(--layout-dimension-zero);
+    inline-size: 100%;
+    min-inline-size: var(--layout-dimension-zero);
+    block-size: var(--_mash-menu-row-size);
+    margin: 0;
+    border: 0;
+    border-radius: var(--radius-menu-item);
+    padding-block: var(--layout-dimension-zero);
+    padding-inline: var(--space-menu-inline);
+    background: transparent;
+    color: var(--_mash-menu-item-foreground);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+    text-align: start;
+    cursor: default;
+    text-decoration: none;
+    transition: none;
+    line-height: min(calc(var(--type-body-line-height) * 1em), var(--_mash-menu-row-size));
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):not(:state(hover-suppressed)):not(:state(has-submenu)):not(
+      :state(submenu-open)
+    )::part(control):hover,
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):not(:state(has-submenu)):not(:state(submenu-open))::part(
+      control
+    ):focus-visible {
+    background: var(--_mash-menu-item-selection-background);
+    color: var(--_mash-menu-item-selection-color);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item:not([disabled])::part(control):focus-visible {
+    box-shadow: none;
+    outline: none;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):state(checked)::part(selection) {
+    color: currentColor;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item:not([checked]) > [slot="selection"] {
+    visibility: hidden;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):state(has-submenu):not(:state(hover-suppressed))::part(
+      control
+    ):hover,
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):state(has-submenu)::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:not([disabled]):state(submenu-open)::part(control) {
+    background: var(--_mash-menu-item-submenu-background);
+    color: var(--_mash-menu-item-submenu-color);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item[disabled]::part(control) {
+    color: var(--mash-material-label-disabled, var(--color-text-disabled));
+    cursor: not-allowed;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(selection),
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(shortcut),
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(chevron) {
+    display: inline-grid;
+    min-inline-size: var(--layout-dimension-zero);
+    block-size: 100%;
+    place-items: center;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label {
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label::part(root) {
+    --_mash-menu-label-prefix-lane: var(--_mash-menu-prefix-lane);
+
+    display: grid;
+    grid-template-columns:
+      var(--_mash-menu-selection-lane) var(--_mash-menu-label-prefix-lane)
+      minmax(var(--layout-dimension-zero), 1fr) auto;
+    align-items: center;
+    column-gap: var(--layout-dimension-zero);
+    min-block-size: var(--layout-menu-row-compact);
+    padding-inline: var(--space-menu-inline);
+    color: var(--mash-material-label-secondary, var(--color-text-muted));
+    font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-small-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label:has(> [slot="prefix"])::part(root) {
+    --_mash-menu-label-prefix-lane: max(
+      var(--_mash-menu-prefix-lane),
+      calc(var(--layout-dimension-glyph) + var(--space-control-block-small))
+    );
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-menu-label::part(suffix) {
+    display: inline-grid;
+    min-inline-size: var(--layout-dimension-zero);
+    block-size: 100%;
+    place-items: center;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label::part(prefix) {
+    grid-column: 2;
+    box-sizing: border-box;
+    inline-size: var(--_mash-menu-label-prefix-lane);
+    padding-inline-end: min(var(--space-control-block-small), var(--layout-dimension-glyph));
+    overflow: hidden;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label::part(label) {
+    grid-column: 3;
+    min-inline-size: var(--layout-dimension-zero);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label::part(suffix) {
+    grid-column: 4;
+    margin-inline-start: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-label:is(:not(:has([slot="prefix"])))::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-menu-label:is(:not(:has([slot="suffix"])))::part(suffix) {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(selection) {
+    box-sizing: border-box;
+    inline-size: var(--_mash-menu-selection-lane);
+    padding-inline-end: min(var(--space-control-block-small), var(--_mash-menu-selection-lane));
+    overflow: hidden;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(prefix) {
+    box-sizing: border-box;
+    inline-size: var(--_mash-menu-prefix-lane);
+    padding-inline-end: min(var(--space-control-block-small), var(--_mash-menu-prefix-lane));
+    overflow: hidden;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(label) {
+    position: relative;
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+    overflow: hidden;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(label-viewport) {
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(label-content) {
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(shortcut) {
+    margin-inline-start: var(--space-control-gap);
+    color: var(--mash-material-label-secondary, var(--color-text-muted));
+    font-family: var(--type-code-font-family);
+    font-size: var(--type-label-small-font-size);
+    font-weight: var(--type-label-small-font-weight);
+    line-height: var(--type-label-small-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-menu-item:is(:hover, :focus-within, :state(submenu-open))::part(shortcut) {
+    color: currentColor;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(chevron) {
+    inline-size: calc(var(--space-control-gap) + var(--space-control-block-small));
+    margin-inline-start: var(--space-control-gap);
+    font-weight: var(--type-body-font-weight);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item::part(safe-triangle) {
+    position: fixed;
+    z-index: calc(var(--layer-overlay) + 1);
+    inset-block-start: var(--_mash-safe-top, 0);
+    inset-inline-start: var(--_mash-safe-left, 0);
+    display: none;
+    inline-size: var(--_mash-safe-width, 0);
+    block-size: var(--_mash-safe-height, 0);
+    background: transparent;
+    clip-path: polygon(0 var(--_mash-safe-y, 50%), 100% 0, 100% 100%);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-menu-item[data-submenu-side="left"]::part(safe-triangle) {
+    clip-path: polygon(100% var(--_mash-safe-y, 50%), 0 0, 0 100%);
+  }
+}

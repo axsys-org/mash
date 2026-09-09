@@ -11,6 +11,17 @@ export type ComponentBlockIntegration =
  * solely as a child/behavior inside another realization.
  */
 export const componentBlockIntegration = Object.freeze({
+  "ui-alert": "content",
+  "ui-attachment": "content",
+  "ui-chart": "content",
+  "ui-command": "container",
+  "ui-command-item": "structural",
+  "ui-marker": "content",
+  "ui-message": "container",
+  "ui-message-scroller": "container",
+  "ui-rating": "inline",
+  "ui-step": "structural",
+  "ui-stepper": "container",
   "ui-accordion": "container",
   "ui-accordion-item": "structural",
   "ui-alert-dialog": "overlay",

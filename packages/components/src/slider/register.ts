@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UISlider };
+
+export * from "./slider.js";

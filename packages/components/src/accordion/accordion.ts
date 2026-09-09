@@ -15,6 +15,7 @@ export type AccordionMode = "single" | "multiple";
  *
  * @tag ui-accordion
  * @summary Coordinates a set of labelled disclosure items.
+ * @mashaxis size control-size
  *
  * @example Account settings
  * <ui-accordion mode="single">
@@ -33,18 +34,25 @@ export type AccordionMode = "single" | "multiple";
  * @mashnode root root
  * @mashnode children children root
  * @mashnode disabled disabled root
+ * @mashnode size size root
  * @mashrole slot default children children
  */
 export class UIAccordion extends LitElement {
   static override properties = {
     mode: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
+    bordered: { type: Boolean, reflect: true },
+    size: { type: String, reflect: true },
   };
 
   /** Whether one or many items can remain open. */
   declare mode: AccordionMode;
   /** Prevents disclosure changes throughout the accordion. */
   declare disabled: boolean;
+  /** Join the items inside one rounded border. */
+  declare bordered: boolean;
+  /** Disclosure spacing and text size; inherit follows the composition context. */
+  declare size: "inherit" | "xsmall" | "small" | "medium" | "large";
 
   readonly #childDisabled = new WeakMap<UIAccordionItem, boolean>();
   readonly #internals: ElementInternals;
@@ -53,6 +61,8 @@ export class UIAccordion extends LitElement {
     super();
     this.mode = "single";
     this.disabled = false;
+    this.bordered = false;
+    this.size = "inherit";
     this.#internals = this.attachInternals();
   }
 
@@ -91,6 +101,7 @@ export class UIAccordion extends LitElement {
     if (!(item instanceof HTMLElement) || item.localName !== "ui-accordion-item" || this.disabled)
       return;
     const option = item as UIAccordionItem;
+    if (!this.#items().includes(option)) return;
     if (this.mode === "single" && option.open) {
       for (const sibling of this.#items()) if (sibling !== option) sibling.open = false;
     }

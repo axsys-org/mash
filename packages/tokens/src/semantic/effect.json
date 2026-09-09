@@ -46,6 +46,12 @@
           "$description": "HDR-capability material highlight opacity."
         }
       }
+    },
+    "opacity": {
+      "disabled": {
+        "$value": "{effect.reference.opacity.disabled}",
+        "$description": "Attenuation of unavailable controls; independent of animation progress."
+      }
     }
   }
 }

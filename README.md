@@ -175,7 +175,7 @@ Mash's reviewed foundation aliases live in `docs/reference/foundations.json`.
 `pnpm run check:foundations` compares them with the generated token graph. Palette,
 type, geometry, and component recipes are rebuilt together on the component rebuild
 branch. See [the rebuild contract](docs/component-rebuild.md) for composition,
-example requirements, migration notes, and the remaining family work.
+example requirements, migration notes, and the remaining reference review.
 
 ## The component layer
 
@@ -226,18 +226,21 @@ content is a genuine independent axis that the shared tokens cannot express.
 The same underscore convention marks internals in JavaScript, and the manifest build strips
 `_`-prefixed members so they never reach the public schema.
 
-### Definition and registration are separate
+### Import and use
 
 ```ts
-import { UIButton } from "@mash/ui/button"; // defines nothing
-import "@mash/ui/button/register"; // defines <ui-button>
-import "@mash/ui/register"; // defines everything
+import "@mash/ui";
+import "@mash/tokens/tokens.css";
+import "@mash/ui/catalogue/mash.css";
 ```
 
-Definition modules are side-effect free, which is what lets a bundler drop unused components.
-`sideEffects` names only the registration modules, and `pnpm run check:exports` verifies that claim
-against the emitted code — including transitively, since the `register.js` barrel registers
-elements without containing a `define` call of its own.
+A normal package import defines the complete component set. Write the elements in markup;
+there is no registration list or family setup. `@mash/shrine` also makes the base UI elements
+available. Optional component imports such as `@mash/ui/button` define their elements too,
+while exporting the same classes and types as the package entry.
+
+The package metadata preserves these effects through production bundling. Internal definition
+modules and headless helpers remain free of registration effects.
 
 Headless pointer movement follows the same rule. `@mash/ui/drag` exposes typed containment,
 snapping, auto-scroll, and positioning without registering an element or touching the document at
@@ -492,14 +495,7 @@ dependencies, and add it to the catalog's `sources` list in `apps/catalog/src/sc
 Build order, export checks and CI pick it up on their own — `pnpm -r` sequences by the
 dependency graph, and `check-exports` discovers packages rather than reading a list.
 
-A composed component's registration module registers what it composes:
-
-```ts
-import "@mash/shrine/confirm/register"; // also registers ui-card and ui-button
-```
-
-Definition modules stay pure either way — importing `@mash/shrine/confirm` registers
-nothing.
+Import `@mash/shrine` to use Shrine compositions with their base components already available.
 
 ## Notes on tool choices
 

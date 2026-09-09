@@ -14,6 +14,8 @@ let tabPanelId = 0;
  * stable controls and panel semantics rather than guessing from arbitrary
  * content order.
  *
+ * @mashnode size size root
+ * @mashaxis size control-size
  * @tag ui-tabs
  * @summary Coordinates a tablist and its selected content panel.
  *
@@ -25,6 +27,14 @@ let tabPanelId = 0;
  *   <ui-tab-panel slot="panel" value="members">Team members</ui-tab-panel>
  * </ui-tabs>
  *
+ * @slot prefix - Controls before the tab strip.
+ * @slot suffix - Controls after the tab strip.
+ * @csspart prefix - Controls before the tab strip.
+ * @csspart suffix - Controls after the tab strip.
+ * @csspart strip - The scrollable tab strip and adjacent controls.
+ * @mashnode strip strip root
+ * @mashnode prefix prefix strip
+ * @mashnode suffix suffix strip
  * @slot tab - `ui-tab` controls.
  * @slot panel - `ui-tab-panel` content regions.
  *
@@ -50,6 +60,8 @@ export class UITabs extends LitElement {
   static override properties = {
     value: { type: String, reflect: true },
     label: { type: String, reflect: true },
+    variant: { type: String, reflect: true },
+    size: { type: String, reflect: true },
     orientation: { type: String, reflect: true },
   };
 
@@ -57,22 +69,49 @@ export class UITabs extends LitElement {
   declare value: string;
   /** Accessible name for the tablist. */
   declare label: string;
+  /** Treatment shared by the tab controls. */
+  declare variant: "default" | "underline" | "pill" | "outline" | "segmented";
+  /** Control size; inherit follows the surrounding size context. */
+  declare size: "inherit" | "xsmall" | "small" | "medium" | "large";
   /** Logical Arrow-key axis. */
   declare orientation: "horizontal" | "vertical";
 
   constructor() {
     super();
+    this.variant = "default";
+    this.size = "inherit";
     this.value = "";
     this.label = "Tabs";
     this.orientation = "horizontal";
     this.addEventListener("ui-tab-select", this.#onTabSelect as EventListener);
-    this.addEventListener("click", this.#onClick);
   }
 
   static override styles = baseStyles;
 
+  #previousTabs: UITab[] = [];
+  #observer = new MutationObserver((records) => {
+    if (records.some((record) => (record.target as Element).parentElement === this))
+      this.#syncSelection();
+  });
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this.#observer.observe(this, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["disabled", "value", "hidden"],
+    });
+  }
+
+  override disconnectedCallback(): void {
+    this.#observer.disconnect();
+    super.disconnectedCallback();
+  }
+
   #tabs(): UITab[] {
-    return [...this.querySelectorAll<UITab>(":scope > ui-tab[slot='tab']")];
+    return [...this.querySelectorAll<UITab>(":scope > ui-tab[slot='tab']")].filter(
+      (tab) => !tab.hidden,
+    );
   }
 
   #panels(): UITabPanel[] {
@@ -82,8 +121,16 @@ export class UITabs extends LitElement {
   #syncSelection(): void {
     const tabs = this.#tabs();
     if (!tabs.some((tab) => tab.value === this.value && !tab.disabled)) {
-      this.value = tabs.find((tab) => !tab.disabled)?.value ?? "";
+      const previousIndex = this.#previousTabs.findIndex((tab) => tab.value === this.value);
+      const candidates = tabs.filter((tab) => !tab.disabled);
+      this.value =
+        candidates[Math.min(Math.max(0, previousIndex), candidates.length - 1)]?.value ?? "";
+      if (previousIndex >= 0 && this.ownerDocument.activeElement === this.ownerDocument.body) {
+        const target = tabs.find((tab) => tab.value === this.value);
+        void target?.updateComplete.then(() => target.focus());
+      }
     }
+    this.#previousTabs = tabs;
     const tabByValue = new Map(tabs.map((tab) => [tab.value, tab]));
     for (const panel of this.#panels()) {
       panel.id ||= `ui-tab-panel-${++tabPanelId}`;
@@ -119,18 +166,13 @@ export class UITabs extends LitElement {
   }
 
   #onTabSelect = (event: Event): void => {
+    if ((event.target as Element).parentElement !== this) return;
     const value = (event as CustomEvent<{ value: string }>).detail.value;
     this.#select(value);
   };
 
-  #onClick = (event: MouseEvent): void => {
-    const tab = event
-      .composedPath()
-      .find((node): node is UITab => node instanceof HTMLElement && node.localName === "ui-tab");
-    if (tab && !tab.disabled) this.#select(tab.value);
-  };
-
   #onKeydown = (event: KeyboardEvent): void => {
+    if ((event.target as Element).closest("ui-tabs") !== this) return;
     const rtl = getComputedStyle(this).direction === "rtl";
     const previous =
       this.orientation === "horizontal" ? (rtl ? "ArrowRight" : "ArrowLeft") : "ArrowUp";
@@ -153,18 +195,23 @@ export class UITabs extends LitElement {
     event.preventDefault();
     this.#select(target.value);
     target.focus();
+    target.scrollIntoView({ block: "nearest", inline: "nearest" });
   };
 
   protected override render(): TemplateResult {
     return html`
-      <div
-        part="list"
-        role="tablist"
-        aria-label=${this.label}
-        aria-orientation=${this.orientation}
-        @keydown=${this.#onKeydown}
-      >
-        <slot part="tab" name="tab" @slotchange=${this.#onSlotChange}></slot>
+      <div part="strip">
+        <slot part="prefix" name="prefix"></slot>
+        <div
+          part="list"
+          role="tablist"
+          aria-label=${this.label}
+          aria-orientation=${this.orientation}
+          @keydown=${this.#onKeydown}
+        >
+          <slot part="tab" name="tab" @slotchange=${this.#onSlotChange}></slot>
+        </div>
+        <slot part="suffix" name="suffix"></slot>
       </div>
       <div part="panels">
         <slot part="panel" name="panel" @slotchange=${this.#onSlotChange}></slot>

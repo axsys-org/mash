@@ -258,8 +258,10 @@ describe("overlay authored-slot realizations", () => {
     ]);
   });
 
-  it("contains modal Tab traversal and returns focus after Escape", async () => {
-    const dialog = await fixture<HTMLElement>(`
+  it.each([0, 1])(
+    "contains modal Tab traversal and restores focus after activation detail %i",
+    async (detail) => {
+      const dialog = await fixture<HTMLElement>(`
       <ui-dialog label="Rename project">
         <button slot="trigger">Rename</button>
         <input aria-label="Project name" />
@@ -269,39 +271,40 @@ describe("overlay authored-slot realizations", () => {
         </div>
       </ui-dialog>
     `);
-    const trigger = dialog.querySelector<HTMLButtonElement>('[slot="trigger"]')!;
-    const input = dialog.querySelector<HTMLInputElement>("input")!;
-    const actions = [...dialog.querySelectorAll<HTMLButtonElement>('[slot="close"] button')];
-    const popup = inShadow<HTMLElement>(dialog, '[part="popup"]');
+      const trigger = dialog.querySelector<HTMLButtonElement>('[slot="trigger"]')!;
+      const input = dialog.querySelector<HTMLInputElement>("input")!;
+      const actions = [...dialog.querySelectorAll<HTMLButtonElement>('[slot="close"] button')];
+      const popup = inShadow<HTMLElement>(dialog, '[part="popup"]');
 
-    trigger.focus();
-    trigger.click();
-    await settled(dialog.parentElement!);
-    expect(document.activeElement).toBe(input);
+      trigger.focus();
+      trigger.dispatchEvent(new MouseEvent("click", { detail, bubbles: true, composed: true }));
+      await settled(dialog.parentElement!);
+      expect(document.activeElement).toBe(input);
 
-    actions.at(-1)!.focus();
-    actions
-      .at(-1)!
-      .dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, composed: true }));
-    expect(document.activeElement).toBe(input);
+      actions.at(-1)!.focus();
+      actions
+        .at(-1)!
+        .dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, composed: true }));
+      expect(document.activeElement).toBe(input);
 
-    input.dispatchEvent(
-      new KeyboardEvent("keydown", {
-        key: "Tab",
-        shiftKey: true,
-        bubbles: true,
-        composed: true,
-      }),
-    );
-    expect(document.activeElement).toBe(actions.at(-1));
+      input.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "Tab",
+          shiftKey: true,
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      expect(document.activeElement).toBe(actions.at(-1));
 
-    popup.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }),
-    );
-    await settled(dialog.parentElement!);
-    expect(dialog.hasAttribute("open")).toBe(false);
-    expect(document.activeElement).toBe(trigger);
-  });
+      popup.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }),
+      );
+      await settled(dialog.parentElement!);
+      expect(dialog.hasAttribute("open")).toBe(false);
+      expect(document.activeElement).toBe(trigger);
+    },
+  );
 
   it("positions anchored popups against their trigger and flips at viewport edges", async () => {
     const popover = await fixture<

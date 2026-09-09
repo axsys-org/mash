@@ -1,13 +1,7 @@
 import { UIVirtualItem, UIVirtualList } from "./virtual-list.js";
 
-const definitions = [
-  ["ui-virtual-list", UIVirtualList],
-  ["ui-virtual-item", UIVirtualItem],
-] as const;
-
-for (const [tag, definition] of definitions) {
-  if (!customElements.get(tag)) customElements.define(tag, definition);
-}
+if (!customElements.get("ui-virtual-list")) customElements.define("ui-virtual-list", UIVirtualList);
+if (!customElements.get("ui-virtual-item")) customElements.define("ui-virtual-item", UIVirtualItem);
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -17,3 +11,5 @@ declare global {
 }
 
 export { UIVirtualItem, UIVirtualList };
+
+export * from "./virtual-list.js";

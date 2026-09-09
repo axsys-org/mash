@@ -1,0 +1,229 @@
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) :is(ui-message, ui-attachment, ui-marker, ui-alert) {
+    display: block;
+    min-inline-size: 0;
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+    color: var(--color-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-message::part(header),
+  :where([data-mash-catalogue="mash"]) ui-message::part(footer) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-control-gap);
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+    padding-block: var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-message[inset]::part(header),
+  :where([data-mash-catalogue="mash"]) ui-message[inset]::part(footer) {
+    padding-inline: var(--space-control-inline);
+  }
+  :where([data-mash-catalogue="mash"]) ui-message[alignment="end"]::part(header),
+  :where([data-mash-catalogue="mash"]) ui-message[alignment="end"]::part(footer) {
+    justify-content: flex-end;
+  }
+  :where([data-mash-catalogue="mash"]) ui-attachment::part(root),
+  :where([data-mash-catalogue="mash"]) ui-alert::part(root) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-container-gap);
+    padding: var(--space-container-block) var(--space-container-inline);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    background: var(--_mash-component-surface);
+  }
+  :where([data-mash-catalogue="mash"]) ui-attachment::part(title),
+  :where([data-mash-catalogue="mash"]) ui-alert::part(title) {
+    font-weight: var(--type-label-font-weight);
+  }
+  :where([data-mash-catalogue="mash"]) ui-attachment::part(description) {
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+  }
+  :where([data-mash-catalogue="mash"]) ui-attachment::part(media) {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+  }
+  :where([data-mash-catalogue="mash"]) ui-attachment[status="failed"]::part(root) {
+    border-color: var(--color-critical-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-attachment[status="failed"]::part(description) {
+    color: var(--color-critical-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-attachment[size="small"]::part(root) {
+    padding: var(--space-control-gap) var(--space-control-inline);
+  }
+  :where([data-mash-catalogue="mash"]) ui-attachment[size="large"]::part(root) {
+    padding: var(--space-container-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-marker::part(root) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-container-gap);
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+  }
+  :where([data-mash-catalogue="mash"]) ui-marker[variant="separator"]::part(root)::before,
+  :where([data-mash-catalogue="mash"]) ui-marker[variant="separator"]::part(root)::after {
+    content: "";
+    flex: 1;
+    border-block-start: var(--border-hairline) solid var(--_mash-component-boundary);
+  }
+  :where([data-mash-catalogue="mash"]) ui-marker[variant="border"]::part(root) {
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-pill);
+    padding: var(--space-control-gap) var(--space-control-inline);
+    inline-size: fit-content;
+    margin-inline: auto;
+  }
+  :where([data-mash-catalogue="mash"]) ui-alert {
+    --_mash-alert-color: var(--color-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-alert[tone="info"] {
+    --_mash-alert-color: var(--color-info-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-alert[tone="positive"] {
+    --_mash-alert-color: var(--color-positive-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-alert[tone="warning"] {
+    --_mash-alert-color: var(--color-warning-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-alert[tone="critical"] {
+    --_mash-alert-color: var(--color-critical-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-alert::part(root) {
+    align-items: flex-start;
+    color: var(--_mash-alert-color);
+    background: color-mix(in srgb, var(--_mash-alert-color) 6%, var(--_mash-component-surface));
+    border-color: color-mix(in srgb, var(--_mash-alert-color) 22%, var(--_mash-component-boundary));
+  }
+  :where([data-mash-catalogue="mash"]) ui-alert[banner]::part(root) {
+    border-radius: 0;
+    border-inline: 0;
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-message-scroller::part(viewport) {
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    background: var(--color-canvas);
+    scrollbar-color: var(--_mash-component-boundary) transparent;
+  }
+  :where([data-mash-catalogue="mash"]) ui-message-scroller::part(content) {
+    gap: var(--space-container-gap);
+    padding: var(--space-container-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-message-scroller::part(latest) {
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-pill);
+    padding: var(--space-control-gap) var(--space-control-inline);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) ui-message-scroller::part(latest):hover {
+    background: var(--color-surface-hover);
+  }
+  :where([data-mash-catalogue="mash"]) ui-message-scroller::part(latest):focus-visible {
+    outline: var(--border-strong) solid var(--color-focus-ring);
+    outline-offset: var(--border-strong);
+  }
+  :where([data-mash-catalogue="mash"]) ui-message-scroller::part(empty) {
+    margin: auto;
+    color: var(--color-text-muted);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-alert::part(close) {
+    display: grid;
+    place-items: center;
+    flex: 0 0 var(--layout-dimension-control-small);
+    block-size: var(--layout-dimension-control-small);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: var(--type-label-large-font-size);
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) ui-alert::part(close):hover {
+    background: var(--color-surface-hover);
+  }
+  :where([data-mash-catalogue="mash"]) ui-alert::part(close):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+  }
+  :where([data-mash-catalogue="mash"]) ui-message {
+    --_mash-message-column: 1;
+  }
+  :where([data-mash-catalogue="mash"]) ui-message::part(root) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0 var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-message:has(> [slot="avatar"]) {
+    --_mash-message-column: 2;
+  }
+  :where([data-mash-catalogue="mash"]) ui-message:has(> [slot="avatar"])::part(root) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  :where([data-mash-catalogue="mash"]) ui-message[alignment="end"] {
+    --_mash-message-column: 1;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-message[alignment="end"]:has(> [slot="avatar"])::part(root) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  :where([data-mash-catalogue="mash"]) ui-message::part(avatar) {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+    padding: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-message[alignment="end"]::part(avatar) {
+    grid-column: 2;
+  }
+  :where([data-mash-catalogue="mash"]) ui-message::part(header) {
+    grid-column: var(--_mash-message-column);
+    grid-row: 1;
+  }
+  :where([data-mash-catalogue="mash"]) ui-message::part(content) {
+    grid-column: var(--_mash-message-column);
+    grid-row: 2;
+    min-inline-size: 0;
+    display: grid;
+    gap: var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-message::part(footer) {
+    grid-column: var(--_mash-message-column);
+    grid-row: 3;
+  }
+  :where([data-mash-catalogue="mash"]) ui-message[inset="none"]::part(header),
+  :where([data-mash-catalogue="mash"]) ui-message[inset="none"]::part(footer),
+  :where([data-mash-catalogue="mash"])
+    ui-message:not([inset="bubble"]):has(> ui-bubble[variant="ghost"])::part(header),
+  :where([data-mash-catalogue="mash"])
+    ui-message:not([inset="bubble"]):has(> ui-bubble[variant="ghost"])::part(footer) {
+    padding-inline: 0;
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-attachment[orientation="vertical"]::part(root) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  :where([data-mash-catalogue="mash"]) ui-attachment[size="xsmall"]::part(root) {
+    padding: var(--space-control-gap);
+    gap: var(--space-control-gap);
+    font-size: var(--type-label-small-font-size);
+  }
+}

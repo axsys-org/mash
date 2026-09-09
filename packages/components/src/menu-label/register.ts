@@ -16,3 +16,5 @@ declare global {
 }
 
 export { UIMenuLabel };
+
+export * from "./menu-label.js";

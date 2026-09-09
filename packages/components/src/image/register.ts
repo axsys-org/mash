@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIImage };
+
+export * from "./image.js";

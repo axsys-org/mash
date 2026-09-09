@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIInput };
+
+export * from "./input.js";

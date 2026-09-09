@@ -473,7 +473,7 @@ export abstract class UIOverlay extends LitElement {
         !this.open,
         "trigger",
         isPointerActivation ? this.pointerOpenFocus : "first",
-        !isPointerActivation,
+        this.modal || !isPointerActivation,
       );
     }
   };

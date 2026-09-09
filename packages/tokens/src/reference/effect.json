@@ -47,6 +47,11 @@
             "$description": "HDR-capability highlight contribution, still constrained so SDR content and controls remain comfortable together."
           }
         }
+      },
+      "opacity": {
+        "disabled": {
+          "$value": 0.5
+        }
       }
     }
   }

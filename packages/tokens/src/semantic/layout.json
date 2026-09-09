@@ -110,6 +110,18 @@
       "inputLarge": {
         "$value": "{space.reference.11}",
         "$description": "44px large input frame in the Mash control scale."
+      },
+      "identitySmall": {
+        "$value": "{space.reference.6}",
+        "$description": "24px identity image and fallback measure, independent of surrounding spacing."
+      },
+      "identityMedium": {
+        "$value": "{space.reference.8}",
+        "$description": "32px identity image and fallback measure, independent of surrounding spacing."
+      },
+      "identityLarge": {
+        "$value": "{space.reference.12}",
+        "$description": "48px identity image and fallback measure, independent of surrounding spacing."
       }
     },
     "menu": {

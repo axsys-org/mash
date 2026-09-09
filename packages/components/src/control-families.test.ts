@@ -226,6 +226,21 @@ describe("Control families", () => {
     expect(two!.open).toBe(true);
   });
 
+  it("keeps nested accordion changes inside their owning collection", async () => {
+    const accordion = await fixture<HTMLElement>(`<ui-accordion>
+      <ui-accordion-item title="Outer" value="outer" open>
+        <ui-accordion><ui-accordion-item title="Inner" value="inner">Details</ui-accordion-item></ui-accordion>
+      </ui-accordion-item>
+      <ui-accordion-item title="Sibling" value="sibling">Sibling details</ui-accordion-item>
+    </ui-accordion>`);
+    const outer = accordion.querySelector<UIAccordionItem>('[value="outer"]')!;
+    const inner = accordion.querySelector<UIAccordionItem>('[value="inner"]')!;
+    inShadow<HTMLButtonElement>(inner, "button").click();
+    await settled(accordion.parentElement!);
+    expect(inner.open).toBe(true);
+    expect(outer.open).toBe(true);
+  });
+
   it("maps a selected tab to exactly one labelled panel", async () => {
     const tabs = await fixture<HTMLElement>(`
       <ui-tabs value="general" label="Settings">

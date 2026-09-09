@@ -121,7 +121,9 @@ async function main() {
         catalogue.lastIndexOf(",", match.index),
       );
       const selector = catalogue.slice(selectorStart + 1, match.index);
-      const tags = [...selector.matchAll(/\b(?:ui|sh|shrine)-[a-z0-9-]+\b/g)];
+      const ownerSelector = selector.replace(/:has\((?:[^()]|\([^()]*\))*\)/g, "");
+      // Tags inside :has() describe descendants, not the owner of this part.
+      const tags = [...ownerSelector.matchAll(/\b(?:ui|sh|shrine)-[a-z0-9-]+\b/g)];
       const tagName = tags.at(-1)?.[0];
       const partName = match[1];
 

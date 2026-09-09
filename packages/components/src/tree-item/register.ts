@@ -17,3 +17,5 @@ declare global {
 }
 
 export { UITreeItem };
+
+export * from "./tree-item.js";

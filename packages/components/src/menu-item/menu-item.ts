@@ -1,4 +1,6 @@
-import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, nothing, type PropertyValues, type TemplateResult } from "lit";
+
+import { html, literal } from "lit/static-html.js";
 
 import { baseStyles } from "../internal/base-styles.js";
 import type { UIMenu } from "../menu/menu.js";
@@ -151,6 +153,8 @@ export class UIMenuItem extends LitElement {
   };
 
   static override properties = {
+    href: { type: String, reflect: true },
+    target: { type: String, reflect: true },
     value: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
     checked: { type: Boolean, reflect: true },
@@ -162,6 +166,10 @@ export class UIMenuItem extends LitElement {
     _hasSubmenu: { type: Boolean, state: true },
   };
 
+  /** Navigation destination; action items render a native anchor when supplied. */
+  declare href: string;
+  /** Browsing context for a navigation item. */
+  declare target: string;
   /** Stable command value for the containing menu. */
   declare value: string;
   /** Prevents command activation while retaining menu focus semantics. */
@@ -185,6 +193,8 @@ export class UIMenuItem extends LitElement {
 
   constructor() {
     super();
+    this.href = "";
+    this.target = "";
     this.value = "";
     this.disabled = false;
     this.checked = false;
@@ -522,9 +532,13 @@ export class UIMenuItem extends LitElement {
     this.dataset.submenuSide = side;
   };
 
-  #select = (): void => {
-    if (this.disabled) return;
+  #select = (event: MouseEvent): void => {
+    if (this.disabled) {
+      event.preventDefault();
+      return;
+    }
     if (this.#submenu) {
+      event.preventDefault();
       this.showSubmenu(true);
       return;
     }
@@ -568,11 +582,16 @@ export class UIMenuItem extends LitElement {
         : this.kind === "radio"
           ? "menuitemradio"
           : "menuitem";
+    const link = Boolean(this.href) && this.kind === "action" && !this._hasSubmenu;
+    const controlTag = link ? literal`a` : literal`button`;
     return html`
       <span part="root">
-        <button
+        <${controlTag}
           part="control"
-          type="button"
+          type=${link ? nothing : "button"}
+          href=${link && !this.disabled ? this.href : nothing}
+          target=${link && this.target ? this.target : nothing}
+          rel=${link && this.target === "_blank" ? "noopener noreferrer" : nothing}
           role=${role}
           tabindex="-1"
           aria-disabled=${this.disabled ? "true" : undefined}
@@ -604,7 +623,7 @@ export class UIMenuItem extends LitElement {
           <span part="chevron" ?hidden=${!this._hasSubmenu} aria-hidden="true">
             <slot name="chevron">›</slot>
           </span>
-        </button>
+        </${controlTag}>
         <span part="submenu">
           <slot name="submenu" @slotchange=${this.#onNamedSlotChange}></slot>
         </span>

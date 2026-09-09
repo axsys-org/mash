@@ -1,8 +1,8 @@
+import { formatMarkup } from "./format-markup.js";
 import { buildBadge } from "./build-info.js";
 import { controlsFor, defaultState, type Control } from "./controls.js";
 import { el } from "./dom.js";
 import { controlsPreviewAllowed, exampleNamed, examplesFor } from "./examples.js";
-import { familiesFor } from "./families.js";
 import {
   components,
   provenance,
@@ -12,7 +12,6 @@ import {
   type ComponentSchema,
   type Described,
 } from "./schema.js";
-import { applyStageLayout, applyStageUtilityRecipes, stageClassName } from "./utility-recipes.js";
 
 export const vibrancyModes = ["auto", "vibrant", "reduced"] as const;
 export type VibrancyMode = (typeof vibrancyModes)[number];
@@ -53,13 +52,6 @@ function defaultSlotContent(component: ComponentSchema): string {
   return bare.charAt(0).toUpperCase() + bare.slice(1);
 }
 
-/** `dist/confirm/register.js` in `@mash/shrine` -> `@mash/shrine/confirm/register`. */
-function importSpecifier(component: ComponentSchema): string {
-  if (!component.registerPath) return component.packageName;
-  const subpath = component.registerPath.replace(/^dist\//, "").replace(/\.js$/, "");
-  return `${component.packageName}/${subpath}`;
-}
-
 // ---------------------------------------------------------------------------
 // Preview
 // ---------------------------------------------------------------------------
@@ -94,7 +86,6 @@ export function buildPreview(doc: Document, component: ComponentSchema, state: S
 
     const fill = doc.createElement("span");
     fill.slot = slot.name;
-    fill.className = stageClassName("slot-fill");
     fill.textContent = content;
     node.append(fill);
   }
@@ -253,6 +244,13 @@ function tokensUsedBy(nodes: Element[]): string[] {
     }
   };
   collect(cssText);
+  // Renderer-backed components document the semantic roles they consume even
+  // when the rendering backend draws outside CSS (for example canvas labels).
+  for (const component of components.filter((entry) => tagNames.has(entry.tagName))) {
+    for (const property of component.cssProperties) {
+      if (tokenByCssVar.has(property.name)) found.add(property.name);
+    }
+  }
   return [...found].sort();
 }
 
@@ -566,22 +564,22 @@ function controlField(
  * is mounted once and then updated in place, rather than re-rendered wholesale
  * on every keystroke.
  */
-const STAGE_URL = "/stage.html";
 
 function exampleComponents(component: ComponentSchema, state: State): ComponentSchema[] {
   const tags = new Set(
-    [...markupFor(component, state).matchAll(/<(ui-[\w-]+|sh-[\w-]+)\b/g)].map((match) => match[1]),
+    [...markupFor(component, state).matchAll(/<(ui-[\w-]+|sh-[\w-]+|shrine-[\w-]+)\b/g)].map(
+      (match) => match[1],
+    ),
   );
   tags.add(component.tagName);
   return components.filter((candidate) => tags.has(candidate.tagName));
 }
 
 function stageUrl(component: ComponentSchema, state: State): string {
-  if (!exampleNamed(component, state.example)?.portable) return STAGE_URL;
-  const tags = exampleComponents(component, state)
-    .map((entry) => entry.tagName)
-    .sort();
-  return `/fixture.html?tags=${encodeURIComponent(tags.join(","))}`;
+  const shrine = exampleComponents(component, state).some(
+    (entry) => entry.packageName === "@mash/shrine",
+  );
+  return shrine ? "/fixture.html?shrine" : "/fixture.html";
 }
 
 function frameDocument(frame: HTMLIFrameElement): Promise<Document> {
@@ -644,10 +642,15 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
   const example = exampleNamed(component, state.example);
   if (example) {
     doc.body.innerHTML = example.code;
+    if (example.script) {
+      const script = doc.createElement("script");
+      script.type = "module";
+      script.textContent = example.script;
+      doc.body.append(script);
+    }
   } else {
     doc.body.replaceChildren(buildPreview(doc, component, state));
   }
-  if (!example?.portable) applyStageUtilityRecipes(doc.body);
 
   const nodes = [...doc.querySelectorAll(component.tagName)];
   const node = nodes[0];
@@ -670,7 +673,6 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
   const anchored = component.attributes.some((attribute) => attribute.name === "placement");
   const layout = example?.stageLayout ?? (anchored ? "anchor" : fills ? "fill" : "center");
   doc.documentElement.dataset.layout = layout;
-  if (!example?.portable) applyStageLayout(doc, layout);
 
   const used = tokensUsedBy(nodes);
   current.tokenList.replaceChildren(
@@ -729,12 +731,11 @@ function aboveStage(component: ComponentSchema): (HTMLElement | null)[] {
     el(
       "div",
       { class: "component-heading" },
-      el("h2", { class: "component-title", text: component.tagName }),
+      el("h2", { class: "component-title", text: componentName(component.tagName) }),
       el("span", { class: "package-badge", text: component.packageName }),
       copyLinkButton(),
     ),
     component.summary ? el("p", { class: "summary", text: component.summary }) : null,
-    component.description ? el("p", { class: "description", text: component.description }) : null,
   ];
 }
 
@@ -849,9 +850,14 @@ function controlsPanel(
   );
 }
 
+const componentName = (tag: string): string => {
+  const words = tag.replace(/^(ui|sh)-/, "").split("-");
+  const names: Record<string, string> = { kbd: "Keyboard", otp: "OTP", intl: "International" };
+  return words.map((word) => names[word] ?? word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+};
+
 function buildSidebar(state: State, callbacks: AppCallbacks): HTMLElement {
-  const families = familiesFor(components);
-  const allCount = families.reduce((count, family) => count + family.components.length, 0);
+  const allCount = components.length;
   const result = el("output", {
     class: "sidebar-result",
     "aria-live": "polite",
@@ -864,35 +870,19 @@ function buildSidebar(state: State, callbacks: AppCallbacks): HTMLElement {
     "aria-label": "Find component",
   }) as HTMLInputElement;
 
-  const familySections = families.map((family) =>
+  const items = components.map((entry) =>
     el(
-      "section",
-      { class: "component-family", "data-component-family": "" },
-      el(
-        "div",
-        { class: "family-row" },
-        el("h3", { class: "family-title", text: family.title }),
-        el("span", { class: "family-count", text: String(family.components.length) }),
-      ),
-      el("p", { class: "family-description", text: family.description }),
-      el(
-        "ul",
-        { class: "sidebar-list" },
-        ...family.components.map((entry) =>
-          el(
-            "li",
-            { "data-component-nav-item": "", "data-tag-name": entry.tagName },
-            el("button", {
-              type: "button",
-              class: entry.tagName === state.tagName ? "nav-item is-selected" : "nav-item",
-              text: entry.tagName,
-              onclick: () => callbacks.select(entry.tagName),
-            }),
-          ),
-        ),
-      ),
+      "li",
+      { "data-component-nav-item": "", "data-tag-name": entry.tagName },
+      el("button", {
+        type: "button",
+        class: entry.tagName === state.tagName ? "nav-item is-selected" : "nav-item",
+        text: componentName(entry.tagName),
+        onclick: () => callbacks.select(entry.tagName),
+      }),
     ),
   );
+  const componentList = el("ul", { class: "sidebar-list" }, ...items);
 
   const sidebar = el(
     "nav",
@@ -904,24 +894,17 @@ function buildSidebar(state: State, callbacks: AppCallbacks): HTMLElement {
       search,
       result,
     ),
-    el("div", { class: "sidebar-scroll" }, ...familySections),
+    el("div", { class: "sidebar-scroll" }, componentList),
   );
 
   const filter = () => {
     const query = search.value.trim().toLocaleLowerCase();
     let visibleCount = 0;
 
-    for (const family of familySections) {
-      let familyHasMatch = false;
-      const items = family.querySelectorAll<HTMLElement>("[data-component-nav-item]");
-      for (const item of items) {
-        const tagName = item.dataset.tagName ?? "";
-        const visible = !query || tagName.toLocaleLowerCase().includes(query);
-        item.hidden = !visible;
-        familyHasMatch ||= visible;
-        if (visible) visibleCount += 1;
-      }
-      family.hidden = !familyHasMatch;
+    for (const item of items) {
+      const visible = !query || (item.dataset.tagName ?? "").toLocaleLowerCase().includes(query);
+      item.hidden = !visible;
+      if (visible) visibleCount += 1;
     }
 
     result.textContent = `${visibleCount} ${visibleCount === 1 ? "component" : "components"}`;
@@ -944,13 +927,10 @@ function componentJump(state: State, callbacks: AppCallbacks): HTMLElement {
   return pickerMenu({
     label: "Component",
     value: state.tagName,
-    entries: familiesFor(components).flatMap((family) =>
-      family.components.map((entry) => ({
-        value: entry.tagName,
-        label: entry.tagName,
-        group: family.title,
-      })),
-    ),
+    entries: components.map((entry) => ({
+      value: entry.tagName,
+      label: componentName(entry.tagName),
+    })),
     onSelect: callbacks.select,
     className: "picker-menu component-jump",
   });
@@ -965,39 +945,72 @@ function belowStage(
   return [
     el(
       "section",
-      { class: "panel usage-panel" },
+      { class: "panel usage-panel", id: "usage" },
       el("h3", { class: "panel-heading", text: "Usage" }),
-      el("pre", { class: "code" }, el("code", { text: markupFor(component, state) })),
+      exampleNamed(component, state.example)?.description
+        ? el("p", {
+            class: "description",
+            text: exampleNamed(component, state.example)!.description,
+          })
+        : null,
+      el("pre", { class: "code" }, el("code", { text: formatMarkup(markupFor(component, state)) })),
       el(
         "pre",
         { class: "code" },
         el("code", {
           text: [
-            ...exampleComponents(component, state).map(
-              (entry) => `import "${importSpecifier(entry)}";`,
+            ...new Set(
+              exampleComponents(component, state).map((entry) => `import "${entry.packageName}";`),
             ),
             `import "@mash/tokens/tokens.css";`,
-            `import "${recipeSpecifier(component)}";`,
+            ...[
+              ...new Set([
+                "@mash/ui/catalogue/mash.css",
+                ...exampleComponents(component, state).map(recipeSpecifier),
+              ]),
+            ].map((specifier) => `import "${specifier}";`),
           ].join("\n"),
         }),
       ),
+      exampleNamed(component, state.example)?.script
+        ? el(
+            "pre",
+            { class: "code" },
+            el("code", { text: exampleNamed(component, state.example)!.script }),
+          )
+        : null,
+      el("button", {
+        type: "button",
+        class: "copy-link",
+        text: "Copy example",
+        onclick: async (event: Event) => {
+          const script = exampleNamed(component, state.example)?.script;
+          await navigator.clipboard.writeText(
+            formatMarkup(markupFor(component, state)) +
+              (script ? '\n\n<script type="module">\n' + script + "\n</script>" : ""),
+          );
+          (event.currentTarget as HTMLElement).textContent = "Copied";
+        },
+      }),
       el("p", {
         class: "note",
-        text: `tokens.css is the minimal component token cascade. Tailwind applications import @mash/tokens/tailwind.css plus ${anatomySpecifier(component)} once from their CSS entrypoint; together they expose semantic utilities and generated part, slot, and state variants.`,
+        text: `Using Tailwind? Import @mash/tokens/tailwind.css and ${anatomySpecifier(component)} for semantic utilities and part variants.`,
       }),
-      component.registerPath
-        ? el("p", {
-            class: "note",
-            text: `Registered by ${component.registerPath}; the class alone is defined in ${component.modulePath} and registers nothing.`,
-          })
-        : null,
     ),
 
     el(
       "section",
-      { class: "panel api-panel" },
+      { class: "panel api-panel", id: "api" },
       el("h3", { class: "panel-heading", text: "API" }),
-      el("p", { class: "note", text: "Read from custom-elements.json." }),
+      component.description
+        ? el(
+            "details",
+            { class: "usage-considerations" },
+            el("summary", { text: "Considerations" }),
+            el("p", { class: "description", text: component.description }),
+          )
+        : null,
+
       attributeTable(component),
       describedList("Slots", component.slots, "No slots.", "slot"),
       describedList("Parts", component.cssParts, "No exposed parts.", "part"),
@@ -1012,8 +1025,8 @@ function belowStage(
 
     el(
       "section",
-      { class: "panel tokens-panel" },
-      el("h3", { class: "panel-heading", text: "Tokens used" }),
+      { class: "panel tokens-panel", id: "tokens" },
+      el("h3", { class: "panel-heading", text: "Token reference" }),
       el("p", {
         class: "note",
         text: "Extracted from active catalogue rules, then traced through tokens.json to the primitive that holds the value.",
@@ -1074,8 +1087,16 @@ function mountShell(root: HTMLElement, state: State, callbacks: AppCallbacks): M
         { class: "content" },
         above,
         el(
+          "nav",
+          { class: "page-links", "aria-label": "On this page" },
+          el("a", { href: "#preview", text: "Examples" }),
+          el("a", { href: "#usage", text: "Usage" }),
+          el("a", { href: "#api", text: "API" }),
+          el("a", { href: "#tokens", text: "Tokens" }),
+        ),
+        el(
           "section",
-          { class: "workbench", "aria-label": "Component workbench" },
+          { class: "workbench", id: "preview", "aria-label": "Component workbench" },
           el("div", { class: "stage-shell" }, frame),
           inspector,
         ),

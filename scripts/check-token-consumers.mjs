@@ -39,6 +39,7 @@ const STRUCTURAL_RECIPE_ROLES = new Map([
 const RUNTIME_VARIABLES = new Set([
   // Published by the generated material/vibrancy utility layer rather than the
   // DTCG token graph. Every catalogue use retains a semantic token fallback.
+  "--mash-material-display",
   "--mash-material-background",
   "--mash-material-background-highlight",
   "--mash-material-backdrop",

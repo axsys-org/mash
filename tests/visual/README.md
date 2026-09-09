@@ -1,6 +1,6 @@
 # Visual regression
 
-Six canonical component states, photographed through the catalog's production build.
+The suite exercises all catalogue pages and named examples through the production build, checks focused interactions and composition geometry, and photographs six canonical component states.
 
 ```bash
 pnpm build && pnpm build:catalog   # the suite serves apps/catalog/dist
@@ -41,8 +41,7 @@ To finish the job:
 3. Remove `snapshots/` from the repository `.gitignore`.
 4. Drop `continue-on-error: true` from the `visual` job in `.github/workflows/ci.yml`.
 
-Until then the suite proves that the deep links resolve and the components render, which is worth
-having on its own.
+The separate `pnpm test:catalogue` gate is blocking. It checks every named example in both themes, portable imports, component geometry, navigation, and focused keyboard/interaction behavior. Screenshot comparisons remain a separate acceptance layer.
 
 ## Why these six
 

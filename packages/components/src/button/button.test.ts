@@ -514,3 +514,13 @@ describe("ui-button: Mash recipe", () => {
     expect(getComputedStyle(control(text)).cursor).toBe("pointer");
   });
 });
+
+it("forwards icon-only accessible names to the native button and updates them", async () => {
+  const button = await fixture<UIButton>(
+    '<ui-button aria-label="Add document"><span aria-hidden="true">+</span></ui-button>',
+  );
+  expect(control(button).getAttribute("aria-label")).toBe("Add document");
+  button.setAttribute("aria-label", "Add another document");
+  await settled(button);
+  expect(control(button).getAttribute("aria-label")).toBe("Add another document");
+});

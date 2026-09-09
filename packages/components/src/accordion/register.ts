@@ -1,3 +1,4 @@
+import "../accordion-item/register.js";
 import { UIAccordion } from "./accordion.js";
 
 if (!customElements.get("ui-accordion")) {
@@ -11,3 +12,5 @@ declare global {
 }
 
 export { UIAccordion };
+
+export * from "./accordion.js";

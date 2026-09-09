@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIKbd };
+
+export * from "./kbd.js";

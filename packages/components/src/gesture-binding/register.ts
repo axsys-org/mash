@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIGestureBinding };
+
+export * from "./gesture-binding.js";

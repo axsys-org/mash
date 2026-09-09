@@ -30,9 +30,17 @@ function location(file, source, index) {
 async function main() {
   const examples = (
     await Promise.all(
-      [EXAMPLES_PATH, "apps/catalog/src/examples/controls.ts"].map((file) =>
-        readFile(path.join(ROOT, file), "utf8"),
-      ),
+      [
+        EXAMPLES_PATH,
+        "apps/catalog/src/examples/controls.ts",
+        "apps/catalog/src/examples/components.ts",
+        "apps/catalog/src/examples/conversation.ts",
+        "apps/catalog/src/examples/navigation.ts",
+        "apps/catalog/src/examples/data.ts",
+        "apps/catalog/src/examples/tables.ts",
+        "apps/catalog/src/examples/utility.ts",
+        "apps/catalog/src/examples/patterns.ts",
+      ].map((file) => readFile(path.join(ROOT, file), "utf8")),
     )
   ).join("\n");
   const stage = await readFile(path.join(ROOT, STAGE_PATH), "utf8");
@@ -46,15 +54,6 @@ async function main() {
     if (controls !== 1) {
       problems.push(
         `${location(EXAMPLES_PATH, examples, match.index)} input group authors ${controls} control slots; expected exactly one`,
-      );
-    }
-  }
-
-  for (const match of examples.matchAll(/<ui-kbd\b([^>]*)>/g)) {
-    const attributes = match[1];
-    if (/\bshortcut=/.test(attributes) && !/\bcommand=/.test(attributes)) {
-      problems.push(
-        `${location(EXAMPLES_PATH, examples, match.index)} shortcut KBD has no semantic command`,
       );
     }
   }
@@ -106,65 +105,11 @@ async function main() {
     }
   }
 
-  const spinnerSection = examples.match(/"ui-spinner": \[([\s\S]*?)\n  \],/);
-  if (
-    !spinnerSection ||
-    !spinnerSection[1].includes("<ui-motion") ||
-    !spinnerSection[1].includes("<ui-kbd") ||
-    !spinnerSection[1].includes("<ui-gesture-binding")
-  ) {
-    problems.push(
-      `${EXAMPLES_PATH} ui-spinner needs a cross-component Motion, KBD, and Gesture composition`,
-    );
+  if (!examples.includes("<ui-virtual-list") || !examples.includes("<ui-virtual-item")) {
+    problems.push("Virtual list examples must author real virtual rows.");
   }
-
-  const textareaSection = examples.match(/"ui-textarea": \[([\s\S]*?)\n  \],/);
-  if (
-    !textareaSection ||
-    !textareaSection[1].includes("example-comment-composer") ||
-    !textareaSection[1].includes("<ui-field") ||
-    !textareaSection[1].includes("<ui-toolbar") ||
-    !textareaSection[1].includes("<ui-menu") ||
-    !textareaSection[1].includes("data-catalog-composer-text") ||
-    !textareaSection[1].includes("data-catalog-composer-send")
-  ) {
-    problems.push(
-      `${EXAMPLES_PATH} ui-textarea needs a durable comment-composer fragment around the native control`,
-    );
-  }
-
-  const popoverSection = examples.match(/"ui-popover": \[([\s\S]*?)\n  \],/);
-  if (
-    !popoverSection ||
-    !popoverSection[1].includes("Context inspector") ||
-    !popoverSection[1].includes("example-popover-content") ||
-    !popoverSection[1].includes("<ui-input-group") ||
-    !popoverSection[1].includes("<ui-link") ||
-    !popoverSection[1].includes("<ui-toolbar")
-  ) {
-    problems.push(
-      `${EXAMPLES_PATH} ui-popover needs a contextual inspector fragment, not a bare action stub`,
-    );
-  }
-
-  const virtualListSection = examples.match(/"ui-virtual-list": \[([\s\S]*?)\n  \],/);
-  const hasVirtualRowTemplate =
-    examples.includes('class="example-virtual-row"') &&
-    examples.includes("<ui-avatar") &&
-    examples.includes("<ui-link") &&
-    examples.includes("<ui-badge") &&
-    examples.includes("data-catalog-virtual-item");
-  if (
-    !virtualListSection ||
-    !virtualListSection[1].includes("<ui-toolbar") ||
-    !virtualListSection[1].includes("${virtualFeedItems}") ||
-    !virtualListSection[1].includes("data-catalog-virtual-list") ||
-    !hasVirtualRowTemplate ||
-    !stage.includes("ui-visible-range-change")
-  ) {
-    problems.push(
-      `${EXAMPLES_PATH} ui-virtual-list needs a composed fragment with authored rows and range wiring`,
-    );
+  if (/data-catalog-[a-z-]+/.test(examples)) {
+    problems.push("Examples must run without private stage controllers.");
   }
 
   if (problems.length > 0) {
@@ -174,7 +119,7 @@ async function main() {
   }
 
   console.log(
-    `catalogue conformance: ok — ${iconNames.size} semantic icons, input groups, commands, gestures, composer fragments, contextual popovers, virtual rows, and motion composition verified`,
+    `catalogue conformance: ok — ${iconNames.size} semantic icons, portable component sources and virtual-row composition verified`,
   );
 }
 

@@ -11,3 +11,5 @@ declare global {
 }
 
 export { ShrinePail };
+
+export * from "./pail.js";

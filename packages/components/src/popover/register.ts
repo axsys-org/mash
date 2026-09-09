@@ -9,3 +9,5 @@ declare global {
 }
 
 export { UIPopover };
+
+export * from "./popover.js";

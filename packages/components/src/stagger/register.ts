@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIStagger };
+
+export * from "./stagger.js";

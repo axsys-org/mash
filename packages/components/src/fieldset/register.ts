@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIFieldset };
+
+export * from "./fieldset.js";

@@ -1,12 +1,6 @@
-/**
- * The package's definition entry point.
- *
- * Importing this gives you the classes and their types, and registers nothing.
- * To use the elements in markup, import a registration module instead:
- *
- *   import "@mash/shrine/confirm/register";   // one component
- *   import "@mash/shrine/register";           // the whole package
- */
+/** Normal imports make the Mash elements available and export their classes and types. */
+import "@mash/ui";
+import "./register.js";
 
 export {
   shrineBlockIntegrationFor,

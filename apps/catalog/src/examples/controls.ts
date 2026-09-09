@@ -1,11 +1,7 @@
+import { patternExamples } from "./patterns.js";
 import type { CatalogExample } from "../examples.js";
 
-const sample = (name: string, code: string, description?: string): CatalogExample => ({
-  name,
-  code: `<div data-mash-catalogue="mash" class="mash-stack">\n${code.trim()}\n</div>`,
-  description,
-  portable: true,
-});
+import { sample } from "./shared.js";
 
 const choices = `
   <ui-option value="draft">Draft</ui-option>
@@ -50,6 +46,23 @@ export const controlExamples: Record<string, CatalogExample[]> = {
   <ui-button selected>Selected</ui-button>
   <ui-button dropdown-caret>Options</ui-button>
 </div>`,
+    ),
+    sample(
+      "Theme boundaries",
+      `<div class="mash-grid">${["light", "dark"]
+        .map(
+          (theme) => `
+  <section class="mash-panel mash-stack" data-theme="${theme}" data-mash-size="small" aria-label="${theme} theme">
+    <strong>${theme === "light" ? "Light" : "Dark"}</strong>
+    <div class="mash-row mash-wrap"><ui-button>Default</ui-button><ui-button variant="primary">Primary</ui-button><ui-button variant="secondary">Secondary</ui-button></div>
+    <div class="mash-row mash-wrap"><ui-toggle pressed>Selected</ui-toggle><ui-toggle>Unselected</ui-toggle><ui-button disabled>Disabled</ui-button></div>
+    <div class="mash-row mash-wrap"><ui-button variant="primary" tone="positive">Success</ui-button><ui-button tone="warning">Warning</ui-button><ui-button tone="critical">Danger</ui-button></div>
+    <ui-input label="Project" placeholder="Project name"></ui-input>
+    <ui-tooltip label="Additional information"><ui-button slot="trigger">Details</ui-button>Additional information</ui-tooltip>
+  </section>`,
+        )
+        .join("")}</div>`,
+      "Each theme boundary resolves the complete semantic palette, including hover, selection, and inverse tooltip surfaces.",
     ),
   ],
   "ui-input": [
@@ -140,6 +153,13 @@ export const controlExamples: Record<string, CatalogExample[]> = {
       `<ui-select label="Status" placeholder="Find status" searchable>${choices}
 </ui-select>`,
     ),
+    sample(
+      "Grouped choices",
+      `<ui-select label="Status" placeholder="Choose a status">
+  <ui-option-group label="In progress"><ui-option value="draft">Draft</ui-option><ui-option value="review">In review</ui-option></ui-option-group>
+  <ui-option-group label="Complete"><ui-option value="published">Published</ui-option><ui-option value="archived" disabled>Archived</ui-option></ui-option-group>
+</ui-select>`,
+    ),
   ],
   "ui-combobox": [
     sample(
@@ -147,10 +167,37 @@ export const controlExamples: Record<string, CatalogExample[]> = {
       `<ui-combobox label="Status" placeholder="Find status">${choices}
 </ui-combobox>`,
     ),
+    {
+      ...sample(
+        "Multiple",
+        `<ui-combobox id="statuses" label="Statuses" placeholder="Add status" multiple values='["draft"]'>
+  <ui-chip slot="chips" value="draft">Draft</ui-chip>${choices}
+</ui-combobox>`,
+      ),
+      script: `const combo = document.querySelector("#statuses");
+const renderChips = () => {
+  combo.querySelectorAll("ui-chip").forEach(chip => chip.remove());
+  for (const value of combo.values) {
+    const option = [...combo.querySelectorAll("ui-option")].find(item => item.value === value);
+    const chip = document.createElement("ui-chip");
+    chip.slot = "chips";
+    chip.value = value;
+    chip.textContent = option?.textContent ?? value;
+    combo.append(chip);
+  }
+};
+combo.addEventListener("ui-combobox-change", renderChips);`,
+    },
     sample(
-      "Multiple",
-      `<ui-combobox label="Statuses" placeholder="Add status" multiple>${choices}
+      "Grid suggestions",
+      `<ui-combobox label="Person" placeholder="Choose a person" grid>
+  <ui-option-row><ui-option value="alex">Alex</ui-option><ui-option value="sam">Sam</ui-option></ui-option-row>
+  <ui-option-row><ui-option value="morgan">Morgan</ui-option><ui-option value="jordan">Jordan</ui-option></ui-option-row>
 </ui-combobox>`,
     ),
   ],
 };
+
+for (const [tag, examples] of Object.entries(patternExamples)) {
+  if (controlExamples[tag]) controlExamples[tag] = [...controlExamples[tag], ...examples];
+}

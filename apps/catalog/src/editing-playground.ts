@@ -27,7 +27,7 @@ import {
   type BlockDefinition,
 } from "./editing-blocks.js";
 import { MarkupHistory } from "./editing-history.js";
-import { applyStageUtilityRecipes } from "./utility-recipes.js";
+import { applyStageUtilityRecipes } from "./application-recipes.js";
 
 interface EditingPlaygroundContext {
   root: HTMLElement;

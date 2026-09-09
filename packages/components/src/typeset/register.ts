@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UITypeset };
+
+export * from "./typeset.js";

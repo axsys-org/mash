@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UISpinner };
+
+export * from "./spinner.js";

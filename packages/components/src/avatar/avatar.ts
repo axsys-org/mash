@@ -118,8 +118,13 @@ export class UIAvatar extends LitElement {
   protected override render(): TemplateResult {
     const showImage = Boolean(this.src) && !this._imageFailed;
     return html`
-      <span part="root" class="avatar">
-        <span part="fallback" ?aria-hidden=${showImage}><slot></slot></span>
+      <span
+        part="root"
+        class="avatar"
+        role="img"
+        aria-label=${this.alt || this.textContent?.trim() || "Avatar"}
+      >
+        <span part="fallback" ?hidden=${showImage}><slot></slot></span>
         <img
           part="image"
           class="image"

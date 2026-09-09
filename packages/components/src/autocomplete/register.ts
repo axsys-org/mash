@@ -13,3 +13,5 @@ declare global {
 }
 
 export { UIAutocomplete };
+
+export * from "./autocomplete.js";

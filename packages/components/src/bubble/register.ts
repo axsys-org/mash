@@ -22,3 +22,5 @@ declare global {
 }
 
 export { UIBubble, UIBubbleGroup };
+
+export * from "./bubble.js";

@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIFileUpload };
+
+export * from "./file-upload.js";

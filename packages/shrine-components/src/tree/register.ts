@@ -14,3 +14,5 @@ declare global {
 }
 
 export { ShrineTree };
+
+export * from "./tree.js";

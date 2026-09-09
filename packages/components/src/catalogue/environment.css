@@ -1,0 +1,104 @@
+/** Mash environment recipes. Included by catalogue/mash.css. */
+@layer mash.catalogue {
+  @supports (color: color(display-p3 1 1 1)) {
+    @media (color-gamut: p3) {
+      :where([data-mash-catalogue="mash"]:not([data-vibrancy="reduced"])),
+      :where([data-mash-catalogue="mash"])
+        :where([data-vibrancy="auto"], [data-vibrancy="vibrant"]) {
+        --mash-material-luminance: var(--effect-material-luminance-wide-gamut);
+        --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-wide-gamut);
+        --mash-material-background-highlight: color(
+          display-p3 1 1 1 / var(--mash-material-highlight-alpha)
+        );
+        --mash-material-selection-background: var(--color-menu-selection);
+        --mash-material-accent-action: var(--color-action);
+      }
+    }
+  }
+
+  @supports (dynamic-range-limit: constrained) {
+    @media (dynamic-range: high) {
+      :where([data-mash-catalogue="mash"]:not([data-vibrancy="reduced"])),
+      :where([data-mash-catalogue="mash"])
+        :where([data-vibrancy="auto"], [data-vibrancy="vibrant"]) {
+        --mash-material-luminance: var(--effect-material-luminance-high-dynamic-range);
+        --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-high-dynamic-range);
+        --mash-material-dynamic-range-limit: constrained;
+      }
+    }
+  }
+
+  @supports (dynamic-range-limit: constrained) {
+    :where([data-mash-catalogue="mash"]) ui-menu::part(popup),
+    :where([data-mash-catalogue="mash"]) ui-context-menu::part(popup) {
+      dynamic-range-limit: var(--mash-material-dynamic-range-limit, standard);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :where([data-mash-catalogue="mash"]) ui-menu-item:state(submenu-open)::part(safe-triangle) {
+      display: block;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+  }
+
+  @media (prefers-reduced-motion: reduce), (forced-colors: active) {
+    :where([data-mash-catalogue="mash"]) ui-skeleton::part(root) {
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    :where([data-mash-catalogue="mash"]) ui-skeleton::part(root) {
+      background: CanvasText;
+      opacity: var(--motion-opacity-muted);
+    }
+  }
+  @media (forced-colors: active) {
+    :where([data-mash-catalogue="mash"]) ui-separator::part(root) {
+      background: CanvasText;
+      mix-blend-mode: normal;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) ui-clipboard::part(control),
+    :where([data-mash-catalogue="mash"]) ui-progress::part(indicator) {
+      transition: none;
+    }
+    :where([data-mash-catalogue="mash"]) ui-spinner::part(indicator),
+    :where([data-mash-catalogue="mash"]) ui-progress:state(indeterminate)::part(indicator),
+    :where([data-mash-catalogue="mash"])
+      :is(ui-select, ui-autocomplete, ui-combobox):state(entering)::part(popup),
+    :where([data-mash-catalogue="mash"])
+      :is(ui-select, ui-autocomplete, ui-combobox):state(exiting)::part(popup),
+    :where([data-mash-catalogue="mash"]) ui-toast:state(entering)::part(root),
+    :where([data-mash-catalogue="mash"]) ui-toast:state(exiting)::part(root) {
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    :where([data-mash-catalogue="mash"]) ui-clipboard::part(control) {
+      border-color: ButtonBorder;
+      background-color: ButtonFace;
+      color: ButtonText;
+    }
+    :where([data-mash-catalogue="mash"]) ui-clipboard::part(control):focus-visible {
+      outline-color: Highlight;
+    }
+    :where([data-mash-catalogue="mash"]) ui-clipboard[disabled]::part(control) {
+      border-color: GrayText;
+      color: GrayText;
+    }
+    :where([data-mash-catalogue="mash"]) ui-card {
+      border-color: CanvasText;
+    }
+    :where([data-mash-catalogue="mash"]) ui-card[elevation="raised"] {
+      border-width: var(--border-strong);
+      box-shadow: none;
+    }
+  }
+}

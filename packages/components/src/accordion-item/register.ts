@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIAccordionItem };
+
+export * from "./accordion-item.js";

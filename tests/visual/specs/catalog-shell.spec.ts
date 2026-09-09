@@ -5,20 +5,20 @@ test.describe("catalog shell", () => {
     await page.goto("/components/ui-input-group?example=Tailwind+anatomy+overrides");
 
     await expect(page.locator("select")).toHaveCount(0);
-    await expect(page.locator(".component-jump ui-button")).toContainText("ui-input-group");
+    await expect(page.locator(".component-jump ui-button")).toContainText("Input Group");
     await expect(page.locator(".sidebar")).toBeVisible();
     await expect(page.locator(".sidebar-search")).toBeVisible();
 
     await page.locator(".sidebar-search").fill("toast");
     await expect(page.locator("[data-component-nav-item]:not([hidden]) .nav-item")).toHaveText([
-      "ui-toast",
-      "ui-toast-stack",
+      "Toast",
+      "Toast Stack",
     ]);
 
     await page.locator(".component-jump ui-button").click();
     await page.locator('.component-jump ui-menu-item[value="ui-button"]').click();
     await expect(page).toHaveURL(/\/components\/ui-button/);
-    await expect(page.locator(".component-title")).toHaveText("ui-button");
+    await expect(page.locator(".component-title")).toHaveText("Button");
   });
 
   test("uses the masthead jump instead of the full sidebar on small screens", async ({ page }) => {
@@ -26,9 +26,9 @@ test.describe("catalog shell", () => {
     await page.goto("/components/ui-input-group?example=Tailwind+anatomy+overrides");
 
     await expect(page.locator(".component-jump")).toBeVisible();
-    await expect(page.locator(".component-jump ui-button")).toContainText("ui-input-group");
+    await expect(page.locator(".component-jump ui-button")).toContainText("Input Group");
     await expect(page.locator(".sidebar")).toBeHidden();
-    await expect(page.locator(".component-title")).toHaveText("ui-input-group");
+    await expect(page.locator(".component-title")).toHaveText("Input Group");
     await expect(page.locator("iframe.stage-frame")).toBeVisible();
   });
 
@@ -37,7 +37,7 @@ test.describe("catalog shell", () => {
     await page.goto("/components/sh-slot");
 
     await expect(page.locator(".sidebar")).toBeHidden();
-    await expect(page.locator(".component-jump ui-button")).toContainText("sh-slot");
+    await expect(page.locator(".component-jump ui-button")).toContainText("Slot");
 
     const stage = page.locator("iframe.stage-frame");
     await expect(stage).toBeVisible();

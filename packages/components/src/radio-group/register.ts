@@ -1,3 +1,4 @@
+import "../radio/register.js";
 import { UIRadioGroup } from "./radio-group.js";
 
 if (!customElements.get("ui-radio-group")) {
@@ -11,3 +12,5 @@ declare global {
 }
 
 export { UIRadioGroup };
+
+export * from "./radio-group.js";

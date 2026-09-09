@@ -10,3 +10,5 @@ declare global {
 }
 
 export { UINavigationMenu };
+
+export * from "./navigation-menu.js";

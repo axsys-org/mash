@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIReveal };
+
+export * from "./reveal.js";

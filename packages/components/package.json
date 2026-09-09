@@ -11,11 +11,10 @@
   ],
   "customElements": "custom-elements.json",
   "//sideEffects": [
-    "Definition modules are pure: importing `@mash/ui/button` defines no element.",
-    "Only `register.js` modules touch the CustomElementRegistry, so only they are",
-    "flagged side-effectful. This is what lets a bundler drop unused components."
+    "Normal package and component imports define their custom elements. Registration mechanics remain internal; consumers do not need a separate setup step."
   ],
   "sideEffects": [
+    "./dist/index.js",
     "./dist/**/register.js",
     "./dist/register.js",
     "./dist/tailwind.css",
@@ -31,40 +30,40 @@
       "import": "./dist/register.js"
     },
     "./avatar": {
-      "types": "./dist/avatar/avatar.d.ts",
-      "import": "./dist/avatar/avatar.js"
+      "types": "./dist/avatar/register.d.ts",
+      "import": "./dist/avatar/register.js"
     },
     "./avatar/register": {
       "types": "./dist/avatar/register.d.ts",
       "import": "./dist/avatar/register.js"
     },
     "./accordion": {
-      "types": "./dist/accordion/accordion.d.ts",
-      "import": "./dist/accordion/accordion.js"
+      "types": "./dist/accordion/register.d.ts",
+      "import": "./dist/accordion/register.js"
     },
     "./accordion/register": {
       "types": "./dist/accordion/register.d.ts",
       "import": "./dist/accordion/register.js"
     },
     "./accordion-item": {
-      "types": "./dist/accordion-item/accordion-item.d.ts",
-      "import": "./dist/accordion-item/accordion-item.js"
+      "types": "./dist/accordion-item/register.d.ts",
+      "import": "./dist/accordion-item/register.js"
     },
     "./accordion-item/register": {
       "types": "./dist/accordion-item/register.d.ts",
       "import": "./dist/accordion-item/register.js"
     },
     "./badge": {
-      "types": "./dist/badge/badge.d.ts",
-      "import": "./dist/badge/badge.js"
+      "types": "./dist/badge/register.d.ts",
+      "import": "./dist/badge/register.js"
     },
     "./badge/register": {
       "types": "./dist/badge/register.d.ts",
       "import": "./dist/badge/register.js"
     },
     "./bubble": {
-      "types": "./dist/bubble/bubble.d.ts",
-      "import": "./dist/bubble/bubble.js"
+      "types": "./dist/bubble/register.d.ts",
+      "import": "./dist/bubble/register.js"
     },
     "./bubble/register": {
       "types": "./dist/bubble/register.d.ts",
@@ -77,56 +76,56 @@
     "./catalogue/mash.css": "./src/catalogue/mash.css",
     "./tailwind.css": "./dist/tailwind.css",
     "./checkbox": {
-      "types": "./dist/checkbox/checkbox.d.ts",
-      "import": "./dist/checkbox/checkbox.js"
+      "types": "./dist/checkbox/register.d.ts",
+      "import": "./dist/checkbox/register.js"
     },
     "./checkbox/register": {
       "types": "./dist/checkbox/register.d.ts",
       "import": "./dist/checkbox/register.js"
     },
     "./checkbox-group": {
-      "types": "./dist/checkbox-group/checkbox-group.d.ts",
-      "import": "./dist/checkbox-group/checkbox-group.js"
+      "types": "./dist/checkbox-group/register.d.ts",
+      "import": "./dist/checkbox-group/register.js"
     },
     "./checkbox-group/register": {
       "types": "./dist/checkbox-group/register.d.ts",
       "import": "./dist/checkbox-group/register.js"
     },
     "./collapsible": {
-      "types": "./dist/collapsible/collapsible.d.ts",
-      "import": "./dist/collapsible/collapsible.js"
+      "types": "./dist/collapsible/register.d.ts",
+      "import": "./dist/collapsible/register.js"
     },
     "./collapsible/register": {
       "types": "./dist/collapsible/register.d.ts",
       "import": "./dist/collapsible/register.js"
     },
     "./field": {
-      "types": "./dist/field/field.d.ts",
-      "import": "./dist/field/field.js"
+      "types": "./dist/field/register.d.ts",
+      "import": "./dist/field/register.js"
     },
     "./field/register": {
       "types": "./dist/field/register.d.ts",
       "import": "./dist/field/register.js"
     },
     "./file-upload": {
-      "types": "./dist/file-upload/file-upload.d.ts",
-      "import": "./dist/file-upload/file-upload.js"
+      "types": "./dist/file-upload/register.d.ts",
+      "import": "./dist/file-upload/register.js"
     },
     "./file-upload/register": {
       "types": "./dist/file-upload/register.d.ts",
       "import": "./dist/file-upload/register.js"
     },
     "./fieldset": {
-      "types": "./dist/fieldset/fieldset.d.ts",
-      "import": "./dist/fieldset/fieldset.js"
+      "types": "./dist/fieldset/register.d.ts",
+      "import": "./dist/fieldset/register.js"
     },
     "./fieldset/register": {
       "types": "./dist/fieldset/register.d.ts",
       "import": "./dist/fieldset/register.js"
     },
     "./form": {
-      "types": "./dist/form/form.d.ts",
-      "import": "./dist/form/form.js"
+      "types": "./dist/form/register.d.ts",
+      "import": "./dist/form/register.js"
     },
     "./form/register": {
       "types": "./dist/form/register.d.ts",
@@ -141,504 +140,504 @@
       "import": "./dist/command/command.js"
     },
     "./gesture-binding": {
-      "types": "./dist/gesture-binding/gesture-binding.d.ts",
-      "import": "./dist/gesture-binding/gesture-binding.js"
+      "types": "./dist/gesture-binding/register.d.ts",
+      "import": "./dist/gesture-binding/register.js"
     },
     "./gesture-binding/register": {
       "types": "./dist/gesture-binding/register.d.ts",
       "import": "./dist/gesture-binding/register.js"
     },
     "./button": {
-      "types": "./dist/button/button.d.ts",
-      "import": "./dist/button/button.js"
+      "types": "./dist/button/register.d.ts",
+      "import": "./dist/button/register.js"
     },
     "./button/register": {
       "types": "./dist/button/register.d.ts",
       "import": "./dist/button/register.js"
     },
     "./card": {
-      "types": "./dist/card/card.d.ts",
-      "import": "./dist/card/card.js"
+      "types": "./dist/card/register.d.ts",
+      "import": "./dist/card/register.js"
     },
     "./card/register": {
       "types": "./dist/card/register.d.ts",
       "import": "./dist/card/register.js"
     },
     "./chip": {
-      "types": "./dist/chip/chip.d.ts",
-      "import": "./dist/chip/chip.js"
+      "types": "./dist/chip/register.d.ts",
+      "import": "./dist/chip/register.js"
     },
     "./chip/register": {
       "types": "./dist/chip/register.d.ts",
       "import": "./dist/chip/register.js"
     },
     "./clipboard": {
-      "types": "./dist/clipboard/clipboard.d.ts",
-      "import": "./dist/clipboard/clipboard.js"
+      "types": "./dist/clipboard/register.d.ts",
+      "import": "./dist/clipboard/register.js"
     },
     "./clipboard/register": {
       "types": "./dist/clipboard/register.d.ts",
       "import": "./dist/clipboard/register.js"
     },
     "./input": {
-      "types": "./dist/input/input.d.ts",
-      "import": "./dist/input/input.js"
+      "types": "./dist/input/register.d.ts",
+      "import": "./dist/input/register.js"
     },
     "./input/register": {
       "types": "./dist/input/register.d.ts",
       "import": "./dist/input/register.js"
     },
     "./input-group": {
-      "types": "./dist/input-group/input-group.d.ts",
-      "import": "./dist/input-group/input-group.js"
+      "types": "./dist/input-group/register.d.ts",
+      "import": "./dist/input-group/register.js"
     },
     "./input-group/register": {
       "types": "./dist/input-group/register.d.ts",
       "import": "./dist/input-group/register.js"
     },
     "./image": {
-      "types": "./dist/image/image.d.ts",
-      "import": "./dist/image/image.js"
+      "types": "./dist/image/register.d.ts",
+      "import": "./dist/image/register.js"
     },
     "./image/register": {
       "types": "./dist/image/register.d.ts",
       "import": "./dist/image/register.js"
     },
     "./intl-formatter": {
-      "types": "./dist/intl-formatter/intl-formatter.d.ts",
-      "import": "./dist/intl-formatter/intl-formatter.js"
+      "types": "./dist/intl-formatter/register.d.ts",
+      "import": "./dist/intl-formatter/register.js"
     },
     "./intl-formatter/register": {
       "types": "./dist/intl-formatter/register.d.ts",
       "import": "./dist/intl-formatter/register.js"
     },
     "./kbd": {
-      "types": "./dist/kbd/kbd.d.ts",
-      "import": "./dist/kbd/kbd.js"
+      "types": "./dist/kbd/register.d.ts",
+      "import": "./dist/kbd/register.js"
     },
     "./kbd/register": {
       "types": "./dist/kbd/register.d.ts",
       "import": "./dist/kbd/register.js"
     },
     "./meter": {
-      "types": "./dist/meter/meter.d.ts",
-      "import": "./dist/meter/meter.js"
+      "types": "./dist/meter/register.d.ts",
+      "import": "./dist/meter/register.js"
     },
     "./meter/register": {
       "types": "./dist/meter/register.d.ts",
       "import": "./dist/meter/register.js"
     },
     "./number-field": {
-      "types": "./dist/number-field/number-field.d.ts",
-      "import": "./dist/number-field/number-field.js"
+      "types": "./dist/number-field/register.d.ts",
+      "import": "./dist/number-field/register.js"
     },
     "./number-field/register": {
       "types": "./dist/number-field/register.d.ts",
       "import": "./dist/number-field/register.js"
     },
     "./otp-field": {
-      "types": "./dist/otp-field/otp-field.d.ts",
-      "import": "./dist/otp-field/otp-field.js"
+      "types": "./dist/otp-field/register.d.ts",
+      "import": "./dist/otp-field/register.js"
     },
     "./otp-field/register": {
       "types": "./dist/otp-field/register.d.ts",
       "import": "./dist/otp-field/register.js"
     },
     "./path": {
-      "types": "./dist/path/path.d.ts",
-      "import": "./dist/path/path.js"
+      "types": "./dist/path/register.d.ts",
+      "import": "./dist/path/register.js"
     },
     "./path/register": {
       "types": "./dist/path/register.d.ts",
       "import": "./dist/path/register.js"
     },
     "./progress": {
-      "types": "./dist/progress/progress.d.ts",
-      "import": "./dist/progress/progress.js"
+      "types": "./dist/progress/register.d.ts",
+      "import": "./dist/progress/register.js"
     },
     "./progress/register": {
       "types": "./dist/progress/register.d.ts",
       "import": "./dist/progress/register.js"
     },
     "./radio": {
-      "types": "./dist/radio/radio.d.ts",
-      "import": "./dist/radio/radio.js"
+      "types": "./dist/radio/register.d.ts",
+      "import": "./dist/radio/register.js"
     },
     "./radio/register": {
       "types": "./dist/radio/register.d.ts",
       "import": "./dist/radio/register.js"
     },
     "./radio-group": {
-      "types": "./dist/radio-group/radio-group.d.ts",
-      "import": "./dist/radio-group/radio-group.js"
+      "types": "./dist/radio-group/register.d.ts",
+      "import": "./dist/radio-group/register.js"
     },
     "./radio-group/register": {
       "types": "./dist/radio-group/register.d.ts",
       "import": "./dist/radio-group/register.js"
     },
     "./scroll-area": {
-      "types": "./dist/scroll-area/scroll-area.d.ts",
-      "import": "./dist/scroll-area/scroll-area.js"
+      "types": "./dist/scroll-area/register.d.ts",
+      "import": "./dist/scroll-area/register.js"
     },
     "./scroll-area/register": {
       "types": "./dist/scroll-area/register.d.ts",
       "import": "./dist/scroll-area/register.js"
     },
     "./separator": {
-      "types": "./dist/separator/separator.d.ts",
-      "import": "./dist/separator/separator.js"
+      "types": "./dist/separator/register.d.ts",
+      "import": "./dist/separator/register.js"
     },
     "./separator/register": {
       "types": "./dist/separator/register.d.ts",
       "import": "./dist/separator/register.js"
     },
     "./slider": {
-      "types": "./dist/slider/slider.d.ts",
-      "import": "./dist/slider/slider.js"
+      "types": "./dist/slider/register.d.ts",
+      "import": "./dist/slider/register.js"
     },
     "./slider/register": {
       "types": "./dist/slider/register.d.ts",
       "import": "./dist/slider/register.js"
     },
     "./spinner": {
-      "types": "./dist/spinner/spinner.d.ts",
-      "import": "./dist/spinner/spinner.js"
+      "types": "./dist/spinner/register.d.ts",
+      "import": "./dist/spinner/register.js"
     },
     "./spinner/register": {
       "types": "./dist/spinner/register.d.ts",
       "import": "./dist/spinner/register.js"
     },
     "./skeleton": {
-      "types": "./dist/skeleton/skeleton.d.ts",
-      "import": "./dist/skeleton/skeleton.js"
+      "types": "./dist/skeleton/register.d.ts",
+      "import": "./dist/skeleton/register.js"
     },
     "./skeleton/register": {
       "types": "./dist/skeleton/register.d.ts",
       "import": "./dist/skeleton/register.js"
     },
     "./shimmer": {
-      "types": "./dist/shimmer/shimmer.d.ts",
-      "import": "./dist/shimmer/shimmer.js"
+      "types": "./dist/shimmer/register.d.ts",
+      "import": "./dist/shimmer/register.js"
     },
     "./shimmer/register": {
       "types": "./dist/shimmer/register.d.ts",
       "import": "./dist/shimmer/register.js"
     },
     "./switch": {
-      "types": "./dist/switch/switch.d.ts",
-      "import": "./dist/switch/switch.js"
+      "types": "./dist/switch/register.d.ts",
+      "import": "./dist/switch/register.js"
     },
     "./switch/register": {
       "types": "./dist/switch/register.d.ts",
       "import": "./dist/switch/register.js"
     },
     "./tab": {
-      "types": "./dist/tab/tab.d.ts",
-      "import": "./dist/tab/tab.js"
+      "types": "./dist/tab/register.d.ts",
+      "import": "./dist/tab/register.js"
     },
     "./tab/register": {
       "types": "./dist/tab/register.d.ts",
       "import": "./dist/tab/register.js"
     },
     "./tab-panel": {
-      "types": "./dist/tab-panel/tab-panel.d.ts",
-      "import": "./dist/tab-panel/tab-panel.js"
+      "types": "./dist/tab-panel/register.d.ts",
+      "import": "./dist/tab-panel/register.js"
     },
     "./tab-panel/register": {
       "types": "./dist/tab-panel/register.d.ts",
       "import": "./dist/tab-panel/register.js"
     },
     "./tabs": {
-      "types": "./dist/tabs/tabs.d.ts",
-      "import": "./dist/tabs/tabs.js"
+      "types": "./dist/tabs/register.d.ts",
+      "import": "./dist/tabs/register.js"
     },
     "./tabs/register": {
       "types": "./dist/tabs/register.d.ts",
       "import": "./dist/tabs/register.js"
     },
     "./toggle": {
-      "types": "./dist/toggle/toggle.d.ts",
-      "import": "./dist/toggle/toggle.js"
+      "types": "./dist/toggle/register.d.ts",
+      "import": "./dist/toggle/register.js"
     },
     "./toggle/register": {
       "types": "./dist/toggle/register.d.ts",
       "import": "./dist/toggle/register.js"
     },
     "./toggle-group": {
-      "types": "./dist/toggle-group/toggle-group.d.ts",
-      "import": "./dist/toggle-group/toggle-group.js"
+      "types": "./dist/toggle-group/register.d.ts",
+      "import": "./dist/toggle-group/register.js"
     },
     "./toggle-group/register": {
       "types": "./dist/toggle-group/register.d.ts",
       "import": "./dist/toggle-group/register.js"
     },
     "./toolbar": {
-      "types": "./dist/toolbar/toolbar.d.ts",
-      "import": "./dist/toolbar/toolbar.js"
+      "types": "./dist/toolbar/register.d.ts",
+      "import": "./dist/toolbar/register.js"
     },
     "./toolbar/register": {
       "types": "./dist/toolbar/register.d.ts",
       "import": "./dist/toolbar/register.js"
     },
     "./tree": {
-      "types": "./dist/tree/tree.d.ts",
-      "import": "./dist/tree/tree.js"
+      "types": "./dist/tree/register.d.ts",
+      "import": "./dist/tree/register.js"
     },
     "./tree/register": {
       "types": "./dist/tree/register.d.ts",
       "import": "./dist/tree/register.js"
     },
     "./tree-item": {
-      "types": "./dist/tree-item/tree-item.d.ts",
-      "import": "./dist/tree-item/tree-item.js"
+      "types": "./dist/tree-item/register.d.ts",
+      "import": "./dist/tree-item/register.js"
     },
     "./tree-item/register": {
       "types": "./dist/tree-item/register.d.ts",
       "import": "./dist/tree-item/register.js"
     },
     "./alert-dialog": {
-      "types": "./dist/alert-dialog/alert-dialog.d.ts",
-      "import": "./dist/alert-dialog/alert-dialog.js"
+      "types": "./dist/alert-dialog/register.d.ts",
+      "import": "./dist/alert-dialog/register.js"
     },
     "./alert-dialog/register": {
       "types": "./dist/alert-dialog/register.d.ts",
       "import": "./dist/alert-dialog/register.js"
     },
     "./autocomplete": {
-      "types": "./dist/autocomplete/autocomplete.d.ts",
-      "import": "./dist/autocomplete/autocomplete.js"
+      "types": "./dist/autocomplete/register.d.ts",
+      "import": "./dist/autocomplete/register.js"
     },
     "./autocomplete/register": {
       "types": "./dist/autocomplete/register.d.ts",
       "import": "./dist/autocomplete/register.js"
     },
     "./combobox": {
-      "types": "./dist/combobox/combobox.d.ts",
-      "import": "./dist/combobox/combobox.js"
+      "types": "./dist/combobox/register.d.ts",
+      "import": "./dist/combobox/register.js"
     },
     "./combobox/register": {
       "types": "./dist/combobox/register.d.ts",
       "import": "./dist/combobox/register.js"
     },
     "./context-menu": {
-      "types": "./dist/context-menu/context-menu.d.ts",
-      "import": "./dist/context-menu/context-menu.js"
+      "types": "./dist/context-menu/register.d.ts",
+      "import": "./dist/context-menu/register.js"
     },
     "./context-menu/register": {
       "types": "./dist/context-menu/register.d.ts",
       "import": "./dist/context-menu/register.js"
     },
     "./dialog": {
-      "types": "./dist/dialog/dialog.d.ts",
-      "import": "./dist/dialog/dialog.js"
+      "types": "./dist/dialog/register.d.ts",
+      "import": "./dist/dialog/register.js"
     },
     "./dialog/register": {
       "types": "./dist/dialog/register.d.ts",
       "import": "./dist/dialog/register.js"
     },
     "./drawer": {
-      "types": "./dist/drawer/drawer.d.ts",
-      "import": "./dist/drawer/drawer.js"
+      "types": "./dist/drawer/register.d.ts",
+      "import": "./dist/drawer/register.js"
     },
     "./drawer/register": {
       "types": "./dist/drawer/register.d.ts",
       "import": "./dist/drawer/register.js"
     },
     "./menu": {
-      "types": "./dist/menu/menu.d.ts",
-      "import": "./dist/menu/menu.js"
+      "types": "./dist/menu/register.d.ts",
+      "import": "./dist/menu/register.js"
     },
     "./menu/register": {
       "types": "./dist/menu/register.d.ts",
       "import": "./dist/menu/register.js"
     },
     "./menu-item": {
-      "types": "./dist/menu-item/menu-item.d.ts",
-      "import": "./dist/menu-item/menu-item.js"
+      "types": "./dist/menu-item/register.d.ts",
+      "import": "./dist/menu-item/register.js"
     },
     "./menu-item/register": {
       "types": "./dist/menu-item/register.d.ts",
       "import": "./dist/menu-item/register.js"
     },
     "./menubar": {
-      "types": "./dist/menubar/menubar.d.ts",
-      "import": "./dist/menubar/menubar.js"
+      "types": "./dist/menubar/register.d.ts",
+      "import": "./dist/menubar/register.js"
     },
     "./menubar/register": {
       "types": "./dist/menubar/register.d.ts",
       "import": "./dist/menubar/register.js"
     },
     "./navigation-menu": {
-      "types": "./dist/navigation-menu/navigation-menu.d.ts",
-      "import": "./dist/navigation-menu/navigation-menu.js"
+      "types": "./dist/navigation-menu/register.d.ts",
+      "import": "./dist/navigation-menu/register.js"
     },
     "./navigation-menu/register": {
       "types": "./dist/navigation-menu/register.d.ts",
       "import": "./dist/navigation-menu/register.js"
     },
     "./option": {
-      "types": "./dist/option/option.d.ts",
-      "import": "./dist/option/option.js"
+      "types": "./dist/option/register.d.ts",
+      "import": "./dist/option/register.js"
     },
     "./option/register": {
       "types": "./dist/option/register.d.ts",
       "import": "./dist/option/register.js"
     },
     "./option-group": {
-      "types": "./dist/option-group/option-group.d.ts",
-      "import": "./dist/option-group/option-group.js"
+      "types": "./dist/option-group/register.d.ts",
+      "import": "./dist/option-group/register.js"
     },
     "./option-group/register": {
       "types": "./dist/option-group/register.d.ts",
       "import": "./dist/option-group/register.js"
     },
     "./option-row": {
-      "types": "./dist/option-row/option-row.d.ts",
-      "import": "./dist/option-row/option-row.js"
+      "types": "./dist/option-row/register.d.ts",
+      "import": "./dist/option-row/register.js"
     },
     "./option-row/register": {
       "types": "./dist/option-row/register.d.ts",
       "import": "./dist/option-row/register.js"
     },
     "./popover": {
-      "types": "./dist/popover/popover.d.ts",
-      "import": "./dist/popover/popover.js"
+      "types": "./dist/popover/register.d.ts",
+      "import": "./dist/popover/register.js"
     },
     "./popover/register": {
       "types": "./dist/popover/register.d.ts",
       "import": "./dist/popover/register.js"
     },
     "./preview-card": {
-      "types": "./dist/preview-card/preview-card.d.ts",
-      "import": "./dist/preview-card/preview-card.js"
+      "types": "./dist/preview-card/register.d.ts",
+      "import": "./dist/preview-card/register.js"
     },
     "./preview-card/register": {
       "types": "./dist/preview-card/register.d.ts",
       "import": "./dist/preview-card/register.js"
     },
     "./select": {
-      "types": "./dist/select/select.d.ts",
-      "import": "./dist/select/select.js"
+      "types": "./dist/select/register.d.ts",
+      "import": "./dist/select/register.js"
     },
     "./select/register": {
       "types": "./dist/select/register.d.ts",
       "import": "./dist/select/register.js"
     },
     "./toast": {
-      "types": "./dist/toast/toast.d.ts",
-      "import": "./dist/toast/toast.js"
+      "types": "./dist/toast/register.d.ts",
+      "import": "./dist/toast/register.js"
     },
     "./toast/register": {
       "types": "./dist/toast/register.d.ts",
       "import": "./dist/toast/register.js"
     },
     "./toast-stack": {
-      "types": "./dist/toast-stack/toast-stack.d.ts",
-      "import": "./dist/toast-stack/toast-stack.js"
+      "types": "./dist/toast-stack/register.d.ts",
+      "import": "./dist/toast-stack/register.js"
     },
     "./toast-stack/register": {
       "types": "./dist/toast-stack/register.d.ts",
       "import": "./dist/toast-stack/register.js"
     },
     "./tooltip": {
-      "types": "./dist/tooltip/tooltip.d.ts",
-      "import": "./dist/tooltip/tooltip.js"
+      "types": "./dist/tooltip/register.d.ts",
+      "import": "./dist/tooltip/register.js"
     },
     "./tooltip/register": {
       "types": "./dist/tooltip/register.d.ts",
       "import": "./dist/tooltip/register.js"
     },
     "./link": {
-      "types": "./dist/link/link.d.ts",
-      "import": "./dist/link/link.js"
+      "types": "./dist/link/register.d.ts",
+      "import": "./dist/link/register.js"
     },
     "./link/register": {
       "types": "./dist/link/register.d.ts",
       "import": "./dist/link/register.js"
     },
     "./label": {
-      "types": "./dist/label/label.d.ts",
-      "import": "./dist/label/label.js"
+      "types": "./dist/label/register.d.ts",
+      "import": "./dist/label/register.js"
     },
     "./label/register": {
       "types": "./dist/label/register.d.ts",
       "import": "./dist/label/register.js"
     },
     "./textarea": {
-      "types": "./dist/textarea/textarea.d.ts",
-      "import": "./dist/textarea/textarea.js"
+      "types": "./dist/textarea/register.d.ts",
+      "import": "./dist/textarea/register.js"
     },
     "./textarea/register": {
       "types": "./dist/textarea/register.d.ts",
       "import": "./dist/textarea/register.js"
     },
     "./pagination": {
-      "types": "./dist/pagination/pagination.d.ts",
-      "import": "./dist/pagination/pagination.js"
+      "types": "./dist/pagination/register.d.ts",
+      "import": "./dist/pagination/register.js"
     },
     "./pagination/register": {
       "types": "./dist/pagination/register.d.ts",
       "import": "./dist/pagination/register.js"
     },
     "./table": {
-      "types": "./dist/table/table.d.ts",
-      "import": "./dist/table/table.js"
+      "types": "./dist/table/register.d.ts",
+      "import": "./dist/table/register.js"
     },
     "./table/register": {
       "types": "./dist/table/register.d.ts",
       "import": "./dist/table/register.js"
     },
     "./resizable": {
-      "types": "./dist/resizable/resizable.d.ts",
-      "import": "./dist/resizable/resizable.js"
+      "types": "./dist/resizable/register.d.ts",
+      "import": "./dist/resizable/register.js"
     },
     "./resizable/register": {
       "types": "./dist/resizable/register.d.ts",
       "import": "./dist/resizable/register.js"
     },
     "./virtual-list": {
-      "types": "./dist/virtual-list/virtual-list.d.ts",
-      "import": "./dist/virtual-list/virtual-list.js"
+      "types": "./dist/virtual-list/register.d.ts",
+      "import": "./dist/virtual-list/register.js"
     },
     "./virtual-list/register": {
       "types": "./dist/virtual-list/register.d.ts",
       "import": "./dist/virtual-list/register.js"
     },
     "./calendar": {
-      "types": "./dist/calendar/calendar.d.ts",
-      "import": "./dist/calendar/calendar.js"
+      "types": "./dist/calendar/register.d.ts",
+      "import": "./dist/calendar/register.js"
     },
     "./calendar/register": {
       "types": "./dist/calendar/register.d.ts",
       "import": "./dist/calendar/register.js"
     },
     "./date-picker": {
-      "types": "./dist/date-picker/date-picker.d.ts",
-      "import": "./dist/date-picker/date-picker.js"
+      "types": "./dist/date-picker/register.d.ts",
+      "import": "./dist/date-picker/register.js"
     },
     "./date-picker/register": {
       "types": "./dist/date-picker/register.d.ts",
       "import": "./dist/date-picker/register.js"
     },
     "./data-table": {
-      "types": "./dist/data-table/data-table.d.ts",
-      "import": "./dist/data-table/data-table.js"
+      "types": "./dist/data-table/register.d.ts",
+      "import": "./dist/data-table/register.js"
     },
     "./data-table/register": {
       "types": "./dist/data-table/register.d.ts",
       "import": "./dist/data-table/register.js"
     },
     "./color-picker": {
-      "types": "./dist/color-picker/color-picker.d.ts",
-      "import": "./dist/color-picker/color-picker.js"
+      "types": "./dist/color-picker/register.d.ts",
+      "import": "./dist/color-picker/register.js"
     },
     "./color-picker/register": {
       "types": "./dist/color-picker/register.d.ts",
       "import": "./dist/color-picker/register.js"
     },
     "./editor": {
-      "types": "./dist/editor/editor.d.ts",
-      "import": "./dist/editor/editor.js"
+      "types": "./dist/editor/register.d.ts",
+      "import": "./dist/editor/register.js"
     },
     "./editor/register": {
       "types": "./dist/editor/register.d.ts",
@@ -649,60 +648,60 @@
       "import": "./dist/drag/drag.js"
     },
     "./draggable": {
-      "types": "./dist/draggable/draggable.d.ts",
-      "import": "./dist/draggable/draggable.js"
+      "types": "./dist/draggable/register.d.ts",
+      "import": "./dist/draggable/register.js"
     },
     "./draggable/register": {
       "types": "./dist/draggable/register.d.ts",
       "import": "./dist/draggable/register.js"
     },
     "./icon": {
-      "types": "./dist/icon/icon.d.ts",
-      "import": "./dist/icon/icon.js"
+      "types": "./dist/icon/register.d.ts",
+      "import": "./dist/icon/register.js"
     },
     "./icon/carbon": {
-      "types": "./dist/icon/carbon.d.ts",
-      "import": "./dist/icon/carbon.js"
+      "types": "./dist/icon/register.d.ts",
+      "import": "./dist/icon/register.js"
     },
     "./icon/register": {
       "types": "./dist/icon/register.d.ts",
       "import": "./dist/icon/register.js"
     },
     "./motion": {
-      "types": "./dist/motion/motion.d.ts",
-      "import": "./dist/motion/motion.js"
+      "types": "./dist/motion/register.d.ts",
+      "import": "./dist/motion/register.js"
     },
     "./motion/register": {
       "types": "./dist/motion/register.d.ts",
       "import": "./dist/motion/register.js"
     },
     "./typeset": {
-      "types": "./dist/typeset/typeset.d.ts",
-      "import": "./dist/typeset/typeset.js"
+      "types": "./dist/typeset/register.d.ts",
+      "import": "./dist/typeset/register.js"
     },
     "./typeset/register": {
       "types": "./dist/typeset/register.d.ts",
       "import": "./dist/typeset/register.js"
     },
     "./menu-label": {
-      "types": "./dist/menu-label/menu-label.d.ts",
-      "import": "./dist/menu-label/menu-label.js"
+      "types": "./dist/menu-label/register.d.ts",
+      "import": "./dist/menu-label/register.js"
     },
     "./menu-label/register": {
       "types": "./dist/menu-label/register.d.ts",
       "import": "./dist/menu-label/register.js"
     },
     "./stagger": {
-      "types": "./dist/stagger/stagger.d.ts",
-      "import": "./dist/stagger/stagger.js"
+      "types": "./dist/stagger/register.d.ts",
+      "import": "./dist/stagger/register.js"
     },
     "./stagger/register": {
       "types": "./dist/stagger/register.d.ts",
       "import": "./dist/stagger/register.js"
     },
     "./reveal": {
-      "types": "./dist/reveal/reveal.d.ts",
-      "import": "./dist/reveal/reveal.js"
+      "types": "./dist/reveal/register.d.ts",
+      "import": "./dist/reveal/register.js"
     },
     "./reveal/register": {
       "types": "./dist/reveal/register.d.ts",
@@ -713,7 +712,43 @@
       "import": "./dist/selection/selection.js"
     },
     "./custom-elements.json": "./custom-elements.json",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./chart": {
+      "types": "./dist/chart/register.d.ts",
+      "import": "./dist/chart/register.js"
+    },
+    "./message": {
+      "types": "./dist/message/register.d.ts",
+      "import": "./dist/message/register.js"
+    },
+    "./attachment": {
+      "types": "./dist/attachment/register.d.ts",
+      "import": "./dist/attachment/register.js"
+    },
+    "./marker": {
+      "types": "./dist/marker/register.d.ts",
+      "import": "./dist/marker/register.js"
+    },
+    "./alert": {
+      "types": "./dist/alert/register.d.ts",
+      "import": "./dist/alert/register.js"
+    },
+    "./rating": {
+      "types": "./dist/rating/register.d.ts",
+      "import": "./dist/rating/register.js"
+    },
+    "./message-scroller": {
+      "types": "./dist/message-scroller/register.d.ts",
+      "import": "./dist/message-scroller/register.js"
+    },
+    "./command-palette": {
+      "types": "./dist/command-palette/register.d.ts",
+      "import": "./dist/command-palette/register.js"
+    },
+    "./stepper": {
+      "types": "./dist/stepper/register.d.ts",
+      "import": "./dist/stepper/register.js"
+    }
   },
   "scripts": {
     "build": "pnpm run build:js && pnpm run build:manifest",
@@ -730,6 +765,7 @@
     "clean": "rm -rf dist custom-elements.json *.tsbuildinfo"
   },
   "dependencies": {
+    "echarts": "6.0.0",
     "lit": "3.3.3"
   },
   "devDependencies": {

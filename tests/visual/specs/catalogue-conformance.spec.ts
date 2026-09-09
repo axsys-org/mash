@@ -39,7 +39,12 @@ for (const tag of tags) {
 
       await page.goto(`/components/${tag}?theme=${theme}`);
       const frame = page.frameLocator("iframe.stage-frame");
-      const components = frame.locator(tag);
+      await expect(frame.locator("html")).toHaveAttribute("data-stage-ready", "true", {
+        timeout: 15000,
+      });
+      // Passthrough timing boundaries intentionally have no CSS box. Their
+      // animated children are the rendered surface covered by this check.
+      const components = frame.locator(tag === "ui-stagger" ? "ui-stagger > ui-motion" : tag);
       await expect(components.first()).toBeAttached();
       let visibleIndex = -1;
       await expect

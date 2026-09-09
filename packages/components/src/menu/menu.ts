@@ -116,7 +116,7 @@ export class UIMenu extends UIAnchoredOverlay {
 
   constructor() {
     super();
-    this.density = "compact";
+    this.density = "regular";
     this.sizing = "content";
     this.nested = false;
     this.submenuOpenDelay = 175;

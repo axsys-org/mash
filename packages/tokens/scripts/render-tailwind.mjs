@@ -150,6 +150,7 @@ function renderMaterialUtilities(graph) {
   return materialRoles(graph)
     .map(
       (role) => `@utility material-${kebab(role)} {
+  --mash-material-display: block;
   --mash-material-compositor: var(--mash-vibrancy-blend-mode, normal);
   --_mash-component-surface-sunken: var(--mash-material-fill-quaternary);
   --_mash-component-boundary: var(--mash-material-separator);
@@ -160,8 +161,6 @@ function renderMaterialUtilities(graph) {
   --color-text-disabled: var(--mash-material-label-disabled);
   --color-border: var(--mash-material-separator);
   --color-border-strong: var(--mash-material-separator-strong);
-  --color-neutral: var(--mash-material-fill-primary);
-  --color-action: var(--mash-material-accent-action);
   color: var(--mash-material-label-primary);
   background-color: var(--color-surface-raised);
   transition:
@@ -302,8 +301,8 @@ function renderVibrancyScope() {
       --mash-material-luminance: var(--effect-material-luminance-wide-gamut);
       --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-wide-gamut);
       --mash-material-background-highlight: color(display-p3 1 1 1 / var(--mash-material-highlight-alpha));
-      --mash-material-selection-background: color(display-p3 0 0.5333 1);
-      --mash-material-accent-action: color(display-p3 0.0392 0.6 1);
+      --mash-material-selection-background: var(--color-menu-selection);
+      --mash-material-accent-action: var(--color-action);
     }
   }
 }
@@ -474,6 +473,12 @@ function renderUtilities(graph) {
     (name) => `opacity-motion-${kebab(name)}`,
     "opacity",
   );
+  const effectOpacity = renderTokenUtilities(
+    graph,
+    /^effect\.opacity\.([^.]+)$/,
+    (name) => `opacity-${kebab(name)}`,
+    "opacity",
+  );
   const motionRotation = renderTokenUtilities(
     graph,
     /^motion\.rotation\.([^.]+)$/,
@@ -642,6 +647,7 @@ ${border}
 ${motionScale}
 
 ${motionOpacity}
+${effectOpacity}
 
 ${motionRotation}
 

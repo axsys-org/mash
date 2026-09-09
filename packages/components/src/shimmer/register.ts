@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIShimmer };
+
+export * from "./shimmer.js";

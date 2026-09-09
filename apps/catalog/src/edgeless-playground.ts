@@ -9,7 +9,7 @@ import {
   setAttributes,
   type BlockDefinition,
 } from "./editing-blocks.js";
-import { applyStageUtilityRecipes } from "./utility-recipes.js";
+import { applyStageUtilityRecipes } from "./application-recipes.js";
 
 type EdgelessTool = "connector" | "frame" | "hand" | "select" | "text";
 

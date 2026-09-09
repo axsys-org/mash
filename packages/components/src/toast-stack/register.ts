@@ -9,3 +9,5 @@ declare global {
 }
 
 export { UIToastStack };
+
+export * from "./toast-stack.js";

@@ -1,4 +1,4 @@
-import { applyStageUtilityRecipes } from "./utility-recipes.js";
+import { applyStageUtilityRecipes } from "./application-recipes.js";
 import {
   createStudySchedule,
   previewStudyRatings,

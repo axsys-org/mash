@@ -17,3 +17,5 @@ declare global {
 }
 
 export { UILabel };
+
+export * from "./label.js";

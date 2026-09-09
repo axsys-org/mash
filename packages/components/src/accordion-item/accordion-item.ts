@@ -1,6 +1,7 @@
 import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { hideEmptySlot } from "../internal/slot-visibility.js";
 
 let accordionItemId = 0;
 
@@ -136,9 +137,9 @@ export class UIAccordionItem extends LitElement {
           ?disabled=${this.disabled}
           @click=${this.#onClick}
         >
-          <span part="prefix"><slot name="prefix"></slot></span>
+          <span part="prefix"><slot name="prefix" @slotchange=${hideEmptySlot}></slot></span>
           <span part="title"><slot name="title">${this.title}</slot></span>
-          <span part="suffix"><slot name="suffix"></slot></span>
+          <span part="suffix"><slot name="suffix" @slotchange=${hideEmptySlot}></slot></span>
           <span part="disclosure" aria-hidden="true"><slot name="disclosure">▸</slot></span>
         </button>
       </div>

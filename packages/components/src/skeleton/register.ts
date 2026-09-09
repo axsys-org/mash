@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UISkeleton };
+
+export * from "./skeleton.js";

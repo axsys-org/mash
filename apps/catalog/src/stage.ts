@@ -11,8 +11,8 @@
 import "./system.css";
 import "@mash/ui/catalogue/mash.css";
 import "@mash/shrine/catalogue/mash.css";
-import "@mash/ui/register";
-import "@mash/shrine/register";
+import "@mash/ui";
+import "@mash/shrine";
 import {
   createDraggable,
   cssTranslateDragPositioner,

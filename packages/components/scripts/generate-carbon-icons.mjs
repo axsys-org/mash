@@ -39,6 +39,7 @@ const icons = {
   "action.settings": "settings",
   "action.text": "text--creation",
   "action.upload": "upload",
+  "action.download": "download",
   "navigation.back": "arrow--left",
   "navigation.chevron-down": "chevron--down",
   "navigation.disclosure": "chevron--right",

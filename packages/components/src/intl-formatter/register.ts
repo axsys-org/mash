@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIIntlFormatter };
+
+export * from "./intl-formatter.js";

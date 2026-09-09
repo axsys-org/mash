@@ -119,6 +119,11 @@ export const carbonIcons = Object.freeze({
     20: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M6 18 7.41 19.41 15 11.83 15 30 17 30 17 11.83 24.59 19.41 26 18 16 8 6 18z"></path><path d="M6,8V4H26V8h2V4a2,2,0,0,0-2-2H6A2,2,0,0,0,4,4V8Z"></path></svg>',
     24: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M6 18 7.41 19.41 15 11.83 15 30 17 30 17 11.83 24.59 19.41 26 18 16 8 6 18z"></path><path d="M6,8V4H26V8h2V4a2,2,0,0,0-2-2H6A2,2,0,0,0,4,4V8Z"></path></svg>',
   },
+  "action.download": {
+    16: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M13 7 12.3 6.3 8.5 10.1 8.5 1 7.5 1 7.5 10.1 3.7 6.3 3 7 8 12z"></path><path d="M13,12v2H3v-2H2v2l0,0c0,0.6,0.4,1,1,1h10c0.6,0,1-0.4,1-1l0,0v-2H13z"></path></svg>',
+    20: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M26,24v4H6V24H4v4H4a2,2,0,0,0,2,2H26a2,2,0,0,0,2-2h0V24Z"></path><path d="M26 14 24.59 12.59 17 20.17 17 2 15 2 15 20.17 7.41 12.59 6 14 16 24 26 14z"></path></svg>',
+    24: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M26,24v4H6V24H4v4H4a2,2,0,0,0,2,2H26a2,2,0,0,0,2-2h0V24Z"></path><path d="M26 14 24.59 12.59 17 20.17 17 2 15 2 15 20.17 7.41 12.59 6 14 16 24 26 14z"></path></svg>',
+  },
   "navigation.back": {
     16: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M6.7 12.3 2.9 8.5 15 8.5 15 7.5 2.9 7.5 6.7 3.7 6 3 1 8 6 13z"></path></svg>',
     20: '<svg part="source" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M14 26 15.41 24.59 7.83 17 28 17 28 15 7.83 15 15.41 7.41 14 6 4 16 14 26z"></path></svg>',

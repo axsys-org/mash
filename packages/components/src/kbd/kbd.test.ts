@@ -19,7 +19,7 @@ describe("ui-kbd", () => {
 
   it("generates styleable tokens from the same portable chord used by gestures", async () => {
     const kbd = await fixture<UIKbd>(
-      `<ui-kbd command="workspace.search" shortcut="Primary+Shift+K"></ui-kbd>`,
+      `<ui-kbd platform="windows" command="workspace.search" shortcut="Primary+Shift+K"></ui-kbd>`,
     );
 
     expect(shadow(kbd).querySelectorAll('[part~="key"]')).toHaveLength(3);
@@ -39,5 +39,17 @@ describe("ui-kbd", () => {
     expect(surface.dataset.command).toBe("workspace.search");
     expect(surface.dataset.shortcut).toBe("Primary+K");
     expect(key.getAttribute("aria-keyshortcuts")).toBeNull();
+  });
+  it("uses platform conventions for modifiers and special keys", async () => {
+    const kbd = await fixture<UIKbd>(
+      '<ui-kbd platform="mac" shortcut="Meta+Shift+Enter"></ui-kbd>',
+    );
+    expect(shadow(kbd).querySelectorAll('[part~="separator"]')).toHaveLength(0);
+    expect(shadow(kbd).textContent).toContain("⌘");
+    kbd.platform = "windows";
+    await kbd.updateComplete;
+    expect(shadow(kbd).textContent).toContain("Shift");
+    expect(shadow(kbd).textContent).toContain("Enter");
+    expect(shadow(kbd).textContent).not.toContain("↩");
   });
 });

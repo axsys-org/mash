@@ -55,7 +55,7 @@ export function parseGestureShortcut(value: string): {
     .map((token) => token.trim())
     .filter(Boolean);
   const modifiers: GestureModifier[] = [];
-  let key: string | undefined;
+  let key: string | undefined = value.trim().endsWith("+") ? "+" : undefined;
   let code: string | undefined;
   for (const token of tokens) {
     const modifier = modifierAliases.get(token.toLowerCase());

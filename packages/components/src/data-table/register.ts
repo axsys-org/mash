@@ -1,3 +1,4 @@
+import "../table/register.js";
 import { UIDataTable } from "./data-table.js";
 
 if (!customElements.get("ui-data-table")) {
@@ -11,3 +12,5 @@ declare global {
 }
 
 export { UIDataTable };
+
+export * from "./data-table.js";

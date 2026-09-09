@@ -234,7 +234,7 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
   );
   assert.match(
     css,
-    /@media \(color-gamut: p3\)\s*{[^}]*--mash-material-luminance: var\(--effect-material-luminance-wide-gamut\)[^}]*--mash-material-background-highlight: color\(display-p3 1 1 1 \/ var\(--mash-material-highlight-alpha\)\)[^}]*--mash-material-selection-background: color\(display-p3 0 0\.5333 1\)/s,
+    /@media \(color-gamut: p3\)\s*{[^}]*--mash-material-luminance: var\(--effect-material-luminance-wide-gamut\)[^}]*--mash-material-background-highlight: color\(display-p3 1 1 1 \/ var\(--mash-material-highlight-alpha\)\)[^}]*--mash-material-selection-background: var\(--color-menu-selection\)/s,
   );
   assert.match(
     css,

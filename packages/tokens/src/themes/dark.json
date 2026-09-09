@@ -1,7 +1,7 @@
 {
   "color": {
     "$type": "color",
-    "$description": "The semantic colour layer for the dark theme.\n\nThis file defines exactly the same token names as themes/light.json — the build fails if the two ever diverge. Note the two structural inversions the dark theme makes: elevation reads as *lighter* surfaces rather than shadow, and interaction states step *up* the ramp (hover is lighter) instead of down.",
+    "$description": "The semantic colour layer for the dark theme.\n\nThis file defines exactly the same token names as themes/light.json \u2014 the build fails if the two ever diverge. Note the two structural inversions the dark theme makes: elevation reads as *lighter* surfaces rather than shadow, and interaction states step *up* the ramp (hover is lighter) instead of down.",
     "canvas": {
       "$value": "{color.reference.neutral.950}",
       "$description": "Mash background; dark theme."
@@ -164,16 +164,20 @@
       "$description": "Mash primary.background; dark theme."
     },
     "actionOpaque": {
-      "$value": "{color.reference.neutral.200}"
+      "$value": "{color.reference.neutral.50}",
+      "$description": "actionOpaque role in the dark theme; foreground and interaction states are reviewed together."
     },
     "actionVibrant": {
-      "$value": "{color.reference.blue.vibrantDark}"
+      "$value": "{color.reference.neutral.50}",
+      "$description": "actionVibrant role in the dark theme; foreground and interaction states are reviewed together."
     },
     "menuSelection": {
-      "$value": "{color.reference.neutral.800}"
+      "$value": "{color.reference.neutral.800}",
+      "$description": "menuSelection role in the dark theme; foreground and interaction states are reviewed together."
     },
     "onMenuSelection": {
-      "$value": "{color.reference.neutral.50}"
+      "$value": "{color.reference.neutral.50}",
+      "$description": "onMenuSelection role in the dark theme; foreground and interaction states are reviewed together."
     },
     "actionWash": {
       "$value": "{color.reference.neutral.900}"
@@ -204,15 +208,15 @@
     },
     "neutral": {
       "$value": "{color.reference.neutral.800}",
-      "$description": "Mash secondary.background; dark theme."
+      "$description": "neutral role in the dark theme; foreground and interaction states are reviewed together."
     },
     "neutralHover": {
-      "$value": "{color.reference.gray.41}",
-      "$description": "Mash secondary.hover.background; dark theme."
+      "$value": "{color.reference.neutral.700}",
+      "$description": "neutralHover role in the dark theme; foreground and interaction states are reviewed together."
     },
     "neutralPressed": {
-      "$value": "{color.reference.gray.33}",
-      "$description": "Mash secondary.active.background; dark theme."
+      "$value": "{color.reference.neutral.600}",
+      "$description": "neutralPressed role in the dark theme; foreground and interaction states are reviewed together."
     },
     "onNeutral": {
       "$value": "{color.reference.neutral.50}",
@@ -220,56 +224,138 @@
     },
     "positive": {
       "$value": "{color.reference.green.400}",
-      "$description": "Mash success.background; dark theme."
+      "$description": "positive role in the dark theme; foreground and interaction states are reviewed together."
     },
     "positiveSubtle": {
       "$value": "{color.reference.positiveTint.dark}"
     },
     "positiveHover": {
-      "$value": "{color.reference.green.300}"
+      "$value": "{color.reference.green.300}",
+      "$description": "positiveHover role in the dark theme; foreground and interaction states are reviewed together."
     },
     "positivePressed": {
-      "$value": "{color.reference.green.200}"
+      "$value": "{color.reference.green.200}",
+      "$description": "positivePressed role in the dark theme; foreground and interaction states are reviewed together."
     },
     "onPositive": {
-      "$value": "{color.reference.green.600}",
-      "$description": "Mash success.foreground; dark theme."
+      "$value": "{color.reference.neutral.950}",
+      "$description": "onPositive role in the dark theme; foreground and interaction states are reviewed together."
     },
     "warning": {
       "$value": "{color.reference.yellow.400}",
-      "$description": "Mash warning.background; dark theme."
+      "$description": "warning role in the dark theme; foreground and interaction states are reviewed together."
     },
     "warningHover": {
-      "$value": "{color.reference.amber.300}"
+      "$value": "{color.reference.yellow.300}",
+      "$description": "warningHover role in the dark theme; foreground and interaction states are reviewed together."
     },
     "warningPressed": {
-      "$value": "{color.reference.amber.200}"
+      "$value": "{color.reference.yellow.200}",
+      "$description": "warningPressed role in the dark theme; foreground and interaction states are reviewed together."
     },
     "onWarning": {
-      "$value": "{color.reference.yellow.600}",
-      "$description": "Mash warning.foreground; dark theme."
+      "$value": "{color.reference.neutral.950}",
+      "$description": "onWarning role in the dark theme; foreground and interaction states are reviewed together."
     },
     "critical": {
       "$value": "{color.reference.red.400}",
-      "$description": "Mash danger.background; dark theme."
+      "$description": "critical role in the dark theme; foreground and interaction states are reviewed together."
     },
     "criticalHover": {
-      "$value": "{color.reference.red.300}"
+      "$value": "{color.reference.red.300}",
+      "$description": "criticalHover role in the dark theme; foreground and interaction states are reviewed together."
     },
     "criticalPressed": {
-      "$value": "{color.reference.red.200}"
+      "$value": "{color.reference.red.200}",
+      "$description": "criticalPressed role in the dark theme; foreground and interaction states are reviewed together."
     },
     "onCritical": {
-      "$value": "{color.reference.red.600}",
-      "$description": "Mash danger.foreground; dark theme."
+      "$value": "{color.reference.neutral.950}",
+      "$description": "onCritical role in the dark theme; foreground and interaction states are reviewed together."
     },
     "info": {
       "$value": "{color.reference.cyan.400}",
-      "$description": "Mash info.background; dark theme."
+      "$description": "info role in the dark theme; foreground and interaction states are reviewed together."
     },
     "onInfo": {
-      "$value": "{color.reference.cyan.600}",
-      "$description": "Mash info.foreground; dark theme."
+      "$value": "{color.reference.neutral.950}",
+      "$description": "onInfo role in the dark theme; foreground and interaction states are reviewed together."
+    },
+    "surfaceHover": {
+      "$value": "{color.reference.neutral.900}",
+      "$description": "Hover on an unfilled surface. Does not indicate selection."
+    },
+    "surfacePressed": {
+      "$value": "{color.reference.neutral.800}",
+      "$description": "Momentary pressed state on an unfilled surface."
+    },
+    "surfaceInverse": {
+      "$value": "{color.reference.neutral.50}",
+      "$description": "Opposite-emphasis surface. Pair with onSurfaceInverse; nested interactive regions should set data-theme explicitly."
+    },
+    "onSurfaceInverse": {
+      "$value": "{color.reference.neutral.950}",
+      "$description": "Foreground on surfaceInverse, independent of ordinary surface colors."
+    },
+    "onSurfaceInverseMuted": {
+      "$value": "{color.reference.neutral.600}",
+      "$description": "Secondary foreground on surfaceInverse."
+    },
+    "selection": {
+      "$value": "{color.reference.neutral.800}",
+      "$description": "Persistent selection. Pair with onSelection."
+    },
+    "selectionHover": {
+      "$value": "{color.reference.neutral.700}",
+      "$description": "Hovered persistent selection. Pair with onSelection."
+    },
+    "onSelection": {
+      "$value": "{color.reference.neutral.50}",
+      "$description": "Foreground on selection and selectionHover."
+    },
+    "positiveText": {
+      "$value": "{color.reference.green.400}",
+      "$description": "positiveText role in the dark theme; foreground and interaction states are reviewed together."
+    },
+    "warningText": {
+      "$value": "{color.reference.yellow.400}",
+      "$description": "warningText role in the dark theme; foreground and interaction states are reviewed together."
+    },
+    "criticalText": {
+      "$value": "{color.reference.red.400}",
+      "$description": "criticalText role in the dark theme; foreground and interaction states are reviewed together."
+    },
+    "infoHover": {
+      "$value": "{color.reference.cyan.300}",
+      "$description": "infoHover role in the dark theme; foreground and interaction states are reviewed together."
+    },
+    "infoPressed": {
+      "$value": "{color.reference.cyan.200}",
+      "$description": "infoPressed role in the dark theme; foreground and interaction states are reviewed together."
+    },
+    "infoText": {
+      "$value": "{color.reference.cyan.400}",
+      "$description": "infoText role in the dark theme; foreground and interaction states are reviewed together."
+    },
+    "chart1": {
+      "$value": "{color.reference.blue.400}",
+      "$description": "Categorical chart series 1; pair with labels or distinguishable marks."
+    },
+    "chart2": {
+      "$value": "{color.reference.cyan.400}",
+      "$description": "Categorical chart series 2; pair with labels or distinguishable marks."
+    },
+    "chart3": {
+      "$value": "{color.reference.purple.400}",
+      "$description": "Categorical chart series 3; pair with labels or distinguishable marks."
+    },
+    "chart4": {
+      "$value": "{color.reference.orange.400}",
+      "$description": "Categorical chart series 4; pair with labels or distinguishable marks."
+    },
+    "chart5": {
+      "$value": "{color.reference.green.400}",
+      "$description": "Categorical chart series 5; pair with labels or distinguishable marks."
     }
   },
   "opacity": {
