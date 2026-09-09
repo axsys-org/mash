@@ -414,9 +414,15 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
               );
             };
             const focused = document.activeElement;
+            const firstVisible = [...viewport.querySelectorAll("iframe")].find((candidate) => {
+              const bounds = candidate.getBoundingClientRect();
+              return bounds.bottom > Math.max(viewportBounds.top, 0);
+            });
             const anchor = canAnchor(focused)
               ? focused
-              : [...viewport.querySelectorAll("iframe")].find(canAnchor);
+              : canAnchor(firstVisible ?? null)
+                ? firstVisible
+                : undefined;
             const anchorBounds = anchor?.getBoundingClientRect();
             frame.style.minHeight = requestedMinHeight;
             frame.height = String(Math.ceil(height));
