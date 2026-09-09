@@ -240,23 +240,35 @@
 
   :where([data-mash-catalogue="mash"]) ui-calendar::part(root) {
     display: grid;
+    inline-size: max-content;
+    padding: var(--space-container-block) var(--space-container-inline);
     gap: var(--space-control-gap);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    background: var(--_mash-component-surface);
     color: var(--color-text);
     font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
       var(--type-body-font-family);
   }
 
+  :where([data-mash-catalogue="mash"]) :is(ui-date-picker, ui-card) ui-calendar::part(root) {
+    border: 0;
+    padding: 0;
+    background: transparent;
+  }
+
   :where([data-mash-catalogue="mash"]) ui-calendar::part(header) {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: var(--_mash-control-height) minmax(0, 1fr) var(--_mash-control-height);
     gap: var(--space-control-gap);
     align-items: center;
   }
 
   :where([data-mash-catalogue="mash"]) ui-calendar::part(title) {
     color: var(--color-text);
-    font: var(--type-heading-font-weight) var(--type-heading-font-size) /
-      var(--type-heading-line-height) var(--type-heading-font-family);
+    min-inline-size: 0;
+    font: var(--type-heading-font-weight) var(--type-label-font-size) /
+      var(--type-label-line-height) var(--type-label-font-family);
     text-align: center;
   }
 
@@ -269,9 +281,11 @@
 
   :where([data-mash-catalogue="mash"]) ui-calendar::part(titles) {
     justify-content: space-around;
+    margin-inline: calc(-1 * (var(--_mash-control-height) + var(--space-control-gap)));
   }
 
   :where([data-mash-catalogue="mash"]) ui-calendar::part(month-panel) {
+    inline-size: calc(var(--_mash-control-height) * 7);
     display: grid;
     gap: var(--space-control-gap);
   }
@@ -283,9 +297,14 @@
   :where([data-mash-catalogue="mash"]) ui-calendar::part(year-option) {
     min-inline-size: var(--_mash-control-height);
     min-block-size: var(--_mash-control-height);
-    border: var(--layout-dimension-zero) solid transparent;
+    box-sizing: border-box;
+    border: var(--border-hairline) solid transparent;
     border-radius: var(--radius-control);
-    padding: var(--space-control-block);
+    padding: 0;
+    cursor: pointer;
+    transition:
+      background var(--duration-control) var(--easing-control),
+      color var(--duration-control) var(--easing-control);
     background: transparent;
     color: var(--color-text);
     font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
@@ -295,7 +314,10 @@
   :where([data-mash-catalogue="mash"]) ui-calendar::part(month-toggle),
   :where([data-mash-catalogue="mash"]) ui-calendar::part(year-toggle) {
     border: 0;
-    padding: var(--space-control-block);
+    border-radius: var(--radius-control);
+    min-block-size: var(--_mash-control-height);
+    padding-inline: var(--space-control-gap);
+    cursor: pointer;
     background: transparent;
     color: inherit;
     font: inherit;
@@ -305,11 +327,14 @@
   :where([data-mash-catalogue="mash"]) ui-calendar::part(grid) {
     display: grid;
     grid-template-columns: repeat(7, minmax(var(--layout-dimension-zero), 1fr));
-    gap: var(--border-hairline);
+    column-gap: 0;
+    row-gap: calc(var(--space-control-gap) / 2);
   }
 
   :where([data-mash-catalogue="mash"]) ui-calendar::part(picker-grid) {
     display: grid;
+    inline-size: calc(var(--_mash-control-height) * 7);
+    min-block-size: calc(var(--_mash-control-height) * 7);
     gap: var(--space-control-gap);
   }
 
@@ -329,13 +354,13 @@
     text-align: center;
   }
 
-  :where([data-mash-catalogue="mash"]) ui-calendar::part(day):hover,
-  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-option):hover,
-  :where([data-mash-catalogue="mash"]) ui-calendar::part(year-option):hover,
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(day):hover:not(:disabled),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(month-option):hover:not(:disabled),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(year-option):hover:not(:disabled),
   :where([data-mash-catalogue="mash"]) ui-calendar::part(month-toggle):hover,
   :where([data-mash-catalogue="mash"]) ui-calendar::part(year-toggle):hover,
-  :where([data-mash-catalogue="mash"]) ui-calendar::part(previous):hover,
-  :where([data-mash-catalogue="mash"]) ui-calendar::part(next):hover {
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(previous):hover:not(:disabled),
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(next):hover:not(:disabled) {
     background: var(--color-surface-hover);
   }
 
@@ -355,7 +380,8 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-calendar::part(today) {
-    border-color: var(--color-action);
+    box-shadow: inset 0 0 0 var(--border-hairline) var(--_mash-component-boundary-strong);
+    font-weight: var(--type-heading-font-weight);
   }
 
   :where([data-mash-catalogue="mash"]) ui-calendar::part(in-range) {
@@ -383,6 +409,11 @@
     color: var(--color-text-disabled);
     background: transparent;
     cursor: not-allowed;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-calendar::part(selected):hover:not(:disabled) {
+    background: var(--color-action-hover);
+    color: var(--color-on-action);
   }
 
   :where([data-mash-catalogue="mash"]) ui-color-picker::part(palette) {
