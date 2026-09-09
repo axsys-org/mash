@@ -6,29 +6,29 @@ The existing `codex/component-rebuild` branch is preserved at `5ca546a`; no publ
 
 The mixed final checkpoint was reconstructed as four commits: button disclosure accessibility, Calendar styling, Motion catalogue examples, and preview positioning. The reconstructed tree exactly matches `5ca546a` before the test cleanup. Autocomplete remains its own existing commit.
 
-| Branch                             | PR base                            |
-| ---------------------------------- | ---------------------------------- |
-| `codex/stack/rebuild-checkpoint`   | `stack/design-system-convergence`  |
-| `codex/stack/foundations`          | `codex/stack/rebuild-checkpoint`   |
-| `codex/stack/catalogue`            | `codex/stack/foundations`          |
-| `codex/stack/showcase`             | `codex/stack/catalogue`            |
-| `codex/stack/preview-windows`      | `codex/stack/showcase`             |
-| `codex/stack/catalogue-coverage`   | `codex/stack/preview-windows`      |
-| `codex/stack/navigation`           | `codex/stack/catalogue-coverage`   |
-| `codex/stack/application-stories`  | `codex/stack/navigation`           |
-| `codex/stack/autocomplete`         | `codex/stack/application-stories`  |
-| `codex/stack/button-disclosure`    | `codex/stack/autocomplete`         |
-| `codex/stack/calendar`             | `codex/stack/button-disclosure`    |
-| `codex/stack/motion`               | `codex/stack/calendar`             |
-| `codex/stack/preview-stability`    | `codex/stack/motion`               |
-| `codex/stack/test-streamline`      | `codex/stack/preview-stability`    |
-| `codex/stack/icon-layout`          | `codex/stack/test-streamline`      |
-| `codex/stack/commons-polish`       | `codex/stack/icon-layout`          |
-| `codex/stack/composition-geometry` | `codex/stack/commons-polish`       |
-| `codex/stack/story-composition`    | `codex/stack/composition-geometry` |
-| `codex/stack/character-picker`     | `codex/stack/story-composition`    |
+| PR                                               | Branch                             | PR base                            |
+| ------------------------------------------------ | ---------------------------------- | ---------------------------------- |
+| [#30](https://github.com/axsys-org/mash/pull/30) | `codex/stack/rebuild-checkpoint`   | `stack/design-system-convergence`  |
+| [#31](https://github.com/axsys-org/mash/pull/31) | `codex/stack/foundations`          | `codex/stack/rebuild-checkpoint`   |
+| [#32](https://github.com/axsys-org/mash/pull/32) | `codex/stack/catalogue`            | `codex/stack/foundations`          |
+| [#33](https://github.com/axsys-org/mash/pull/33) | `codex/stack/showcase`             | `codex/stack/catalogue`            |
+| [#34](https://github.com/axsys-org/mash/pull/34) | `codex/stack/preview-windows`      | `codex/stack/showcase`             |
+| [#35](https://github.com/axsys-org/mash/pull/35) | `codex/stack/catalogue-coverage`   | `codex/stack/preview-windows`      |
+| [#36](https://github.com/axsys-org/mash/pull/36) | `codex/stack/navigation`           | `codex/stack/catalogue-coverage`   |
+| [#37](https://github.com/axsys-org/mash/pull/37) | `codex/stack/application-stories`  | `codex/stack/navigation`           |
+| [#38](https://github.com/axsys-org/mash/pull/38) | `codex/stack/autocomplete`         | `codex/stack/application-stories`  |
+| [#39](https://github.com/axsys-org/mash/pull/39) | `codex/stack/button-disclosure`    | `codex/stack/autocomplete`         |
+| [#40](https://github.com/axsys-org/mash/pull/40) | `codex/stack/calendar`             | `codex/stack/button-disclosure`    |
+| [#41](https://github.com/axsys-org/mash/pull/41) | `codex/stack/motion`               | `codex/stack/calendar`             |
+| [#42](https://github.com/axsys-org/mash/pull/42) | `codex/stack/preview-stability`    | `codex/stack/motion`               |
+| [#43](https://github.com/axsys-org/mash/pull/43) | `codex/stack/test-streamline`      | `codex/stack/preview-stability`    |
+| [#44](https://github.com/axsys-org/mash/pull/44) | `codex/stack/icon-layout`          | `codex/stack/test-streamline`      |
+| [#45](https://github.com/axsys-org/mash/pull/45) | `codex/stack/commons-polish`       | `codex/stack/icon-layout`          |
+| [#46](https://github.com/axsys-org/mash/pull/46) | `codex/stack/composition-geometry` | `codex/stack/commons-polish`       |
+| [#47](https://github.com/axsys-org/mash/pull/47) | `codex/stack/story-composition`    | `codex/stack/composition-geometry` |
+| [#48](https://github.com/axsys-org/mash/pull/48) | `codex/stack/character-picker`     | `codex/stack/story-composition`    |
 
-The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. It must be reviewed and landed as a prerequisite.
+The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. Its prerequisite PR is [#29](https://github.com/axsys-org/mash/pull/29). Review it first, then proceed down the table. All 20 PRs are drafts; no merges were performed.
 
 ## Test cleanup
 
@@ -41,3 +41,9 @@ The first base, `stack/design-system-convergence`, already predates this stack a
 ## Subsequent changes
 
 Put one behavior or cohesive feature and its meaningful regressions in each commit. Start dependent work from the preceding stack branch and push it separately. Prefer extending the existing test owner over adding another generic sweep. Repeat behavioral checks across themes only when the theme affects the behavior under test; preserve accessibility, focus, state retention, lifecycle, and actual composition regressions.
+
+## Character picker
+
+The Characters story adds compact and expanded views, cursor insertion, emoji and symbol search, persistent favorites and recents, code points, skin tones, and font previews. It loads only on its own route and adds no dependencies. Its emitted JS and CSS total about 11KB gzipped, excluding shared components.
+
+Validation: production catalogue build, TypeScript, lint, formatting, token and catalogue checks, and five browser cases covering state, insertion, keyboard use, mobile layout, both themes, and route cleanup.
