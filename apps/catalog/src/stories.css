@@ -6,11 +6,6 @@
 .stories-index > header {
   margin-bottom: 36px;
 }
-.stories-eyebrow {
-  color: var(--color-text-muted);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-}
 .stories-index h1 {
   max-width: 580px;
   font-size: clamp(28px, 4vw, 42px);

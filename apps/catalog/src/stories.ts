@@ -89,7 +89,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   if (!id) {
     const main = document.createElement("main");
     main.className = "stories-index";
-    main.innerHTML = `<header><span class="stories-eyebrow">BUILT WITH MASH</span><h1>Stories</h1><p>Working applications to explore, adapt, and make your own.</p></header><div class="stories-grid">${stories.map((item) => `<a class="story-card" href="/stories/${item.id}"><div class="story-card-preview" data-story="${item.id}" aria-hidden="true"><div class="story-card-rail"><i></i><i></i><i></i><i></i></div><div class="story-card-content"><span>${item.symbol}</span><i></i><i></i><i></i></div></div><div class="story-card-label"><h2>${item.title}</h2><span aria-hidden="true">↗</span><p>${item.description}</p></div></a>`).join("")}</div>`;
+    main.innerHTML = `<header><h1>Stories</h1><p>Working applications to explore, adapt, and make your own.</p></header><div class="stories-grid">${stories.map((item) => `<a class="story-card" href="/stories/${item.id}"><div class="story-card-preview" data-story="${item.id}" aria-hidden="true"><div class="story-card-rail"><i></i><i></i><i></i><i></i></div><div class="story-card-content"><span>${item.symbol}</span><i></i><i></i><i></i></div></div><div class="story-card-label"><h2>${item.title}</h2><span aria-hidden="true">↗</span><p>${item.description}</p></div></a>`).join("")}</div>`;
     root.append(main);
   } else if (!story) {
     const main = document.createElement("main");
