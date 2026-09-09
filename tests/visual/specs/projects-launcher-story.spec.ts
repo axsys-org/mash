@@ -51,7 +51,7 @@ for (const theme of ["light", "dark"]) {
     await search.fill("12 km to mi");
     await expect(page.locator("#launcher-detail")).toContainText("7.456454307 mi");
     await search.fill("");
-    await page.getByRole("button", { name: "＋ New", exact: true }).click();
+    await page.getByRole("button", { name: "New", exact: true }).click();
     await page.getByRole("textbox", { name: "Title", exact: true }).fill("A collected idea");
     await page
       .getByRole("textbox", { name: "Content", exact: true })
@@ -70,6 +70,7 @@ for (const theme of ["light", "dark"]) {
     await search.fill("");
     await search.press("Escape");
     await expect(page.locator(".launcher-window")).toBeHidden();
+    await expect(page.locator(".launcher-reopen")).toBeFocused();
     await page.keyboard.press("ControlOrMeta+K");
     await expect(page.locator(".launcher-window")).toBeVisible();
     expect(errors).toEqual([]);

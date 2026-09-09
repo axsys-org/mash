@@ -41,6 +41,10 @@
   width: 100%;
 }
 .issue-sidebar .workspace-switch::part(control) {
+  width: 100%;
+  gap: 10px;
+  min-height: 36px;
+  font-size: 14px;
   justify-content: flex-start;
   font-weight: 600;
   padding-inline: 8px;
@@ -566,6 +570,7 @@
   width: min(640px, calc(100vw - 32px));
 }
 .issues-app #issue-command-dialog::part(popup) {
+  gap: 0;
   padding: 0;
   width: min(620px, calc(100vw - 32px));
 }
@@ -688,4 +693,29 @@
 .issue-filters > ui-input {
   flex: 0 1 175px;
   min-width: 120px;
+}
+
+.issue-sidebar > ui-menu {
+  min-width: 0;
+  width: 100%;
+}
+.issue-sidebar .workspace-switch::part(label) {
+  flex: 1;
+}
+.workspace-mark {
+  font-size: 20px;
+  line-height: 1;
+}
+.issues-app #issue-command-dialog::part(title) {
+  display: none;
+}
+.issues-app #issue-command-dialog::part(content) {
+  padding: 0;
+}
+.issues-app #issue-command::part(root) {
+  border: 0;
+}
+
+.issues-app #issue-command-dialog::part(actions) {
+  display: none;
 }

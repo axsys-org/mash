@@ -16,6 +16,7 @@ import "@mash/ui/switch";
 import "@mash/ui/checkbox";
 import "@mash/ui/command-palette";
 import "@mash/ui/separator";
+import type { UICommand } from "@mash/ui/command-palette";
 import type { UIDialog } from "@mash/ui/dialog";
 import type { UIInput } from "@mash/ui/input";
 import type { UITextarea } from "@mash/ui/textarea";
@@ -429,38 +430,48 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     modalCleanup?.();
     const scope = new AbortController();
     modalCleanup = () => scope.abort();
+    dialog.classList.remove("community-search-dialog");
     dialog.label = title;
     dialog.innerHTML = `<strong slot="title">${escape(title)}</strong>${content}<ui-button slot="close" type="button" variant="ghost" size="small" aria-label="Close dialog">Close</ui-button>`;
     setup?.(dialog, scope.signal);
     dialog.show();
     void dialog.updateComplete.then(() => {
-      if (!scope.signal.aborted) dialog.querySelector<UIInput>("ui-input")?.focus();
+      if (!scope.signal.aborted)
+        (
+          dialog.querySelector<UIInput>("ui-input") ?? dialog.querySelector<UICommand>("ui-command")
+        )?.focus();
     });
   }
   function openSearch(channelId = ""): void {
     showModal(
       channelId ? `Search ${model.channel(channelId).name}` : "Find something",
-      `<ui-input class="community-search-input" label="Search messages" type="search" placeholder="Search people, messages or rooms…"></ui-input><div class="community-search-meta"></div><div class="community-search-results"></div><ui-separator></ui-separator><ui-command label="Quick actions" placeholder="Find a command…"><ui-command-item value="new-channel">Create a room<span slot="description">Chat, gallery or notebook</span></ui-command-item><ui-command-item value="new-dm">New direct message</ui-command-item><ui-command-item value="settings">Open preferences</ui-command-item><ui-command-item value="saved">View saved messages</ui-command-item><span slot="footer">↑ ↓ to move · Enter to open</span></ui-command>`,
+      `<ui-command label="Search messages" placeholder="Search messages, people or actions…"><ui-icon slot="search-prefix" name="action.search"></ui-icon><ui-button slot="search-suffix" variant="ghost" size="small" data-close-search aria-label="Close search"><ui-icon name="action.dismiss"></ui-icon></ui-button><section role="group" aria-label="Quick actions"><span data-command-heading>Quick actions</span><ui-command-item value="new-channel">Create a room<span slot="description">Chat, gallery or notebook</span></ui-command-item><ui-command-item value="new-dm">New direct message</ui-command-item><ui-command-item value="settings">Open preferences</ui-command-item><ui-command-item value="saved">View saved messages</ui-command-item></section><section class="community-search-results" role="group" aria-label="Messages"></section><span slot="empty">No matches. Try another word or a person’s name.</span><span slot="footer">↑ ↓ to move · Enter to open · Escape to close</span></ui-command>`,
       (body, signal) => {
-        const input = body.querySelector<UIInput>("ui-input")!;
+        const command = body.querySelector<UICommand>("ui-command")!;
+        body
+          .querySelector("[data-close-search]")!
+          .addEventListener("click", closeModal, { signal });
+        const results = body.querySelector(".community-search-results")!;
         const renderResults = () => {
-          const matches = model.search(input.value, channelId).slice(0, 60);
-          body.querySelector(".community-search-meta")!.textContent =
-            `${matches.length} ${matches.length === 1 ? "message" : "messages"}${input.value ? ` matching “${input.value}”` : " · recent first"}`;
-          body.querySelector(".community-search-results")!.innerHTML =
-            matches
-              .map(
-                (m) =>
-                  `<button type="button" class="community-result" data-action="jump:${m.id}"><span class="community-result-meta">${escape(model.channel(m.channelId).name)}${m.parentId ? " · Thread" : ""} · ${escape(memberName(m.authorId))}</span><span>${escape(m.text || m.attachmentIds.map((id) => attachment(id)?.name ?? "File").join(", "))}</span></button>`,
-              )
-              .join("") ||
-            '<div class="community-empty">No messages match. Try another word or a person’s name.</div>';
+          results.innerHTML = model
+            .search(command.query, channelId)
+            .slice(0, 60)
+            .map((message) => {
+              const text =
+                message.text ||
+                message.attachmentIds.map((id) => attachment(id)?.name ?? "File").join(", ");
+              const context = `${model.channel(message.channelId).name}${message.parentId ? " · Thread" : ""} · ${memberName(message.authorId)}`;
+              return `<ui-command-item class="community-search-result" value="jump:${message.id}" keywords="${escape(context)}">${escape(text)}<span slot="description">${escape(context)}</span></ui-command-item>`;
+            })
+            .join("");
         };
-        input.addEventListener("input", renderResults, { signal });
+        command.addEventListener("input", renderResults, { signal });
         renderResults();
       },
     );
+    dialog.classList.add("community-search-dialog");
   }
+
   function newChannel(): void {
     showModal(
       "Create a room",

@@ -867,16 +867,6 @@
   gap: 9px;
   flex-wrap: wrap;
 }
-.community-app .community-search-meta {
-  padding: 12px 0 7px;
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-.community-app .community-search-results {
-  max-block-size: 230px;
-  overflow: auto;
-  margin-block-end: 14px;
-}
 .community-app .community-result {
   display: grid;
   inline-size: 100%;
@@ -1144,7 +1134,7 @@
   inline-size: 32px;
   min-inline-size: 32px;
   min-block-size: 32px;
-  padding: 6px;
+  padding: 5px;
 }
 .community-app .community-channel-row > ui-button::part(control) {
   min-block-size: 36px;
@@ -1155,4 +1145,29 @@
 }
 .community-app .community-room-mark ui-icon {
   font-size: 24px;
+}
+
+.community-app .community-search-dialog::part(popup) {
+  gap: 0;
+  padding: 0;
+}
+.community-app .community-search-dialog::part(actions),
+.community-app .community-search-dialog::part(title),
+.community-app .community-search-dialog::part(close) {
+  display: none;
+}
+.community-app .community-search-dialog ui-command::part(root) {
+  border: 0;
+  border-radius: 15px;
+}
+.community-app .community-search-dialog ui-command::part(list) {
+  max-block-size: min(460px, 60dvh);
+}
+.community-app .community-search-dialog ui-command-item::part(label) {
+  white-space: normal;
+  line-height: 1.5;
+}
+.community-app .community-search-dialog ui-command-item::part(description) {
+  color: var(--color-text-muted);
+  font-size: 12px;
 }

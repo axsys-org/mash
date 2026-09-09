@@ -60,9 +60,9 @@ test("keyboard search, preferences and room management persist through reload", 
 }) => {
   await page.keyboard.press("ControlOrMeta+k");
   const dialog = page.locator(".community-dialog");
-  await dialog.getByRole("searchbox", { name: "Search messages", exact: true }).fill("remembering");
-  await expect(dialog.locator(".community-result")).toHaveCount(1);
-  await dialog.locator(".community-result").click();
+  await dialog.getByRole("combobox", { name: "Search messages", exact: true }).fill("remembering");
+  await expect(dialog.locator(".community-search-result:visible")).toHaveCount(1);
+  await dialog.getByRole("combobox", { name: "Search messages", exact: true }).press("Enter");
   await expect(page.locator(".community-thread-context")).toContainText("one small detail");
   await page.getByRole("button", { name: "Close thread", exact: true }).click();
   await page.getByRole("button", { name: "Community settings", exact: true }).click();
