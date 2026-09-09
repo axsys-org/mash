@@ -203,7 +203,7 @@ jobs:
       - name: Check the build emitted what it should
         run: |
           test -f apps/catalog/dist/index.html
-          test -f apps/catalog/dist/stage.html
+          test -f apps/catalog/dist/fixture.html
           test -f apps/catalog/dist/mash.js
           test -d apps/catalog/dist/assets
           echo "catalog build ok"

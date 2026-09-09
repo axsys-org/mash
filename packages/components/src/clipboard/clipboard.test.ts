@@ -1,3 +1,4 @@
+import { userEvent } from "vitest/browser";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fixture, inShadow, settled, shadow } from "../test-support/fixture.js";
@@ -204,6 +205,11 @@ describe("ui-clipboard: Mash recipe", () => {
   });
 
   it("uses tokenized semantic feedback for copied state", async () => {
+    // Park the real pointer away from this fixture: hover feedback has its own token.
+    const parking = await fixture<HTMLElement>(
+      '<div style="position:fixed;right:0;bottom:0;width:8px;height:8px"></div>',
+    );
+    await userEvent.hover(parking);
     stubClipboard(vi.fn(async () => undefined));
     const clipboard = await fixture<UIClipboard>(
       `<ui-clipboard value="done" reset-after="10000" style="--color-positive-subtle: rgb(1 2 3); --duration-control: 0ms">Copy</ui-clipboard>`,

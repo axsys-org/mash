@@ -1,3 +1,4 @@
+import { colorChannels } from "../test-support/color.js";
 import { userEvent } from "vitest/browser";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -522,10 +523,12 @@ describe("ui-button: Mash recipe", () => {
         fixture<UIButton>(`<ui-button tone="info">Info</ui-button>`),
       ]);
 
-    expect(background(danger)).toBe(background(critical));
-    expect(background(warningVariant)).toBe(background(warningTone));
-    expect(background(success)).toBe(background(positive));
-    expect(background(info)).toBe(background(infoTone));
+    expect(colorChannels(background(danger))).toEqual(colorChannels(background(critical)));
+    expect(colorChannels(background(warningVariant))).toEqual(
+      colorChannels(background(warningTone)),
+    );
+    expect(colorChannels(background(success))).toEqual(colorChannels(background(positive)));
+    expect(colorChannels(background(info))).toEqual(colorChannels(background(infoTone)));
   });
 
   it("inherits the theme from an ancestor, and nests", async () => {

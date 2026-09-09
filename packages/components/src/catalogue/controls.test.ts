@@ -1,3 +1,4 @@
+import { colorChannels } from "../test-support/color.js";
 import { afterEach, describe, expect, it } from "vitest";
 import { fixture, inShadow, settled } from "../test-support/fixture.js";
 import "../button/register.js";
@@ -92,6 +93,6 @@ describe("composed control geometry", () => {
     );
     const [critical, neutral] = frames(host).map((control) => getComputedStyle(control));
     expect(critical!.color).not.toBe(neutral!.color);
-    expect(critical!.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+    expect(colorChannels(critical!.backgroundColor)[3]).toBe(0);
   });
 });

@@ -3,7 +3,8 @@ import "@mash/ui/catalogue/mash.css";
 import { mount } from "../../../../apps/catalog/src/stories/community.js";
 import type { UITextarea } from "@mash/ui/textarea";
 import type { UIInput } from "@mash/ui/input";
-import { fixture, settled } from "../test-support/fixture.js";
+import type { UICommand } from "@mash/ui/command-palette";
+import { fixture, inShadow, settled } from "../test-support/fixture.js";
 
 let dispose: (() => void) | undefined;
 afterEach(() => {
@@ -63,10 +64,13 @@ it("search navigates to a message and room creation produces an editable empty c
   const root = await start();
   click(root, "search");
   await settled(root);
-  const input = root.querySelector<UIInput>('.community-dialog ui-input[label="Search messages"]')!;
-  await type(input, "remembering", root);
-  expect(root.querySelectorAll(".community-search-results .community-result")).toHaveLength(1);
-  root.querySelector<HTMLElement>(".community-search-results .community-result")!.click();
+  const command = root.querySelector<UICommand>(".community-dialog ui-command")!;
+  const input = inShadow<HTMLInputElement>(command, "input");
+  input.value = "remembering";
+  input.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+  await settled(root);
+  expect(root.querySelectorAll(".community-search-result:not([hidden])")).toHaveLength(1);
+  root.querySelector<HTMLElement>(".community-search-result:not([hidden])")!.click();
   await settled(root);
   expect(root.querySelector(".community-thread-context")!.textContent).toContain(
     "one small detail",
