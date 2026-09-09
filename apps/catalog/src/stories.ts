@@ -11,6 +11,13 @@ type Story = {
 
 const stories: Story[] = [
   {
+    id: "characters",
+    title: "Characters",
+    description: "Emoji and symbols, from a compact picker to an expanded character browser.",
+    symbol: "☀",
+    load: () => import("./stories/characters.js"),
+  },
+  {
     id: "studio",
     title: "Studio",
     description: "A coding workspace with files, search, changes, and live previews.",

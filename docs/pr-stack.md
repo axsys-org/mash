@@ -26,6 +26,7 @@ The mixed final checkpoint was reconstructed as four commits: button disclosure 
 | `codex/stack/commons-polish`       | `codex/stack/icon-layout`          |
 | `codex/stack/composition-geometry` | `codex/stack/commons-polish`       |
 | `codex/stack/story-composition`    | `codex/stack/composition-geometry` |
+| `codex/stack/character-picker`     | `codex/stack/story-composition`    |
 
 The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. It must be reviewed and landed as a prerequisite.
 

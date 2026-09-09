@@ -46,7 +46,7 @@
     "clean": "pnpm -r run clean && rm -rf node_modules/.vite",
     "dev:catalog": "pnpm --filter @mash/tokens --filter @mash/ui --filter @mash/catalog --parallel run dev",
     "build:preview": "pnpm build && pnpm --filter @mash/catalog run build:site",
-    "test:stories": "pnpm --filter @mash/visual-tests exec playwright test specs/stories-shell.spec.ts specs/studio-story.spec.ts specs/studio-model.spec.ts specs/documents-story.spec.ts specs/projects-launcher-story.spec.ts specs/community-story.spec.ts --workers=1"
+    "test:stories": "pnpm --filter @mash/visual-tests exec playwright test specs/stories-shell.spec.ts specs/studio-story.spec.ts specs/studio-model.spec.ts specs/documents-story.spec.ts specs/projects-launcher-story.spec.ts specs/community-story.spec.ts specs/characters-story.spec.ts --workers=1"
   },
   "devDependencies": {
     "@vercel/blob": "^2.8.0",
