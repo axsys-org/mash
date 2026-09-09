@@ -1,5 +1,6 @@
 import type { CatalogExample } from "../examples.js";
 import { sample } from "./shared.js";
+import { motionExamples } from "./motion.js";
 
 const pane = (text: string) => `<div class="mash-panel">${text}</div>`;
 
@@ -19,25 +20,8 @@ export const utilityExamples: Record<string, CatalogExample[]> = {
       `<div class="mash-row"><code>npm install @mash/ui</code><ui-clipboard value="npm install @mash/ui" label="Copy install command"></ui-clipboard></div>`,
     ),
   ],
-  "ui-motion": [
-    {
-      ...sample(
-        "Transitions",
-        `<ui-motion id="motion" motion="fade" state="entering">${pane("Content in motion")}</ui-motion><ui-button id="replay" size="small">Replay</ui-button>`,
-      ),
-      script: `const motion = document.querySelector("#motion");
-document.querySelector("#replay").addEventListener("click", () => {
-  motion.state = "exiting";
-  setTimeout(() => { motion.state = "entering"; }, 300);
-});`,
-    },
-  ],
-  "ui-stagger": [
-    sample(
-      "Stagger",
-      `<ui-stagger step="80"><ui-motion motion="fade" state="entering">${pane("First")}</ui-motion><ui-motion motion="fade" state="entering">${pane("Second")}</ui-motion><ui-motion motion="fade" state="entering">${pane("Third")}</ui-motion></ui-stagger>`,
-    ),
-  ],
+  "ui-motion": motionExamples,
+  "ui-stagger": [motionExamples[4]!],
   "ui-reveal": [
     {
       ...sample(
