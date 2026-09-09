@@ -9,7 +9,7 @@ for (const component of components.filter((item) => item.packageName === "@mash/
   const tag = component.tagName;
   const examples = examplesFor(component);
   for (const theme of ["light", "dark"]) {
-    test(`${tag}: every example in ${theme}`, async ({ page }) => {
+    test(`${tag}: every example in ${theme}`, async ({ page }, testInfo) => {
       test.setTimeout(Math.max(30_000, examples.length * 10_000));
       const errors: string[] = [];
       page.on("pageerror", (error) => errors.push(error.message));
@@ -18,6 +18,7 @@ for (const component of components.filter((item) => item.packageName === "@mash/
         await test.step(example.name, async () => {
           const host = page.locator(`iframe[data-variant=${JSON.stringify(example.name)}]`);
           await host.scrollIntoViewIfNeeded();
+          await expect(host).toHaveAttribute("src", /\/fixture\.html/);
           const stage = host.contentFrame();
           await expect(stage.locator("html")).toHaveAttribute("data-stage-ready", "true");
           await expect(stage.locator("html")).toHaveAttribute("data-example-ready", "true");
@@ -50,6 +51,12 @@ for (const component of components.filter((item) => item.packageName === "@mash/
           expect(state.undefined).toEqual([]);
           expect(state.overflow).toBeLessThanOrEqual(2);
           expect(errors).toEqual([]);
+          if (process.env.MASH_CAPTURE_AUDIT === "1") {
+            const filename = `${tag}-${theme}-${example.name.replace(/[^a-z0-9]+/gi, "-")}.png`;
+            const path = testInfo.outputPath(filename);
+            await host.screenshot({ path });
+            await testInfo.attach(filename, { path, contentType: "image/png" });
+          }
         });
       }
     });

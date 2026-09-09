@@ -42,7 +42,7 @@
     "test:integration": "pnpm --filter @mash/integration-tests test",
     "test:catalogue": "pnpm --filter @mash/visual-tests exec playwright test specs/portable-examples.spec.ts specs/example-variants.spec.ts specs/catalogue-conformance.spec.ts specs/catalog-shell.spec.ts specs/slots.spec.ts specs/resizable.spec.ts specs/parity-interactions.spec.ts specs/composer-pattern.spec.ts specs/preview-window.spec.ts specs/control-patterns.spec.ts specs/menu-patterns.spec.ts specs/chart-examples.spec.ts specs/tabs-examples.spec.ts specs/dock-drag.spec.ts specs/tree-command-patterns.spec.ts specs/catalog-performance.spec.ts specs/chat-lifecycle.spec.ts specs/collection-table-patterns.spec.ts specs/date-color-patterns.spec.ts specs/display-patterns.spec.ts specs/editor-patterns.spec.ts specs/preview-anchoring.spec.ts specs/rendered-content.spec.ts specs/motion-patterns.spec.ts --workers=1",
     "//test:visual": "Screenshot baselines are platform-specific; see tests/visual/README.md before running this outside CI.",
-    "test:visual": "pnpm --filter @mash/visual-tests test",
+    "test:visual": "pnpm --filter @mash/visual-tests exec playwright test specs/canonical.spec.ts",
     "clean": "pnpm -r run clean && rm -rf node_modules/.vite",
     "dev:catalog": "pnpm --filter @mash/tokens --filter @mash/ui --filter @mash/catalog --parallel run dev",
     "build:preview": "pnpm build && pnpm --filter @mash/catalog run build:site",

@@ -1,60 +1,15 @@
-import { componentExamples } from "../../../apps/catalog/src/examples/components.js";
 import { expect, test } from "@playwright/test";
 
-const tags = [
-  ...Object.keys(componentExamples),
-  "ui-button",
-  "ui-input",
-  "ui-input-group",
-  "ui-toggle",
-  "ui-toggle-group",
-  "ui-toolbar",
-  "ui-select",
-  "ui-combobox",
-];
-
-for (const tag of new Set(tags.filter((name) => name.startsWith("ui-")))) {
-  test(`${tag} runs from a normal package import`, async ({ page }) => {
-    await page.goto(`/components/${tag}`);
-    await expect(page.locator("iframe.stage-frame")).toHaveAttribute("src", /\/fixture\.html/);
-    const stage = page.frameLocator("iframe.stage-frame");
-    await expect(stage.locator("html")).toHaveAttribute("data-stage-ready", "true");
-    await expect(stage.locator(tag).first()).toBeAttached();
-    if (tag === "ui-gesture-binding")
-      await expect(stage.locator("ui-button").first()).toBeVisible();
-    else if (tag === "ui-stagger") await expect(stage.locator("ui-motion").first()).toBeVisible();
-    else await expect(stage.locator(tag).first()).toBeVisible();
-    const frame = (await (await page
-      .locator("iframe.stage-frame")
-      .elementHandle())!.contentFrame())!;
-    const registry = await frame.evaluate(() => {
-      const names = [
-        ...new Set(
-          [...document.querySelectorAll("*")]
-            .map((node) => node.localName)
-            .filter((name) => name.startsWith("ui-")),
-        ),
-      ];
-      return {
-        names,
-        upgraded: names.every((name) => Boolean(customElements.get(name))),
-        complete: [
-          "ui-button",
-          "ui-table-cell",
-          "ui-option",
-          "ui-menu-item",
-          "ui-data-table",
-        ].every((name) => Boolean(customElements.get(name))),
-      };
-    });
-    expect(registry.upgraded).toBe(true);
-    expect(registry.complete).toBe(true);
-    const imports = await page.locator(".reference-code pre").first().textContent();
-    expect(imports).toContain('import "@mash/ui";');
-    expect(imports).toContain("@mash/ui/catalogue/mash.css");
-    expect(imports).not.toContain("/register");
-  });
-}
+// Registration and rendered content are checked for every example by
+// example-variants.spec.ts. Check the shared copy/export contract once.
+test("reference code uses public package imports", async ({ page }) => {
+  await page.goto("/components/ui-toolbar");
+  await page.locator(".reference-code summary").first().click();
+  const code = page.locator(".reference-code pre").first();
+  await expect(code).toContainText('import "@mash/ui";');
+  await expect(code).toContainText("@mash/ui/catalogue/mash.css");
+  await expect(code).not.toContainText("/register");
+});
 
 test("mixed toolbar restores its theme, geometry, and keyboard navigation", async ({ page }) => {
   await page.goto("/components/ui-toolbar?example=Mixed%20controls&theme=dark");

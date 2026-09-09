@@ -1,6 +1,10 @@
 # Visual regression
 
-The suite exercises all catalogue pages and named examples through the production build, checks focused interactions and composition geometry, and photographs six canonical component states.
+`pnpm test:catalogue` checks every named example in both themes, plus focused interaction and layout regressions. One all-example sweep owns registration, rendered content, errors, and overflow; compact-screen cases cover layouts that need extra checks.
+
+`pnpm test:visual` only photographs the six canonical component states. It does not rerun the catalogue and story suites. `pnpm test:stories` runs the application stories separately.
+
+Set `MASH_CAPTURE_AUDIT=1` when running `example-variants.spec.ts` to capture each example for a visual audit. Routine runs do not write these images.
 
 ```bash
 pnpm build && pnpm build:catalog   # the suite serves apps/catalog/dist
