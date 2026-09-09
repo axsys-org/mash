@@ -5,7 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  echarts@6.0.0: 2a7efbe6f5860c42e6a16ad05a8f4fafb3205445542d2b9953e91571d07d1f63
+  echarts@6.0.0:
+    hash: 2a7efbe6f5860c42e6a16ad05a8f4fafb3205445542d2b9953e91571d07d1f63
+    path: patches/echarts@6.0.0.patch
 
 importers:
 
