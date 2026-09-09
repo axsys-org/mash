@@ -28,3 +28,34 @@ Run production checks with one browser worker on this workstation. For visual re
 `pnpm test:stories` runs the independent production workspace scenarios. The component sweep groups all examples for a page/theme into one navigation, reducing repeated compilation, frame setup and browser work. Use one frozen build for an acceptance run; rebuild only after it finishes.
 
 Late height changes above a focused, visible frame preserve its screen position. The anchoring regression covers both continued interaction and an intentional scroll away; native scroll anchoring is disabled only for this owner-managed preview viewport.
+
+## Shared document prototype
+
+Tabs and Chart support an opt-in comparison at `/components/ui-tabs?preview=shared` and `/components/ui-chart?preview=shared`. The default continues to use individual example frames. Theme, example deep links, expansion, and zoom work in either mode.
+
+The prototype uses one iframe for the component page. Each example gets a shadow root to isolate local IDs and styles, and all roots adopt one stylesheet reconstructed from the loaded public `mash.catalogue` recipe layer. Tokens inherit from the frame's theme boundary. Component definitions, renderer modules, and the JavaScript realm are shared; nearby examples mount on demand and retain their state while scrolling.
+
+Scripted examples opt into a scoped setup body receiving `root` and an `AbortSignal`. The catalogue build compiles that body into a mount function; the reference-code path exposes the same setup with a cleanup function for ordinary application use. Queries stay within the example root, listeners use the signal, and observers disconnect on abort. Removing the preview aborts setup and disconnects the hosts. No application component imports this machinery, and no dependencies were added.
+
+This is document and style isolation, not a security sandbox. An example that depends on document-wide IDs, global styles, or unmanaged listeners needs its setup scoped before moving to the shared document. This prototype does not establish compatibility across every catalogue component or browser engine, and does not change Mash's public component APIs or application-owned state contract.
+
+`shared-preview.spec.ts` covers all nine Tabs and 51 Chart examples in both themes, independent controls with duplicate IDs, cleanup, tab drag/reorder and draft retention, deep links, expansion, zoom, and narrow layouts. The existing Tabs and Chart tests exercise the original iframe path using the same scoped example source.
+
+The implementation checkpoint `658615a` passed GitHub CI: 610 component tests, 20 integration tests, and 348 catalogue tests, plus build, type, lint, format, and token checks. Its Vercel deployment also passed. Local reruns encountered chart startup timeouts; a traced case rendered and redrew correctly but exhausted its overall time budget after slow browser setup. Those local failures were not addressed by relaxing the existing CI assertions.
+
+For a same-build comparison, serve a frozen production build, close other automated browser runs, then run:
+
+```sh
+MASH_CATALOG_URL=http://localhost:5176 MASH_PERF_REPORT=/tmp/mash-preview.json pnpm --filter @mash/visual-tests exec node benchmark-previews.mjs
+```
+
+The benchmark visits every example in each mode and records frame count, DOM nodes, and retained JavaScript heap after garbage collection. Resource bytes are unique decoded response bodies, not compressed network transfer; JavaScript heap excludes native rendering and total browser memory. Readiness timings are local observations, not latency guarantees.
+
+Same-build measurement on 2026-09-09, Chromium at 1280 × 900, after visiting every example (decimal MB/KB):
+
+| Component          | Example frames → shared | Retained JS heap  | Reduction | Unique decoded JS      |
+| ------------------ | ----------------------- | ----------------- | --------- | ---------------------- |
+| Tabs, 9 examples   | 9 → 1                   | 13.51 → 4.63 MB   | 65.7%     | 247.11 → 247.71 KB     |
+| Chart, 51 examples | 51 → 1                  | 112.38 → 16.15 MB | 85.6%     | 1,052.65 → 1,053.25 KB |
+
+This shows a reduction in retained runtime overhead, with about 600 additional decoded JavaScript bytes in shared mode. Total unique decoded resources decreased slightly in both cases. It does not establish a comparable reduction in download size or promise faster startup. Raw initial/full snapshots and measurement boundaries are recorded in `docs/audit/shared-preview-measurements-2026-09-09.json`.

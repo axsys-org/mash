@@ -3,7 +3,7 @@ import { writeFile } from "node:fs/promises";
 const results = [];
 const browser = await chromium.launch();
 try {
-  for (const tag of ["ui-tabs", "ui-chart"])
+  for (const tag of process.argv[3] ? [process.argv[3]] : ["ui-tabs", "ui-chart"])
     for (const mode of process.argv[2] ? [process.argv[2]] : ["frames", "shared"]) {
       const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
       const page = await context.newPage();
@@ -77,7 +77,11 @@ try {
         const frames = page.locator("iframe.variant-frame");
         for (let i = 0; i < (await frames.count()); i++) {
           await frames.nth(i).scrollIntoViewIfNeeded();
-          await frames.nth(i).contentFrame().locator('html[data-example-ready="true"]').waitFor();
+          await frames
+            .nth(i)
+            .contentFrame()
+            .locator('html[data-example-ready="true"]')
+            .waitFor({ state: "attached" });
           if (tag === "ui-chart")
             await frames
               .nth(i)
@@ -90,10 +94,10 @@ try {
       const full = await snapshot();
       results.push({ tag, mode, readyMs: ready, initial, full });
       console.log(JSON.stringify(results.at(-1)));
+      if (process.env.MASH_PERF_REPORT)
+        await writeFile(process.env.MASH_PERF_REPORT, JSON.stringify(results, null, 2));
       await context.close();
     }
 } finally {
   await browser.close();
 }
-if (process.env.MASH_PERF_REPORT)
-  await writeFile(process.env.MASH_PERF_REPORT, JSON.stringify(results, null, 2));
