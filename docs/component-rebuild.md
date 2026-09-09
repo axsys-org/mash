@@ -141,7 +141,7 @@ not a claim that every reference feature has been implemented.
 | MASH-R4: API and example depth  | The showcase now lists base components only and displays their variants directly. Re-run the complete portability and variant sweep against this replacement shell. Check every feature listed in the 71-topic checklist against actual behavior, expand missing variants, and replace remaining illustrative actions with useful executable outcomes where they teach a component contract. |
 | MASH-R5: chart state            | Twelve chart arrangements and SVG/canvas renderers are available. Theme and renderer changes preserve zoom and legend selection. Audit remaining interaction state for each supported chart type.                                                                                                                                                                                            |
 | MASH-R6: visual baselines       | The blocking catalogue gate checks all named examples in both themes, composition geometry, dependency display, and focused interactions. Canonical screenshot baselines remain platform-specific and local. Establish reviewed Linux baselines before making the screenshot job blocking.                                                                                                   |
-| MASH-R7: later application work | Preserve the isolated application source for the requested playground and story samples. Reintroduce it only after the component review, with its dependencies and behavior exposed. Stage fullscreen remains deferred until parity acceptance.                                                                                                                                              |
+| MASH-R7: later application work | Preserve the isolated application source for the requested playground and story samples. Reintroduce it only after the component review, with its dependencies and behavior exposed. The showcase now supports state-preserving expansion and zoom; story applications remain deferred.                                                                                                      |
 
 The relevant gates are `pnpm run build:catalog`, `pnpm run check`,
 `pnpm run test:browser`, `pnpm run test:integration`, and
@@ -191,3 +191,41 @@ components, 690 public parts, 243 named slots, and 627 token variables.
 Specific acceptance follow-ups include restoring avatar-group coverage after
 example consolidation, checking same-tab drop ordering, and handling split
 controls when every dock panel is closed. These remain on the parity audit.
+
+## Example-depth and preview-window checkpoint — 2026-09-08
+
+The acceptance target is exact or better coverage for each documented visual
+variant and interaction. A mapped topic or successful render is insufficient.
+Two source-backed inventories now track the work:
+
+- [Controls, navigation, overlays, and display](audit/example-parity.md).
+- [Charts, tables, editing, docking, lists, and scrolling](audit/complex-example-parity.md).
+
+This batch replaces isolated stage boxes with one scrolling preview window per
+component, with zoom and expansion that preserve mounted frames and drafts.
+The composer is a reusable public recipe composed from a native form and Mash
+controls. Compact, expanded, attached-context, and sending/error examples expose
+real editing, local attachments, cancellation, and retry. The live conversation
+uses that same pattern. Pagination now changes records; interactive accordion
+panels preserve authored controls; avatar grouping is restored and demonstrates
+adjustable member limits and overflow.
+
+The next parity batch is tabs and menus: tab rearrangement and overflow selection,
+working adjacent controls, menu action outcomes, custom rows, and missing overlay
+variants. The complex-component inventory remains open in parallel with later
+acceptance batches. No story application work should start before acceptance.
+
+Validation for this checkpoint: the full production build and static gates pass.
+All 20 focused browser checks pass, including local file attachment/removal,
+multiline drafts, expansion, send cancellation, error recovery, same-frame
+preview expansion/zoom, mobile bounds, and access to the calendar's final row.
+Composer surfaces were visually reviewed in both themes. Complete catalogue
+acceptance remains open; focused checks do not certify exact visual parity.
+
+The four standalone composer patterns live on Textarea, while Message Scroller
+keeps the complete live conversation. This corrects their initial placement:
+each component example now contains the component it documents. After that
+correction, 12 Textarea light/dark cases and three composer behavior checks
+passed; the other changed pages had already passed 28 light/dark cases. Together
+these cover 40 variant/theme cases. The initial misplaced-example failures are
+resolved, not waived. The full catalogue-wide sweep remains a separate open gate.

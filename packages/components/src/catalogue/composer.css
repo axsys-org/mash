@@ -1,0 +1,125 @@
+/** Application-owned composer pattern, using public control parts. */
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) .mash-composer {
+    display: grid;
+    gap: var(--space-control-gap);
+    inline-size: 100%;
+    min-inline-size: 0;
+    box-sizing: border-box;
+    padding: var(--space-container-block) var(--space-container-inline);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: calc(var(--radius-container) * 2);
+    background: var(--_mash-component-surface-sunken);
+    color: var(--color-text);
+    transition:
+      border-color var(--duration-control) var(--easing-control),
+      box-shadow var(--duration-control) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer:focus-within {
+    border-color: var(--_mash-component-boundary-strong);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer ui-textarea {
+    display: block;
+    min-inline-size: 0;
+    inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer ui-textarea::part(control) {
+    display: block;
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: var(--layout-dimension-control-large);
+    max-block-size: var(--layout-dimension-panel);
+    field-sizing: content;
+    resize: none;
+    padding: var(--space-control-block) 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    outline: none;
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer[data-expanded] ui-textarea::part(control) {
+    min-block-size: var(--layout-dimension-compact);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-toolbar,
+  :where([data-mash-catalogue="mash"]) .mash-composer-status,
+  :where([data-mash-catalogue="mash"]) .mash-composer-context {
+    display: flex;
+    align-items: center;
+    gap: var(--space-control-gap);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-spacer {
+    flex: 1;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-mode select {
+    font: inherit;
+    font-size: var(--type-label-small-font-size);
+    color: var(--color-text-muted);
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    padding: var(--space-control-block) var(--space-control-gap);
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-mode select:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-mode select:focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-toolbar ui-button::part(control) {
+    border-radius: var(--radius-pill);
+    inline-size: var(--layout-dimension-control-medium);
+    block-size: var(--layout-dimension-control-medium);
+    min-inline-size: var(--layout-dimension-control-medium);
+    padding: 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-context {
+    flex-wrap: wrap;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-file {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-control-gap);
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    padding-inline-start: var(--space-control-inline);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-control);
+    background: var(--_mash-component-surface-raised);
+    font-size: var(--type-label-small-font-size);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-file > span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-file > ui-icon {
+    flex: none;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-status,
+  :where([data-mash-catalogue="mash"]) .mash-composer-result {
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer-result:empty {
+    display: none;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer[data-status="error"] .mash-composer-status {
+    color: var(--color-critical-text);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-composer [hidden] {
+    display: none !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) .mash-composer {
+      transition: none;
+    }
+  }
+}

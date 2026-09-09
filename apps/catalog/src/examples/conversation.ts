@@ -1,4 +1,5 @@
 import type { CatalogExample } from "../examples.js";
+import { composerMarkup, composerScript } from "./composer.js";
 import { sample } from "./shared.js";
 
 const incoming = `<ui-message>
@@ -79,9 +80,10 @@ export const conversationExamples: Record<string, CatalogExample[]> = {
     {
       ...sample(
         "Live conversation",
-        `<ui-message-scroller id="conversation" label="Project conversation"><ui-marker>Today</ui-marker>${Array.from({ length: 5 }, () => incoming + outgoing).join("\n")}</ui-message-scroller><div class="mash-row"><ui-button id="earlier" size="small">Load earlier</ui-button><ui-button id="append" size="small">Receive message</ui-button></div><form id="composer" class="mash-row"><ui-textarea id="draft" name="message" label="Message" placeholder="Write a message…" rows="2" class="mash-fill"></ui-textarea><ui-button id="send" type="submit" variant="primary" disabled>Send</ui-button></form><span>Enter to send · Shift+Enter for a new line</span>`,
+        `<ui-message-scroller id="conversation" label="Project conversation"><ui-marker>Today</ui-marker>${Array.from({ length: 5 }, () => incoming + outgoing).join("\n")}</ui-message-scroller><div class="mash-row"><ui-button id="earlier" size="small">Load earlier</ui-button><ui-button id="append" size="small">Receive message</ui-button></div>${composerMarkup()}`,
       ),
-      script: `const conversation = document.querySelector("#conversation");
+      script:
+        `const conversation = document.querySelector("#conversation");
 const message = text => {
   const row = document.createElement("ui-message");
   const bubble = document.createElement("ui-bubble");
@@ -92,26 +94,20 @@ const message = text => {
 };
 document.querySelector("#earlier").addEventListener("click", () => conversation.prepend(message("Earlier context, with your reading position preserved.")));
 document.querySelector("#append").addEventListener("click", () => conversation.append(message("A new message just arrived.")));
-const draft = document.querySelector("#draft");
-const send = document.querySelector("#send");
-draft.addEventListener("input", () => { send.disabled = !draft.value.trim(); });
-const submit = () => {
-  const text = draft.value.trim();
-  if (!text) return;
-  const row = message(text);
+document.querySelector(".mash-composer").addEventListener("composer-send", event => {
+  const row = message(event.detail.text || "Attached files");
   row.alignment = "end";
   row.querySelector("ui-bubble").variant = "filled";
   row.querySelector("ui-bubble").alignment = "end";
+  for (const file of event.detail.files) {
+    const attachment = document.createElement("ui-attachment");
+    const title = document.createElement("strong"); title.slot = "title"; title.textContent = file.name;
+    attachment.append(title); row.append(attachment);
+  }
   conversation.append(row);
-  draft.value = "";
-  send.disabled = true;
-  draft.focus();
   requestAnimationFrame(() => conversation.scrollToLatest());
-};
-document.querySelector("#composer").addEventListener("submit", event => { event.preventDefault(); submit(); });
-draft.addEventListener("keydown", event => {
-  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) { event.preventDefault(); submit(); }
-});`,
+});
+` + composerScript,
     },
     {
       ...sample(

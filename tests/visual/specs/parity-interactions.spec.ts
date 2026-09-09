@@ -85,3 +85,43 @@ test("editor finds and replaces source using its displayed controls", async ({ p
     /greeting\("Sam"\)/,
   );
 });
+
+test("pagination updates records and accordion panels retain interactive state", async ({
+  page,
+}) => {
+  await page.goto("/components/ui-pagination", { waitUntil: "domcontentloaded" });
+  let frame = page.frameLocator("iframe.stage-frame");
+  await frame.getByRole("button", { name: "Page 4", exact: true }).click();
+  await expect(frame.locator("#page-status")).toHaveText("Showing 16–20 of 60");
+  await expect(frame.locator("#page-results li").first()).toHaveText("Document 16");
+  await page.goto("/components/ui-accordion?example=Interactive%20panels", {
+    waitUntil: "domcontentloaded",
+  });
+  frame = page.frameLocator("iframe.stage-frame");
+  await frame.getByRole("textbox", { name: "Preview title" }).fill("Edited title");
+  await expect(frame.locator("#panel-preview-title")).toHaveText("Edited title");
+  await frame.getByRole("switch", { name: "Show the description" }).click();
+  await expect(frame.locator("#panel-preview-description")).toBeHidden();
+  await frame.getByRole("checkbox", { name: "Notify collaborators" }).click();
+  await expect(frame.locator("#panel-preview-state")).toHaveText("Notifications are off.");
+  const trigger = frame.getByRole("button", { name: "What can a panel contain?" });
+  await trigger.click();
+  await trigger.click();
+  await expect(frame.getByRole("textbox", { name: "Preview title" })).toHaveValue("Edited title");
+});
+
+test("avatar groups remain available and their overflow controls update", async ({ page }) => {
+  await page.goto("/components/ui-avatar?example=Group%20limits", {
+    waitUntil: "domcontentloaded",
+  });
+  await expect(page.locator('iframe[data-variant="Group"]')).toHaveCount(1);
+  const frame = page.frameLocator("iframe.stage-frame");
+  await expect(frame.locator("#limited-members ui-avatar")).toHaveCount(4);
+  await frame.getByRole("slider", { name: "Visible members" }).focus();
+  await frame.getByRole("slider", { name: "Visible members" }).press("ArrowRight");
+  await expect(frame.locator("#member-count")).toHaveText("4 of 6 members visible");
+  await frame.getByRole("switch", { name: "Use an ellipsis for overflow" }).click();
+  await expect(frame.locator("#limited-members ui-avatar").last()).toHaveText("…", {
+    useInnerText: true,
+  });
+});

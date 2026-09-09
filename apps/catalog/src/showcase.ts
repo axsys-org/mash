@@ -30,6 +30,7 @@ export function showCatalogue(root: HTMLElement): void {
     abort.abort();
     observer.disconnect();
     observers.forEach((item) => item.disconnect());
+    restorePreview();
   };
   const observer = new IntersectionObserver(
     (entries) =>
@@ -80,7 +81,86 @@ export function showCatalogue(root: HTMLElement): void {
   const variants = examplesFor(component).filter(
     (example) => !/<(?:sh-|shrine-)/.test(example.code),
   );
-  const target = root.querySelector(".showcase-variants")!;
+  const target = root.querySelector<HTMLElement>(".showcase-variants")!;
+  const preview = node("dialog", "preview-window");
+  preview.open = true;
+  preview.setAttribute("role", "region");
+  preview.setAttribute("aria-label", `${nameOf(component.tagName)} preview`);
+  const chrome = node("div", "preview-chrome");
+  const title = node("span", "preview-title", nameOf(component.tagName));
+  const zoom = node("select", "preview-zoom");
+  zoom.setAttribute("aria-label", "Preview zoom");
+  for (const value of [50, 75, 100, 125, 150]) {
+    const option = node("option", "", `${value}%`);
+    option.value = String(value / 100);
+    option.selected = value === 100;
+    zoom.append(option);
+  }
+  const expand = node("button", "preview-expand");
+  expand.type = "button";
+  expand.innerHTML =
+    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M6 2H2v4m8-4h4v4M2 10v4h4m8-4v4h-4"/></svg>';
+  expand.setAttribute("aria-label", "Expand preview");
+  expand.title = "Expand preview";
+  expand.setAttribute("aria-expanded", "false");
+  chrome.append(title, zoom, expand);
+  const viewport = node("div", "preview-viewport");
+  viewport.setAttribute("aria-label", "Component variants");
+  viewport.tabIndex = 0;
+  target.replaceWith(preview);
+  viewport.append(target);
+  preview.append(chrome, viewport);
+  let expanded = false;
+  let priorFocus: HTMLElement | null = null;
+  let priorOverflow = "";
+  function restorePreview() {
+    if (!expanded) return;
+    expanded = false;
+    preview.close();
+    preview.open = true;
+    preview.setAttribute("role", "region");
+    preview.removeAttribute("aria-modal");
+    expand.setAttribute("aria-label", "Expand preview");
+    expand.title = "Expand preview";
+    expand.setAttribute("aria-expanded", "false");
+    document.documentElement.style.overflow = priorOverflow;
+    priorFocus?.focus({ preventScroll: true });
+  }
+  expand.addEventListener(
+    "click",
+    () => {
+      if (expanded) return restorePreview();
+      priorFocus = document.activeElement as HTMLElement;
+      priorOverflow = document.documentElement.style.overflow;
+      preview.close();
+      preview.showModal();
+      expanded = true;
+      preview.setAttribute("role", "dialog");
+      preview.setAttribute("aria-modal", "true");
+      expand.setAttribute("aria-label", "Restore preview");
+      expand.title = "Restore preview · Esc";
+      expand.setAttribute("aria-expanded", "true");
+      document.documentElement.style.overflow = "hidden";
+      expand.focus({ preventScroll: true });
+    },
+    { signal: abort.signal },
+  );
+  preview.addEventListener(
+    "cancel",
+    (event) => {
+      event.preventDefault();
+      restorePreview();
+    },
+    { signal: abort.signal },
+  );
+  zoom.addEventListener(
+    "change",
+    () => {
+      // CSS zoom changes available layout space, so charts and menus reflow naturally.
+      target.style.zoom = zoom.value;
+    },
+    { signal: abort.signal },
+  );
   const requested = new URL(location.href).searchParams.get("example");
   const selectedVariant = variants.find((variant) => variant.name === requested) ?? variants[0];
   variants.forEach((variant, index) => {
@@ -135,7 +215,28 @@ export function showCatalogue(root: HTMLElement): void {
         doc.documentElement.dataset.layout = "start";
         doc.body.style.minHeight = "0";
         doc.body.style.padding = "24px";
+        doc.addEventListener(
+          "keydown",
+          (event) => {
+            // Keyboard events do not cross an iframe boundary.
+            if (event.key === "Escape" && expanded && !event.defaultPrevented) {
+              event.preventDefault();
+              restorePreview();
+            }
+          },
+          { signal: abort.signal },
+        );
         doc.body.innerHTML = variant.code;
+        if (
+          doc.body.querySelector(
+            "ui-menu, ui-context-menu, ui-select, ui-combobox, ui-date-picker, ui-popover, ui-hover-card, ui-color-picker:not([inline])",
+          )
+        ) {
+          // Floating surfaces do not contribute to body height. Reserve the public
+          // menu recipe's ten rows, two control rows, and outer/inner breathing room.
+          frame.style.minHeight =
+            "calc(var(--layout-menu-row-regular) * 10 + var(--layout-dimension-control-medium) * 2 + var(--space-region) * 4)";
+        }
         if (variant.script) {
           const script = doc.createElement("script");
           script.type = "module";
@@ -143,10 +244,7 @@ export function showCatalogue(root: HTMLElement): void {
           doc.body.append(script);
         }
         const resize = () => {
-          const height = Math.max(
-            180,
-            Math.min(1200, Math.ceil(doc.body.getBoundingClientRect().height)),
-          );
+          const height = Math.max(180, Math.ceil(doc.body.getBoundingClientRect().height));
           if (frame.height !== String(height)) frame.height = String(height);
         };
         const size = new ResizeObserver(resize);
@@ -159,10 +257,13 @@ export function showCatalogue(root: HTMLElement): void {
     if (index === 0 || variant === selectedVariant) frame.src = "/fixture.html";
     else observer.observe(frame);
   });
-  target.append(api(component));
+  preview.after(api(component));
   const oldVariant = new URL(location.href).searchParams.get("example");
   const anchor = location.hash.slice(1) || oldVariant?.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  if (anchor) requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView());
+  if (anchor)
+    requestAnimationFrame(() => {
+      document.getElementById(anchor)?.scrollIntoView({ block: "nearest" });
+    });
 }
 function api(component: ComponentSchema): HTMLElement {
   const section = node("section", "api-reference");

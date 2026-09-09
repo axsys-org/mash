@@ -186,6 +186,22 @@ export const componentExamples: Record<string, CatalogExample[]> = {
   <ui-accordion-item title="Can I customize it?" value="custom">Use public slots, CSS parts, and semantic tokens.</ui-accordion-item>
 </ui-accordion>`,
     ),
+    {
+      ...sample(
+        "Interactive panels",
+        `<ui-accordion mode="multiple" bordered><ui-accordion-item title="What can a panel contain?" value="content" open><div class="mash-stack"><p>Panels can contain inputs, independent controls, nested disclosures, or a composed preview. These controls keep their values when the panel closes.</p><ui-input id="panel-title" label="Preview title" value="Weekly review"></ui-input><ui-switch id="panel-details" checked>Show the description</ui-switch><ui-checkbox id="panel-notify" checked>Notify collaborators</ui-checkbox><ui-card><strong slot="title" id="panel-preview-title">Weekly review</strong><p id="panel-preview-description">A focused place to review the work with your team.</p><output slot="footer" id="panel-preview-state" aria-live="polite">Collaborators will be notified.</output></ui-card></div></ui-accordion-item><ui-accordion-item title="Does closing a panel reset the form?" value="persistence"><p>No. Collapse changes visibility, while your authored content and its state stay in place. Edit the title above, close its panel, and reopen it.</p></ui-accordion-item><ui-accordion-item title="Can I use the keyboard?" value="keyboard"><p>Tab into a header and press Enter or Space to toggle it. Arrow keys move between headers; Tab reaches the controls in an expanded panel.</p></ui-accordion-item></ui-accordion>`,
+        "Use the controls to update the preview, then close and reopen the panel to verify its state stays intact.",
+      ),
+      script: `document.querySelector("#panel-title").addEventListener("input", event => {
+  document.querySelector("#panel-preview-title").textContent = event.target.value || "Untitled review";
+});
+document.querySelector("#panel-details").addEventListener("ui-switch-change", event => {
+  document.querySelector("#panel-preview-description").hidden = !event.detail.checked;
+});
+document.querySelector("#panel-notify").addEventListener("ui-checkbox-change", event => {
+  document.querySelector("#panel-preview-state").textContent = event.detail.checked ? "Collaborators will be notified." : "Notifications are off.";
+});`,
+    },
     sample(
       "Bordered",
       `<ui-accordion bordered><ui-accordion-item title="Account" value="account" open>Manage your profile and sign-in settings.</ui-accordion-item><ui-accordion-item title="Billing" value="billing">View invoices and payment methods.</ui-accordion-item><ui-accordion-item title="Managed setting" value="managed" disabled>Contact your administrator.</ui-accordion-item></ui-accordion>`,
@@ -313,10 +329,42 @@ sections.addEventListener("ui-accordion-change", event => {
     ),
   ],
   "ui-pagination": [
-    sample(
-      "Pagination",
-      `<ui-pagination total-pages="12" current-page="3" label="Results pages"></ui-pagination>`,
-    ),
+    {
+      ...sample(
+        "Pagination",
+        `<ui-card><strong slot="title">Documents</strong><ol id="page-results" class="mash-list" start="11"></ol><div slot="footer" class="mash-stack"><output id="page-status" aria-live="polite"></output><ui-pagination id="document-pages" total-pages="12" current-page="3" label="Document pages"></ui-pagination></div></ui-card>`,
+        "The owner updates the current page and its content together. First and last pages disable the corresponding navigation control.",
+      ),
+      script: `const pagination = document.querySelector("#document-pages");
+const results = document.querySelector("#page-results");
+const documents = Array.from({ length: 60 }, (_, index) => "Document " + (index + 1));
+const pageSize = 5;
+function renderPage() {
+  const start = (pagination.currentPage - 1) * pageSize;
+  results.start = start + 1;
+  results.replaceChildren(...documents.slice(start, start + pageSize).map(name => {
+    const row = document.createElement("li");
+    row.textContent = name;
+    return row;
+  }));
+  document.querySelector("#page-status").textContent = "Showing " + (start + 1) + "–" + Math.min(start + pageSize, documents.length) + " of " + documents.length;
+}
+pagination.addEventListener("ui-page-change", event => {
+  pagination.currentPage = event.detail.page;
+  renderPage();
+});
+renderPage();`,
+    },
+    {
+      ...sample(
+        "Page windows",
+        `<div class="mash-stack"><span>Start</span><ui-pagination current-page="1" total-pages="100" visible-pages="5" label="Start of results"></ui-pagination><span>Middle</span><ui-pagination current-page="50" total-pages="100" visible-pages="7" label="Middle of results"></ui-pagination><span>End</span><ui-pagination current-page="100" total-pages="100" visible-pages="5" label="End of results"></ui-pagination><span>Unavailable</span><ui-pagination current-page="3" total-pages="12" disabled label="Unavailable results"></ui-pagination></div>`,
+        "Ellipses keep long result sets compact. Each enabled paginator keeps its own page state.",
+      ),
+      script: `document.querySelectorAll("ui-pagination").forEach(pagination => {
+  pagination.addEventListener("ui-page-change", event => { pagination.currentPage = event.detail.page; });
+});`,
+    },
   ],
   "ui-badge": [
     sample(
@@ -370,8 +418,8 @@ sections.addEventListener("ui-accordion-change", event => {
   ...navigationExamples,
 };
 
+Object.assign(componentExamples, refinements);
+
 for (const [tag, examples] of Object.entries(patternExamples)) {
   componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
 }
-
-Object.assign(componentExamples, refinements);

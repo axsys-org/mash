@@ -40,7 +40,7 @@
     "//test:browser": "An alias for `test`, named for what it is: component tests in a real browser. CI uses the explicit name.",
     "test:browser": "pnpm run test",
     "test:integration": "pnpm --filter @mash/integration-tests test",
-    "test:catalogue": "pnpm --filter @mash/visual-tests exec playwright test specs/portable-examples.spec.ts specs/example-variants.spec.ts specs/catalogue-conformance.spec.ts specs/catalog-shell.spec.ts specs/slots.spec.ts specs/resizable.spec.ts specs/parity-interactions.spec.ts --workers=2",
+    "test:catalogue": "pnpm --filter @mash/visual-tests exec playwright test specs/portable-examples.spec.ts specs/example-variants.spec.ts specs/catalogue-conformance.spec.ts specs/catalog-shell.spec.ts specs/slots.spec.ts specs/resizable.spec.ts specs/parity-interactions.spec.ts specs/composer-pattern.spec.ts specs/preview-window.spec.ts --workers=2",
     "//test:visual": "Screenshot baselines are platform-specific; see tests/visual/README.md before running this outside CI.",
     "test:visual": "pnpm --filter @mash/visual-tests test",
     "clean": "pnpm -r run clean && rm -rf node_modules/.vite"

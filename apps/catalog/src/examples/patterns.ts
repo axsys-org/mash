@@ -1,8 +1,10 @@
 import type { CatalogExample } from "../examples.js";
+import { composerExamples } from "./composer.js";
 import { sample } from "./shared.js";
 
 /** Focused compositions using native semantics and existing component parts. */
 export const patternExamples: Record<string, CatalogExample[]> = {
+  "ui-textarea": composerExamples,
   "ui-card": [
     sample(
       "Description list",
@@ -16,6 +18,37 @@ export const patternExamples: Record<string, CatalogExample[]> = {
       `<div class="mash-avatar-group" role="group" aria-label="Project members"><ui-avatar alt="Alex">AL</ui-avatar><ui-avatar alt="Sam">SA</ui-avatar><ui-avatar alt="Morgan">MO</ui-avatar><ui-avatar alt="Three more members">+3</ui-avatar></div>`,
       "Name every person with alt; the fallback remains visible when an image fails.",
     ),
+    {
+      ...sample(
+        "Group limits",
+        `<div id="limited-members" class="mash-avatar-group" role="group" aria-label="Team members"></div><ui-slider id="member-limit" label="Visible members" min="1" max="6" step="1" value="3"></ui-slider><ui-switch id="member-ellipsis">Use an ellipsis for overflow</ui-switch><output id="member-count" aria-live="polite"></output>`,
+        "The composition owns the member list and visible limit. Overflow retains the names of hidden members in its accessible label.",
+      ),
+      script: `const members = ["Alex Morgan", "Sam Rivera", "Jo Chen", "Robin Lee", "Morgan Park", "Taylor Reed"];
+const group = document.querySelector("#limited-members");
+const limitControl = document.querySelector("#member-limit");
+const ellipsis = document.querySelector("#member-ellipsis");
+function renderMembers() {
+  const limit = Math.max(1, Math.min(members.length, limitControl.value));
+  const avatars = members.slice(0, limit).map(name => {
+    const avatar = document.createElement("ui-avatar");
+    avatar.alt = name;
+    return avatar;
+  });
+  const hidden = members.slice(limit);
+  if (hidden.length) {
+    const overflow = document.createElement("ui-avatar");
+    overflow.alt = hidden.length + " more members: " + hidden.join(", ");
+    overflow.textContent = ellipsis.checked ? "…" : "+" + hidden.length;
+    avatars.push(overflow);
+  }
+  group.replaceChildren(...avatars);
+  document.querySelector("#member-count").textContent = limit + " of " + members.length + " members visible";
+}
+limitControl.addEventListener("ui-slider-input", renderMembers);
+ellipsis.addEventListener("ui-switch-change", renderMembers);
+renderMembers();`,
+    },
   ],
   "ui-command": [
     {
