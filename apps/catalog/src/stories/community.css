@@ -216,10 +216,12 @@
 }
 .community-app .community-channel-symbol {
   flex: none;
-  inline-size: 15px;
-  opacity: 0.7;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 20px;
+  color: var(--color-text-muted);
   text-align: center;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 400;
 }
 .community-app .community-channel-name {
@@ -403,7 +405,7 @@
 .community-app .community-message-text {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.65;
   color: var(--color-text);
 }
@@ -416,13 +418,13 @@
 .community-app .community-message-meta > ui-button::part(control) {
   padding: 0;
   min-block-size: 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   border: 0;
 }
 .community-app .community-message-meta time,
 .community-app .community-message-meta > span {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -1136,4 +1138,21 @@
   font-size: 11px;
   padding: 6px 12px;
   box-shadow: 0 3px 14px color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+
+.community-app ui-button:has(> ui-icon:only-child)::part(control) {
+  inline-size: 32px;
+  min-inline-size: 32px;
+  min-block-size: 32px;
+  padding: 6px;
+}
+.community-app .community-channel-row > ui-button::part(control) {
+  min-block-size: 36px;
+}
+.community-app .community-room-mark {
+  display: inline-grid;
+  place-items: center;
+}
+.community-app .community-room-mark ui-icon {
+  font-size: 24px;
 }

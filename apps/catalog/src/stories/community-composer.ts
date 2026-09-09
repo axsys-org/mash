@@ -1,3 +1,4 @@
+import "@mash/ui/icon";
 import type { UITextarea } from "@mash/ui/textarea";
 import type { UIButton } from "@mash/ui/button";
 import type { Draft } from "./community-state.js";
@@ -17,7 +18,7 @@ export function mountComposer(
   },
 ): { refresh: () => void; focus: () => void; dispose: () => void } {
   const controller = new AbortController();
-  root.innerHTML = `<form class="community-composer mash-composer" aria-label="Message composer"><div class="community-quote" hidden><span></span><ui-button type="button" size="xsmall" variant="ghost" data-unquote aria-label="Remove quoted message">×</ui-button></div><div class="mash-composer-context" hidden></div><ui-textarea rows="2"></ui-textarea><div class="mash-composer-toolbar"><ui-button type="button" variant="ghost" size="small" data-attach aria-label="Attach files">＋</ui-button><input type="file" multiple hidden aria-label="Choose attachments"><span class="community-composer-hint"></span><span class="mash-composer-spacer"></span><ui-button type="button" variant="ghost" size="small" data-expand aria-label="Expand composer">↗</ui-button><ui-button type="submit" size="small" variant="primary" data-send aria-label="Send message">↑</ui-button></div></form>`;
+  root.innerHTML = `<form class="community-composer mash-composer" aria-label="Message composer"><div class="community-quote" hidden><span></span><ui-button type="button" size="xsmall" variant="ghost" data-unquote aria-label="Remove quoted message"><ui-icon name="action.dismiss"></ui-icon></ui-button></div><div class="mash-composer-context" hidden></div><ui-textarea rows="2"></ui-textarea><div class="mash-composer-toolbar"><ui-button type="button" variant="ghost" size="small" data-attach aria-label="Attach files"><ui-icon name="action.add"></ui-icon></ui-button><input type="file" multiple hidden aria-label="Choose attachments"><span class="community-composer-hint"></span><span class="mash-composer-spacer"></span><ui-button type="button" variant="ghost" size="small" data-expand aria-label="Expand composer"><ui-icon name="action.fit"></ui-icon></ui-button><ui-button type="submit" size="small" variant="primary" data-send aria-label="Send message"><ui-icon name="navigation.up"></ui-icon></ui-button></div></form>`;
   const form = root.querySelector("form")!;
   const textarea = root.querySelector<UITextarea>("ui-textarea")!;
   textarea.label = options.label;
@@ -51,7 +52,7 @@ export function mountComposer(
         remove.type = "button";
         remove.variant = "ghost";
         remove.size = "xsmall";
-        remove.textContent = "×";
+        remove.innerHTML = '<ui-icon name="action.dismiss" size="small"></ui-icon>';
         remove.dataset.removeFile = id;
         remove.setAttribute("aria-label", `Remove ${options.attachmentName(id)}`);
         chip.append(label, remove);

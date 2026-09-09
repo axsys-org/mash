@@ -23,6 +23,7 @@ The mixed final checkpoint was reconstructed as four commits: button disclosure 
 | `codex/stack/preview-stability`   | `codex/stack/motion`              |
 | `codex/stack/test-streamline`     | `codex/stack/preview-stability`   |
 | `codex/stack/icon-layout`         | `codex/stack/test-streamline`     |
+| `codex/stack/commons-polish`      | `codex/stack/icon-layout`         |
 
 The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. It must be reviewed and landed as a prerequisite.
 

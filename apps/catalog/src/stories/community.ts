@@ -1,4 +1,5 @@
 import "@mash/ui/button";
+import "@mash/ui/icon";
 import "@mash/ui/input";
 import "@mash/ui/textarea";
 import "@mash/ui/avatar";
@@ -34,6 +35,16 @@ import {
 import { mountComposer } from "./community-composer.js";
 import "./community.css";
 
+const roomIcons = {
+  pin: "m16 3 5 5-4 2-3 5-1 4-3-3-6 6 6-6-3-3 4-1 5-3z",
+  reply: "m9 5-6 6 6 6M3 11h10a8 8 0 0 1 8 8",
+  heart:
+    "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z",
+  panel: "M3 4h18v16H3zM15 4v16",
+};
+const roomIcon = (name: keyof typeof roomIcons) =>
+  `<ui-icon><svg slot="primary" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${roomIcons[name]}"></path></svg></ui-icon>`;
+
 const storageKey = "mash.story.community.v1";
 const escape = (value: string) =>
   value
@@ -42,7 +53,12 @@ const escape = (value: string) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 const symbol = (channel: Channel) =>
-  ({ chat: "#", gallery: "▧", notebook: "▤", dm: "@" })[channel.kind];
+  ({
+    chat: "#",
+    gallery: '<ui-icon name="object.image"></ui-icon>',
+    notebook: '<ui-icon name="object.document"></ui-icon>',
+    dm: "@",
+  })[channel.kind];
 const sizeLabel = (size: number) =>
   size < 1024
     ? `${size} B`
@@ -86,7 +102,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   const app = document.createElement("div");
   app.className = "community-app";
   app.dataset.mashCatalogue = "mash";
-  app.innerHTML = `<div class="community-topbar"><ui-button variant="ghost" size="small" data-action="sidebar" aria-label="Toggle channel sidebar">☰</ui-button><span class="community-workspace-mark">f</span><strong data-workspace></strong><span class="community-topbar-divider">/</span><span class="community-topbar-context">Community</span><div class="community-flex"></div><ui-button class="community-search-button" variant="ghost" size="small" data-action="search"><span>Search this space</span><kbd>⌘ K</kbd></ui-button><ui-button variant="ghost" size="small" data-action="settings" aria-label="Community settings">⚙</ui-button></div><ui-resizable class="community-panels" label="Community workspace"><ui-resizable-panel class="community-sidebar-panel" size="232" min="184" max="340"><aside class="community-sidebar" aria-label="Channels and direct messages"></aside></ui-resizable-panel><ui-resizable-handle class="community-sidebar-handle" label="Resize channel sidebar"></ui-resizable-handle><ui-resizable-panel class="community-main-panel" min="260"><main class="community-main"><header class="community-channel-header"></header><div class="community-conversation"></div><div class="community-main-composer"></div></main></ui-resizable-panel><ui-resizable-handle class="community-inspector-handle" label="Resize conversation details"></ui-resizable-handle><ui-resizable-panel class="community-inspector-panel" size="302" min="250" max="460"><aside class="community-inspector" aria-label="Conversation details"></aside></ui-resizable-panel></ui-resizable><div class="community-toast" role="status" aria-live="polite" hidden></div><ui-dialog class="community-dialog" label="Community action"></ui-dialog>`;
+  app.innerHTML = `<div class="community-topbar"><ui-button variant="ghost" size="small" data-action="sidebar" aria-label="Toggle channel sidebar"><ui-icon name="navigation.menu"></ui-icon></ui-button><span class="community-workspace-mark">f</span><strong data-workspace></strong><span class="community-topbar-divider">/</span><span class="community-topbar-context">Community</span><div class="community-flex"></div><ui-button class="community-search-button" variant="ghost" size="small" data-action="search"><ui-icon name="action.search"></ui-icon><span>Search this space</span><kbd>⌘ K</kbd></ui-button><ui-button variant="ghost" size="small" data-action="settings" aria-label="Community settings"><ui-icon name="action.settings"></ui-icon></ui-button></div><ui-resizable class="community-panels" label="Community workspace"><ui-resizable-panel class="community-sidebar-panel" size="232" min="184" max="340"><aside class="community-sidebar" aria-label="Channels and direct messages"></aside></ui-resizable-panel><ui-resizable-handle class="community-sidebar-handle" label="Resize channel sidebar"></ui-resizable-handle><ui-resizable-panel class="community-main-panel" min="260"><main class="community-main"><header class="community-channel-header"></header><div class="community-conversation"></div><div class="community-main-composer"></div></main></ui-resizable-panel><ui-resizable-handle class="community-inspector-handle" label="Resize conversation details"></ui-resizable-handle><ui-resizable-panel class="community-inspector-panel" size="302" min="250" max="460"><aside class="community-inspector" aria-label="Conversation details"></aside></ui-resizable-panel></ui-resizable><div class="community-toast" role="status" aria-live="polite" hidden></div><ui-dialog class="community-dialog" label="Community action"></ui-dialog>`;
   root.replaceChildren(app);
   const query = <T extends Element = HTMLElement>(selector: string) =>
     app.querySelector<T>(selector)!;
@@ -153,7 +169,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   }
   function channelRow(channel: Channel): string {
     const unread = model.unread(channel);
-    return `<div class="community-channel-row" draggable="true" data-channel-drag="${channel.id}"><ui-button variant="ghost" size="small" data-action="channel:${channel.id}" ${current().id === channel.id ? 'aria-current="page"' : ""}><span class="community-channel-symbol">${symbol(channel)}</span><span class="community-channel-name">${escape(channel.name)}</span>${unread ? `<span class="community-unread" aria-label="${unread} unread messages">${unread}</span>` : ""}${channel.notifications === "off" ? '<span aria-label="Muted">◌</span>' : ""}</ui-button><ui-menu label="Room actions"><ui-button slot="trigger" variant="ghost" size="xsmall" aria-label="Actions for ${escape(channel.name)}">···</ui-button>${menuItem(`${channel.pinned ? "Unpin" : "Pin"} room`, `pin-channel:${channel.id}`)}${menuItem("Mark unread", `unread:${channel.id}`)}${menuItem("Move up", `move-up:${channel.id}`)}${menuItem("Move down", `move-down:${channel.id}`)}${menuItem("Room settings", `channel-settings:${channel.id}`)}</ui-menu></div>`;
+    return `<div class="community-channel-row" draggable="true" data-channel-drag="${channel.id}"><ui-button variant="ghost" size="small" data-action="channel:${channel.id}" ${current().id === channel.id ? 'aria-current="page"' : ""}><span class="community-channel-symbol">${symbol(channel)}</span><span class="community-channel-name">${escape(channel.name)}</span>${unread ? `<span class="community-unread" aria-label="${unread} unread messages">${unread}</span>` : ""}${channel.notifications === "off" ? '<span aria-label="Muted">◌</span>' : ""}</ui-button><ui-menu label="Room actions"><ui-button slot="trigger" variant="ghost" size="xsmall" aria-label="Actions for ${escape(channel.name)}"><ui-icon name="navigation.more.horizontal"></ui-icon></ui-button>${menuItem(`${channel.pinned ? "Unpin" : "Pin"} room`, `pin-channel:${channel.id}`)}${menuItem("Mark unread", `unread:${channel.id}`)}${menuItem("Move up", `move-up:${channel.id}`)}${menuItem("Move down", `move-down:${channel.id}`)}${menuItem("Room settings", `channel-settings:${channel.id}`)}</ui-menu></div>`;
   }
   function menuItem(label: string, command: string): string {
     return `<ui-menu-item value="${command}">${escape(label)}</ui-menu-item>`;
@@ -166,7 +182,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     ];
     const self = state.members.find((m) => m.id === state.selfId)!;
     query(".community-sidebar").innerHTML =
-      `<div class="community-sidebar-heading"><span>YOUR SPACE</span><ui-button variant="ghost" size="xsmall" data-action="new-channel" aria-label="Create room">＋</ui-button></div><div class="community-sidebar-scroll">${pinned.length ? `<section><h3>Pinned</h3>${pinned.map(channelRow).join("")}</section>` : ""}${sections
+      `<div class="community-sidebar-heading"><span>YOUR SPACE</span><ui-button variant="ghost" size="xsmall" data-action="new-channel" aria-label="Create room"><ui-icon name="action.add"></ui-icon></ui-button></div><div class="community-sidebar-scroll">${pinned.length ? `<section><h3>Pinned</h3>${pinned.map(channelRow).join("")}</section>` : ""}${sections
         .map(
           (section) =>
             `<section data-channel-section="${escape(section)}"><h3>${escape(section)}</h3>${channels
@@ -176,24 +192,24 @@ export async function mount(root: HTMLElement): Promise<() => void> {
         )
         .join(
           "",
-        )}<section><h3>Direct messages<ui-button variant="ghost" size="xsmall" data-action="new-dm" aria-label="New direct message">＋</ui-button></h3>${channels
+        )}<section><h3>Direct messages<ui-button variant="ghost" size="xsmall" data-action="new-dm" aria-label="New direct message"><ui-icon name="action.add"></ui-icon></ui-button></h3>${channels
         .filter((c) => c.kind === "dm" && !c.pinned)
         .map(channelRow)
         .join(
           "",
-        )}</section><ui-button class="community-archive-link" variant="ghost" size="small" data-action="archive-list">Archived rooms${state.channels.some((c) => c.archived) ? ` · ${state.channels.filter((c) => c.archived).length}` : ""}</ui-button></div><footer><ui-button variant="ghost" data-action="profile:${self.id}" aria-label="Your profile"><ui-avatar size="small" alt="${escape(self.name)}">${escape(self.initials)}</ui-avatar><span><strong>${escape(self.name)}</strong><small>${escape(self.role)}</small></span></ui-button><ui-button variant="ghost" size="small" data-action="settings" aria-label="Preferences">⚙</ui-button></footer>`;
+        )}</section><ui-button class="community-archive-link" variant="ghost" size="small" data-action="archive-list">Archived rooms${state.channels.some((c) => c.archived) ? ` · ${state.channels.filter((c) => c.archived).length}` : ""}</ui-button></div><footer><ui-button variant="ghost" data-action="profile:${self.id}" aria-label="Your profile"><ui-avatar size="small" alt="${escape(self.name)}">${escape(self.initials)}</ui-avatar><span><strong>${escape(self.name)}</strong><small>${escape(self.role)}</small></span></ui-button><ui-button variant="ghost" size="small" data-action="settings" aria-label="Preferences"><ui-icon name="action.settings"></ui-icon></ui-button></footer>`;
   }
   function renderHeader(): void {
     const channel = current();
     query(".community-channel-header").innerHTML =
-      `<span class="community-channel-icon">${symbol(channel)}</span><ui-button variant="ghost" data-action="channel-settings:${channel.id}" class="community-channel-title"><strong>${escape(channel.name)}</strong><small>${escape(channel.description || "Make this space your own")}</small></ui-button><div class="community-flex"></div><ui-button variant="ghost" size="small" data-action="pins" aria-label="Pinned messages">⌖</ui-button><ui-button variant="ghost" size="small" data-action="members" aria-label="Show members">${channel.members.length} people</ui-button><ui-button variant="ghost" size="small" data-action="inspector" aria-label="Toggle details panel">▥</ui-button><ui-menu label="Conversation actions"><ui-button slot="trigger" variant="ghost" size="small" aria-label="Conversation actions">···</ui-button>${menuItem("Find in conversation", "channel-search")}${menuItem("Saved messages", "saved")}${menuItem("Mark all read", "mark-read")}${menuItem(channel.notifications === "off" ? "Unmute conversation" : "Mute conversation", `mute:${channel.id}`)}${menuItem("Room settings", `channel-settings:${channel.id}`)}</ui-menu>`;
+      `<span class="community-channel-icon">${symbol(channel)}</span><ui-button variant="ghost" data-action="channel-settings:${channel.id}" class="community-channel-title"><strong>${escape(channel.name)}</strong><small>${escape(channel.description || "Make this space your own")}</small></ui-button><div class="community-flex"></div><ui-button variant="ghost" size="small" data-action="pins" aria-label="Pinned messages">${roomIcon("pin")}</ui-button><ui-button variant="ghost" size="small" data-action="members" aria-label="Show members">${channel.members.length} people</ui-button><ui-button variant="ghost" size="small" data-action="inspector" aria-label="Toggle details panel">${roomIcon("panel")}</ui-button><ui-menu label="Conversation actions"><ui-button slot="trigger" variant="ghost" size="small" aria-label="Conversation actions"><ui-icon name="navigation.more.horizontal"></ui-icon></ui-button>${menuItem("Find in conversation", "channel-search")}${menuItem("Saved messages", "saved")}${menuItem("Mark all read", "mark-read")}${menuItem(channel.notifications === "off" ? "Unmute conversation" : "Mute conversation", `mute:${channel.id}`)}${menuItem("Room settings", `channel-settings:${channel.id}`)}</ui-menu>`;
   }
   function attachmentMarkup(id: string): string {
     const item = attachment(id);
     if (!item) return "";
     const url = urlFor(id);
     const image = url && item.type.startsWith("image/");
-    return `<div class="community-file">${image ? `<button type="button" class="community-image-button" data-action="preview:${id}" aria-label="Open ${escape(item.name)}"><img src="${url}" alt="${escape(item.name)}" loading="lazy"></button>` : ""}<ui-attachment><span slot="media" aria-hidden="true">▤</span><strong slot="title">${escape(item.name)}</strong><span slot="description">${sizeLabel(item.size)}${url ? "" : " · Reattach to open after reload"}</span><ui-button slot="actions" variant="ghost" size="xsmall" data-action="preview:${id}" ${url ? "" : "disabled"}>Open</ui-button><ui-button slot="actions" variant="ghost" size="xsmall" data-action="download:${id}" aria-label="Download ${escape(item.name)}" ${url ? "" : "disabled"}>↓</ui-button></ui-attachment></div>`;
+    return `<div class="community-file">${image ? `<button type="button" class="community-image-button" data-action="preview:${id}" aria-label="Open ${escape(item.name)}"><img src="${url}" alt="${escape(item.name)}" loading="lazy"></button>` : ""}<ui-attachment><span slot="media" aria-hidden="true">▤</span><strong slot="title">${escape(item.name)}</strong><span slot="description">${sizeLabel(item.size)}${url ? "" : " · Reattach to open after reload"}</span><ui-button slot="actions" variant="ghost" size="xsmall" data-action="preview:${id}" ${url ? "" : "disabled"}>Open</ui-button><ui-button slot="actions" variant="ghost" size="xsmall" data-action="download:${id}" aria-label="Download ${escape(item.name)}" ${url ? "" : "disabled"}><ui-icon name="action.download"></ui-icon></ui-button></ui-attachment></div>`;
   }
   function messageNode(message: Message, compact = false): HTMLElement {
     const row = document.createElement("ui-message");
@@ -206,7 +222,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     });
     const replies = state.messages.filter((m) => m.parentId === message.id).length;
     const quote = state.messages.find((m) => m.id === message.quoteId);
-    row.innerHTML = `${author ? `<ui-button slot="avatar" variant="ghost" size="small" data-action="profile:${author.id}" aria-label="View ${escape(author.name)} profile"><ui-avatar size="small" alt="${escape(author.name)}">${escape(author.initials)}</ui-avatar></ui-button>` : ""}<div slot="header" class="community-message-meta"><ui-button variant="ghost" size="xsmall" data-action="profile:${message.authorId}">${escape(memberName(message.authorId))}</ui-button><time datetime="${new Date(message.createdAt).toISOString()}">${time}</time>${message.editedAt ? "<span>edited</span>" : ""}${message.pinned ? '<span title="Pinned message">⌖</span>' : ""}</div>${message.forwardedFrom ? '<small class="community-forwarded">Forwarded message</small>' : ""}${quote ? `<button class="community-quote-link" type="button" data-action="jump:${quote.id}">${escape(memberName(quote.authorId))}: ${escape(quote.text.slice(0, 100))}</button>` : ""}<ui-bubble variant="ghost"><div class="community-message-text">${escape(message.text)}</div></ui-bubble>${message.attachmentIds.map(attachmentMarkup).join("")}<div slot="footer" class="community-message-footer">${Object.entries(
+    row.innerHTML = `${author ? `<ui-button slot="avatar" variant="ghost" size="small" data-action="profile:${author.id}" aria-label="View ${escape(author.name)} profile"><ui-avatar size="medium" alt="${escape(author.name)}">${escape(author.initials)}</ui-avatar></ui-button>` : ""}<div slot="header" class="community-message-meta"><ui-button variant="ghost" size="xsmall" data-action="profile:${message.authorId}">${escape(memberName(message.authorId))}</ui-button><time datetime="${new Date(message.createdAt).toISOString()}">${time}</time>${message.editedAt ? "<span>edited</span>" : ""}${message.pinned ? '<span title="Pinned message">⌖</span>' : ""}</div>${message.forwardedFrom ? '<small class="community-forwarded">Forwarded message</small>' : ""}${quote ? `<button class="community-quote-link" type="button" data-action="jump:${quote.id}">${escape(memberName(quote.authorId))}: ${escape(quote.text.slice(0, 100))}</button>` : ""}<ui-bubble variant="ghost"><div class="community-message-text">${escape(message.text)}</div></ui-bubble>${message.attachmentIds.map(attachmentMarkup).join("")}<div slot="footer" class="community-message-footer">${Object.entries(
       message.reactions,
     )
       .map(
@@ -215,7 +231,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       )
       .join(
         "",
-      )}${replies && !compact ? `<ui-button variant="ghost" size="xsmall" data-action="thread:${message.id}">${replies} ${replies === 1 ? "reply" : "replies"} ↗</ui-button>` : ""}</div><div slot="footer" class="community-message-actions"><ui-button variant="ghost" size="xsmall" data-action="react:${message.id}:♡" aria-label="React to message">♡</ui-button><ui-button variant="ghost" size="xsmall" data-action="thread:${message.parentId ?? message.id}" aria-label="Reply in thread">↩</ui-button><ui-menu label="Message actions"><ui-button slot="trigger" variant="ghost" size="xsmall" aria-label="More message actions">···</ui-button>${menuItem("Quote reply", `quote:${message.id}`)}${menuItem("Forward", `forward:${message.id}`)}${menuItem(message.saved ? "Remove from saved" : "Save message", `save-message:${message.id}`)}${menuItem(message.pinned ? "Unpin message" : "Pin message", `pin-message:${message.id}`)}${menuItem("Copy text", `copy:${message.id}`)}${message.authorId === state.selfId ? menuItem("Edit message", `edit:${message.id}`) + menuItem("Delete message", `delete:${message.id}`) : ""}</ui-menu></div>`;
+      )}${replies && !compact ? `<ui-button variant="ghost" size="xsmall" data-action="thread:${message.id}">${replies} ${replies === 1 ? "reply" : "replies"} ↗</ui-button>` : ""}</div><div slot="footer" class="community-message-actions"><ui-button variant="ghost" size="xsmall" data-action="react:${message.id}:♡" aria-label="React to message">${roomIcon("heart")}</ui-button><ui-button variant="ghost" size="xsmall" data-action="thread:${message.parentId ?? message.id}" aria-label="Reply in thread">${roomIcon("reply")}</ui-button><ui-menu label="Message actions"><ui-button slot="trigger" variant="ghost" size="xsmall" aria-label="More message actions"><ui-icon name="navigation.more.horizontal"></ui-icon></ui-button>${menuItem("Quote reply", `quote:${message.id}`)}${menuItem("Forward", `forward:${message.id}`)}${menuItem(message.saved ? "Remove from saved" : "Save message", `save-message:${message.id}`)}${menuItem(message.pinned ? "Unpin message" : "Pin message", `pin-message:${message.id}`)}${menuItem("Copy text", `copy:${message.id}`)}${message.authorId === state.selfId ? menuItem("Edit message", `edit:${message.id}`) + menuItem("Delete message", `delete:${message.id}`) : ""}</ui-menu></div>`;
     return row;
   }
   function renderTimeline(): void {
@@ -375,7 +391,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     const panel = query(".community-inspector");
     const channel = current();
     if (inspectorMode === "thread" && threadId) {
-      panel.innerHTML = `<header><strong>Thread</strong><span class="community-thread-count"></span><ui-button variant="ghost" size="small" data-action="close-thread" aria-label="Close thread">×</ui-button></header><div class="community-thread-context"></div><ui-message-scroller class="community-thread-scroller" label="Thread replies"><span slot="empty" class="community-empty">Be the first to reply.</span></ui-message-scroller><div class="community-thread-composer"></div>`;
+      panel.innerHTML = `<header><strong>Thread</strong><span class="community-thread-count"></span><ui-button variant="ghost" size="small" data-action="close-thread" aria-label="Close thread"><ui-icon name="action.dismiss"></ui-icon></ui-button></header><div class="community-thread-context"></div><ui-message-scroller class="community-thread-scroller" label="Thread replies"><span slot="empty" class="community-empty">Be the first to reply.</span></ui-message-scroller><div class="community-thread-composer"></div>`;
       query<UIMessageScroller>(".community-thread-scroller").renderMessage = (record) =>
         messageNode(record as unknown as Message, true);
       renderThreadMessages();
@@ -386,10 +402,10 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       const messages = state.messages.filter((m) =>
         inspectorMode === "saved" ? m.saved : m.channelId === channel.id && m.pinned,
       );
-      panel.innerHTML = `<header><strong>${inspectorMode === "saved" ? "Saved messages" : "Pinned messages"}</strong><ui-button variant="ghost" size="small" data-action="members" aria-label="Back to members">×</ui-button></header><div class="community-inspector-scroll">${messages.map((m) => `<button type="button" class="community-result" data-action="jump:${m.id}"><strong>${escape(memberName(m.authorId))}</strong><span>${escape(m.text.slice(0, 180))}</span><small>${escape(model.channel(m.channelId).name)}</small></button>`).join("") || '<div class="community-empty">Keep useful messages close. Open a message menu to add one here.</div>'}</div>`;
+      panel.innerHTML = `<header><strong>${inspectorMode === "saved" ? "Saved messages" : "Pinned messages"}</strong><ui-button variant="ghost" size="small" data-action="members" aria-label="Back to members"><ui-icon name="action.dismiss"></ui-icon></ui-button></header><div class="community-inspector-scroll">${messages.map((m) => `<button type="button" class="community-result" data-action="jump:${m.id}"><strong>${escape(memberName(m.authorId))}</strong><span>${escape(m.text.slice(0, 180))}</span><small>${escape(model.channel(m.channelId).name)}</small></button>`).join("") || '<div class="community-empty">Keep useful messages close. Open a message menu to add one here.</div>'}</div>`;
       return;
     }
-    panel.innerHTML = `<header><strong>About this room</strong><ui-button variant="ghost" size="small" data-action="inspector" aria-label="Close details">×</ui-button></header><div class="community-inspector-scroll"><div class="community-room-summary"><span class="community-room-mark">${symbol(channel)}</span><h2>${escape(channel.name)}</h2><p>${escape(channel.description)}</p><ui-button size="small" variant="ghost" data-action="channel-settings:${channel.id}">Edit room details ↗</ui-button></div><div class="community-members-heading"><h3>People <span>${channel.members.length}</span></h3><ui-button variant="ghost" size="xsmall" data-action="manage-members:${channel.id}" aria-label="Manage room members">＋</ui-button></div>${channel.members
+    panel.innerHTML = `<header><strong>About this room</strong><ui-button variant="ghost" size="small" data-action="inspector" aria-label="Close details"><ui-icon name="action.dismiss"></ui-icon></ui-button></header><div class="community-inspector-scroll"><div class="community-room-summary"><span class="community-room-mark">${symbol(channel)}</span><h2>${escape(channel.name)}</h2><p>${escape(channel.description)}</p><ui-button size="small" variant="ghost" data-action="channel-settings:${channel.id}">Edit room details ↗</ui-button></div><div class="community-members-heading"><h3>People <span>${channel.members.length}</span></h3><ui-button variant="ghost" size="xsmall" data-action="manage-members:${channel.id}" aria-label="Manage room members"><ui-icon name="action.add"></ui-icon></ui-button></div>${channel.members
       .map((id) => {
         const member = state.members.find((m) => m.id === id);
         return member
