@@ -2,6 +2,7 @@ import type { ComponentSchema } from "./schema.js";
 import { catalogue } from "virtual:mash/catalog-index";
 import { formatMarkup } from "./format-markup.js";
 import type { UIOption, UISelect } from "@mash/ui";
+import { exampleScript } from "./example-script.js";
 import { siteHeader } from "./site-header.js";
 
 export const nameOf = (tag: string) =>
@@ -198,6 +199,24 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
     },
     { signal: abort.signal },
   );
+  if (
+    new URL(location.href).searchParams.get("preview") === "shared" &&
+    ["ui-tabs", "ui-chart"].includes(component.tagName)
+  ) {
+    const { mountSharedPreview } = await import("./shared-preview.js");
+    if (abort.signal.aborted) return;
+    mountSharedPreview(
+      target,
+      component.tagName,
+      variants,
+      root.querySelector(".page-index")!,
+      zoom,
+      restorePreview,
+      abort.signal,
+    );
+    preview.after(api(component));
+    return;
+  }
   const requested = new URL(location.href).searchParams.get("example");
   const selectedVariant = variants.find((variant) => variant.name === requested) ?? variants[0];
   variants.forEach((variant, index) => {
@@ -218,9 +237,10 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
     const details = node("details", "reference-code");
     details.append(node("summary", "", "Code"));
     const code = node("pre");
+    const scriptSource = exampleScript(variant);
     const prepareCode = () => {
       if (!code.textContent)
-        code.textContent = `import "@mash/ui";\nimport "@mash/tokens/tokens.css";\nimport "@mash/ui/catalogue/mash.css";\n\n${formatMarkup(variant.code)}${variant.script ? `\n\n<script type="module">\n${variant.script}\n</script>` : ""}`;
+        code.textContent = `import "@mash/ui";\nimport "@mash/tokens/tokens.css";\nimport "@mash/ui/catalogue/mash.css";\n\n${formatMarkup(variant.code)}${scriptSource ? `\n\n<script type="module">\n${scriptSource}\n</script>` : ""}`;
     };
     details.addEventListener(
       "toggle",
@@ -344,12 +364,12 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
             { signal: abort.signal },
           );
         }
-        if (variant.script) {
+        if (scriptSource) {
           doc.documentElement.dataset.exampleReady = "loading";
           const script = doc.createElement("script");
           script.type = "module";
           script.textContent =
-            variant.script + '\n;document.documentElement.dataset.exampleReady = "true";';
+            scriptSource + '\n;document.documentElement.dataset.exampleReady = "true";';
           doc.body.append(script);
         } else doc.documentElement.dataset.exampleReady = "true";
         const modalSurfaces: { popup: HTMLElement; backdrop: HTMLElement }[] = [];

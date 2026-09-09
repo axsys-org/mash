@@ -67,7 +67,15 @@ export const pages = components.filter(component => component.packageName === "@
           .join(",")}};`;
       }
       const selectedPage = pages.find((page) => id === `\0${pagePrefix}${page.component.tagName}`);
-      if (selectedPage) return `export default ${JSON.stringify(selectedPage)};`;
+      if (selectedPage) {
+        const variants = selectedPage.variants.map((variant) => {
+          const json = JSON.stringify(variant);
+          return variant.scoped && variant.script
+            ? `${json.slice(0, -1)},mount:(root,signal)=>{${variant.script}\n}}`
+            : json;
+        });
+        return `export default {component:${JSON.stringify(selectedPage.component)},variants:[${variants.join(",")}]};`;
+      }
       return null;
     },
     configureServer(server) {

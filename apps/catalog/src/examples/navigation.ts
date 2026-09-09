@@ -80,17 +80,18 @@ export const navigationExamples: Record<string, CatalogExample[]> = {
 </ui-tabs><div class="mash-row"><ui-button id="undo-order" outline disabled>Undo move</ui-button><ui-button id="reset-order" variant="ghost">Reset order</ui-button><output id="order-status" aria-live="polite">Notes · Tasks · Plan · Archive</output></div></div>`,
         "Drag a tab or focus it and press Alt+Shift+Arrow. Home and End with the same modifiers move to either edge. Edit a draft, reorder, then undo.",
       ),
-      script: `const tabs = document.querySelector("#reorder-tabs");
+      scoped: true,
+      script: `const tabs = root.querySelector("#reorder-tabs");
 const initial = tabs.getOrder();
 let previous = null;
-const undo = document.querySelector("#undo-order");
+const undo = root.querySelector("#undo-order");
 tabs.addEventListener("ui-tabs-reorder", event => {
   previous = event.detail.previous;
   undo.disabled = false;
-  document.querySelector("#order-status").textContent = event.detail.order.join(" · ");
-});
-undo.addEventListener("click", () => { if (previous) { const order = previous; tabs.setOrder(order); previous = null; undo.disabled = true; } });
-document.querySelector("#reset-order").addEventListener("click", () => tabs.setOrder(initial));`,
+  root.querySelector("#order-status").textContent = event.detail.order.join(" · ");
+}, { signal });
+undo.addEventListener("click", () => { if (previous) { const order = previous; tabs.setOrder(order); previous = null; undo.disabled = true; } }, { signal });
+root.querySelector("#reset-order").addEventListener("click", () => tabs.setOrder(initial), { signal });`,
     },
     {
       ...sample(
@@ -114,24 +115,25 @@ document.querySelector("#reset-order").addEventListener("click", () => tabs.setO
 </ui-tabs>`,
         "Drag to rearrange. Add, close, and reopen documents without losing drafts. Delete closes the focused tab; Alt+Shift+Arrow moves it.",
       ),
-      script: `const tabs = document.querySelector("#documents");
+      scoped: true,
+      script: `const tabs = root.querySelector("#documents");
 let count = 0;
 const closed = [];
-const reopen = document.querySelector("#reopen-tab");
+const reopen = root.querySelector("#reopen-tab");
 tabs.addEventListener("ui-tab-close", event => {
   const children = [...tabs.children].filter(child => child.value === event.detail.value);
   closed.push(children);
   children.forEach(child => child.remove());
   reopen.disabled = false;
-});
+}, { signal });
 reopen.addEventListener("click", () => {
   const children = closed.pop();
   if (!children) return;
   tabs.append(...children);
   tabs.value = children[0].value;
   reopen.disabled = !closed.length;
-});
-document.querySelector("#add-tab").addEventListener("click", () => {
+}, { signal });
+root.querySelector("#add-tab").addEventListener("click", () => {
   const value = "document-" + ++count;
   const tab = document.createElement("ui-tab");
   Object.assign(tab, { slot: "tab", value, closable: true, textContent: "Document " + count });
@@ -144,7 +146,7 @@ document.querySelector("#add-tab").addEventListener("click", () => {
   tabs.append(tab, panel);
   tabs.value = value;
   tab.updateComplete.then(() => tab.focus());
-});`,
+}, { signal });`,
     },
     sample(
       "Overflow",
@@ -162,15 +164,16 @@ document.querySelector("#add-tab").addEventListener("click", () => {
 </ui-tabs>`,
         "Adjacent actions move through the same selection as the tab controls. Panel edits persist while switching.",
       ),
-      script: `const tabs = document.querySelector("#navigation-tabs");
+      scoped: true,
+      script: `const tabs = root.querySelector("#navigation-tabs");
 function navigate(offset) {
   const values = tabs.getOrder();
   const index = (values.indexOf(tabs.value) + offset + values.length) % values.length;
   tabs.select(values[index]);
 }
-document.querySelector("#previous-tab").addEventListener("click", () => navigate(-1));
-document.querySelector("#next-tab").addEventListener("click", () => navigate(1));
-document.querySelector("#reset-tabs").addEventListener("click", () => { tabs.select(tabs.getOrder()[0]); });`,
+root.querySelector("#previous-tab").addEventListener("click", () => navigate(-1), { signal });
+root.querySelector("#next-tab").addEventListener("click", () => navigate(1), { signal });
+root.querySelector("#reset-tabs").addEventListener("click", () => { tabs.select(tabs.getOrder()[0]); }, { signal });`,
     },
   ],
   "ui-kbd": [

@@ -44,10 +44,11 @@ export function chartGallery(
       ...example,
       code: example.code.replace(/<script type="application\/json">[\s\S]*?<\/script>/, ""),
       description,
-      script: `const plot = document.querySelector("ui-chart");
+      scoped: true,
+      script: `const plot = root.querySelector("ui-chart");
 const source = ${JSON.stringify(option)};
 function draw() {
-  const probe = document.createElement("span"); probe.hidden = true; document.body.append(probe);
+  const probe = document.createElement("span"); probe.hidden = true; root.append(probe);
   const context = document.createElement("canvas").getContext("2d");
   function resolve(value) {
     if (Array.isArray(value)) return value.map(resolve);
@@ -63,7 +64,7 @@ function draw() {
 draw();
 const observer = new MutationObserver(draw);
 observer.observe(document.documentElement, {attributes:true, attributeFilter:["data-theme","class","style"]});
-addEventListener("pagehide", () => observer.disconnect(), {once:true});`,
+signal.addEventListener("abort", () => observer.disconnect(), {once:true});`,
     };
   };
   const pieData = months.map((name, index) => ({ name, value: desktop[index] }));

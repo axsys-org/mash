@@ -82,6 +82,7 @@ export default defineConfig({
       input: {
         index: resolve(import.meta.dirname, "index.html"),
         fixture: resolve(import.meta.dirname, "fixture.html"),
+        sharedFixture: resolve(import.meta.dirname, "shared-fixture.html"),
       },
     },
   },

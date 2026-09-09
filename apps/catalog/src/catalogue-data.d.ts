@@ -5,7 +5,10 @@ declare module "virtual:mash/catalog-index" {
     load: () => Promise<{
       default: {
         component: import("./schema.js").ComponentSchema;
-        variants: (import("./examples.js").CatalogExample & { elements: string[] })[];
+        variants: (import("./examples.js").CatalogExample & {
+          elements: string[];
+          mount?: (root: HTMLElement, signal: AbortSignal) => void;
+        })[];
       };
     }>;
   }[];
@@ -15,4 +18,9 @@ declare module "virtual:mash/element-loaders" {
 }
 interface Window {
   mashPreviewReady?: Promise<void>;
+  mashSharedPreview?: {
+    reveal: (id: string) => void;
+    zoom: (value: string) => void;
+    dispose: () => void;
+  };
 }

@@ -128,6 +128,7 @@ async function main() {
     if (
       filePath !== CATALOG_SYSTEM_ENTRY &&
       filePath !== "apps/catalog/src/fixture-stage.css" &&
+      filePath !== "apps/catalog/src/shared-fixture.css" &&
       filePath !== "apps/catalog/src/showcase.css" &&
       filePath !== "apps/catalog/src/stories.css" &&
       // Lazy application examples own their layout; promoting these styles to

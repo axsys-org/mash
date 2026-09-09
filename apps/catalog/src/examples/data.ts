@@ -64,9 +64,10 @@ const interactiveChart = (
 <output id="chart-status" aria-live="polite">Choose a plotted value to inspect it.</output>`,
     description,
   ),
-  script: `const plot = document.querySelector("#plot");
-const controls = document.querySelector("#chart-controls");
-const status = document.querySelector("#chart-status");
+  scoped: true,
+  script: `const plot = root.querySelector("#plot");
+const controls = root.querySelector("#chart-controls");
+const status = root.querySelector("#chart-status");
 const months = ${JSON.stringify(months)};
 const desktop = ${JSON.stringify(desktop)};
 const mobile = ${JSON.stringify(mobile)};
@@ -81,14 +82,14 @@ function showData(headers, rows, caption) {
     }
     return tr;
   };
-  document.querySelector("#data-head").replaceChildren(row(headers, "th"));
-  document.querySelector("#data-rows").replaceChildren(...rows.map(values => row(values, "td")));
-  document.querySelector("#data-caption").textContent = caption;
+  root.querySelector("#data-head").replaceChildren(row(headers, "th"));
+  root.querySelector("#data-rows").replaceChildren(...rows.map(values => row(values, "td")));
+  root.querySelector("#data-caption").textContent = caption;
 }
 plot.addEventListener("ui-chart-select", event => {
   const { seriesName, name, value } = event.detail;
   status.textContent = [seriesName, name, Array.isArray(value) ? value.join(", ") : value].filter(value => value !== "" && value !== undefined).join(" · ");
-});
+}, { signal });
 ${script}`,
 });
 
@@ -106,19 +107,19 @@ const chartExplorations: CatalogExample[] = [
       ]) +
       `<ui-checkbox id="dots" checked>Data points</ui-checkbox><ui-checkbox id="grid" checked>Grid lines</ui-checkbox><ui-checkbox id="legend" checked>Legend</ui-checkbox>`,
     `function render() {
-  const curve = document.querySelector("#curve").value;
-  const dots = document.querySelector("#dots").checked;
+  const curve = root.querySelector("#curve").value;
+  const dots = root.querySelector("#dots").checked;
   plot.option = {
     ...axes,
-    legend: { show: document.querySelector("#legend").checked, bottom: 0 },
+    legend: { show: root.querySelector("#legend").checked, bottom: 0 },
     grid: { bottom: 64, containLabel: true },
-    xAxis: { ...axes.xAxis, axisLabel: { interval: document.querySelector("#ticks").value === "all" ? 0 : 1 } },
-    yAxis: { ...axes.yAxis, splitLine: { show: document.querySelector("#grid").checked } },
+    xAxis: { ...axes.xAxis, axisLabel: { interval: root.querySelector("#ticks").value === "all" ? 0 : 1 } },
+    yAxis: { ...axes.yAxis, splitLine: { show: root.querySelector("#grid").checked } },
     series: [["Desktop", desktop], ["Mobile", mobile]].map(([name, data]) => ({ name, data, type: "line", smooth: curve === "smooth", step: curve === "step" ? "end" : false, showSymbol: dots }))
   };
 }
-controls.addEventListener("ui-checkbox-change", render);
-controls.addEventListener("ui-select-change", render);
+controls.addEventListener("ui-checkbox-change", render, { signal });
+controls.addEventListener("ui-select-change", render, { signal });
 showData(["Month", "Desktop", "Mobile"], months.map((month, index) => [month, desktop[index], mobile[index]]), "Monthly visits by device");
 render();`,
     "Compare linear, smooth, and stepped paths. Toggle points, grid lines, and category labels; click a legend item to hide its series.",
@@ -137,10 +138,10 @@ render();`,
       ]) +
       `<ui-checkbox id="values" checked>Value labels</ui-checkbox>`,
     `function render() {
-  const direction = document.querySelector("#direction").value;
+  const direction = root.querySelector("#direction").value;
   const horizontal = direction === "left" || direction === "right";
   const inverse = direction === "left" || direction === "down";
-  const stacked = document.querySelector("#arrangement").value === "stacked";
+  const stacked = root.querySelector("#arrangement").value === "stacked";
   const category = { type: "category", data: months, inverse: horizontal };
   const value = { type: "value", inverse };
   const positions = { up: "top", down: "bottom", left: "left", right: "right" };
@@ -150,11 +151,11 @@ render();`,
     tooltip: { trigger: "axis" },
     legend: { bottom: 0 },
     grid: { left: 52, right: 44, top: 36, bottom: 64, containLabel: true },
-    series: [["Desktop", desktop], ["Mobile", mobile]].map(([name, data]) => ({ name, data, type: "bar", stack: stacked ? "devices" : undefined, barMaxWidth: 28, itemStyle: { borderRadius: 0 }, label: { show: document.querySelector("#values").checked, position: stacked ? "inside" : positions[direction], fontSize: 11 } }))
+    series: [["Desktop", desktop], ["Mobile", mobile]].map(([name, data]) => ({ name, data, type: "bar", stack: stacked ? "devices" : undefined, barMaxWidth: 28, itemStyle: { borderRadius: 0 }, label: { show: root.querySelector("#values").checked, position: stacked ? "inside" : positions[direction], fontSize: 11 } }))
   };
 }
-controls.addEventListener("ui-checkbox-change", render);
-controls.addEventListener("ui-select-change", render);
+controls.addEventListener("ui-checkbox-change", render, { signal });
+controls.addEventListener("ui-select-change", render, { signal });
 showData(["Month", "Desktop", "Mobile"], months.map((month, index) => [month, desktop[index], mobile[index]]), "Monthly visits by device");
 render();`,
     "Change growth direction without changing the values. Grouped bars compare devices; stacked bars show their combined total.",
@@ -190,16 +191,18 @@ function seriesColor(alpha) {
   return "rgba(" + [r, g, b, alpha].join(",") + ")";
 }
 function render() {
-  const radius = Number(document.querySelector("#corners").value);
-  const fill = document.querySelector("#fill").value === "gradient" ? {
+  const radius = Number(root.querySelector("#corners").value);
+  const fill = root.querySelector("#fill").value === "gradient" ? {
     type: "linear", x: 0, y: 0, x2: 0, y2: 1,
     colorStops: [{ offset: 0, color: seriesColor(1) }, { offset: 1, color: seriesColor(0.3) }]
   } : seriesColor(1);
-  plot.option = { ...axes, series: [{ name: "Visits", type: "bar", data: desktop, barMaxWidth: Number(document.querySelector("#width").value), itemStyle: { color: fill, borderRadius: [radius, radius, 0, 0] } }] };
+  plot.option = { ...axes, series: [{ name: "Visits", type: "bar", data: desktop, barMaxWidth: Number(root.querySelector("#width").value), itemStyle: { color: fill, borderRadius: [radius, radius, 0, 0] } }] };
 }
-controls.addEventListener("ui-checkbox-change", render);
-controls.addEventListener("ui-select-change", render);
-new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+controls.addEventListener("ui-checkbox-change", render, { signal });
+controls.addEventListener("ui-select-change", render, { signal });
+const observer = new MutationObserver(render);
+observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+signal.addEventListener("abort", () => observer.disconnect(), {once:true});
 showData(["Month", "Visits"], months.map((month, index) => [month, desktop[index]]), "Monthly visits");
 render();`,
     "A gradient follows each bar's height. The fill comes from the chart color token and updates with the theme; the baseline corners stay square.",
@@ -227,19 +230,19 @@ render();`,
 const nodes = ["Visitors", "Search", "Direct", "Subscribed", "Browsing", "Exited"].map(name => ({ name }));
 function render() {
   plot.option = { series: [{ type: "sankey", data: nodes, links, left: 16, right: 128, top: 24, bottom: 24,
-    nodeAlign: document.querySelector("#alignment").value, nodeWidth: 12, nodeGap: 28,
+    nodeAlign: root.querySelector("#alignment").value, nodeWidth: 12, nodeGap: 28,
     emphasis: { focus: "adjacency" },
-    lineStyle: { color: document.querySelector("#ribbons").checked ? "gradient" : "source", opacity: 0.22, curveness: 0.5 },
+    lineStyle: { color: root.querySelector("#ribbons").checked ? "gradient" : "source", opacity: 0.22, curveness: 0.5 },
     label: { formatter: params => {
-      if (document.querySelector("#flow-labels").value === "names") return params.name;
+      if (root.querySelector("#flow-labels").value === "names") return params.name;
       const incoming = links.filter(link => link.target === params.name).reduce((sum, link) => sum + link.value, 0);
       const outgoing = links.filter(link => link.source === params.name).reduce((sum, link) => sum + link.value, 0);
       return params.name + "\\n" + Math.max(incoming, outgoing) + " visits";
     } }
   }] };
 }
-controls.addEventListener("ui-checkbox-change", render);
-controls.addEventListener("ui-select-change", render);
+controls.addEventListener("ui-checkbox-change", render, { signal });
+controls.addEventListener("ui-select-change", render, { signal });
 showData(["From", "To", "Visits"], links.map(link => [link.source, link.target, link.value]), "Visit flows; labels show the greater of incoming or outgoing volume");
 render();`,
     "Hover a node to follow its connections. Change terminal-node alignment and display throughput while retaining the original flow values.",
@@ -255,7 +258,7 @@ render();`,
 let values = [...initial];
 function render(message) {
   const days = values.map((_, index) => "Day " + (index + 1));
-  plot.renderer = document.querySelector("#renderer").value;
+  plot.renderer = root.querySelector("#renderer").value;
   plot.label = "Daily completed tasks, " + values.length + " days";
   plot.option = {
     xAxis: { type: "category", data: days, boundaryGap: false },
@@ -268,10 +271,10 @@ function render(message) {
   showData(["Day", "Completed tasks"], days.map((day, index) => [day, values[index]]), values.length ? "Completed tasks per day" : "No data. Add a day or reset to restore the sample.");
   status.textContent = message || values.length + " days · Drag the range handles to zoom. Choose a point to inspect it.";
 }
-document.querySelector("#append").addEventListener("click", () => { values.push(Math.round(32 + values.length * 2 + Math.sin(values.length * 1.7) * 12)); render("Added day " + values.length + " · " + values.at(-1) + " completed tasks"); });
-document.querySelector("#empty").addEventListener("click", () => { values = []; render("No data · Add a day or reset the sample."); });
-document.querySelector("#reset").addEventListener("click", () => { values = [...initial]; render("Reset · 7 days restored."); });
-document.querySelector("#renderer").addEventListener("ui-select-change", () => render());
+root.querySelector("#append").addEventListener("click", () => { values.push(Math.round(32 + values.length * 2 + Math.sin(values.length * 1.7) * 12)); render("Added day " + values.length + " · " + values.at(-1) + " completed tasks"); }, { signal });
+root.querySelector("#empty").addEventListener("click", () => { values = []; render("No data · Add a day or reset the sample."); }, { signal });
+root.querySelector("#reset").addEventListener("click", () => { values = [...initial]; render("Reset · 7 days restored."); }, { signal });
+root.querySelector("#renderer").addEventListener("ui-select-change", () => render(), { signal });
 render();`,
     "Append data, inspect a point, zoom the time range, and switch SVG/canvas. The accessible data table always follows the current values; Reset restores seven days.",
   ),

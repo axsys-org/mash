@@ -1,3 +1,4 @@
+import { exampleScript } from "./example-script.js";
 import { formatMarkup } from "./format-markup.js";
 import { buildBadge } from "./build-info.js";
 import { controlsFor, defaultState, type Control } from "./controls.js";
@@ -645,7 +646,7 @@ async function syncStage(current: Mounted, component: ComponentSchema, state: St
     if (example.script) {
       const script = doc.createElement("script");
       script.type = "module";
-      script.textContent = example.script;
+      script.textContent = exampleScript(example)!;
       doc.body.append(script);
     }
   } else {
@@ -976,7 +977,7 @@ function belowStage(
         ? el(
             "pre",
             { class: "code" },
-            el("code", { text: exampleNamed(component, state.example)!.script }),
+            el("code", { text: exampleScript(exampleNamed(component, state.example)!) }),
           )
         : null,
       el("button", {
@@ -984,7 +985,8 @@ function belowStage(
         class: "copy-link",
         text: "Copy example",
         onclick: async (event: Event) => {
-          const script = exampleNamed(component, state.example)?.script;
+          const selected = exampleNamed(component, state.example);
+          const script = selected ? exampleScript(selected) : undefined;
           await navigator.clipboard.writeText(
             formatMarkup(markupFor(component, state)) +
               (script ? '\n\n<script type="module">\n' + script + "\n</script>" : ""),

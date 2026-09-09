@@ -1,0 +1,50 @@
+html {
+  background: var(--color-canvas);
+  color: var(--color-text);
+  scrollbar-width: thin;
+}
+body {
+  margin: 0;
+  font: var(--type-body-font-weight) var(--type-body-font-size)/var(--type-body-line-height)
+    var(--type-body-font-family);
+}
+.shared-examples {
+  padding: 24px;
+}
+.shared-section {
+  margin-bottom: 30px;
+  scroll-margin-top: 24px;
+}
+h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+.variant-description {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 12px;
+}
+.reference-code {
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+}
+summary {
+  padding: 10px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 12px;
+  background: var(--color-surface);
+}
+.reference-code button {
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  padding: 4px 8px;
+}

@@ -12,6 +12,8 @@ export interface CatalogExample extends Example {
   portable?: boolean;
   /** Portable browser JavaScript shown alongside the markup. */
   script?: string;
+  /** Setup body receives an example-local root and an abort signal. */
+  scoped?: boolean;
   /**
    * This component is only meaningful as an authored composition. Hiding the
    * isolated-preview toggle avoids manufacturing invalid placeholder children
