@@ -1,3 +1,4 @@
+import { motionTiming, exitFallbackMs } from "./timing.js";
 import { describe, expect, it } from "vitest";
 
 import { fixture, inShadow, settled } from "../test-support/fixture.js";
@@ -185,4 +186,14 @@ describe("ui-motion", () => {
       true,
     );
   });
+});
+
+it("resolves shared entry and faster exit timing, including authored overrides", async () => {
+  const scene = await fixture<HTMLElement>(
+    '<div style="--duration-moderate-exit: 90ms; --easing-settle: linear"></div>',
+  );
+  expect(motionTiming("fast").duration).toBe(80);
+  expect(motionTiming("slow", "exit").duration).toBe(160);
+  expect(motionTiming("moderate", "exit", scene)).toMatchObject({ duration: 90, easing: "linear" });
+  expect(exitFallbackMs("moderate", scene)).toBe(190);
 });

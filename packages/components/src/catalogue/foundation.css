@@ -1272,6 +1272,7 @@
 
 @layer mash.catalogue {
   :where([data-mash-catalogue="mash"]) ui-motion.mash-hover {
+    --duration-control: var(--duration-fast-enter);
     display: block;
     position: relative;
   }
@@ -1296,6 +1297,36 @@
   }
   @media (prefers-reduced-motion: reduce) {
     :where([data-mash-catalogue="mash"]) .mash-hover-highlight {
+      transition: none;
+    }
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) .mash-weight {
+    display: inline-grid;
+    vertical-align: baseline;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-weight::after {
+    content: attr(data-text);
+    grid-area: 1 / 1;
+    visibility: hidden;
+    pointer-events: none;
+    font-weight: var(--type-heading-font-weight);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-weight > span {
+    grid-area: 1 / 1;
+    font-weight: var(--type-body-font-weight);
+    transition: font-weight var(--duration-fast-enter) var(--easing-settle);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-weight[data-weight-active] > span,
+  :where([data-mash-catalogue="mash"]) ui-switch[checked] .mash-weight > span,
+  :where([data-mash-catalogue="mash"]) ui-button:hover .mash-weight > span,
+  :where([data-mash-catalogue="mash"]) ui-button:focus-within .mash-weight > span {
+    font-weight: var(--type-heading-font-weight);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) .mash-weight > span {
       transition: none;
     }
   }

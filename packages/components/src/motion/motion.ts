@@ -3,6 +3,7 @@ import { LitElement, css, html, type PropertyValues, type TemplateResult } from 
 import { baseStyles } from "../internal/base-styles.js";
 import { HoverController, type HoverOptions } from "./hover.js";
 export type { HoverOptions } from "./hover.js";
+export { motionTiming, exitFallbackMs, type MotionTier } from "./timing.js";
 
 import { MotionLifecycleController } from "../internal/motion-lifecycle.js";
 
@@ -87,6 +88,7 @@ export class UIMotion extends LitElement {
     motion: { type: String, reflect: true },
     state: { type: String, reflect: true },
     target: { type: String, reflect: true },
+    pace: { type: String, reflect: true },
   };
 
   /** Semantic motion recipe. `custom` leaves visual realization entirely to CSS parts. */
@@ -95,6 +97,8 @@ export class UIMotion extends LitElement {
   declare state: MotionState;
   /** Scene lane that receives the recipe. */
   declare target: MotionTarget;
+  /** Timing tier; inherit preserves authored duration and easing roles. */
+  declare pace: "inherit" | "fast" | "moderate" | "slow";
 
   #hover: HoverController | undefined;
 
@@ -113,6 +117,7 @@ export class UIMotion extends LitElement {
     this.motion = "none";
     this.state = "idle";
     this.target = "content";
+    this.pace = "inherit";
     this.#internals = this.attachInternals();
     this.#lifecycle = new MotionLifecycleController(this, {
       target: () => this.renderRoot.querySelector<HTMLElement>(".motion-target"),
@@ -149,6 +154,7 @@ export class UIMotion extends LitElement {
         display: inline-block;
         --_mash-motion-duration-control: var(--duration-control, 120ms);
         --_mash-motion-duration-surface: var(--duration-surface, 200ms);
+        --_mash-motion-duration-exit: var(--duration-surface, 200ms);
         --_mash-motion-easing-control: var(--easing-control, cubic-bezier(0.2, 0, 0, 1));
         --_mash-motion-easing-surface: var(--easing-surface, cubic-bezier(0.3, 0, 0, 1));
         --_mash-motion-easing-spring-gentle: var(
@@ -173,6 +179,40 @@ export class UIMotion extends LitElement {
         --_mash-motion-opacity-visible: var(--motion-opacity-visible, 1);
         --_mash-motion-rotation-quarter: var(--motion-rotation-quarter, 0.25);
         --_mash-motion-rotation-full: var(--motion-rotation-full, 1);
+      }
+
+      :host([pace="fast"]) {
+        --_mash-motion-duration-control: var(--duration-fast-enter, 80ms);
+        --_mash-motion-duration-surface: var(--duration-fast-enter, 80ms);
+        --_mash-motion-duration-exit: var(--duration-fast-exit, 60ms);
+        --_mash-motion-easing-spring-snappy: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-spring-gentle: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-control: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-surface: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+      }
+      :host([pace="moderate"]) {
+        --_mash-motion-duration-control: var(--duration-moderate-enter, 160ms);
+        --_mash-motion-duration-surface: var(--duration-moderate-enter, 160ms);
+        --_mash-motion-duration-exit: var(--duration-moderate-exit, 120ms);
+        --_mash-motion-easing-spring-snappy: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-spring-gentle: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-control: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-surface: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+      }
+      :host([pace="slow"]) {
+        --_mash-motion-duration-control: var(--duration-slow-enter, 240ms);
+        --_mash-motion-duration-surface: var(--duration-slow-enter, 240ms);
+        --_mash-motion-duration-exit: var(--duration-slow-exit, 160ms);
+        --_mash-motion-easing-spring-snappy: var(
+          --easing-spring-surface,
+          cubic-bezier(0.22, 1.15, 0.36, 1)
+        );
+        --_mash-motion-easing-spring-gentle: var(
+          --easing-spring-surface,
+          cubic-bezier(0.22, 1.15, 0.36, 1)
+        );
+        --_mash-motion-easing-control: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-surface: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
       }
 
       [part="root"] {
@@ -293,7 +333,8 @@ export class UIMotion extends LitElement {
       }
 
       :host([state="exiting"]) .motion-target {
-        animation: mash-motion-exit var(--_mash-motion-duration-surface)
+        animation: mash-motion-exit
+          var(--_mash-motion-duration-exit, var(--_mash-motion-duration-surface))
           var(--_mash-motion-easing-surface) var(--mash-stagger-delay, 0ms) both;
       }
 
@@ -453,7 +494,7 @@ export class UIMotion extends LitElement {
   ];
 
   protected override updated(changed: PropertyValues<this>): void {
-    if (!changed.has("state") && !changed.has("motion")) return;
+    if (!changed.has("state") && !changed.has("motion") && !changed.has("pace")) return;
     const previousState = (changed.get("state") as MotionState | undefined) ?? "idle";
     if (this.state === "idle") {
       this.#lifecycle.cancel();
