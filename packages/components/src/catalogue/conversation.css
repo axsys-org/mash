@@ -234,3 +234,100 @@
     padding-block: var(--space-control-block-large);
   }
 }
+
+/** Assistant transcript composition with stable, keyboard-reachable metadata. */
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) .mash-chat {
+    display: grid;
+    gap: var(--space-container-gap);
+    inline-size: min(100%, 44rem);
+    margin-inline: auto;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat ui-message-scroller::part(viewport) {
+    block-size: 25rem;
+    padding-inline: var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat ui-motion {
+    display: block;
+    min-inline-size: 0;
+    padding-block: var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat ui-motion::part(root) {
+    display: grid;
+    inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-text {
+    white-space: pre-wrap;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-message::part(root) {
+    display: block;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-message::part(content) {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-message[alignment="end"]::part(content) {
+    justify-items: end;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-message ui-bubble {
+    max-inline-size: min(85%, 36rem);
+    overflow-wrap: anywhere;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-message ui-bubble::part(root) {
+    max-inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-message[alignment="start"] ui-bubble {
+    max-inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-message[alignment="start"] ui-bubble::part(root) {
+    padding-inline: 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-control-gap);
+    min-block-size: var(--layout-size-compact-control);
+    opacity: 0;
+    transition: opacity var(--duration-fast-enter) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-message:hover .mash-chat-meta,
+  :where([data-mash-catalogue="mash"]) .mash-chat-message:focus-within .mash-chat-meta {
+    opacity: 1;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-meta ui-button::part(control) {
+    border: 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-meta ui-icon {
+    font-size: var(--layout-size-default-icon);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-control-gap);
+    max-inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-files ui-attachment {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-files [slot="title"] {
+    overflow-wrap: anywhere;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-chat-files img {
+    inline-size: 4rem;
+    block-size: 4rem;
+    object-fit: cover;
+    border-radius: var(--radius-control);
+  }
+  @media (hover: none) {
+    :where([data-mash-catalogue="mash"]) .mash-chat-meta {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) .mash-chat-meta {
+      transition: none;
+    }
+  }
+}
