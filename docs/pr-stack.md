@@ -136,3 +136,13 @@ Branch `codex/stack/tooltip-patterns` builds on `codex/stack/command-patterns`.
 - Eleven examples cover action hints, placement/alignment/offset, rich content, both cursor axes, delays, forced state, custom parts, dialog layering, disabled controls, composed control triggers, and removal/restoration.
 - Validation: production catalogue/IIFE builds, local quality checks, focused tooltip/shared-overlay regressions, production interaction tests, and light/dark/narrow preview review. Remote CI and deployment status remain tied to the eventual PR head.
 - Component behavior and API documentation are separate from catalogue examples and browser coverage. Usage and ownership are documented in `docs/tooltip.md`.
+
+## Message input and conversation patterns
+
+Branch `codex/stack/message-patterns` builds on `codex/stack/tooltip-patterns`.
+
+- Expands the existing application-owned composer instead of adding a competing text editor or chat component family. Textarea, buttons, selectors, attachments, tooltips, motion, scroller, and draggable rows retain their public contracts. No dependencies added.
+- Adds suggestions and placeholder completion, first/last-line history recall, filtered and deduplicated local attachments, editable streaming drafts, Stop/Queue states, and a pointer/keyboard reorderable queue. Editing a queued item preserves an unfinished draft by swapping it into the queue.
+- Eleven composer examples and a complete local conversation demonstrate control states, sizes, actions, CSS parts, send/stop/retry, copy/edit/regenerate, and streamed replies. Native PDF rendering is not bundled; document attachments retain their filename, size, and media slot.
+- Recipes and ownership documentation form one review unit; the consolidated portable controller, catalogue examples, and production browser regressions form the next. See `docs/message-input.md` for application integration and cleanup.
+- Validation: production catalogue/IIFE build, local quality checks, twelve focused production browser cases, and light/dark/narrow visual review. Remote CI and deployment status must be checked on the eventual PR head.

@@ -1,5 +1,6 @@
 import type { CatalogExample } from "../examples.js";
 import { sample } from "./shared.js";
+import { conversationExamples } from "./message-conversation.js";
 import { composerMarkup, composerScript } from "./composer.js";
 
 const message = (text: string, attributes = "", metadata = "") =>
@@ -114,6 +115,7 @@ document.querySelector("#retry-message")?.addEventListener("click", event=>{ con
 
 export const messageExamples: Record<string, CatalogExample[]> = {
   "ui-message": [
+    ...conversationExamples,
     sample(
       "Conversation",
       `${message("Can you review the revised proposal?", "", '<ui-avatar slot="avatar" alt="Alex" size="small">AL</ui-avatar><span slot="header">Alex · 10:24</span>')}${message("I left a note on the timeline.", 'alignment="end"', '<span slot="header">You · 10:25</span><span slot="footer">Read</span>')}`,
