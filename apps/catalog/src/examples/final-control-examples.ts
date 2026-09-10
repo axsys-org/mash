@@ -45,7 +45,7 @@ export const finalControlExamples: Record<string, CatalogExample[]> = {
               .slice(row * 2, row * 2 + 2)
               .map(
                 (name, index) =>
-                  `<ui-option value="${name}" ${row === 2 && index === 1 ? "disabled" : ""}><div class="mash-row"><ui-avatar size="small" alt="${name}">${name
+                  `<ui-option value="${name}" aria-label="${name}" ${row === 2 && index === 1 ? "disabled" : ""}><div class="mash-row"><ui-avatar size="small" alt="${name}">${name
                     .split(" ")
                     .map((word) => word[0])
                     .join(
@@ -62,7 +62,7 @@ export const finalControlExamples: Record<string, CatalogExample[]> = {
     demo(
       "Collapsed selection summary",
       `<style>#overflow-chips{display:flex;flex-wrap:wrap;gap:var(--space-control-gap);max-block-size:8rem;overflow:auto;max-inline-size:28rem}</style><ui-combobox id="overflow-people" label="Project members" multiple placeholder="Add members" values='${JSON.stringify(team.slice(0, 6))}'><div slot="chips" id="overflow-chips"></div><ui-button slot="value" id="expand-chips" size="xsmall" variant="ghost" aria-expanded="false">4 more</ui-button>${team.map((name) => `<ui-option value="${name}">${name}</ui-option>`).join("")}<ui-button slot="clear" size="xsmall" variant="ghost" aria-label="Clear selected members">Clear</ui-button></ui-combobox><output id="overflow-result" aria-live="polite"></output>`,
-      `const combo=document.querySelector("#overflow-people"),chips=document.querySelector("#overflow-chips"),toggle=document.querySelector("#expand-chips");let expanded=false;const render=()=>{const visible=expanded?combo.values:combo.values.slice(0,2);chips.replaceChildren(...visible.map(value=>{const chip=document.createElement("ui-chip");chip.value=value;chip.textContent=value;return chip;}));toggle.hidden=combo.values.length<=2;toggle.textContent=expanded?"Show fewer":(combo.values.length-2)+" more";toggle.setAttribute("aria-expanded",String(expanded));document.querySelector("#overflow-result").textContent=combo.values.length?combo.values.length+" members: "+combo.values.join(", "):"No members selected";};toggle.addEventListener("click",()=>{expanded=!expanded;render();});combo.addEventListener("ui-combobox-change",render);render();`,
+      `const combo=document.querySelector("#overflow-people"),chips=document.querySelector("#overflow-chips"),toggle=document.querySelector("#expand-chips");let expanded=false;const render=()=>{const visible=expanded?combo.values:combo.values.slice(0,2);chips.replaceChildren(...visible.map(value=>{const chip=document.createElement("ui-chip");chip.value=value;chip.textContent=value;const remove=document.createElement("ui-button");remove.slot="remove";remove.size="compact";remove.variant="ghost";remove.setAttribute("aria-label","Remove "+value);remove.textContent="×";chip.append(remove);return chip;}));toggle.hidden=combo.values.length<=2;toggle.textContent=expanded?"Show fewer":(combo.values.length-2)+" more";toggle.setAttribute("aria-expanded",String(expanded));document.querySelector("#overflow-result").textContent=combo.values.length?combo.values.length+" members: "+combo.values.join(", "):"No members selected";};toggle.addEventListener("click",()=>{expanded=!expanded;render();});combo.addEventListener("ui-combobox-change",render);render();`,
     ),
   ],
   "ui-accordion": [

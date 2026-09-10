@@ -1,3 +1,4 @@
+import { comboboxExamples } from "./combobox.js";
 import { finalControlExamples } from "./final-control-examples.js";
 import { menuExtensionExamples } from "./menu-extensions.js";
 import { mergeControlStateExamples } from "./control-states.js";
@@ -137,41 +138,7 @@ export const controlExamples: Record<string, CatalogExample[]> = {
 </ui-select>`,
     ),
   ],
-  "ui-combobox": [
-    sample(
-      "Combobox",
-      `<ui-combobox label="Status" placeholder="Find status">${choices}
-</ui-combobox>`,
-    ),
-    {
-      ...sample(
-        "Multiple",
-        `<ui-combobox id="statuses" label="Statuses" placeholder="Add status" multiple values='["draft"]'>
-  <ui-chip slot="chips" value="draft">Draft</ui-chip>${choices}
-</ui-combobox>`,
-      ),
-      script: `const combo = document.querySelector("#statuses");
-const renderChips = () => {
-  combo.querySelectorAll("ui-chip").forEach(chip => chip.remove());
-  for (const value of combo.values) {
-    const option = [...combo.querySelectorAll("ui-option")].find(item => item.value === value);
-    const chip = document.createElement("ui-chip");
-    chip.slot = "chips";
-    chip.value = value;
-    chip.textContent = option?.textContent ?? value;
-    combo.append(chip);
-  }
-};
-combo.addEventListener("ui-combobox-change", renderChips);`,
-    },
-    sample(
-      "Grid suggestions",
-      `<ui-combobox label="Person" placeholder="Choose a person" grid>
-  <ui-option-row><ui-option value="alex">Alex</ui-option><ui-option value="sam">Sam</ui-option></ui-option-row>
-  <ui-option-row><ui-option value="morgan">Morgan</ui-option><ui-option value="jordan">Jordan</ui-option></ui-option-row>
-</ui-combobox>`,
-    ),
-  ],
+  "ui-combobox": [],
 };
 
 for (const [tag, examples] of Object.entries(patternExamples)) {
@@ -191,3 +158,15 @@ for (const [tag, examples] of Object.entries(finalControlExamples)) {
   if (!controlExamples[tag]) continue;
   controlExamples[tag] = [...(controlExamples[tag] ?? []), ...examples];
 }
+
+controlExamples["ui-combobox"] = [
+  ...comboboxExamples,
+  ...controlExamples["ui-combobox"]!.filter((example) =>
+    [
+      "Async search and recovery",
+      "Selection limit and pinned chip",
+      "Rich grid navigation",
+      "Collapsed selection summary",
+    ].includes(example.name),
+  ),
+];

@@ -37,7 +37,7 @@ const compositionsByTag: Record<
   "ui-bubble-group": { parent: "ui-bubble", example: "Message rows" },
   "ui-command-item": { parent: "ui-command" },
   "ui-step": { parent: "ui-stepper" },
-  "ui-chip": { parent: "ui-combobox", example: "Multiple" },
+  "ui-chip": { parent: "ui-combobox", example: "Multiple selection" },
   "ui-color-swatch": {
     parent: "ui-color-picker",
     example: "Popover and palette",
@@ -57,7 +57,7 @@ const compositionsByTag: Record<
   },
   "ui-option-row": {
     parent: "ui-combobox",
-    example: "Grid suggestions",
+    example: "Rich grid navigation",
     openParent: true,
   },
   "ui-resizable-handle": { parent: "ui-resizable" },

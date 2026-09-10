@@ -106,3 +106,13 @@ PR #53 removes unreachable legacy catalogue controllers and their dependencies i
 `codex/stack/sidebar-patterns` builds on `codex/stack/size-context`. It adds a responsive sidebar using the existing drawer, scroll area, resize handle, and gesture primitives. Shared overlay slot traversal, the sidebar component and recipe, and the interactive catalogue examples are separate review units. No added dependencies; state, slots, persistence, and CSS parts are documented in `docs/sidebar.md`.
 
 The lead example composes pinned conversations, project navigation, command search, account preferences, and the existing composer. Selection spans the complete row, actions stay inside it, and scroll fades follow the scroll area's native boundary states. The remaining examples cover surfaces, direction, resizing, peek, mobile, loading, controlled state, and dialog composition.
+
+## Combobox patterns
+
+Branch `codex/stack/combobox-patterns` builds on `codex/stack/sidebar-patterns`.
+
+- Shared combobox behavior: optional data items and row rendering, separate search and selected IDs, automatic shared chips, custom filtering, creation, hidden picks, field actions, validation presentation, and coordinated sizes.
+- Existing authored options, autocomplete, form association, grid navigation, positioning, and presence contracts remain in use. No new dependencies or component-family registration.
+- Catalogue: consolidated single/multiple, custom people rows, creation, hidden selections, variants, sizes, long lists, validation, forms, and authored parts, plus the existing async, grid, pinned-selection, and overflow patterns.
+- Validation: production catalogue and IIFE build; full quality check; 16 focused component/form tests and five production browser interaction cases; all 15 examples inspected in light and dark with no field/popup overflow or page errors. Browser startup contention required serial reruns, without relaxing assertions.
+- Commits separate the pre-render checkbox lifecycle guard, the reusable combobox contract/recipe, and catalogue examples/documentation.

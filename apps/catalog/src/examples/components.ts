@@ -368,3 +368,5 @@ for (const [tag, examples] of Object.entries(finalControlExamples)) {
   if (controlExamples[tag]) continue;
   componentExamples[tag] = [...(componentExamples[tag] ?? []), ...examples];
 }
+
+componentExamples["ui-combobox"] = controlExamples["ui-combobox"]!;

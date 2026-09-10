@@ -41,21 +41,6 @@ describe("catalogue selection outcomes", () => {
     expect(root.querySelector("output")!.textContent).toContain("Form reset");
   });
 
-  it("creates a new suggestion and can then select it again", async () => {
-    const root = await example("ui-combobox", "Grouped suggestions and create");
-    const combo = root.querySelector<UICombobox>("ui-combobox")!;
-    const input = combo.shadowRoot!.querySelector("input")!;
-    input.value = "Documentation";
-    input.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
-    await settled(root);
-    root.querySelector<HTMLElement>("#create-topic")!.click();
-    await settled(root);
-    expect(combo.querySelector('[value="Documentation"]')?.textContent).toBe("Documentation");
-    expect(combo.value).toBe("Documentation");
-    expect(combo.open).toBe(false);
-    expect(root.querySelector("output")!.textContent).toBe("Created topic: Documentation");
-  });
-
   it("keeps the pinned owner when optional selections are cleared", async () => {
     const root = await example("ui-combobox", "Selection limit and pinned chip");
     const combo = root.querySelector<UICombobox>("ui-combobox")!;

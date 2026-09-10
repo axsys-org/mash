@@ -96,17 +96,6 @@ document.querySelector("#region-reset").addEventListener("click", () => { select
     ),
   ],
   "ui-combobox": [
-    choiceStates("ui-combobox"),
-    demo(
-      "Grouped suggestions and create",
-      `<ui-combobox id="topic-picker" label="Topic" placeholder="Find or create a topic"><ui-icon slot="icon" name="action.search"></ui-icon><ui-option-group label="Product"><ui-option value="Accessibility">Accessibility</ui-option><ui-option value="Motion">Motion</ui-option></ui-option-group><ui-option-group label="Engineering"><ui-option value="Performance">Performance</ui-option><ui-option value="Security" disabled>Security · managed</ui-option></ui-option-group><span slot="empty">No matching topic. Create it below.</span><ui-button slot="clear" size="xsmall" variant="ghost" aria-label="Clear topic">Clear</ui-button><ui-button slot="footer" id="create-topic" size="small" disabled>Create topic</ui-button></ui-combobox><output id="topic-result">No topic selected</output>`,
-      `const combo = document.querySelector("#topic-picker");
-const create = document.querySelector("#create-topic");
-const output = document.querySelector("#topic-result");
-combo.addEventListener("ui-combobox-input", () => { const value = combo.value.trim(); create.disabled = !value || [...combo.querySelectorAll("ui-option")].some(option => option.value.toLowerCase() === value.toLowerCase()); create.textContent = value ? 'Create “' + value + '”' : "Create topic"; });
-combo.addEventListener("ui-combobox-change", () => { output.textContent = combo.value ? "Topic: " + combo.value : "No topic selected"; });
-create.addEventListener("click", () => { const value = combo.value.trim(); if (!value || create.disabled) return; const option = document.createElement("ui-option"); option.value = value; option.textContent = value; combo.append(option); combo.value = value; combo.open = false; create.disabled = true; output.textContent = "Created topic: " + value; });`,
-    ),
     demo(
       "Async search and recovery",
       `<ui-combobox id="remote-people" label="Search teammates" placeholder="Try Alex, Sam, or error" filter="none"><span slot="loading">Searching the directory…</span><span slot="empty" id="directory-empty">Type a name to search.</span><ui-button slot="clear" size="xsmall" variant="ghost" aria-label="Clear teammate">Clear</ui-button><ui-button slot="footer" id="retry-directory" size="small" hidden>Retry search</ui-button></ui-combobox><output id="directory-result" aria-live="polite">Search runs locally with a short delay.</output>`,
@@ -122,9 +111,9 @@ combo.addEventListener("ui-combobox-change", () => { document.querySelector("#di
     ),
     demo(
       "Selection limit and pinned chip",
-      `<ui-combobox id="reviewers" label="Reviewers" placeholder="Add up to three" multiple values='["You"]'><ui-option value="You" disabled>You · required owner</ui-option>${["Alex", "River", "Sam", "Taylor"].map((name) => `<ui-option value="${name}">${name}</ui-option>`).join("")}<ui-button slot="clear" size="xsmall" variant="ghost" aria-label="Clear optional reviewers">Clear</ui-button><small slot="footer">The owner stays selected. Choose two more reviewers.</small></ui-combobox><output id="reviewer-result" aria-live="polite"></output>`,
+      `<ui-combobox id="reviewers" label="Reviewers" placeholder="Add up to three" multiple values='["You"]'><ui-option value="You" aria-label="You" disabled>You · required owner</ui-option>${["Alex", "River", "Sam", "Taylor"].map((name) => `<ui-option value="${name}">${name}</ui-option>`).join("")}<ui-button slot="clear" size="xsmall" variant="ghost" aria-label="Clear optional reviewers">Clear</ui-button><small slot="footer">The owner stays selected. Choose two more reviewers.</small></ui-combobox><output id="reviewer-result" aria-live="polite"></output>`,
       `const combo = document.querySelector("#reviewers");
-const render = () => { combo.values = ["You", ...combo.values.filter(value => value !== "You")].slice(0, 3); combo.querySelectorAll("ui-chip").forEach(chip => chip.remove()); for (const value of combo.values) { const chip = document.createElement("ui-chip"); chip.slot = "chips"; chip.value = value; chip.textContent = value; chip.readonly = value === "You"; combo.append(chip); } combo.querySelectorAll("ui-option").forEach(option => { option.disabled = option.value === "You" || (combo.values.length >= 3 && !combo.values.includes(option.value)); }); document.querySelector("#reviewer-result").textContent = combo.values.length + "/3 reviewers: " + combo.values.join(", "); };
+const render = () => { combo.values = ["You", ...combo.values.filter(value => value !== "You")].slice(0, 3); combo.querySelectorAll("ui-option").forEach(option => { option.disabled = option.value === "You" || (combo.values.length >= 3 && !combo.values.includes(option.value)); }); document.querySelector("#reviewer-result").textContent = combo.values.length + "/3 reviewers: " + combo.values.join(", "); };
 combo.addEventListener("ui-combobox-change", render); render();`,
     ),
   ],
