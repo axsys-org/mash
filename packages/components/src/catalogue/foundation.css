@@ -425,21 +425,23 @@
   /* The same viewport part accepts intersecting logical block and inline edge
      masks. ScrollArea only emits position states; this visual treatment stays
      an optional catalogue recipe shared by vertical and horizontal scrollers. */
-  :where([data-mash-catalogue="mash"]) ui-scroll-area.example-scroll-edge-mask {
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area:is(.mash-scroll-fade, .example-scroll-edge-mask) {
     --mash-scroll-mask-size: var(--space-container-inline);
     --mash-scroll-inline-direction: to right;
     --mash-scroll-block-mask: linear-gradient(black, black);
     --mash-scroll-inline-mask: linear-gradient(black, black);
   }
 
-  :where([data-mash-catalogue="mash"]) ui-scroll-area.example-scroll-edge-mask:dir(rtl) {
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area:is(.mash-scroll-fade, .example-scroll-edge-mask):dir(rtl) {
     --mash-scroll-inline-direction: to left;
   }
 
   :where([data-mash-catalogue="mash"])
-    ui-scroll-area.example-scroll-edge-mask:state(scrollable-block):state(at-block-start):not(
-      :state(at-block-end)
-    ) {
+    ui-scroll-area:is(.mash-scroll-fade, .example-scroll-edge-mask):state(scrollable-block):state(
+      at-block-start
+    ):not(:state(at-block-end)) {
     --mash-scroll-block-mask: linear-gradient(
       to bottom,
       black calc(100% - var(--mash-scroll-mask-size)),
@@ -448,7 +450,7 @@
   }
 
   :where([data-mash-catalogue="mash"])
-    ui-scroll-area.example-scroll-edge-mask:state(scrollable-block):not(
+    ui-scroll-area:is(.mash-scroll-fade, .example-scroll-edge-mask):state(scrollable-block):not(
       :state(at-block-start)
     ):state(at-block-end) {
     --mash-scroll-block-mask: linear-gradient(
@@ -459,9 +461,9 @@
   }
 
   :where([data-mash-catalogue="mash"])
-    ui-scroll-area.example-scroll-edge-mask:state(scrollable-block):not(:state(at-block-start)):not(
-      :state(at-block-end)
-    ) {
+    ui-scroll-area:is(.mash-scroll-fade, .example-scroll-edge-mask):state(scrollable-block):not(
+      :state(at-block-start)
+    ):not(:state(at-block-end)) {
     --mash-scroll-block-mask: linear-gradient(
       to bottom,
       transparent 0,
@@ -472,9 +474,9 @@
   }
 
   :where([data-mash-catalogue="mash"])
-    ui-scroll-area.example-scroll-edge-mask:state(scrollable-inline):state(at-inline-start):not(
-      :state(at-inline-end)
-    ) {
+    ui-scroll-area:is(.mash-scroll-fade, .example-scroll-edge-mask):state(scrollable-inline):state(
+      at-inline-start
+    ):not(:state(at-inline-end)) {
     --mash-scroll-inline-mask: linear-gradient(
       var(--mash-scroll-inline-direction),
       black calc(100% - var(--mash-scroll-mask-size)),
@@ -483,7 +485,7 @@
   }
 
   :where([data-mash-catalogue="mash"])
-    ui-scroll-area.example-scroll-edge-mask:state(scrollable-inline):not(
+    ui-scroll-area:is(.mash-scroll-fade, .example-scroll-edge-mask):state(scrollable-inline):not(
       :state(at-inline-start)
     ):state(at-inline-end) {
     --mash-scroll-inline-mask: linear-gradient(
@@ -494,7 +496,7 @@
   }
 
   :where([data-mash-catalogue="mash"])
-    ui-scroll-area.example-scroll-edge-mask:state(scrollable-inline):not(
+    ui-scroll-area:is(.mash-scroll-fade, .example-scroll-edge-mask):state(scrollable-inline):not(
       :state(at-inline-start)
     ):not(:state(at-inline-end)) {
     --mash-scroll-inline-mask: linear-gradient(
@@ -506,7 +508,8 @@
     );
   }
 
-  :where([data-mash-catalogue="mash"]) ui-scroll-area.example-scroll-edge-mask::part(viewport) {
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area:is(.mash-scroll-fade, .example-scroll-edge-mask)::part(viewport) {
     -webkit-mask-image: var(--mash-scroll-block-mask), var(--mash-scroll-inline-mask);
     mask-image: var(--mash-scroll-block-mask), var(--mash-scroll-inline-mask);
     -webkit-mask-repeat: no-repeat;
@@ -515,6 +518,106 @@
     mask-size: 100% 100%;
     -webkit-mask-composite: source-in;
     mask-composite: intersect;
+  }
+
+  /* Quiet scrollbars retain a visible cue and their full pointer target.
+     Native overflow, keyboard controls and thumb capture stay in ScrollArea. */
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[orientation="vertical"]::part(viewport) {
+    overflow-x: hidden;
+  }
+  :where([data-mash-catalogue="mash"]) ui-scroll-area[orientation="horizontal"]::part(viewport) {
+    overflow-y: hidden;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area[orientation="horizontal"][snap="proximity"]::part(viewport) {
+    scroll-snap-type: x proximity;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area[orientation="horizontal"][snap="mandatory"]::part(viewport) {
+    scroll-snap-type: x mandatory;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area[orientation="vertical"][gutter="stable"]::part(root) {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area[orientation="horizontal"][gutter="stable"]::part(root) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(block-scrollbar),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(inline-scrollbar) {
+    --_quiet-thumb-size: var(--scrollbar-track-medium);
+    --_quiet-thumb-color: color-mix(in srgb, var(--color-text) 22%, transparent);
+    background: transparent;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.mash-scroll-quiet::part(block-scrollbar):hover,
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.mash-scroll-quiet::part(inline-scrollbar):hover,
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.mash-scroll-quiet::part(block-scrollbar):focus-visible,
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.mash-scroll-quiet::part(inline-scrollbar):focus-visible {
+    --_quiet-thumb-size: var(--scrollbar-track-large);
+    --_quiet-thumb-color: color-mix(in srgb, var(--color-text) 38%, transparent);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.mash-scroll-quiet:state(dragging)::part(block-scrollbar),
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.mash-scroll-quiet:state(dragging)::part(inline-scrollbar) {
+    --_quiet-thumb-size: var(--scrollbar-track-large);
+    --_quiet-thumb-color: color-mix(in srgb, var(--color-text) 52%, transparent);
+  }
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(block-track),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(inline-track) {
+    inset: 0;
+    inline-size: auto;
+    block-size: auto;
+    transform: none;
+    background: transparent;
+  }
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(block-thumb),
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(inline-thumb) {
+    background: var(--_quiet-thumb-color);
+    transition:
+      background var(--duration-control) var(--easing-control),
+      width var(--duration-control) var(--easing-control),
+      height var(--duration-control) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(block-thumb) {
+    inset-inline: auto;
+    right: 2px;
+    width: var(--_quiet-thumb-size);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-scroll-area.mash-scroll-quiet:dir(rtl)::part(block-thumb) {
+    right: auto;
+    left: 2px;
+  }
+  :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(inline-thumb) {
+    inset-block: auto;
+    bottom: 2px;
+    height: var(--_quiet-thumb-size);
+  }
+  @media (hover: none) and (pointer: coarse) {
+    :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(viewport) {
+      scrollbar-width: auto;
+    }
+    :where([data-mash-catalogue="mash"])
+      ui-scroll-area.mash-scroll-quiet::part(viewport)::-webkit-scrollbar {
+      display: initial;
+    }
+    :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(block-scrollbar),
+    :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(inline-scrollbar),
+    :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(corner) {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(block-thumb),
+    :where([data-mash-catalogue="mash"]) ui-scroll-area.mash-scroll-quiet::part(inline-thumb) {
+      transition: none;
+    }
   }
 
   /* Authored display declarations beat the browser's weak `[hidden]` rule.

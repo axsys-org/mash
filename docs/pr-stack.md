@@ -80,3 +80,7 @@ PR #52 is a separate draft on top of #50. Tabs and Chart can use one document wi
 ## Catalogue and CI cleanup
 
 PR #53 removes unreachable legacy catalogue controllers and their dependencies in a separate first commit, then trims redundant PR checks. Current Stories remain. The checked scope, baseline timing, and historical failure diagnosis are recorded in `docs/ci.md`.
+
+## Scrollbar patterns
+
+`codex/stack/scrollbar-patterns` builds on `codex/stack/ci-cleanup` (#53). It removes the catalogue wordmark, adds quiet scrollbar and edge-fade recipes, and expands Scroll Area to six compositions. The existing native viewport, drag and keyboard machinery remains shared; no dependencies are added. Public styling and orientation usage are documented in `docs/scroll-area.md`.

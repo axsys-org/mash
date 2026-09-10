@@ -5,6 +5,7 @@ import { baseStyles } from "../internal/base-styles.js";
 let scrollAreaId = 0;
 const defaultIdleDelay = 2000;
 
+export type ScrollOrientation = "vertical" | "horizontal" | "both";
 export type ScrollAxis = "block" | "inline";
 export type ScrollbarMode = "always" | "hover" | "scrolling";
 export type ScrollbarSize = "compact" | "medium" | "large";
@@ -142,6 +143,7 @@ const emptyMetrics = (): ScrollMetrics => ({
 export class UIScrollArea extends LitElement {
   static override properties = {
     label: { type: String, reflect: true },
+    orientation: { type: String, reflect: true },
     mode: { type: String, reflect: true },
     size: { type: String, reflect: true },
     gutter: { type: String, reflect: true },
@@ -152,6 +154,8 @@ export class UIScrollArea extends LitElement {
 
   /** Accessible name for the scrollable region. */
   declare label: string;
+  /** Allowed scroll axes. Both preserves the unconstrained native viewport default. */
+  declare orientation: ScrollOrientation;
   /** Selects whether semantic scrollbars are always visible, hover-revealed, or activity-revealed. */
   declare mode: ScrollbarMode;
   /** Selects the semantic scrollbar hit area and visible track measure. */
@@ -180,6 +184,7 @@ export class UIScrollArea extends LitElement {
     super();
     this.label = "Scrollable content";
     this.mode = "scrolling";
+    this.orientation = "both";
     this.size = "medium";
     this.gutter = "none";
     this.snap = "none";
@@ -228,6 +233,13 @@ export class UIScrollArea extends LitElement {
         overflow: auto;
       }
 
+      :host([orientation="vertical"]) [part="viewport"] {
+        overflow-x: hidden;
+      }
+      :host([orientation="horizontal"]) [part="viewport"] {
+        overflow-y: hidden;
+      }
+
       [part="content"] {
         min-inline-size: 0;
       }
@@ -238,6 +250,13 @@ export class UIScrollArea extends LitElement {
 
       :host([snap="mandatory"]) [part="viewport"] {
         scroll-snap-type: block mandatory;
+      }
+
+      :host([orientation="horizontal"][snap="proximity"]) [part="viewport"] {
+        scroll-snap-type: x proximity;
+      }
+      :host([orientation="horizontal"][snap="mandatory"]) [part="viewport"] {
+        scroll-snap-type: x mandatory;
       }
 
       [part="block-scrollbar"],
@@ -274,6 +293,7 @@ export class UIScrollArea extends LitElement {
 
   protected override updated(changed: PropertyValues<this>): void {
     if (
+      changed.has("orientation") ||
       changed.has("mode") ||
       changed.has("idleDelay") ||
       changed.has("size") ||
@@ -373,8 +393,14 @@ export class UIScrollArea extends LitElement {
     return {
       inline: Math.abs(viewport.scrollLeft),
       block: viewport.scrollTop,
-      inlineMax: Math.max(0, viewport.scrollWidth - viewport.clientWidth),
-      blockMax: Math.max(0, viewport.scrollHeight - viewport.clientHeight),
+      inlineMax:
+        this.orientation === "vertical"
+          ? 0
+          : Math.max(0, viewport.scrollWidth - viewport.clientWidth),
+      blockMax:
+        this.orientation === "horizontal"
+          ? 0
+          : Math.max(0, viewport.scrollHeight - viewport.clientHeight),
     };
   }
 

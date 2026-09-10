@@ -50,6 +50,25 @@ describe("ui-scroll-area", () => {
     expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight);
   });
 
+  it("constrains axes and updates scrollbar controls when orientation changes", async () => {
+    const area = await fixture<UIScrollArea>(`
+      <ui-scroll-area orientation="horizontal" snap="proximity" style="inline-size: 160px; block-size: 100px">
+        <div style="inline-size: 480px; block-size: 400px">Large surface</div>
+      </ui-scroll-area>
+    `);
+    const viewport = area.viewportElement;
+    await settled(area.parentElement!);
+    expect(getComputedStyle(viewport).overflowY).toBe("hidden");
+    expect(getComputedStyle(viewport).scrollSnapType).toBe("x");
+    expect(inShadow<HTMLElement>(area, '[part="block-scrollbar"]').hidden).toBe(true);
+    expect(inShadow<HTMLElement>(area, '[part="inline-scrollbar"]').hidden).toBe(false);
+    area.orientation = "vertical";
+    await settled(area.parentElement!);
+    expect(getComputedStyle(viewport).overflowX).toBe("hidden");
+    expect(inShadow<HTMLElement>(area, '[part="block-scrollbar"]').hidden).toBe(false);
+    expect(inShadow<HTMLElement>(area, '[part="inline-scrollbar"]').hidden).toBe(true);
+  });
+
   it("reports logical scroll coordinates", async () => {
     const area = await fixture<UIScrollArea>(`
       <ui-scroll-area style="block-size: 100px">

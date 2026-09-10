@@ -116,3 +116,73 @@ test("range fill stays between its handles across direction and orientation", as
     }
   }
 });
+
+test("quiet scrollbars retain pointer targets and follow native scroll boundaries", async ({
+  page,
+}) => {
+  await page.goto("/components/ui-scroll-area?example=Quiet%20vertical");
+  const frame = page.frameLocator('iframe[data-variant="Quiet vertical"]');
+  const area = frame.locator("ui-scroll-area");
+  const bar = area.locator('[part="block-scrollbar"]');
+  const thumb = area.locator('[part="block-thumb"]');
+  await expect(bar).toBeVisible();
+  await bar.press("Home");
+  await expect(area).toHaveJSProperty("orientation", "vertical");
+  await expect
+    .poll(() => area.evaluate((node) => node.matches(":state(at-block-start)")))
+    .toBe(true);
+  const startMask = await area
+    .locator('[part="viewport"]')
+    .evaluate((node) => getComputedStyle(node).maskImage);
+  const barBox = (await bar.boundingBox())!;
+  const thumbBox = (await thumb.boundingBox())!;
+  expect(barBox.width).toBeGreaterThan(thumbBox.width);
+  await page.mouse.move(thumbBox.x + thumbBox.width / 2, thumbBox.y + thumbBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(thumbBox.x + thumbBox.width / 2, barBox.y + barBox.height - 2, {
+    steps: 6,
+  });
+  await page.mouse.up();
+  await expect.poll(() => bar.getAttribute("aria-valuenow")).not.toBe("0");
+  await bar.press("End");
+  await expect.poll(() => area.evaluate((node) => node.matches(":state(at-block-end)"))).toBe(true);
+  expect(
+    await area.locator('[part="viewport"]').evaluate((node) => getComputedStyle(node).maskImage),
+  ).not.toBe(startMask);
+
+  await page.goto("/components/ui-scroll-area?example=Horizontal%20months");
+  const months = page.frameLocator('iframe[data-variant="Horizontal months"]');
+  const horizontalBar = months.locator('[part="inline-scrollbar"]');
+  await horizontalBar.press("Home");
+  await months.getByRole("button", { name: "Next", exact: true }).click();
+  await expect
+    .poll(async () => Number(await horizontalBar.getAttribute("aria-valuenow")))
+    .toBeGreaterThan(0);
+});
+
+test("two-axis scroll composition exposes both controls and uses native bars on touch", async ({
+  page,
+  browser,
+}) => {
+  await page.goto("/components/ui-scroll-area?example=Both%20axes");
+  const frame = page.frameLocator('iframe[data-variant="Both axes"]');
+  await expect(frame.locator('[part="block-scrollbar"]')).toBeVisible();
+  await expect(frame.locator('[part="inline-scrollbar"]')).toBeVisible();
+  const context = await browser.newContext({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 390, height: 844 },
+  });
+  try {
+    const touchPage = await context.newPage();
+    await touchPage.goto(
+      new URL("/components/ui-scroll-area?example=Quiet%20vertical", page.url()).href,
+    );
+    const touchFrame = touchPage.frameLocator('iframe[data-variant="Quiet vertical"]');
+    await expect(touchFrame.locator("html")).toHaveAttribute("data-example-ready", "true");
+    await expect(touchFrame.locator('[part="block-scrollbar"]')).toBeHidden();
+    await expect(touchFrame.locator('[part="viewport"]')).toHaveCSS("scrollbar-width", "auto");
+  } finally {
+    await context.close();
+  }
+});

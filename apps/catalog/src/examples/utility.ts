@@ -1,6 +1,7 @@
 import type { CatalogExample } from "../examples.js";
 import { sample } from "./shared.js";
 import { motionExamples } from "./motion.js";
+import { scrollAreaExamples } from "./scroll-area.js";
 
 const pane = (text: string) => `<div class="mash-panel">${text}</div>`;
 
@@ -70,12 +71,7 @@ export const utilityExamples: Record<string, CatalogExample[]> = {
       `<ui-resizable orientation="vertical" label="Vertical panels" style="height: 20rem"><ui-resizable-panel size="140" min="60">${pane("Editor")}</ui-resizable-panel><ui-resizable-handle label="Resize editor"></ui-resizable-handle><ui-resizable-panel min="60">${pane("Console")}</ui-resizable-panel></ui-resizable>`,
     ),
   ],
-  "ui-scroll-area": [
-    sample(
-      "Scrolling",
-      `<ui-scroll-area label="Notes" style="height: 20rem"><div class="mash-stack">${Array.from({ length: 16 }, (_, i) => pane(`Note ${i + 1}`)).join("\n")}</div></ui-scroll-area>`,
-    ),
-  ],
+  "ui-scroll-area": scrollAreaExamples,
   "ui-intl-formatter": [
     sample(
       "Formats",
