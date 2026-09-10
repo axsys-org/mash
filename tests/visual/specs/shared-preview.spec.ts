@@ -1,6 +1,7 @@
+import { catalogueThemes } from "./helpers/catalogue-themes.js";
 import { expect, test } from "@playwright/test";
 
-for (const theme of ["light", "dark"])
+for (const theme of catalogueThemes)
   for (const tag of ["ui-tabs", "ui-chart"]) {
     test(`shared ${tag} renders every example in ${theme}`, async ({ page }) => {
       test.setTimeout(120_000);

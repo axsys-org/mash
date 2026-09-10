@@ -4,33 +4,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# ---------------------------------------------------------------------------
-# Job layout
-#
-# Three checks run on every pull request, split along the lines a reviewer
-# actually reasons about rather than one per build step:
-#
-#   build           does the source compile, and do the generated schemas and
-#                   the static checks agree with it?
-#   browser-tests   do the components behave in a real browser?
-#   catalog         does the artifact designers review still build?
-#
-# The underlying build is about three seconds, so splitting it further would
-# buy nothing but runner startup: tokens, components and the manifest are named
-# steps inside `build`, and a failure in any of them is legible from the step
-# name in the checks UI.
-#
-# `catalog` is separate on purpose. It is the same build Vercel runs for the PR
-# preview, and it is deliberately independent of the tests — a failing browser
-# test must not be able to imply the preview is broken. Vercel builds from its
-# own Git integration regardless of what happens here; this job only tells us
-# whether that build is likely to succeed.
-# ---------------------------------------------------------------------------
+# Keep build/contract checks independent from the preview deployment.
+# Browser tests use built local assets; Vercel builds and serves no test runner.
 
 env:
   # Playwright downloads browsers here; the path is the cache key target.
@@ -122,6 +103,10 @@ jobs:
 
   browser-tests:
     name: Browser tests (Chromium)
+    env:
+      # PRs exercise every example once plus focused dark-theme regressions.
+      # Main and manual validation include the second complete theme sweep.
+      MASH_FULL_CATALOGUE: ${{ github.event_name == 'pull_request' && '0' || '1' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -206,7 +191,10 @@ jobs:
           test -f apps/catalog/dist/fixture.html
           test -f apps/catalog/dist/mash.js
           test -d apps/catalog/dist/assets
-          echo "catalog build ok"
+          test -f apps/catalog/dist/shared-fixture.html
+          # Test code belongs to CI, never to published or deployed artifacts.
+          test -z "$(find packages/components/dist packages/shrine-components/dist apps/catalog/dist -type f \( -name '*.test.*' -o -name '*.spec.*' \) -print)"
+          echo "catalog build ok; no emitted test files"
 
   # ---------------------------------------------------------------------------
   # Non-blocking while tests/visual/snapshots is empty: the first run on a
@@ -215,7 +203,10 @@ jobs:
   # for how to promote this to a required check.
   # ---------------------------------------------------------------------------
   visual:
-    name: Visual regression (scaffold)
+    # Missing screenshot baselines don't provide a regression gate. Keep the
+    # reference capture available without another build/browser job on each PR.
+    if: github.event_name != 'pull_request'
+    name: Visual snapshots
     runs-on: ubuntu-latest
     timeout-minutes: 20
 

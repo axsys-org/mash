@@ -59,3 +59,5 @@ Same-build measurement on 2026-09-09, Chromium at 1280 × 900, after visiting ev
 | Chart, 51 examples | 51 → 1                  | 112.38 → 16.15 MB | 85.6%     | 1,052.65 → 1,053.25 KB |
 
 This shows a reduction in retained runtime overhead, with about 600 additional decoded JavaScript bytes in shared mode. Total unique decoded resources decreased slightly in both cases. It does not establish a comparable reduction in download size or promise faster startup. Raw initial/full snapshots and measurement boundaries are recorded in `docs/audit/shared-preview-measurements-2026-09-09.json`.
+
+PR validation runs the complete example sweep in light mode plus targeted dark-theme interaction checks. Use `pnpm test:catalogue:full` for both complete theme sweeps; main/manual CI does this automatically. See `docs/ci.md` for the production/test boundary and retained coverage.

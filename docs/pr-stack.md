@@ -6,30 +6,31 @@ The existing `codex/component-rebuild` branch is preserved at `5ca546a`; no publ
 
 The mixed final checkpoint was reconstructed as four commits: button disclosure accessibility, Calendar styling, Motion catalogue examples, and preview positioning. The reconstructed tree exactly matches `5ca546a` before the test cleanup. Autocomplete remains its own existing commit.
 
-| PR                                               | Branch                                 | PR base                            |
-| ------------------------------------------------ | -------------------------------------- | ---------------------------------- |
-| [#30](https://github.com/axsys-org/mash/pull/30) | `codex/stack/rebuild-checkpoint`       | `stack/design-system-convergence`  |
-| [#31](https://github.com/axsys-org/mash/pull/31) | `codex/stack/foundations`              | `codex/stack/rebuild-checkpoint`   |
-| [#32](https://github.com/axsys-org/mash/pull/32) | `codex/stack/catalogue`                | `codex/stack/foundations`          |
-| [#33](https://github.com/axsys-org/mash/pull/33) | `codex/stack/showcase`                 | `codex/stack/catalogue`            |
-| [#34](https://github.com/axsys-org/mash/pull/34) | `codex/stack/preview-windows`          | `codex/stack/showcase`             |
-| [#35](https://github.com/axsys-org/mash/pull/35) | `codex/stack/catalogue-coverage`       | `codex/stack/preview-windows`      |
-| [#36](https://github.com/axsys-org/mash/pull/36) | `codex/stack/navigation`               | `codex/stack/catalogue-coverage`   |
-| [#37](https://github.com/axsys-org/mash/pull/37) | `codex/stack/application-stories`      | `codex/stack/navigation`           |
-| [#38](https://github.com/axsys-org/mash/pull/38) | `codex/stack/autocomplete`             | `codex/stack/application-stories`  |
-| [#39](https://github.com/axsys-org/mash/pull/39) | `codex/stack/button-disclosure`        | `codex/stack/autocomplete`         |
-| [#40](https://github.com/axsys-org/mash/pull/40) | `codex/stack/calendar`                 | `codex/stack/button-disclosure`    |
-| [#41](https://github.com/axsys-org/mash/pull/41) | `codex/stack/motion`                   | `codex/stack/calendar`             |
-| [#42](https://github.com/axsys-org/mash/pull/42) | `codex/stack/preview-stability`        | `codex/stack/motion`               |
-| [#43](https://github.com/axsys-org/mash/pull/43) | `codex/stack/test-streamline`          | `codex/stack/preview-stability`    |
-| [#44](https://github.com/axsys-org/mash/pull/44) | `codex/stack/icon-layout`              | `codex/stack/test-streamline`      |
-| [#45](https://github.com/axsys-org/mash/pull/45) | `codex/stack/commons-polish`           | `codex/stack/icon-layout`          |
-| [#46](https://github.com/axsys-org/mash/pull/46) | `codex/stack/composition-geometry`     | `codex/stack/commons-polish`       |
-| [#47](https://github.com/axsys-org/mash/pull/47) | `codex/stack/story-composition`        | `codex/stack/composition-geometry` |
-| [#48](https://github.com/axsys-org/mash/pull/48) | `codex/stack/character-picker`         | `codex/stack/story-composition`    |
-| [#49](https://github.com/axsys-org/mash/pull/49) | `codex/stack/study-workspace`          | `codex/stack/character-picker`     |
-| [#50](https://github.com/axsys-org/mash/pull/50) | `codex/stack/review-readiness`         | `codex/stack/study-workspace`      |
-| [#52](https://github.com/axsys-org/mash/pull/52) | `codex/stack/shared-preview-prototype` | `codex/stack/review-readiness`     |
+| PR                                               | Branch                                 | PR base                                |
+| ------------------------------------------------ | -------------------------------------- | -------------------------------------- |
+| [#30](https://github.com/axsys-org/mash/pull/30) | `codex/stack/rebuild-checkpoint`       | `stack/design-system-convergence`      |
+| [#31](https://github.com/axsys-org/mash/pull/31) | `codex/stack/foundations`              | `codex/stack/rebuild-checkpoint`       |
+| [#32](https://github.com/axsys-org/mash/pull/32) | `codex/stack/catalogue`                | `codex/stack/foundations`              |
+| [#33](https://github.com/axsys-org/mash/pull/33) | `codex/stack/showcase`                 | `codex/stack/catalogue`                |
+| [#34](https://github.com/axsys-org/mash/pull/34) | `codex/stack/preview-windows`          | `codex/stack/showcase`                 |
+| [#35](https://github.com/axsys-org/mash/pull/35) | `codex/stack/catalogue-coverage`       | `codex/stack/preview-windows`          |
+| [#36](https://github.com/axsys-org/mash/pull/36) | `codex/stack/navigation`               | `codex/stack/catalogue-coverage`       |
+| [#37](https://github.com/axsys-org/mash/pull/37) | `codex/stack/application-stories`      | `codex/stack/navigation`               |
+| [#38](https://github.com/axsys-org/mash/pull/38) | `codex/stack/autocomplete`             | `codex/stack/application-stories`      |
+| [#39](https://github.com/axsys-org/mash/pull/39) | `codex/stack/button-disclosure`        | `codex/stack/autocomplete`             |
+| [#40](https://github.com/axsys-org/mash/pull/40) | `codex/stack/calendar`                 | `codex/stack/button-disclosure`        |
+| [#41](https://github.com/axsys-org/mash/pull/41) | `codex/stack/motion`                   | `codex/stack/calendar`                 |
+| [#42](https://github.com/axsys-org/mash/pull/42) | `codex/stack/preview-stability`        | `codex/stack/motion`                   |
+| [#43](https://github.com/axsys-org/mash/pull/43) | `codex/stack/test-streamline`          | `codex/stack/preview-stability`        |
+| [#44](https://github.com/axsys-org/mash/pull/44) | `codex/stack/icon-layout`              | `codex/stack/test-streamline`          |
+| [#45](https://github.com/axsys-org/mash/pull/45) | `codex/stack/commons-polish`           | `codex/stack/icon-layout`              |
+| [#46](https://github.com/axsys-org/mash/pull/46) | `codex/stack/composition-geometry`     | `codex/stack/commons-polish`           |
+| [#47](https://github.com/axsys-org/mash/pull/47) | `codex/stack/story-composition`        | `codex/stack/composition-geometry`     |
+| [#48](https://github.com/axsys-org/mash/pull/48) | `codex/stack/character-picker`         | `codex/stack/story-composition`        |
+| [#49](https://github.com/axsys-org/mash/pull/49) | `codex/stack/study-workspace`          | `codex/stack/character-picker`         |
+| [#50](https://github.com/axsys-org/mash/pull/50) | `codex/stack/review-readiness`         | `codex/stack/study-workspace`          |
+| [#52](https://github.com/axsys-org/mash/pull/52) | `codex/stack/shared-preview-prototype` | `codex/stack/review-readiness`         |
+| [#53](https://github.com/axsys-org/mash/pull/53) | `codex/stack/ci-cleanup`               | `codex/stack/shared-preview-prototype` |
 
 The first base, `stack/design-system-convergence`, already predates this stack and has its own unmerged history against `main`. Its prerequisite PR is [#29](https://github.com/axsys-org/mash/pull/29). Review it first, then proceed down the table. PRs #29–49 retain their draft status. PR #50 is the integrated review checkpoint; no merges were performed.
 
@@ -75,3 +76,7 @@ Review candidates linked in Linear: AXI-64 (slider geometry), AXI-68 (combobox c
 ## Shared preview prototype
 
 PR #52 is a separate draft on top of #50. Tabs and Chart can use one document with isolated, lazily mounted example roots through `?preview=shared`. It preserves the default preview for comparison and does not alter the public component API. Implementation and behavioral checks are separate commits; measurement scope and reproduction instructions are in `docs/catalogue-preview.md`.
+
+## Catalogue and CI cleanup
+
+PR #53 removes unreachable legacy catalogue controllers and their dependencies in a separate first commit, then trims redundant PR checks. Current Stories remain. The checked scope, baseline timing, and historical failure diagnosis are recorded in `docs/ci.md`.

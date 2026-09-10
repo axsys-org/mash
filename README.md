@@ -292,6 +292,8 @@ for loading boundaries, measurements, and production review commands.
 
 ## Pull requests
 
+See [CI and deployment](docs/ci.md) for test scope, production boundaries, and full validation commands.
+
 ```text
 push branch
      ↓
@@ -299,7 +301,6 @@ open PR
      ├── GitHub Actions ── build and checks
      │                     browser tests (Chromium)
      │                     catalog build
-     │                     visual regression (non-blocking scaffold)
      │
      └── Vercel ────────── preview deployment
                                 ↓

@@ -1,3 +1,4 @@
+import { catalogueThemes } from "./helpers/catalogue-themes.js";
 import { expect, test } from "@playwright/test";
 import { examplesFor } from "../../../apps/catalog/src/examples.js";
 import { components } from "../../../apps/catalog/src/schema.js";
@@ -8,7 +9,7 @@ import { hasRenderedContent } from "./helpers/rendered-content.js";
 for (const component of components.filter((item) => item.packageName === "@mash/ui")) {
   const tag = component.tagName;
   const examples = examplesFor(component);
-  for (const theme of ["light", "dark"]) {
+  for (const theme of catalogueThemes) {
     test(`${tag}: every example in ${theme}`, async ({ page }, testInfo) => {
       test.setTimeout(Math.max(30_000, examples.length * 10_000));
       const errors: string[] = [];

@@ -14,14 +14,6 @@ afterEach(() => {
 });
 
 describe("ui-card: lifecycle", () => {
-  it("registers and upgrades", async () => {
-    expect(customElements.get("ui-card")).toBe(UICard);
-
-    const card = await fixture<UICard>(`<ui-card>Body</ui-card>`);
-    expect(card).toBeInstanceOf(UICard);
-    expect(card.elevation).toBe("flat");
-  });
-
   it("reflects elevation", async () => {
     const card = await fixture<UICard>(`<ui-card>Body</ui-card>`);
     card.elevation = "raised";

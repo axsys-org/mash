@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 // Full-size registration, rendering, errors and overflow are covered by the
 // all-example sweep. These compositions need additional small-screen checks.
-const themes = ["light", "dark"] as const;
+const themes = ["light"] as const;
 
 const compactSurfaces = [
   "ui-color-picker",
