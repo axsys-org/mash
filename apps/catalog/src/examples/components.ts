@@ -1,3 +1,4 @@
+import { tooltipExamples } from "./tooltip.js";
 import { commandMenuExamples } from "./command-menu.js";
 import { commandExamples } from "./command-tree.js";
 import { sidebarExamples } from "./sidebar.js";
@@ -377,4 +378,11 @@ componentExamples["ui-command"] = [
   ...commandMenuExamples,
   ...commandExamples,
   ...(workflowExamples["ui-command"] ?? []),
+];
+
+componentExamples["ui-tooltip"] = [
+  ...tooltipExamples,
+  ...(feedbackExamples["ui-tooltip"] ?? []).filter(
+    (example) => example.name === "Control triggers" || example.name === "Removed trigger",
+  ),
 ];

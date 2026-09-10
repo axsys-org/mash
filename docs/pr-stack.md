@@ -126,3 +126,13 @@ Branch `codex/stack/command-patterns` builds on `codex/stack/combobox-patterns`.
 - Twelve consolidated examples cover editable document actions, grouped data, descriptions and disabled actions, recents, tabs/sorting, a changeable global dialog shortcut, custom people rows, CSS parts and sizes, and existing load/reorder workflows.
 - Validation: production catalogue/IIFE builds; full local quality check; focused component/workflow and production browser tests; all twelve examples loaded in light and dark without page errors or missing icons, plus narrow-screen review. Remote CI and Vercel status must be checked on the eventual PR head.
 - Component behavior, recipe, API documentation and focused regressions form the first commit; catalogue compositions and production interaction coverage form the second. Usage and ownership details are in `docs/command-menu.md`.
+
+## Tooltip patterns
+
+Branch `codex/stack/tooltip-patterns` builds on `codex/stack/command-patterns`.
+
+- Extends the existing tooltip with one-axis cursor following through the shared anchored positioner, explicit forced visibility, and accessible descriptions on native and Mash triggers. Keyboard focus opens immediately; Escape dismisses a hint before its containing dialog. Changing interaction policy cancels pending hover timers.
+- Default placement is top/center with an 8 px offset and 200 ms hover delay. The recipe uses shared fast entrance/exit timing, inverse text, readable type, and public CSS parts. No new dependencies or provider family.
+- Eleven examples cover action hints, placement/alignment/offset, rich content, both cursor axes, delays, forced state, custom parts, dialog layering, disabled controls, composed control triggers, and removal/restoration.
+- Validation: production catalogue/IIFE builds, local quality checks, focused tooltip/shared-overlay regressions, production interaction tests, and light/dark/narrow preview review. Remote CI and deployment status remain tied to the eventual PR head.
+- Component behavior and API documentation are separate from catalogue examples and browser coverage. Usage and ownership are documented in `docs/tooltip.md`.
