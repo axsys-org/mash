@@ -73,3 +73,26 @@ test("motion composition selects layers, changes sequence origin, and reveals co
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await expect(nested.getByText("Small improvements, ready to share.")).toBeHidden();
 });
+
+test("following highlight aligns with buttons across pointer, focus and disabled rows", async ({
+  page,
+}) => {
+  await page.goto("/components/ui-motion?example=Following%20highlight");
+  const frame = page.frameLocator('iframe[data-variant="Following highlight"]');
+  const scene = frame.locator(".hover-scene");
+  const projects = frame.getByRole("button", { name: "Projects", exact: true });
+  await projects.hover();
+  await expect(scene).toHaveAttribute("data-hover-index", "1");
+  await expect
+    .poll(async () => {
+      const a = await frame.locator(".mash-hover-highlight").boundingBox();
+      const b = await projects.boundingBox();
+      return Math.abs(a!.y - b!.y) + Math.abs(a!.height - b!.height);
+    })
+    .toBeLessThan(2);
+  await projects.press("Tab");
+  await expect(scene).toHaveAttribute("data-hover-index", "2");
+  await projects.click();
+  await expect(frame.locator("output")).toHaveText("Projects selected");
+  await expect(frame.getByRole("button", { name: "Archive", exact: true })).toBeDisabled();
+});

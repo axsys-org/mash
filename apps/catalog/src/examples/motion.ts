@@ -1,5 +1,6 @@
 import type { CatalogExample } from "../examples.js";
 import { sample } from "./shared.js";
+import { hoverExamples } from "./hover.js";
 
 const demo = (name: string, code: string, script: string, description: string): CatalogExample => ({
   ...sample(name, code, description),
@@ -109,4 +110,5 @@ button.addEventListener("click", review);
 button.addEventListener("mash-command", event => { if (event.detail.phase === "ended") review(); });`,
     "Compose an alert, a gesture binding, and one short shake. The message carries the meaning even when animation is reduced or cannot be seen.",
   ),
+  ...hoverExamples,
 ];

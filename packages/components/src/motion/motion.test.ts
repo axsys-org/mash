@@ -8,6 +8,32 @@ const nextPaint = (): Promise<void> =>
   new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
 describe("ui-motion", () => {
+  it("tracks enabled hover items and removes state when the scene disconnects", async () => {
+    const scene = await fixture<UIMotion>(
+      `<ui-motion style="display:block;position:relative;width:240px"><span slot="underlay"></span><button data-hover-item style="display:block;width:200px;height:40px">First</button><button data-hover-item disabled style="display:block;width:200px;height:40px">Disabled</button><button data-hover-item style="display:block;width:200px;height:40px">Last</button></ui-motion>`,
+    );
+    const highlight = scene.querySelector<HTMLElement>("span")!;
+    scene.trackHover({ highlight });
+    const last = scene.querySelectorAll<HTMLElement>("button")[2]!;
+    last.focus();
+    await nextPaint();
+    expect(last.hasAttribute("data-hover-active")).toBe(true);
+    expect(scene.getAttribute("data-hover-index")).toBe("2");
+    const rect = last.getBoundingClientRect();
+    scene.dispatchEvent(
+      new PointerEvent("pointermove", {
+        clientX: rect.x + 10,
+        clientY: rect.y + 10,
+        pointerType: "mouse",
+      }),
+    );
+    await nextPaint();
+    expect(highlight.style.translate).not.toBe("");
+    scene.remove();
+    expect(last.hasAttribute("data-hover-active")).toBe(false);
+    expect(highlight.hasAttribute("data-hover-visible")).toBe(false);
+  });
+
   it("projects arbitrary content through stable scene lanes", async () => {
     const motion = await fixture<UIMotion>(`
       <ui-motion target="overlay">

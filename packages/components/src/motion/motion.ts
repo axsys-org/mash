@@ -1,6 +1,9 @@
 import { LitElement, css, html, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { HoverController, type HoverOptions } from "./hover.js";
+export type { HoverOptions } from "./hover.js";
+
 import { MotionLifecycleController } from "../internal/motion-lifecycle.js";
 
 export type MotionRecipe =
@@ -92,6 +95,15 @@ export class UIMotion extends LitElement {
   declare state: MotionState;
   /** Scene lane that receives the recipe. */
   declare target: MotionTarget;
+
+  #hover: HoverController | undefined;
+
+  /** Tracks authored hover/focus items with the existing motion underlay and spring tokens. */
+  trackHover(options: HoverOptions): HoverController {
+    this.#hover?.destroy();
+    this.#hover = new HoverController(this, options);
+    return this.#hover;
+  }
 
   readonly #internals: ElementInternals;
   readonly #lifecycle: MotionLifecycleController<MotionEventDetail>;
@@ -451,6 +463,8 @@ export class UIMotion extends LitElement {
   }
 
   override disconnectedCallback(): void {
+    this.#hover?.destroy();
+    this.#hover = undefined;
     this.#lifecycle.destroy();
     super.disconnectedCallback();
   }

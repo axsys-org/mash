@@ -1270,3 +1270,34 @@
     content: attr(data-whitespace);
   }
 }
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-motion.mash-hover {
+    display: block;
+    position: relative;
+  }
+  :where([data-mash-catalogue="mash"]) ui-motion.mash-hover::part(root) {
+    display: grid;
+    inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-hover-highlight {
+    position: absolute;
+    inset: 0 auto auto 0;
+    pointer-events: none;
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-control);
+    opacity: 0;
+    transition:
+      opacity var(--duration-control) var(--easing-control),
+      width var(--duration-control) var(--easing-spring-snappy),
+      height var(--duration-control) var(--easing-spring-snappy);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-hover-highlight[data-hover-visible] {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) .mash-hover-highlight {
+      transition: none;
+    }
+  }
+}
