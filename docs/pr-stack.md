@@ -92,3 +92,7 @@ PR #53 removes unreachable legacy catalogue controllers and their dependencies i
 ## Number field rehabilitation
 
 `codex/stack/number-field-rehab` builds on `codex/stack/hover-color-patterns`. Component behavior and recipes are separate from the expanded catalogue examples. It fixes draft editing, decimal stepping, limit controls and stable sizing; adds unit slots, a stacked recipe and read-only state; and documents the form contract in `docs/number-field.md`.
+
+## Switch and motion patterns
+
+`codex/stack/switch-motion-patterns` builds on `codex/stack/number-field-rehab`. Timing tokens and Motion utilities, switch behavior/recipes, and catalogue examples are separated for review. Shared gesture recognition handles thumb dragging; native CSS handles motion and label weight with no new dependencies. Usage is documented in `docs/switch-and-motion.md`.

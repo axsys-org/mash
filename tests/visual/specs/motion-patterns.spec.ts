@@ -96,3 +96,46 @@ test("following highlight aligns with buttons across pointer, focus and disabled
   await expect(frame.locator("output")).toHaveText("Projects selected");
   await expect(frame.getByRole("button", { name: "Archive", exact: true })).toBeDisabled();
 });
+
+for (const reducedMotion of ["no-preference", "reduce"] as const) {
+  test(`motion tiers use faster exits and reopen safely with ${reducedMotion}`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion });
+    await page.goto("/components/ui-motion?example=Timing%20tiers");
+    const frame = page.frameLocator('iframe[data-variant="Timing tiers"]');
+    for (const [tier, entry, exit] of [
+      ["fast", "0.08s", "0.06s"],
+      ["moderate", "0.16s", "0.12s"],
+      ["slow", "0.24s", "0.16s"],
+    ]) {
+      const scene = frame.locator(`#tier-${tier}`);
+      await frame.locator(`[data-tier="${tier}"][data-state="entering"]`).click();
+      await expect(frame.locator("output")).toContainText(`${tier} · settled`);
+      await expect(scene.locator('span[part="content"]')).toHaveCSS(
+        "animation-duration",
+        reducedMotion === "reduce" ? "0s" : entry!,
+      );
+      await frame.locator(`[data-tier="${tier}"][data-state="exiting"]`).click();
+      await expect(scene).toBeHidden();
+      await expect(scene.locator('span[part="content"]')).toHaveCSS(
+        "animation-duration",
+        reducedMotion === "reduce" ? "0s" : exit!,
+      );
+      await frame.locator(`[data-tier="${tier}"][data-state="entering"]`).click();
+      await expect(scene).toBeVisible();
+    }
+  });
+}
+
+test("animated label weight reserves space for adjacent actions", async ({ page }) => {
+  await page.goto("/components/ui-motion?example=Weight%20without%20layout%20shift");
+  const frame = page.frameLocator('iframe[data-variant="Weight without layout shift"]');
+  const next = frame.getByRole("button", { name: "Publish", exact: true });
+  const before = (await next.boundingBox())!;
+  await frame.getByRole("button", { name: "Review document", exact: true }).hover();
+  const after = (await next.boundingBox())!;
+  expect(Math.abs(after.x - before.x)).toBeLessThan(1);
+  await frame.getByRole("button", { name: "Review document", exact: true }).click();
+  await expect(frame.locator("output")).toHaveText("Document ready for review");
+});

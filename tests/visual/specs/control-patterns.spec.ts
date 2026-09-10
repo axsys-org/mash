@@ -238,3 +238,77 @@ test("number editing can cross the minimum, submit empty optional values and res
   await expect(quantity).toHaveValue("120");
   await expect(quantity).not.toHaveAttribute("aria-invalid", "true");
 });
+
+test("switch dragging commits once, cancels cleanly and leaves label activation usable", async ({
+  page,
+}) => {
+  await page.goto("/components/ui-switch?example=Fluid%20toggle");
+  const frame = page.frameLocator('iframe[data-variant="Fluid toggle"]');
+  const host = frame.locator("#fluid-switch");
+  const control = host.getByRole("switch");
+  const box = (await control.boundingBox())!;
+  await host.evaluate((node) => {
+    node.addEventListener("ui-switch-change", () =>
+      node.setAttribute("data-changes", String(Number(node.getAttribute("data-changes") || 0) + 1)),
+    );
+  });
+  await page.mouse.move(box.x + 6, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width - 3, box.y + box.height / 2, { steps: 4 });
+  await page.mouse.up();
+  await expect(control).toBeChecked();
+  await expect(host).toHaveAttribute("data-changes", "1");
+  await page.mouse.move(box.x + box.width - 6, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 3, box.y + box.height / 2, { steps: 4 });
+  await control.dispatchEvent("pointercancel", { pointerId: 1, pointerType: "mouse" });
+  await page.mouse.up();
+  await expect(control).toBeChecked();
+  await expect(host).not.toHaveAttribute("data-dragging", "");
+  await host.locator(".mash-weight > span").click();
+  await expect(control).not.toBeChecked();
+  await control.press("Space");
+  await expect(control).toBeChecked();
+  await host.evaluate((node) => {
+    node.setAttribute("dir", "rtl");
+    (node as HTMLElement & { checked: boolean }).checked = false;
+  });
+  await expect(control).not.toBeChecked();
+  const rtl = (await control.boundingBox())!;
+  await page.mouse.move(rtl.x + rtl.width - 6, rtl.y + rtl.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(rtl.x + 3, rtl.y + rtl.height / 2, { steps: 4 });
+  await page.mouse.up();
+  await expect(control).toBeChecked();
+});
+
+test("switch labels and inherited sizing stay usable in disabled and controlled settings", async ({
+  page,
+}) => {
+  await page.goto("/components/ui-switch?example=Size%20context%20and%20availability");
+  const frame = page.frameLocator('iframe[data-variant="Size context and availability"]');
+  const inherited = (await frame
+    .getByRole("switch", { name: "Inherited compact", exact: true })
+    .boundingBox())!;
+  const compact = (await frame
+    .getByRole("switch", { name: "Pinned compact", exact: true })
+    .boundingBox())!;
+  const normal = (await frame
+    .getByRole("switch", { name: "Default size", exact: true })
+    .boundingBox())!;
+  expect(inherited.width).toBe(compact.width);
+  expect(normal.width).toBeGreaterThan(compact.width);
+  await expect(
+    frame.getByRole("switch", { name: "Disabled by fieldset", exact: true }),
+  ).toBeDisabled();
+  await page.goto("/components/ui-switch?example=Controlled%20setting");
+  const controlled = page.frameLocator('iframe[data-variant="Controlled setting"]');
+  await controlled.getByRole("button", { name: "Enable", exact: true }).click();
+  await expect(
+    controlled.getByRole("switch", { name: "Sync over cellular", exact: true }),
+  ).toBeChecked();
+  await controlled.getByRole("button", { name: "Disable", exact: true }).click();
+  await expect(
+    controlled.getByRole("switch", { name: "Sync over cellular", exact: true }),
+  ).not.toBeChecked();
+});

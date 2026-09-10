@@ -209,6 +209,23 @@ document.querySelector("#reset-code").addEventListener("click", () => { code.val
   ],
   "ui-switch": [
     demo(
+      "Fluid toggle",
+      `<ui-switch id="fluid-switch" name="notifications"><span class="mash-weight" data-text="Notifications"><span>Notifications</span></span></ui-switch><output id="fluid-switch-result" aria-live="polite">Notifications off</output>`,
+      `const control = document.querySelector("#fluid-switch"); control.addEventListener("ui-switch-change", () => { document.querySelector("#fluid-switch-result").textContent = "Notifications " + (control.checked ? "on" : "off"); });`,
+      "Click the label, press Space or drag the thumb. Hover stretches the thumb; pressing compresses it. Label emphasis reserves its width, so nearby content stays still.",
+    ),
+    sample(
+      "Size context and availability",
+      `<div class="mash-grid"><div data-mash-size="small"><ui-switch label="Inherited compact" checked></ui-switch></div><ui-switch size="compact" label="Pinned compact" checked></ui-switch><div data-mash-size="small"><ui-switch size="default" label="Default size" checked></ui-switch></div><ui-switch label="Disabled off" disabled></ui-switch><ui-switch label="Disabled on" checked disabled></ui-switch><fieldset disabled style="border:0;padding:0;margin:0;min-width:0"><ui-switch label="Disabled by fieldset" checked></ui-switch></fieldset></div>`,
+      "Omitted size follows the nearest size context; compact and default pin the track size. Attribute labels and slotted labels share native switch semantics.",
+    ),
+    demo(
+      "Controlled setting",
+      `<ui-switch id="controlled-switch" label="Sync over cellular" label-side="left"></ui-switch><div class="mash-row"><ui-button id="enable-sync">Enable</ui-button><ui-button id="disable-sync">Disable</ui-button></div><output id="controlled-switch-result" aria-live="polite">Waiting for Wi-Fi</output>`,
+      `const control = document.querySelector("#controlled-switch"); const render = () => { document.querySelector("#controlled-switch-result").textContent = control.checked ? "Cellular sync enabled" : "Waiting for Wi-Fi"; }; document.querySelector("#enable-sync").addEventListener("click", () => { control.checked = true; render(); }); document.querySelector("#disable-sync").addEventListener("click", () => { control.checked = false; render(); }); control.addEventListener("ui-switch-change", render);`,
+      "The application can set checked directly. User changes arrive through ui-switch-change; assignment does not emit a second user event.",
+    ),
+    demo(
       "Notification settings",
       `<ui-switch id="desktop-alerts" checked><strong>Desktop alerts</strong> · updates while you work</ui-switch><ui-switch id="quiet-alerts" size="small" label-side="left">Quiet hours</ui-switch><ui-switch checked disabled>Security alerts · required</ui-switch><ui-switch disabled>Mobile push · connect a device</ui-switch><output id="notification-result" aria-live="polite"></output>`,
       `const desktop = document.querySelector("#desktop-alerts"); const quiet = document.querySelector("#quiet-alerts"); const render = () => { document.querySelector("#notification-result").textContent = !desktop.checked ? "Desktop alerts paused" : quiet.checked ? "Desktop alerts held until quiet hours end" : "Desktop alerts enabled"; }; [desktop, quiet].forEach(control => control.addEventListener("ui-switch-change", render)); render();`,

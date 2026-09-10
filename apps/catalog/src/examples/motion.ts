@@ -110,5 +110,28 @@ button.addEventListener("click", review);
 button.addEventListener("mash-command", event => { if (event.detail.phase === "ended") review(); });`,
     "Compose an alert, a gesture binding, and one short shake. The message carries the meaning even when animation is reduced or cannot be seen.",
   ),
+  demo(
+    "Timing tiers",
+    `<style>.tier-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:1rem;width:100%}.tier-cell{display:grid;gap:1rem}.tier-stage{display:grid;place-items:center;min-height:8rem;border:1px solid var(--color-border);border-radius:var(--radius-container)}.tier-stage ui-motion::part(root){width:100%}</style><div class="tier-grid">${[
+      ["fast", "80 / 60 ms"],
+      ["moderate", "160 / 120 ms"],
+      ["slow", "240 / 160 ms"],
+    ]
+      .map(
+        ([tier, time]) =>
+          `<section class="tier-cell"><strong>${tier}</strong><small>${time} · enter / exit</small><div class="tier-stage"><ui-motion id="tier-${tier}" pace="${tier}" motion="scale"><ui-card><strong slot="title">Ready to share</strong>One scene, shared timing.</ui-card></ui-motion></div><div class="mash-row"><ui-button data-tier="${tier}" data-state="entering" size="small">Enter</ui-button><ui-button data-tier="${tier}" data-state="exiting" size="small">Exit</ui-button></div></section>`,
+      )
+      .join(
+        "",
+      )}</div><output id="tier-result" aria-live="polite">Choose a tier to compare entry and exit.</output>`,
+    `document.querySelectorAll("[data-tier]").forEach(button => button.addEventListener("click", () => { const motion = document.querySelector("#tier-" + button.dataset.tier); motion.hidden = false; motion.play(button.dataset.state); })); document.querySelectorAll(".tier-stage ui-motion").forEach(motion => motion.addEventListener("mash-motion-end", event => { if (event.detail.interrupted) return; if (event.detail.state === "exiting") motion.hidden = true; document.querySelector("#tier-result").textContent = motion.pace + " · " + (event.detail.state === "exiting" ? "dismissed" : "settled") + (event.detail.reducedMotion ? " · reduced motion" : ""); }));`,
+    "Fast is for small feedback; moderate lands precisely; slow gives larger surfaces a restrained spring. Exits are shorter and settle without overshoot. The existing lifecycle owns completion and interruption.",
+  ),
+  demo(
+    "Weight without layout shift",
+    `<ui-toolbar label="Document actions"><ui-button id="weight-action" variant="ghost"><span class="mash-weight" data-text="Review document"><span>Review document</span></span></ui-button><ui-separator orientation="vertical"></ui-separator><ui-button size="small">Publish</ui-button></ui-toolbar><ui-switch id="weight-setting"><span class="mash-weight" data-text="Keep available offline"><span>Keep available offline</span></span></ui-switch><output id="weight-result" aria-live="polite">Hover or focus Review document; toggle the setting.</output>`,
+    `document.querySelector("#weight-action").addEventListener("click", () => { document.querySelector("#weight-result").textContent = "Document ready for review"; });`,
+    "The label reserves its emphasized width. Its variable font weight can change while the adjacent action stays in place. Keep data-text synchronized with the visible label.",
+  ),
   ...hoverExamples,
 ];
