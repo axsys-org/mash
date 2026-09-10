@@ -1,3 +1,4 @@
+import { maskedInputExample } from "./interaction-contracts.js";
 import { comboboxExamples } from "./combobox.js";
 import { finalControlExamples } from "./final-control-examples.js";
 import { menuExtensionExamples } from "./menu-extensions.js";
@@ -170,3 +171,5 @@ controlExamples["ui-combobox"] = [
     ].includes(example.name),
   ),
 ];
+
+controlExamples["ui-input"]!.push(maskedInputExample);

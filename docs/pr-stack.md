@@ -146,3 +146,18 @@ Branch `codex/stack/message-patterns` builds on `codex/stack/tooltip-patterns`.
 - Eleven composer examples and a complete local conversation demonstrate control states, sizes, actions, CSS parts, send/stop/retry, copy/edit/regenerate, and streamed replies. Native PDF rendering is not bundled; document attachments retain their filename, size, and media slot.
 - Recipes and ownership documentation form one review unit; the consolidated portable controller, catalogue examples, and production browser regressions form the next. See `docs/message-input.md` for application integration and cleanup.
 - Validation: production catalogue/IIFE build, local quality checks, twelve focused production browser cases, and light/dark/narrow visual review. Remote CI and deployment status must be checked on the eventual PR head.
+
+## Interaction contracts and keyboard caps
+
+Branch `codex/stack/interaction-contracts` builds on `codex/stack/message-patterns`.
+
+- Keyboard caps follow the shared default/compact control type scale, with readable modifier glyphs, consistent spacing, and per-instance size overrides. Removes local command/tooltip font overrides.
+- `selectCollection` extends the existing selection module with stable anchors, toggles, visible ranges, select-all, and filtering retention. `ui-tree` gains opt-in managed single/multiple selection while preserving its owner-controlled default and expansion contract. See `docs/collection-selection.md`.
+- Existing `ui-input` gains optional fixed-format masks, raw form values, display values, caret-aware editing, punctuation deletion, reset, and composition handling. No parallel input element. See `docs/formatted-input.md`.
+- The composer moves from a catalogue script string into the typed public `@mash/ui/message-composer` controller. Delivery is supplied by the application; abortable sending and retry restore drafts. Existing controls, attachments, and drag mechanics remain in use. See `docs/message-input.md`.
+- Portable examples import cached behavior modules on demand. Async setup finishes before previews become interactive; no dependency or component-family registration is added. New examples demonstrate size inheritance, masked form data, tree multiselection, and filtered list selection.
+- Review units separate keyboard presentation, collection selection, masked editing, public composer/preview loading, and catalogue documentation.
+
+Validation: production catalogue/IIFE build, full local quality check, focused component and production browser regressions, and light/dark/narrow visual review. One narrow-preview initialization timeout during concurrent local checks passed in an isolated rerun; assertions were not relaxed. Remote CI and deployment status remain tied to the eventual PR head.
+
+Remaining coverage outside this chunk: a carousel primitive, independent plot scale/axis/mark composition, coordinated question flows, command virtualization, and the larger code-editor capabilities noted in the coverage audit. These are follow-up work, not implied by the new controllers.

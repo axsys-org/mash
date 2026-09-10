@@ -1,3 +1,4 @@
+import { treeSelectionExample, listSelectionExample } from "./interaction-contracts.js";
 import { tooltipExamples } from "./tooltip.js";
 import { commandMenuExamples } from "./command-menu.js";
 import { commandExamples } from "./command-tree.js";
@@ -386,3 +387,6 @@ componentExamples["ui-tooltip"] = [
     (example) => example.name === "Control triggers" || example.name === "Removed trigger",
   ),
 ];
+
+componentExamples["ui-tree"]!.unshift(treeSelectionExample);
+componentExamples["ui-scroll-area"]!.push(listSelectionExample);
