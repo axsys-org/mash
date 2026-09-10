@@ -57,6 +57,44 @@ function hslHex(hue, saturation, lightness, alpha) {
 export const colorExamples: Record<string, CatalogExample[]> = {
   "ui-color-picker": [
     colorExample(
+      "Color formats",
+      `<div class="color-layout"><ui-color-picker id="format-picker" inline format="oklch" label="Accent color" value="oklch(67% 0.18 265)"></ui-color-picker><ui-card><strong slot="title">One color, four formats</strong>${painted}<div class="mash-stack" id="format-values" style="font-size:12px;overflow-wrap:anywhere"></div></ui-card></div>`,
+      "Switch between HEX, RGB, HSL and OKLCH without changing the color. Alpha travels with every format; the editor maps colors into sRGB.",
+      `const picker = document.querySelector("#format-picker");
+function render() {
+  const parsed = picker.parsedColor;
+  if (!parsed) return;
+  document.querySelector("[data-paint]").style.background = parsed.hex;
+  const rows = ["hex","rgb","hsl","oklch"].map(format => {
+    const row = document.createElement("code"); row.textContent = parsed[format]; return row;
+  });
+  document.querySelector("#format-values").replaceChildren(...rows);
+}
+picker.addEventListener("ui-color-change",render); picker.addEventListener("ui-color-preview",render); render();`,
+    ),
+    colorExample(
+      "Fill control",
+      `<div class="mash-row"><ui-color-picker id="fill" label="Fill color" value="#6B97FF" placement="bottom"><ui-button slot="trigger" variant="ghost"><span data-tile style="display:inline-block;width:20px;height:20px;border:1px solid var(--color-border);border-radius:4px;background:#6B97FF"></span><span>Fill</span><code data-value>#6B97FF</code></ui-button>${swatches()}<ui-button slot="close" size="small" variant="ghost">Done</ui-button></ui-color-picker><ui-button id="remove-fill" size="small" variant="ghost" aria-label="Remove fill"><ui-icon name="action.dismiss" label=""></ui-icon></ui-button></div>${painted}<output id="fill-status" aria-live="polite">Fill applied</output>`,
+      "The picker, trigger tile, value and remove action share one color. Removing fill leaves the trigger available to choose another.",
+      `const picker = document.querySelector("#fill");
+function render() {
+  const value = picker.preview || picker.value;
+  document.querySelector("[data-tile]").style.background = value || "transparent";
+  document.querySelector("[data-value]").textContent = picker.value || "None";
+  document.querySelector("[data-paint]").style.background = value || "transparent";
+  document.querySelector("#remove-fill").disabled = !picker.value;
+  document.querySelector("#fill-status").textContent = picker.value ? "Fill applied" : "No fill";
+}
+picker.addEventListener("ui-color-change",render); picker.addEventListener("ui-color-preview",render);
+document.querySelector("#remove-fill").addEventListener("click",() => picker.clearColor()); render();`,
+    ),
+    colorExample(
+      "Compact palette",
+      `<style>.compact-colors::part(palette){display:flex;flex-wrap:wrap;gap:8px}.compact-colors ui-color-swatch::part(label){display:none}.compact-colors ui-color-swatch::part(control){padding:4px}.compact-colors ui-color-swatch::part(swatch){width:24px;height:24px;border-radius:50%}</style><ui-color-picker class="compact-colors" inline hide-eyedropper label="Project palette" value="#7965E8">${swatches()}</ui-color-picker>`,
+      "Preset swatches stay optional. This compact panel hides the screen picker and styles the existing swatch parts.",
+    ),
+
+    colorExample(
       "Color selector",
       `<div class="color-layout"><ui-color-picker id="color" inline label="Accent" value="#7965E8"><ui-button slot="clear" size="small" variant="ghost">Clear</ui-button></ui-color-picker><ui-card><strong slot="title">Your color</strong>${painted}<code id="color-value">#7965E8</code><ui-button id="copy-color" slot="footer" size="small">Copy hex</ui-button></ui-card></div>`,
       "Drag the plane, edit channels or enter hex. The large preview shows opacity; clear and copy use the committed value.",

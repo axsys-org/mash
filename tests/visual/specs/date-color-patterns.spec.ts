@@ -105,3 +105,46 @@ test("palette entries retain edits and adding/removing changes the exported valu
   await frame.getByRole("button", { name: "Remove selected", exact: true }).click();
   await expect(frame.locator("#saved-colors ui-color-swatch")).toHaveCount(3);
 });
+
+test("format selection preserves color and opacity, and the fill trigger can be removed", async ({
+  page,
+}) => {
+  await page.goto("/components/ui-color-picker?example=Color%20formats");
+  const frame = page.frameLocator('iframe[data-variant="Color formats"]');
+  const picker = frame.locator("#format-picker");
+  const original = await picker.getAttribute("value");
+  await frame.getByRole("combobox", { name: "Color format" }).click();
+  const triggerBox = (await frame.getByRole("combobox", { name: "Color format" }).boundingBox())!;
+  await expect
+    .poll(async () => {
+      const box = (await picker.locator('[part="popup"]').last().boundingBox())!;
+      return Math.abs(box.x - triggerBox.x);
+    })
+    .toBeLessThan(8);
+  await frame.getByRole("option", { name: "RGB", exact: true }).click();
+  await expect(picker).toHaveAttribute("value", original!);
+  const input = frame.getByRole("textbox", { name: "RGB color", exact: true });
+  await input.fill("rgb(255 0 0 / 50%)");
+  await input.press("Tab");
+  await expect(picker).toHaveAttribute("value", "#FF000080");
+  await input.fill("invalid");
+  await input.press("Tab");
+  await expect(picker).toHaveAttribute("value", "#FF000080");
+  await expect(picker.locator('[part="error"]')).toContainText("Previous value restored");
+  const plane = frame.getByRole("group", { name: "Saturation and brightness" });
+  await plane.press("ArrowDown");
+  await expect(picker).not.toHaveAttribute("value", "#FF000080");
+
+  await page.goto("/components/ui-color-picker?example=Fill%20control");
+  const fill = page.frameLocator('iframe[data-variant="Fill control"]');
+  await fill.getByRole("button", { name: "Remove fill", exact: true }).click();
+  await expect(fill.locator("#fill")).toHaveAttribute("value", "");
+  await fill.locator('[slot="trigger"]').click();
+  await fill.getByRole("combobox", { name: "Color format" }).click();
+  await fill.getByRole("option", { name: "HSL", exact: true }).click();
+  await expect(fill.locator("#fill")).toHaveAttribute("open", "");
+  const color = fill.getByRole("textbox", { name: "HSL color", exact: true });
+  await color.fill("hsl(120 100% 50%)");
+  await color.press("Tab");
+  await expect(fill.locator("[data-value]")).toHaveText("#00FF00");
+});

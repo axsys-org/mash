@@ -8,102 +8,54 @@ import {
   UIAnchoredOverlay,
 } from "../internal/overlay.js";
 
-/** Normalizes supported three-, four-, six-, and eight-digit hex colors. */
-export function normalizeHexColor(value: string): string | null {
-  const match = value.trim().match(/^#?([\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})$/i);
-  if (!match?.[1]) return null;
-  const raw = match[1];
-  const expanded =
-    raw.length <= 4
-      ? raw
-          .split("")
-          .map((character) => `${character}${character}`)
-          .join("")
-      : raw;
-  return `#${expanded.toUpperCase()}`;
-}
-
-interface ColorChannels {
-  hue: number;
-  saturation: number;
-  lightness: number;
-  alpha: number;
-}
-
-function clamp(value: number, minimum: number, maximum: number): number {
-  return Math.min(maximum, Math.max(minimum, Number.isFinite(value) ? value : minimum));
-}
-
-function channelsFromHex(value: string): ColorChannels | null {
-  const normalized = normalizeHexColor(value);
-  if (!normalized) return null;
-  const raw = normalized.slice(1);
-  const red = Number.parseInt(raw.slice(0, 2), 16) / 255;
-  const green = Number.parseInt(raw.slice(2, 4), 16) / 255;
-  const blue = Number.parseInt(raw.slice(4, 6), 16) / 255;
-  const maximum = Math.max(red, green, blue);
-  const minimum = Math.min(red, green, blue);
-  const delta = maximum - minimum;
-  const lightness = (maximum + minimum) / 2;
-  let hue = 0;
-  if (delta > 0) {
-    if (maximum === red) hue = ((green - blue) / delta) % 6;
-    else if (maximum === green) hue = (blue - red) / delta + 2;
-    else hue = (red - green) / delta + 4;
-    hue = (hue * 60 + 360) % 360;
-  }
-  const saturation = delta === 0 ? 0 : delta / (1 - Math.abs(2 * lightness - 1));
-  return {
-    hue,
-    saturation: saturation * 100,
-    lightness: lightness * 100,
-    alpha: raw.length === 8 ? (Number.parseInt(raw.slice(6, 8), 16) / 255) * 100 : 100,
-  };
-}
-
-function hexFromChannels(channels: ColorChannels): string {
-  const hue = ((channels.hue % 360) + 360) % 360;
-  const saturation = clamp(channels.saturation, 0, 100) / 100;
-  const lightness = clamp(channels.lightness, 0, 100) / 100;
-  const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
-  const segment = hue / 60;
-  const intermediate = chroma * (1 - Math.abs((segment % 2) - 1));
-  const [red, green, blue] =
-    segment < 1
-      ? [chroma, intermediate, 0]
-      : segment < 2
-        ? [intermediate, chroma, 0]
-        : segment < 3
-          ? [0, chroma, intermediate]
-          : segment < 4
-            ? [0, intermediate, chroma]
-            : segment < 5
-              ? [intermediate, 0, chroma]
-              : [chroma, 0, intermediate];
-  const match = lightness - chroma / 2;
-  const byte = (channel: number): string =>
-    Math.round((channel + match) * 255)
-      .toString(16)
-      .padStart(2, "0")
-      .toUpperCase();
-  const alpha = Math.round((clamp(channels.alpha, 0, 100) / 100) * 255);
-  return `#${byte(red)}${byte(green)}${byte(blue)}${alpha < 255 ? alpha.toString(16).padStart(2, "0").toUpperCase() : ""}`;
-}
+import {
+  normalizeHexColor,
+  channelsFromHex,
+  hexFromChannels,
+  clamp,
+  parseColor,
+  type ColorFormat,
+  type ParsedColor,
+} from "./color-value.js";
+export { normalizeHexColor, parseColor } from "./color-value.js";
+export type { ColorFormat, ParsedColor } from "./color-value.js";
 
 /**
  * A color selector with an inline surface or an anchored popup.
  *
  * The picker owns committed versus transient preview values, open/dismiss
- * behavior, a saturation/value plane, keyboard channel controls, and hex input.
- * Applications can replace the native controls through named slots and supply
+ * behavior, a saturation/value plane, keyboard channel controls, and four color formats.
+ * Applications can replace the composed controls through named slots and supply
  * their own palette. Public parts and semantic recipes own appearance.
  *
  * @tag ui-color-picker
- * @summary Selects colors through a plane, channel controls, hex input, and optional palette.
+ * @summary Edits HEX, RGB, HSL and OKLCH colors with opacity, swatches and screen sampling.
+ * @csspart format - The format selector host.
+ * @csspart format-row - Format, color value and eyedropper controls.
+ * @csspart format-trigger - The composed select trigger.
+ * @csspart format-positioner - The composed select positioner.
+ * @csspart format-popup - The composed select popup.
+ * @csspart format-list - The composed format list.
+ * @csspart format-option - The composed format choices.
+ * @csspart channel-label - Slider label.
+ * @csspart channel-value - Slider value.
+ * @csspart format-choice - Format option host.
+ * @csspart channel-root - The composed slider layout.
+ * @csspart hue-track - Hue spectrum rail.
+ * @csspart hue-thumb - Hue position indicator.
+ * @csspart hue-control - Native hue input within the Mash slider.
+ * @csspart alpha-track - Opacity rail.
+ * @csspart alpha-thumb - Opacity position indicator.
+ * @csspart alpha-control - Native opacity input within the Mash slider.
+ * @csspart channel-fill - The slider fill layer.
+ * @csspart color-input - The composed text field.
+ * @csspart eyedropper - Screen color action.
+ * @csspart error - Invalid-input feedback.
+ * @fires {CustomEvent<{format: ColorFormat}>} ui-color-format-change - Reports format selection.
  * @csspart plane - Pointer and keyboard saturation/value surface.
  * @csspart thumb - Current position on the color plane.
- * @csspart channel - Native fallback channel controls.
- * @csspart hex-input - Native fallback hexadecimal input.
+ * @csspart channel - Composed channel controls.
+ * @csspart hex-input - Composed color-value input host.
  * @mashnode plane color controls
  * @mashnode thumb value plane
  * @mashnode channel channel controls
@@ -157,7 +109,7 @@ function hexFromChannels(channels: ColorChannels): string {
  * @cssstate previewing - Matches `:state(previewing)` while a transient color is active.
  *
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-color-picker-open-change - Reports an open-state change and why it occurred.
- * @fires {CustomEvent<{value: string}>} ui-color-change - Reports a committed color.
+ * @fires {CustomEvent<{value: string, formattedValue: string, parsed: ParsedColor | null}>} ui-color-change - Reports canonical hex plus the selected representation and parsed channels.
  * @fires {CustomEvent<{value: string | null}>} ui-color-preview - Reports a transient preview.
  *
  * @mashnode root control
@@ -216,6 +168,9 @@ function hexFromChannels(channels: ColorChannels): string {
  */
 export class UIColorPicker extends UIAnchoredOverlay {
   static override properties = {
+    format: { type: String, reflect: true },
+    hideEyedropper: { type: Boolean, attribute: "hide-eyedropper", reflect: true },
+    _error: { state: true },
     ...UIAnchoredOverlay.properties,
     value: { type: String, reflect: true },
     preview: { type: String, reflect: true },
@@ -240,6 +195,18 @@ export class UIColorPicker extends UIAnchoredOverlay {
   declare alpha: number;
   /** Display the complete picker directly, without a popup or trigger. */
   declare inline: boolean;
+  /** Text representation used by the editor; committed value stays canonical hex. */
+  declare format: ColorFormat;
+  /** Hide the native eyedropper even in supporting browsers. */
+  declare hideEyedropper: boolean;
+  declare private _error: string;
+  #eyeAbort: AbortController | undefined;
+  get parsedColor(): ParsedColor | null {
+    return parseColor(this.preview || this.value);
+  }
+  get formattedValue(): string {
+    return this.parsedColor?.[this.format] ?? "";
+  }
 
   protected readonly overlayRole = "dialog" as const;
   constructor() {
@@ -251,6 +218,9 @@ export class UIColorPicker extends UIAnchoredOverlay {
     this.lightness = 0;
     this.alpha = 100;
     this.inline = false;
+    this.format = "hex";
+    this.hideEyedropper = false;
+    this._error = "";
     this.addEventListener("ui-color-select", this.#onSelect as EventListener);
     this.addEventListener("ui-color-swatch-preview", this.#onPreview as EventListener);
     this.addEventListener("ui-slider-input", this.#onChannelInput as EventListener);
@@ -274,7 +244,7 @@ export class UIColorPicker extends UIAnchoredOverlay {
   #applyChannels(value: string): void {
     const channels = channelsFromHex(value);
     if (!channels) return;
-    this.hue = channels.hue;
+    if (channels.saturation > 0) this.hue = channels.hue;
     this.saturation = channels.saturation;
     this.lightness = channels.lightness;
     this.alpha = channels.alpha;
@@ -369,7 +339,7 @@ export class UIColorPicker extends UIAnchoredOverlay {
 
   /** Applies a transient color without changing the committed value. */
   previewColor(value: string | null): boolean {
-    const normalized = value === null ? null : normalizeHexColor(value);
+    const normalized = value === null ? null : (parseColor(value)?.hex ?? null);
     if (value !== null && !normalized) return false;
     this.preview = normalized ?? "";
     this.#applyChannels(normalized || this.value);
@@ -383,20 +353,25 @@ export class UIColorPicker extends UIAnchoredOverlay {
     return true;
   }
 
-  /** Commits a supported hex color and optionally dismisses the popup. */
+  /** Commits a supported color and optionally dismisses the popup. */
   commitColor(value: string, close = true): boolean {
-    const normalized = normalizeHexColor(value);
+    const normalized = parseColor(value)?.hex;
     if (!normalized) return false;
     this.value = normalized;
     this.preview = normalized;
     this.#applyChannels(normalized);
     this.dispatchEvent(
-      new CustomEvent<{ value: string }>("ui-color-change", {
-        detail: { value: normalized },
+      new CustomEvent("ui-color-change", {
+        detail: {
+          value: normalized,
+          formattedValue: this.formattedValue,
+          parsed: this.parsedColor,
+        },
         bubbles: true,
         composed: true,
       }),
     );
+    this._error = "";
     if (close) this.requestOpenChange(false, "select");
     return true;
   }
@@ -410,8 +385,8 @@ export class UIColorPicker extends UIAnchoredOverlay {
     this.lightness = 0;
     this.alpha = 100;
     this.dispatchEvent(
-      new CustomEvent<{ value: string }>("ui-color-change", {
-        detail: { value: "" },
+      new CustomEvent("ui-color-change", {
+        detail: { value: "", formattedValue: "", parsed: null },
         bubbles: true,
         composed: true,
       }),
@@ -434,7 +409,11 @@ export class UIColorPicker extends UIAnchoredOverlay {
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed);
     if (changed.has("value")) {
-      if (this.value) this.#applyChannels(this.value);
+      if (this.value) {
+        const normalized = parseColor(this.value)?.hex;
+        if (normalized) this.value = normalized;
+        this.#applyChannels(this.value);
+      }
       if (!changed.has("preview")) this.preview = "";
     }
   }
@@ -459,6 +438,11 @@ export class UIColorPicker extends UIAnchoredOverlay {
           part="plane"
           role="group"
           aria-label="Saturation and brightness"
+          tabindex=${this.disabled ? "-1" : "0"}
+          aria-disabled=${this.disabled ? "true" : "false"}
+          aria-description="Arrow keys adjust saturation and brightness. Hold Shift for larger steps."
+          @keydown=${this.#planeKey}
+          @pointercancel=${this.#planeUp}
           style=${`position:relative;background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(${this.hue} 100% 50%))`}
           @pointerdown=${this.#planeDown}
           @pointermove=${this.#planeMove}
@@ -488,74 +472,81 @@ export class UIColorPicker extends UIAnchoredOverlay {
         </div>
         <div part="controls">
           <div part="hue">
-            <slot name="hue" @slotchange=${this.#syncAuthoredControls}
-              ><label
-                >Hue<input
-                  part="channel"
-                  ?disabled=${this.disabled}
-                  type="range"
-                  min="0"
-                  max="359"
-                  aria-label="Hue"
-                  .value=${String(this.hue)}
-                  @input=${(event: Event) => this.commitColor(this.#setChannel("hue", Number((event.target as HTMLInputElement).value)), false)} /></label
-            ></slot>
-          </div>
-          <div part="saturation">
-            <slot name="saturation" @slotchange=${this.#syncAuthoredControls}
-              ><label
-                >Saturation<input
-                  part="channel"
-                  ?disabled=${this.disabled}
-                  type="range"
-                  min="0"
-                  max="100"
-                  aria-label="Saturation"
-                  .value=${String(this.saturation)}
-                  @input=${(event: Event) => this.commitColor(this.#setChannel("saturation", Number((event.target as HTMLInputElement).value)), false)} /></label
-            ></slot>
-          </div>
-          <div part="lightness">
-            <slot name="lightness" @slotchange=${this.#syncAuthoredControls}
-              ><label
-                >Lightness<input
-                  part="channel"
-                  ?disabled=${this.disabled}
-                  type="range"
-                  min="0"
-                  max="100"
-                  aria-label="Lightness"
-                  .value=${String(this.lightness)}
-                  @input=${(event: Event) => this.commitColor(this.#setChannel("lightness", Number((event.target as HTMLInputElement).value)), false)} /></label
-            ></slot>
+            <slot name="hue" @slotchange=${this.#syncAuthoredControls}>
+              <ui-slider
+                part="channel"
+                exportparts="root:channel-root, label:channel-label, thumb-value:channel-value, track:hue-track, thumb:hue-thumb, control:hue-control, indicator:channel-fill"
+                label="Hue"
+                min="0"
+                max="359"
+                .value=${this.hue}
+                ?disabled=${this.disabled}
+                @ui-slider-input=${(e: CustomEvent<{ value: number }>) => this.#editChannel("hue", e)}
+                @ui-slider-change=${(e: CustomEvent<{ value: number }>) => this.#editChannel("hue", e)}
+              ></ui-slider>
+            </slot>
           </div>
           <div part="alpha">
-            <slot name="alpha" @slotchange=${this.#syncAuthoredControls}
-              ><label
-                >Opacity<input
-                  part="channel"
-                  ?disabled=${this.disabled}
-                  type="range"
-                  min="0"
-                  max="100"
-                  aria-label="Opacity"
-                  .value=${String(this.alpha)}
-                  @input=${(event: Event) => this.commitColor(this.#setChannel("alpha", Number((event.target as HTMLInputElement).value)), false)} /></label
-            ></slot>
-          </div>
-          <div part="hex">
-            <slot name="hex" @slotchange=${this.#syncAuthoredControls}
-              ><input
-                part="hex-input"
+            <slot name="alpha" @slotchange=${this.#syncAuthoredControls}>
+              <ui-slider
+                part="channel"
+                exportparts="root:channel-root, label:channel-label, thumb-value:channel-value, track:alpha-track, thumb:alpha-thumb, control:alpha-control, indicator:channel-fill"
+                label="Opacity"
+                min="0"
+                max="100"
+                .value=${this.alpha}
                 ?disabled=${this.disabled}
-                aria-label="Hex color"
-                .value=${this.preview || this.value}
-                @change=${(event: Event) => {
-                  const control = event.target as HTMLInputElement;
-                  if (!this.commitColor(control.value, false)) control.value = this.value;
-                }}
-            /></slot>
+                style=${`--mash-color-opaque:${(this.preview || this.value || "#000000").slice(0, 7)}`}
+                @ui-slider-input=${(e: CustomEvent<{ value: number }>) => this.#editChannel("alpha", e)}
+                @ui-slider-change=${(e: CustomEvent<{ value: number }>) => this.#editChannel("alpha", e)}
+              ></ui-slider>
+            </slot>
           </div>
+          <div part="saturation"><slot name="saturation" @slotchange=${hideEmptySlot}></slot></div>
+          <div part="lightness"><slot name="lightness" @slotchange=${hideEmptySlot}></slot></div>
+          <div part="format-row">
+            <ui-select
+              part="format"
+              exportparts="trigger:format-trigger, positioner:format-positioner, popup:format-popup, list:format-list"
+              label="Color format"
+              .value=${this.format}
+              ?disabled=${this.disabled}
+              @ui-select-change=${(e: CustomEvent<{ value: ColorFormat }>) => {
+                e.stopPropagation();
+                this.format = e.detail.value;
+                this._error = "";
+                this.dispatchEvent(
+                  new CustomEvent("ui-color-format-change", {
+                    detail: { format: this.format },
+                    bubbles: true,
+                    composed: true,
+                  }),
+                );
+              }}
+            >
+              ${["hex", "rgb", "hsl", "oklch"].map((format) => html`<ui-option part="format-choice" exportparts="control:format-option" value=${format}>${format.toUpperCase()}</ui-option>`)}
+            </ui-select>
+            <div part="hex">
+              <slot name="hex" @slotchange=${this.#syncAuthoredControls}>
+                <ui-input
+                  part="hex-input"
+                  exportparts="control:color-input"
+                  ?disabled=${this.disabled}
+                  label=${this.format === "hex" ? "Hex color" : `${this.format.toUpperCase()} color`}
+                  .value=${this.formattedValue}
+                  @change=${(e: Event) => {
+                    const control = e.target as HTMLElement & { value: string };
+                    if (!this.commitColor(control.value, false)) {
+                      control.value = this.formattedValue;
+                      this._error = "Enter a valid color. Previous value restored.";
+                    }
+                  }}
+                ></ui-input>
+              </slot>
+            </div>
+            ${!this.hideEyedropper && "EyeDropper" in window ? html`<ui-button exportparts="control:eyedropper" aria-label="Pick screen color" ?disabled=${this.disabled} @click=${this.#pickScreen}>Pick</ui-button>` : ""}
+          </div>
+          <span part="error" role="status" ?hidden=${!this._error}>${this._error}</span>
         </div>
         <div part="actions">
           <div part="clear"><slot name="clear"></slot></div>
@@ -579,6 +570,47 @@ export class UIColorPicker extends UIAnchoredOverlay {
     if ((event.currentTarget as HTMLElement).hasPointerCapture(event.pointerId))
       this.#choosePlane(event);
   };
+  #editChannel(name: "hue" | "alpha", event: CustomEvent<{ value: number }>): void {
+    event.stopPropagation();
+    if (!this.disabled) this.commitColor(this.#setChannel(name, event.detail.value), false);
+  }
+  #planeKey = (event: KeyboardEvent): void => {
+    if (this.disabled || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key))
+      return;
+    event.preventDefault();
+    const light = this.lightness / 100;
+    let value = light + (this.saturation / 100) * Math.min(light, 1 - light);
+    let saturation = value === 0 ? 0 : 2 * (1 - light / value);
+    const step = event.shiftKey ? 0.1 : 0.01;
+    if (event.key === "ArrowLeft") saturation -= step;
+    if (event.key === "ArrowRight") saturation += step;
+    if (event.key === "ArrowUp") value += step;
+    if (event.key === "ArrowDown") value -= step;
+    this.#commitPlane(clamp(saturation, 0, 1), clamp(value, 0, 1));
+  };
+  #pickScreen = async (): Promise<void> => {
+    if (this.disabled || this.hideEyedropper || !("EyeDropper" in window)) return;
+    this.#eyeAbort?.abort();
+    const abort = (this.#eyeAbort = new AbortController());
+    const EyeDropper = (
+      window as unknown as {
+        EyeDropper: new () => {
+          open(options: { signal: AbortSignal }): Promise<{ sRGBHex: string }>;
+        };
+      }
+    ).EyeDropper;
+    try {
+      const result = await new EyeDropper().open({ signal: abort.signal });
+      if (this.isConnected && !this.disabled) this.commitColor(result.sRGBHex, false);
+    } catch (error) {
+      if ((error as Error).name !== "AbortError")
+        this._error = "Screen color selection is unavailable. Enter a color instead.";
+    }
+  };
+  override disconnectedCallback(): void {
+    this.#eyeAbort?.abort();
+    super.disconnectedCallback();
+  }
   #planeUp = (event: PointerEvent): void => {
     const plane = event.currentTarget as HTMLElement;
     if (plane.hasPointerCapture(event.pointerId)) plane.releasePointerCapture(event.pointerId);
@@ -587,6 +619,9 @@ export class UIColorPicker extends UIAnchoredOverlay {
     const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const saturation = clamp((event.clientX - bounds.left) / bounds.width, 0, 1);
     const value = 1 - clamp((event.clientY - bounds.top) / bounds.height, 0, 1);
+    this.#commitPlane(saturation, value);
+  }
+  #commitPlane(saturation: number, value: number): void {
     const lightness = value * (1 - saturation / 2);
     this.saturation =
       lightness === 0 || lightness === 1

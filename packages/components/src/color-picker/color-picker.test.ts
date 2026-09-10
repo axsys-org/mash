@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { fixture, inShadow, settled } from "../test-support/fixture.js";
-import { UIColorPicker, UIColorSwatch, normalizeHexColor } from "./color-picker.js";
+import { UIColorPicker, UIColorSwatch, normalizeHexColor, parseColor } from "./color-picker.js";
 import "./register.js";
 import "../input/register.js";
 import "../slider/register.js";
@@ -12,6 +12,79 @@ describe("ui-color-picker", () => {
     expect(normalizeHexColor("f008")).toBe("#FF000088");
     expect(normalizeHexColor("#ff000080")).toBe("#FF000080");
     expect(normalizeHexColor("#nope")).toBeNull();
+  });
+
+  it("converts four formats without losing alpha and rejects invalid values", () => {
+    for (const value of ["#6B97FF80", "#000000", "#FFFFFF", "#FF0000", "#00FF00", "#0000FF"]) {
+      const parsed = parseColor(value)!;
+      for (const format of ["hex", "rgb", "hsl", "oklch"] as const)
+        expect(parseColor(parsed[format])?.hex).toBe(value);
+    }
+    expect(parseColor("rgb(100% 0% 0% / 50%)")?.hex).toBe("#FF000080");
+    expect(parseColor("hsl(0.5turn 100% 50%)")?.hex).toBe("#00FFFF");
+    expect(parseColor("oklch(62.7955% 0.25768 29.234)")?.hex).toBe("#FF0000");
+    for (const invalid of ["rgb(no 0 0)", "oklch(NaN 1 0)", "hsl(1 2)", "not a color"])
+      expect(parseColor(invalid)).toBeNull();
+  });
+
+  it("formats owner values and emits parsed detail while preserving canonical hex", async () => {
+    const picker = await fixture<UIColorPicker>(
+      `<ui-color-picker inline format="oklch" value="rgb(107 151 255 / 50%)"></ui-color-picker>`,
+    );
+    expect(picker.value).toBe("#6B97FF80");
+    expect(picker.formattedValue).toMatch(/^oklch/);
+    const change = vi.fn();
+    picker.addEventListener("ui-color-change", change);
+    picker.commitColor("hsl(120 100% 50% / 25%)", false);
+    expect(change.mock.calls[0]![0].detail).toMatchObject({
+      value: "#00FF0040",
+      parsed: { hex: "#00FF0040" },
+    });
+    expect(picker.commitColor("invalid", false)).toBe(false);
+    expect(picker.value).toBe("#00FF0040");
+  });
+
+  it("commits sampled colors, preserves cancellation and aborts sampling on disconnect", async () => {
+    let signal: AbortSignal | undefined;
+    const open = vi.fn(async (options: { signal: AbortSignal }) => {
+      signal = options.signal;
+      return { sRGBHex: "#123456" };
+    });
+    vi.stubGlobal(
+      "EyeDropper",
+      class {
+        open = open;
+      },
+    );
+    try {
+      const picker = await fixture<UIColorPicker>(
+        `<ui-color-picker inline value="#FFFFFF"></ui-color-picker>`,
+      );
+      const sample = inShadow<HTMLElement>(picker, 'ui-button[aria-label="Pick screen color"]');
+      sample.click();
+      await settled(picker);
+      expect(picker.value).toBe("#123456");
+      open.mockRejectedValueOnce(new DOMException("Cancelled", "AbortError"));
+      sample.click();
+      await settled(picker);
+      expect(picker.value).toBe("#123456");
+      expect(inShadow(picker, '[part="error"]').hidden).toBe(true);
+      open.mockImplementationOnce((options) => {
+        signal = options.signal;
+        return new Promise((_resolve, reject) =>
+          signal!.addEventListener(
+            "abort",
+            () => reject(new DOMException("Cancelled", "AbortError")),
+            { once: true },
+          ),
+        );
+      });
+      sample.click();
+      picker.remove();
+      expect(signal!.aborted).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("keeps preview separate and commits authored swatches", async () => {

@@ -84,3 +84,7 @@ PR #53 removes unreachable legacy catalogue controllers and their dependencies i
 ## Scrollbar patterns
 
 `codex/stack/scrollbar-patterns` builds on `codex/stack/ci-cleanup` (#53). It removes the catalogue wordmark, adds quiet scrollbar and edge-fade recipes, and expands Scroll Area to six compositions. The existing native viewport, drag and keyboard machinery remains shared; no dependencies are added. Public styling and orientation usage are documented in `docs/scroll-area.md`.
+
+## Hover and color patterns
+
+`codex/stack/hover-color-patterns` builds on `codex/stack/scrollbar-patterns`. Separate commits cover shared select fixes, hover tracking on Motion, and composed color editing with four formats. No dependency changes. API and lifecycle details are in `docs/hover-and-color.md`.

@@ -1086,10 +1086,14 @@
     block-size: calc(var(--layout-dimension-compact) + var(--_mash-control-height));
   }
   :where([data-mash-catalogue="mash"]) ui-color-picker[data-mash-size="small"] {
-    --_mash-color-width: calc(var(--layout-dimension-panel) * 0.85);
+    --_mash-color-width: calc(
+      (var(--layout-dimension-panel) + 4 * var(--space-container-inline)) * 0.85
+    );
   }
   :where([data-mash-catalogue="mash"]) ui-color-picker[data-mash-size="large"] {
-    --_mash-color-width: calc(var(--layout-dimension-panel) * 1.15);
+    --_mash-color-width: calc(
+      (var(--layout-dimension-panel) + 4 * var(--space-container-inline)) * 1.15
+    );
   }
 }
 
@@ -1103,5 +1107,161 @@
   :where([data-mash-catalogue="mash"]) ui-date-picker::part(popup) {
     inline-size: max-content;
     max-inline-size: calc(100vw - var(--space-region) * 2);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(content) {
+    gap: var(--space-control-inline);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(controls) {
+    gap: var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(channel-root) {
+    display: grid;
+    align-items: center;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(channel-label),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(channel-value),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(channel-fill) {
+    display: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(hue-control),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(alpha-control) {
+    grid-area: 1 / 1;
+    inline-size: 100%;
+    block-size: var(--layout-dimension-control-small);
+    opacity: 0;
+    margin: 0;
+    z-index: var(--layer-raised);
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(hue-track),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(alpha-track) {
+    grid-area: 1 / 1;
+    position: relative;
+    block-size: var(--space-control-gap);
+    margin-inline: var(--space-control-block-small);
+    border-radius: var(--radius-pill);
+    pointer-events: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(hue-track) {
+    background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(alpha-track) {
+    background:
+      linear-gradient(to right, transparent, var(--mash-color-opaque)),
+      repeating-conic-gradient(
+          var(--color-surface-hover) 0% 25%,
+          var(--_mash-component-surface) 0% 50%
+        )
+        0 0 / 8px 8px;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(hue-thumb),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(alpha-thumb) {
+    position: absolute;
+    top: 50%;
+    translate: -50% -50%;
+    inline-size: var(--layout-dimension-glyph);
+    block-size: var(--layout-dimension-glyph);
+    border: var(--border-strong) solid white;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    box-shadow: 0 0 0 var(--border-hairline) var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-row) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-control-gap);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(hex) {
+    flex: 1;
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(hex-input) {
+    padding: 0;
+    border: 0;
+    display: block;
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-trigger),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(color-input),
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(eyedropper) {
+    min-block-size: var(--layout-dimension-control-small);
+    box-sizing: border-box;
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block-small) var(--space-control-inline-small);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--type-label-small-font-size);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(color-input) {
+    width: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-trigger)::after {
+    content: "⌄";
+    margin-inline-start: var(--space-control-gap);
+    color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-positioner) {
+    z-index: var(--layer-overlay);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-popup) {
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block-small);
+    background: var(--_mash-component-surface-raised);
+    color: var(--color-text);
+    box-shadow: 0 4px 16px var(--_mash-component-shadow);
+    min-inline-size: 7rem;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-choice) {
+    display: block;
+    border-radius: var(--radius-control);
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-option) {
+    display: block;
+    padding: var(--space-control-block) var(--space-control-inline-small);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-choice):hover,
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-choice):focus {
+    background: var(--color-surface-hover);
+    outline: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(plane):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-trigger):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(color-input):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(eyedropper):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(error) {
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-color-picker {
+    --mash-color-opaque: transparent;
+    --_mash-color-width: calc(var(--layout-dimension-panel) + 4 * var(--space-container-inline));
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format) {
+    flex: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(format-trigger) {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(hue):focus-within,
+  :where([data-mash-catalogue="mash"]) ui-color-picker::part(alpha):focus-within {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+    border-radius: var(--radius-control);
   }
 }

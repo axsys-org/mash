@@ -1,3 +1,7 @@
+import "../slider/register.js";
+import "../select/register.js";
+import "../input/register.js";
+import "../button/register.js";
 import { UIColorPicker, UIColorSwatch } from "./color-picker.js";
 
 if (!customElements.get("ui-color-picker")) customElements.define("ui-color-picker", UIColorPicker);
