@@ -1,3 +1,5 @@
+import { commandMenuExamples } from "./command-menu.js";
+import { commandExamples } from "./command-tree.js";
 import { sidebarExamples } from "./sidebar.js";
 import { controlExamples } from "./controls.js";
 import { finalControlExamples } from "./final-control-examples.js";
@@ -370,3 +372,9 @@ for (const [tag, examples] of Object.entries(finalControlExamples)) {
 }
 
 componentExamples["ui-combobox"] = controlExamples["ui-combobox"]!;
+
+componentExamples["ui-command"] = [
+  ...commandMenuExamples,
+  ...commandExamples,
+  ...(workflowExamples["ui-command"] ?? []),
+];

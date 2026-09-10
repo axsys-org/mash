@@ -116,3 +116,13 @@ Branch `codex/stack/combobox-patterns` builds on `codex/stack/sidebar-patterns`.
 - Catalogue: consolidated single/multiple, custom people rows, creation, hidden selections, variants, sizes, long lists, validation, forms, and authored parts, plus the existing async, grid, pinned-selection, and overflow patterns.
 - Validation: production catalogue and IIFE build; full quality check; 16 focused component/form tests and five production browser interaction cases; all 15 examples inspected in light and dark with no field/popup overflow or page errors. Browser startup contention required serial reruns, without relaxing assertions.
 - Commits separate the pre-render checkbox lifecycle guard, the reusable combobox contract/recipe, and catalogue examples/documentation.
+
+## Command menu patterns
+
+Branch `codex/stack/command-patterns` builds on `codex/stack/combobox-patterns`.
+
+- Extends the existing command list with optional data rows, stable values, grouped suggestions/recents, custom rendering and matching, user query events, and a filters slot. Authored command rows and application-owned command execution remain supported.
+- The public recipe coordinates default/compact sizes, inline descriptions, readable shortcut caps, and a moving highlight through the shared motion controller. Dialogs, shortcut bindings, tabs, selects, avatars, and draggable sections reuse existing primitives. No dependencies added.
+- Twelve consolidated examples cover editable document actions, grouped data, descriptions and disabled actions, recents, tabs/sorting, a changeable global dialog shortcut, custom people rows, CSS parts and sizes, and existing load/reorder workflows.
+- Validation: production catalogue/IIFE builds; full local quality check; focused component/workflow and production browser tests; all twelve examples loaded in light and dark without page errors or missing icons, plus narrow-screen review. Remote CI and Vercel status must be checked on the eventual PR head.
+- Component behavior, recipe, API documentation and focused regressions form the first commit; catalogue compositions and production interaction coverage form the second. Usage and ownership details are in `docs/command-menu.md`.
