@@ -46,16 +46,6 @@ textarea:focus-visible {
   z-index: 20;
   background: var(--color-canvas);
 }
-.wordmark {
-  font-size: 23px;
-  font-weight: 750;
-  letter-spacing: -1px;
-}
-.wordmark span {
-  color: var(--color-text-muted);
-  padding-left: 12px;
-  font-weight: 300;
-}
 .site-header nav {
   display: flex;
   gap: 24px;
