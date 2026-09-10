@@ -25,7 +25,11 @@ html[data-layout="start"] body {
   align-content: start;
 }
 html[data-layout="fill"] body {
-  align-content: stretch;
+  align-content: start;
+  justify-items: stretch;
+}
+html[data-layout="fill"] body > .mash-stack {
+  inline-size: 100%;
 }
 @media (max-width: 36rem) {
   body {

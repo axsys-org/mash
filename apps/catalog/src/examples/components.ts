@@ -1,3 +1,4 @@
+import { sidebarExamples } from "./sidebar.js";
 import { controlExamples } from "./controls.js";
 import { finalControlExamples } from "./final-control-examples.js";
 import { navigationOverlayExamples } from "./navigation-overlays.js";
@@ -65,6 +66,7 @@ const table = `<ui-table label="Projects" row-count="4" column-count="3">
 
 /** Focused, executable public compositions. No stage-only styles or application controllers. */
 export const componentExamples: Record<string, CatalogExample[]> = {
+  "ui-sidebar": sidebarExamples,
   ...utilityExamples,
   ...dataExamples,
   ...tableExamples,

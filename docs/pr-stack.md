@@ -100,3 +100,9 @@ PR #53 removes unreachable legacy catalogue controllers and their dependencies i
 ## Coordinated size context
 
 `codex/stack/size-context` builds on `codex/stack/switch-motion-patterns`. Semantic size tokens and native CSS contexts add opt-in default/compact steps, per-component pins, coordinated popup rows, segmented controls, typography, and spacing. The toolbar catalogue demonstrates live resizing and nested boundaries. No new runtime or dependencies; usage is in `docs/size-context.md`.
+
+## Sidebar composition
+
+`codex/stack/sidebar-patterns` builds on `codex/stack/size-context`. It adds a responsive sidebar using the existing drawer, scroll area, resize handle, and gesture primitives. Shared overlay slot traversal, the sidebar component and recipe, and the interactive catalogue examples are separate review units. No added dependencies; state, slots, persistence, and CSS parts are documented in `docs/sidebar.md`.
+
+The lead example composes pinned conversations, project navigation, command search, account preferences, and the existing composer. Selection spans the complete row, actions stay inside it, and scroll fades follow the scroll area's native boundary states. The remaining examples cover surfaces, direction, resizing, peek, mobile, loading, controlled state, and dialog composition.

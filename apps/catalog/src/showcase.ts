@@ -277,7 +277,7 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
         }
         if (abort.signal.aborted || !frame.isConnected) return;
         doc.documentElement.dataset.theme = document.documentElement.dataset.theme;
-        doc.documentElement.dataset.layout = "start";
+        doc.documentElement.dataset.layout = variant.stageLayout ?? "start";
         doc.body.style.minHeight = "0";
         doc.body.style.padding = "24px";
         doc.addEventListener(
