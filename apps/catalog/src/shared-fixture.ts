@@ -155,6 +155,8 @@ window.mashPreviewReady = (async () => {
           root.innerHTML = variant.code;
           const content = root.firstElementChild as HTMLElement;
           content.dataset.exampleRoot = "";
+          content.inert = true;
+          content.style.visibility = "hidden";
           await Promise.all(
             [...root.querySelectorAll("*")].map(
               (element) =>
@@ -162,7 +164,10 @@ window.mashPreviewReady = (async () => {
             ),
           );
           if (lifecycle.signal.aborted) return;
-          variant.mount?.(content, lifecycle.signal);
+          await variant.mount?.(content, lifecycle.signal);
+          if (lifecycle.signal.aborted) return;
+          content.inert = false;
+          content.style.visibility = "";
           host.style.minHeight = "";
           host.dataset.exampleReady = "true";
         } catch (error) {

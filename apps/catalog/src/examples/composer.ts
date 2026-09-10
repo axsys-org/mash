@@ -158,3 +158,11 @@ form.addEventListener("composer-send",event=>{document.querySelector(".mash-comp
     "The recipe supplies the surface. Textarea and button parts control the interior without replacing their editing, focus, or form behavior.",
   ),
 );
+
+// Scoped setup shares the public controller across isolated and consolidated previews.
+for (const example of composerExamples) {
+  example.scoped = true;
+  example.script = example.script
+    ?.replaceAll("document.querySelector", "root.querySelector")
+    .replaceAll("document.addEventListener", "root.addEventListener");
+}

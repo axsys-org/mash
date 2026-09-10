@@ -772,6 +772,10 @@
     "./stepper": {
       "types": "./dist/stepper/register.d.ts",
       "import": "./dist/stepper/register.js"
+    },
+    "./message-composer": {
+      "types": "./dist/message-composer/register.d.ts",
+      "import": "./dist/message-composer/register.js"
     }
   },
   "scripts": {

@@ -313,3 +313,12 @@ export type { CollectionSelection, CollectionSelectionAction } from "./selection
 
 export { formatInputMask, parseInputMask } from "./input/mask.js";
 export type { MaskedInputValue } from "./input/mask.js";
+
+export { bindMessageComposer } from "./message-composer/message-composer.js";
+export type {
+  ComposerStatus,
+  ComposerMessage,
+  MessageComposer,
+  MessageComposerOptions,
+  MessageComposerEvents,
+} from "./message-composer/message-composer.js";

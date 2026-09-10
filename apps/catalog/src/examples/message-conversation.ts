@@ -58,6 +58,9 @@ export const conversationExamples: CatalogExample[] = [
       `<div class="mash-chat" data-mash-size="default"><ui-message-scroller id="conversation" label="Conversation"></ui-message-scroller>${composerMarkup()}<output id="conversation-status" class="mash-composer-result" aria-live="polite">Send a message to try a local streamed response.</output></div>`,
       "A working local conversation: send, stop, queue, edit, copy, regenerate, and attach files. Message motion, tooltips, and scroll following use the existing components.",
     ),
-    script: composerScript + conversationScript,
+    scoped: true,
+    script: (composerScript + conversationScript)
+      .replaceAll("document.querySelector", "root.querySelector")
+      .replaceAll("document.addEventListener", "root.addEventListener"),
   },
 ];

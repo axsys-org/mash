@@ -7,7 +7,7 @@ declare module "virtual:mash/catalog-index" {
         component: import("./schema.js").ComponentSchema;
         variants: (import("./examples.js").CatalogExample & {
           elements: string[];
-          mount?: (root: HTMLElement, signal: AbortSignal) => void;
+          mount?: (root: HTMLElement, signal: AbortSignal) => void | Promise<void>;
         })[];
       };
     }>;
@@ -23,4 +23,8 @@ interface Window {
     zoom: (value: string) => void;
     dispose: () => void;
   };
+}
+
+declare module "virtual:mash/behavior-urls" {
+  export const behaviorUrls: Record<string, string>;
 }

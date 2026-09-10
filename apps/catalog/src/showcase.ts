@@ -366,10 +366,13 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
         }
         if (scriptSource) {
           doc.documentElement.dataset.exampleReady = "loading";
+          doc.body.inert = true;
+          doc.body.style.visibility = "hidden";
           const script = doc.createElement("script");
           script.type = "module";
           script.textContent =
-            scriptSource + '\n;document.documentElement.dataset.exampleReady = "true";';
+            scriptSource +
+            '\n;document.body.inert = false; document.body.style.visibility = ""; document.documentElement.dataset.exampleReady = "true";';
           doc.body.append(script);
         } else doc.documentElement.dataset.exampleReady = "true";
         const modalSurfaces: { popup: HTMLElement; backdrop: HTMLElement }[] = [];

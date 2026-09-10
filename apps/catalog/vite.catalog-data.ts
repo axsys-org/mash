@@ -6,11 +6,13 @@ import type { CatalogExample } from "./src/examples.js";
 
 type Page = { component: ComponentSchema; variants: (CatalogExample & { elements: string[] })[] };
 const indexId = "virtual:mash/catalog-index";
+const behaviorId = "virtual:mash/behavior-urls";
 const loadersId = "virtual:mash/element-loaders";
 const pagePrefix = "virtual:mash/page/";
 
 /** Generate route-sized documentation from the same authoritative example registry used by audits. */
 export function catalogData(): Plugin {
+  let command: "serve" | "build" = "build";
   let snapshot: Promise<Page[]> | undefined;
   const sourceRoot = resolve(import.meta.dirname, "src");
   const read = () =>
@@ -45,8 +47,12 @@ export const pages = components.filter(component => component.packageName === "@
     })());
   return {
     name: "mash:catalogue-data",
+    configResolved(config) {
+      command = config.command;
+    },
     resolveId(id) {
-      if (id === indexId || id === loadersId || id.startsWith(pagePrefix)) return `\0${id}`;
+      if (id === indexId || id === behaviorId || id === loadersId || id.startsWith(pagePrefix))
+        return `\0${id}`;
       return null;
     },
     async load(id) {
@@ -66,12 +72,34 @@ export const pages = components.filter(component => component.packageName === "@
           })
           .join(",")}};`;
       }
+      if (id === `\0${behaviorId}`) {
+        const specifiers = new Set(
+          pages.flatMap((page) =>
+            page.variants.flatMap((variant) =>
+              [...(variant.script ?? "").matchAll(/import\(["'](@mash\/ui\/[^"']+)["']\)/g)].map(
+                (match) => match[1]!,
+              ),
+            ),
+          ),
+        );
+        const entries: string[] = [];
+        for (const specifier of specifiers) {
+          const resolved = await this.resolve(specifier);
+          if (!resolved) throw new Error(`Cannot resolve example behavior ${specifier}`);
+          const url =
+            command === "serve"
+              ? JSON.stringify(`/@fs/${resolved.id}`)
+              : `import.meta.ROLLUP_FILE_URL_${this.emitFile({ type: "chunk", id: resolved.id, preserveSignature: "strict" })}`;
+          entries.push(`${JSON.stringify(specifier)}:${url}`);
+        }
+        return `export const behaviorUrls = {${entries.join(",")}};`;
+      }
       const selectedPage = pages.find((page) => id === `\0${pagePrefix}${page.component.tagName}`);
       if (selectedPage) {
         const variants = selectedPage.variants.map((variant) => {
           const json = JSON.stringify(variant);
           return variant.scoped && variant.script
-            ? `${json.slice(0, -1)},mount:(root,signal)=>{${variant.script}\n}}`
+            ? `${json.slice(0, -1)},mount:async(root,signal)=>{${variant.script}\n}}`
             : json;
         });
         return `export default {component:${JSON.stringify(selectedPage.component)},variants:[${variants.join(",")}]};`;
