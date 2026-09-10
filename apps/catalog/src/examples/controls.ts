@@ -2,6 +2,7 @@ import { finalControlExamples } from "./final-control-examples.js";
 import { menuExtensionExamples } from "./menu-extensions.js";
 import { mergeControlStateExamples } from "./control-states.js";
 import { mergeSelectionExamples } from "./selection.js";
+import { sizeExamples } from "./sizes.js";
 import { toolbarExamples } from "./display.js";
 import { patternExamples } from "./patterns.js";
 import type { CatalogExample } from "../examples.js";
@@ -116,7 +117,7 @@ export const controlExamples: Record<string, CatalogExample[]> = {
 </ui-toggle-group>`,
     ),
   ],
-  "ui-toolbar": toolbarExamples,
+  "ui-toolbar": [...toolbarExamples, ...sizeExamples],
   "ui-select": [
     sample(
       "Select",

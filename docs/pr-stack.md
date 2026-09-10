@@ -96,3 +96,7 @@ PR #53 removes unreachable legacy catalogue controllers and their dependencies i
 ## Switch and motion patterns
 
 `codex/stack/switch-motion-patterns` builds on `codex/stack/number-field-rehab`. Timing tokens and Motion utilities, switch behavior/recipes, and catalogue examples are separated for review. Shared gesture recognition handles thumb dragging; native CSS handles motion and label weight with no new dependencies. Usage is documented in `docs/switch-and-motion.md`.
+
+## Coordinated size context
+
+`codex/stack/size-context` builds on `codex/stack/switch-motion-patterns`. Semantic size tokens and native CSS contexts add opt-in default/compact steps, per-component pins, coordinated popup rows, segmented controls, typography, and spacing. The toolbar catalogue demonstrates live resizing and nested boundaries. No new runtime or dependencies; usage is in `docs/size-context.md`.

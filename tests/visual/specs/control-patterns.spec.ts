@@ -312,3 +312,42 @@ test("switch labels and inherited sizing stay usable in disabled and controlled 
     controlled.getByRole("switch", { name: "Sync over cellular", exact: true }),
   ).not.toBeChecked();
 });
+
+test("size context preserves edits and selection while resizing the whole workspace", async ({
+  page,
+}) => {
+  await page.goto("/components/ui-toolbar?example=Size%20context", {
+    waitUntil: "domcontentloaded",
+  });
+  const frame = page.frameLocator("iframe.stage-frame");
+  const search = frame.getByRole("textbox", { name: "Find documents", exact: true });
+  await search.fill("Keep my draft");
+  await frame.getByRole("tab", { name: "Shared", exact: true }).click();
+  await frame.getByRole("combobox", { name: "Workspace size", exact: true }).click();
+  await frame.getByRole("option", { name: "Compact · 28px", exact: true }).click();
+  await expect(search).toHaveValue("Keep my draft");
+  await expect(frame.getByRole("tab", { name: "Shared", exact: true })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await expect(frame.locator("#size-workspace")).toHaveAttribute("data-mash-size", "compact");
+  await expect(frame.locator("#size-new").getByRole("button")).toHaveCSS("height", "28px");
+  await expect(frame.locator("#size-new ui-icon")).toHaveCSS("width", "14px");
+  await frame.getByRole("button", { name: "Actions", exact: true }).click();
+  await expect(frame.getByRole("menuitem", { name: "Duplicate document", exact: true })).toHaveCSS(
+    "height",
+    "28px",
+  );
+  await frame.getByRole("menuitem", { name: "Duplicate document", exact: true }).click();
+  await expect(frame.locator("#size-result")).toHaveText("Document duplicated");
+  await frame.getByRole("combobox", { name: "Workspace size", exact: true }).click();
+  await frame.getByRole("option", { name: "Default · 36px", exact: true }).click();
+  await expect(frame.locator("#size-new").getByRole("button")).toHaveCSS("height", "36px");
+  await expect(frame.locator("#size-new ui-icon")).toHaveCSS("width", "16px");
+  await expect(search).toHaveValue("Keep my draft");
+  // Padded segmented tabs occupy exactly the same ladder step as adjacent controls.
+  await expect(frame.locator("#size-workspace ui-tabs").locator('[part="list"]')).toHaveCSS(
+    "height",
+    "36px",
+  );
+});
