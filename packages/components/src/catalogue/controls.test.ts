@@ -8,6 +8,7 @@ import "../select/register.js";
 import "../combobox/register.js";
 import "../option/register.js";
 import "../toggle/register.js";
+import "../checkbox/register.js";
 import "../toolbar/register.js";
 import "./mash.css";
 
@@ -94,5 +95,67 @@ describe("composed control geometry", () => {
     const [critical, neutral] = frames(host).map((control) => getComputedStyle(control));
     expect(critical!.color).not.toBe(neutral!.color);
     expect(colorChannels(critical!.backgroundColor)[3]).toBe(0);
+  });
+});
+
+describe("coordinated size contexts", () => {
+  afterEach(() => {
+    delete document.documentElement.dataset.mashCatalogue;
+  });
+
+  it("resizes controls, gaps, glyphs and popup rows together without replacing inputs", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const host = await fixture(`<div class="mash-row" data-mash-size="default">
+      <ui-button>Save</ui-button><ui-input label="Title" value="Keep this draft"></ui-input>
+      <ui-select label="Status" value="draft"><ui-option value="draft">Draft</ui-option></ui-select><ui-checkbox>Selected</ui-checkbox>
+    </div>`);
+    const input = inShadow<HTMLInputElement>(host.querySelector("ui-input")!, "input");
+    for (const [size, height, gap, text] of [
+      ["default", 36, 8, 13],
+      ["compact", 28, 4, 12],
+    ] as const) {
+      host.dataset.mashSize = size;
+      await settled(host);
+      expect(getComputedStyle(host).gap).toBe(`${gap}px`);
+      for (const [tag, part] of [
+        ["ui-button", "control"],
+        ["ui-input", "control"],
+        ["ui-select", "trigger"],
+        ["ui-option", "control"],
+      ]) {
+        const frame = inShadow<HTMLElement>(host.querySelector(tag!)!, `[part="${part}"]`);
+        if (tag !== "ui-option") expect(frame.getBoundingClientRect().height).toBe(height);
+        else expect(getComputedStyle(frame).minHeight).toBe(`${height}px`);
+        expect(getComputedStyle(frame).fontSize).toBe(`${text}px`);
+      }
+      expect(input.value).toBe("Keep this draft");
+      expect(
+        inShadow<HTMLElement>(
+          host.querySelector("ui-checkbox")!,
+          '[part="indicator"]',
+        ).getBoundingClientRect().width,
+      ).toBe(size === "compact" ? 14 : 16);
+    }
+  });
+
+  it("honors nested boundaries and explicit pins on the context owner", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const host = await fixture(
+      `<div data-mash-size="compact"><ui-button id="outer">Outer</ui-button><div data-mash-size="default"><ui-button id="inner">Inner</ui-button><ui-button id="pin" size="compact">Pin</ui-button></div><ui-button id="owner" data-mash-size="compact" size="default">Owner</ui-button><ui-button id="legacy" size="medium">Legacy</ui-button></div>`,
+    );
+    for (const [id, height] of [
+      ["outer", 28],
+      ["inner", 36],
+      ["pin", 28],
+      ["owner", 36],
+      ["legacy", 32],
+    ] as const) {
+      expect(
+        inShadow<HTMLElement>(
+          host.querySelector(`#${id}`)!,
+          '[part="control"]',
+        ).getBoundingClientRect().height,
+      ).toBe(height);
+    }
   });
 });

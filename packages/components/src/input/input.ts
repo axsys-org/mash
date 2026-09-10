@@ -10,7 +10,7 @@ export type InputMode =
   "decimal" | "email" | "none" | "numeric" | "search" | "tel" | "text" | "url";
 
 /** The physical scale of an input control. */
-export type InputSize = "inherit" | "small" | "medium" | "large";
+export type InputSize = "inherit" | "default" | "compact" | "small" | "medium" | "large";
 
 /** Fired when Enter is pressed while the native input owns focus. */
 export interface InputEnterDetail {

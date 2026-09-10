@@ -644,7 +644,7 @@
     --_mash-menu-inline-size: max-content;
     --_mash-menu-min-inline-size: var(--layout-menu-inline-mini);
     --_mash-menu-max-inline-size: var(--_mash-menu-density-inline-size);
-    --_mash-menu-row-size: var(--layout-menu-row-regular);
+    --_mash-menu-row-size: var(--mash-size-control, var(--layout-menu-row-regular));
     --_mash-menu-selection-lane: var(--layout-dimension-zero);
     --_mash-menu-prefix-lane: var(--layout-dimension-zero);
   }

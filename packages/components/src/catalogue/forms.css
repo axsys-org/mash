@@ -4,7 +4,7 @@
     --_mash-checkable-font-family: var(--type-body-font-family);
     --_mash-checkable-font-size: var(--type-body-font-size);
     --_mash-checkable-line-height: var(--type-body-line-height);
-    --_mash-checkbox-indicator-size: var(--layout-dimension-checkbox-medium);
+    --_mash-checkbox-indicator-size: var(--mash-size-icon, var(--layout-dimension-checkbox-medium));
     --_mash-checkbox-mark-size: var(--layout-dimension-checkbox-mark-medium);
   }
 
@@ -70,7 +70,7 @@
     --_mash-checkable-font-family: var(--type-body-font-family);
     --_mash-checkable-font-size: var(--type-body-font-size);
     --_mash-checkable-line-height: var(--type-body-line-height);
-    --_mash-checkbox-indicator-size: var(--layout-dimension-checkbox-medium);
+    --_mash-checkbox-indicator-size: var(--mash-size-icon, var(--layout-dimension-checkbox-medium));
     --_mash-checkbox-mark-size: var(--layout-dimension-checkbox-mark-medium);
   }
 

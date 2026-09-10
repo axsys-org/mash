@@ -6,7 +6,7 @@ import { baseStyles } from "../internal/base-styles.js";
 export type BadgeTone = "accent" | "neutral" | "positive" | "warning" | "critical";
 
 /** The physical scale of a badge. */
-export type BadgeSize = "small" | "medium" | "large";
+export type BadgeSize = "inherit" | "default" | "compact" | "small" | "medium" | "large";
 
 /** Visual content model for the indicator. */
 export type BadgeVariant = "label" | "count" | "dot" | "icon";

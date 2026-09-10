@@ -18,7 +18,17 @@ export type ButtonVariant =
 
 /** The button's physical scale. Inherit uses the surrounding data-mash-size context. */
 export type ButtonSize =
-  "inherit" | "xs" | "xsmall" | "sm" | "small" | "md" | "medium" | "lg" | "large";
+  | "inherit"
+  | "default"
+  | "compact"
+  | "xs"
+  | "xsmall"
+  | "sm"
+  | "small"
+  | "md"
+  | "medium"
+  | "lg"
+  | "large";
 
 /** What the button's action *means*. Orthogonal to {@link ButtonVariant}. */
 export type ButtonTone = "accent" | "neutral" | "info" | "positive" | "warning" | "critical";

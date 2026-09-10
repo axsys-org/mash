@@ -24,7 +24,7 @@ export class UIStepper extends LitElement {
     disabled: { type: Boolean, reflect: true },
   };
   /** Step control size; inherit follows its surrounding size context. */
-  declare size: "inherit" | "xsmall" | "small" | "medium" | "large";
+  declare size: "inherit" | "default" | "compact" | "xsmall" | "small" | "medium" | "large";
   /** Align labels beside or below the indicator. */
   declare align: "start" | "center";
   /** Current step value. */

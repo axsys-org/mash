@@ -52,7 +52,7 @@ export class UIAccordion extends LitElement {
   /** Join the items inside one rounded border. */
   declare bordered: boolean;
   /** Disclosure spacing and text size; inherit follows the composition context. */
-  declare size: "inherit" | "xsmall" | "small" | "medium" | "large";
+  declare size: "inherit" | "default" | "compact" | "xsmall" | "small" | "medium" | "large";
 
   readonly #childDisabled = new WeakMap<UIAccordionItem, boolean>();
   readonly #internals: ElementInternals;

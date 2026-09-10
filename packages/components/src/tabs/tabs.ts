@@ -96,7 +96,7 @@ export class UITabs extends LitElement {
   /** Treatment shared by the tab controls. */
   declare variant: "default" | "underline" | "pill" | "outline" | "segmented";
   /** Control size; inherit follows the surrounding size context. */
-  declare size: "inherit" | "xsmall" | "small" | "medium" | "large";
+  declare size: "inherit" | "default" | "compact" | "xsmall" | "small" | "medium" | "large";
   /** Logical Arrow-key axis. */
   declare orientation: "horizontal" | "vertical";
 

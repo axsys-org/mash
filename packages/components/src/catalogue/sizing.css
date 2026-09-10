@@ -1,0 +1,146 @@
+/** Native size context: the cascade owns inheritance; no observers or wrapper elements. */
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])[data-mash-size="default"]:not([size="compact"]),
+  :where([data-mash-catalogue="mash"])
+    :is(
+      [data-mash-size="default"]:not([size="compact"]),
+      :is(
+        ui-button,
+        ui-input,
+        ui-select,
+        ui-combobox,
+        ui-tabs,
+        ui-accordion,
+        ui-stepper,
+        ui-badge,
+        ui-card,
+        ui-switch
+      )[size="default"]
+    ) {
+    --mash-size-control: var(--layout-size-default-control);
+    --mash-size-segment-item: var(--layout-size-default-segment-item);
+    --mash-size-icon: var(--layout-size-default-icon);
+    --mash-size-segment-pad: var(--space-size-default-segment-pad);
+    --mash-size-inline: var(--space-size-default-inline);
+    --mash-size-item-inline: var(--space-size-default-item-inline);
+    --mash-size-gap: var(--space-size-default-gap);
+    --mash-size-display: var(--type-scale-default-display);
+    --mash-size-title: var(--type-scale-default-title);
+    --mash-size-subtitle: var(--type-scale-default-subtitle);
+    --mash-size-body: var(--type-scale-default-body);
+    --mash-size-caption: var(--type-scale-default-caption);
+    --_mash-control-height: var(--mash-size-control);
+    --_mash-control-input-height: var(--mash-size-control);
+    --_mash-control-inline: var(--mash-size-inline);
+    --_mash-control-gap: var(--mash-size-gap);
+    --_mash-control-text: var(--mash-size-body);
+    --_mash-control-button-text: var(--mash-size-body);
+    --type-body-font-size: var(--mash-size-body);
+    --type-label-font-size: var(--mash-size-body);
+    --type-label-large-font-size: var(--mash-size-subtitle);
+    --type-label-small-font-size: var(--mash-size-caption);
+    --type-heading-font-size: var(--mash-size-title);
+    --space-control-gap: var(--mash-size-gap);
+    --space-group-related: var(--mash-size-gap);
+    --space-control-inline: var(--mash-size-inline);
+    --space-menu-inline: var(--mash-size-item-inline);
+    --layout-dimension-glyph: var(--mash-size-icon);
+    --_mash-disclosure-text: var(--mash-size-body);
+    --_mash-disclosure-inline: var(--mash-size-inline);
+    --_mash-context-switch-inline: var(--layout-dimension-switch-track-medium-inline);
+    --_mash-context-switch-block: var(--layout-dimension-switch-track-medium-block);
+    --_mash-context-switch-thumb: var(--layout-dimension-switch-thumb-medium);
+    --_mash-context-switch-font-size: var(--mash-size-body);
+    --_mash-checkable-font-size: var(--mash-size-body);
+    --_mash-disclosure-block: var(--mash-size-gap);
+    font-size: var(--mash-size-body);
+  }
+  :where([data-mash-catalogue="mash"])[data-mash-size="compact"]:not([size="default"]),
+  :where([data-mash-catalogue="mash"])
+    :is(
+      [data-mash-size="compact"]:not([size="default"]),
+      :is(
+        ui-button,
+        ui-input,
+        ui-select,
+        ui-combobox,
+        ui-tabs,
+        ui-accordion,
+        ui-stepper,
+        ui-badge,
+        ui-card,
+        ui-switch
+      )[size="compact"]
+    ) {
+    --mash-size-control: var(--layout-size-compact-control);
+    --mash-size-segment-item: var(--layout-size-compact-segment-item);
+    --mash-size-icon: var(--layout-size-compact-icon);
+    --mash-size-segment-pad: var(--space-size-compact-segment-pad);
+    --mash-size-inline: var(--space-size-compact-inline);
+    --mash-size-item-inline: var(--space-size-compact-item-inline);
+    --mash-size-gap: var(--space-size-compact-gap);
+    --mash-size-display: var(--type-scale-compact-display);
+    --mash-size-title: var(--type-scale-compact-title);
+    --mash-size-subtitle: var(--type-scale-compact-subtitle);
+    --mash-size-body: var(--type-scale-compact-body);
+    --mash-size-caption: var(--type-scale-compact-caption);
+    --_mash-control-height: var(--mash-size-control);
+    --_mash-control-input-height: var(--mash-size-control);
+    --_mash-control-inline: var(--mash-size-inline);
+    --_mash-control-gap: var(--mash-size-gap);
+    --_mash-control-text: var(--mash-size-body);
+    --_mash-control-button-text: var(--mash-size-body);
+    --type-body-font-size: var(--mash-size-body);
+    --type-label-font-size: var(--mash-size-body);
+    --type-label-large-font-size: var(--mash-size-subtitle);
+    --type-label-small-font-size: var(--mash-size-caption);
+    --type-heading-font-size: var(--mash-size-title);
+    --space-control-gap: var(--mash-size-gap);
+    --space-group-related: var(--mash-size-gap);
+    --space-control-inline: var(--mash-size-inline);
+    --space-menu-inline: var(--mash-size-item-inline);
+    --layout-dimension-glyph: var(--mash-size-icon);
+    --_mash-disclosure-text: var(--mash-size-body);
+    --_mash-disclosure-inline: var(--mash-size-inline);
+    --_mash-context-switch-inline: var(--layout-dimension-switch-track-small-inline);
+    --_mash-context-switch-block: var(--layout-dimension-switch-track-small-block);
+    --_mash-context-switch-thumb: var(--layout-dimension-switch-thumb-small);
+    --_mash-context-switch-font-size: var(--mash-size-body);
+    --_mash-checkable-font-size: var(--mash-size-body);
+    --_mash-disclosure-block: var(--mash-size-gap);
+    font-size: var(--mash-size-body);
+  }
+  /* CSS parts keep the visual mapping outside component behavior. */
+  :where([data-mash-catalogue="mash"]) ui-option::part(control) {
+    min-block-size: var(--mash-size-control, auto);
+    padding-inline: var(--mash-size-item-inline, var(--space-control-inline));
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs[variant="segmented"]::part(list) {
+    padding: var(--mash-size-segment-pad, var(--space-control-block-small));
+  }
+  :where([data-mash-catalogue="mash"]) ui-tabs[variant="segmented"] ui-tab::part(control) {
+    min-block-size: var(--mash-size-segment-item, var(--_mash-control-height));
+  }
+  :where([data-mash-catalogue="mash"]) ui-accordion-item::part(trigger) {
+    min-block-size: var(--mash-size-control, auto);
+  }
+  :where([data-mash-catalogue="mash"]) ui-card::part(header),
+  :where([data-mash-catalogue="mash"]) ui-card::part(content),
+  :where([data-mash-catalogue="mash"]) ui-card::part(footer) {
+    padding: var(--mash-size-inline, var(--space-container-block))
+      var(--mash-size-inline, var(--space-container-inline));
+  }
+  :where([data-mash-catalogue="mash"]) ui-card::part(title) {
+    font-size: var(--mash-size-subtitle, var(--type-heading-font-size));
+  }
+  :where([data-mash-catalogue="mash"]) ui-card::part(description) {
+    font-size: var(--mash-size-caption, var(--type-body-font-size));
+  }
+  :where([data-mash-catalogue="mash"]) ui-badge:not(:state(anchored))::part(root) {
+    min-block-size: var(--mash-size-segment-item, var(--layout-dimension-control-small));
+    padding-inline: var(--mash-size-item-inline, var(--space-control-inline-small));
+  }
+  :where([data-mash-catalogue="mash"]) ui-icon[size="medium"] {
+    font-size: var(--mash-size-icon, 1.25rem);
+  }
+}

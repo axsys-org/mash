@@ -19,7 +19,7 @@ import type { UIOption } from "../option/option.js";
 let comboboxListId = 0;
 
 export type ComboboxFilter = "contains" | "none" | "starts-with";
-export type ComboboxSize = "inherit" | "small" | "medium" | "large";
+export type ComboboxSize = "inherit" | "default" | "compact" | "small" | "medium" | "large";
 
 function optionLabel(option: UIOption): string {
   return [...option.childNodes]

@@ -18,7 +18,7 @@ import type { UIOption } from "../option/option.js";
 let selectListId = 0;
 
 export type SelectFilter = "contains" | "none" | "starts-with";
-export type SelectSize = "inherit" | "small" | "medium" | "large";
+export type SelectSize = "inherit" | "default" | "compact" | "small" | "medium" | "large";
 
 function optionLabel(option: UIOption): string {
   return [...option.childNodes]
