@@ -303,3 +303,4 @@ export { UIDockPanel } from "./dock-panel/dock-panel.js";
 
 export type { DockLayout, DockNode, DockTabs, DockSplit, DockPlacement } from "./dock/dock.js";
 export type { MessageRecord, MessageRenderer } from "./message-scroller/message-scroller.js";
+export { UISidebar } from "./sidebar/sidebar.js";

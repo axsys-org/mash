@@ -36,6 +36,14 @@ const STRUCTURAL_RECIPE_ROLES = new Map([
 // without publishing that state as a design token. Every entry must retain a
 // safe CSS fallback at its use site.
 const RUNTIME_VARIABLES = new Set([
+  // ui-sidebar exposes preferred CSS widths and publishes its measured resize
+  // limits. These are layout inputs, with explicit fallbacks in sidebar.css.
+  "--mash-sidebar-width",
+  "--mash-sidebar-width-mobile",
+  "--_mash-sidebar-width",
+  "--_mash-sidebar-width-mobile",
+  "--_mash-sidebar-min",
+  "--_mash-sidebar-max",
   // Published by the generated material/vibrancy utility layer rather than the
   // DTCG token graph. Every catalogue use retains a semantic token fallback.
   "--mash-material-display",
