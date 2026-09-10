@@ -1,5 +1,6 @@
 import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
+import { formatInputMask, parseInputMask } from "./mask.js";
 import { baseStyles } from "../internal/base-styles.js";
 
 /** The native input modes Mash exposes as a stable cross-platform contract. */
@@ -61,6 +62,7 @@ export interface InputFocusChangeDetail {
  * @mashnode label label control
  * @mashnode autocomplete autocomplete control
  * @mashnode inputmode input-mode control
+ * @mashnode mask mask control
  * @mashnode pattern pattern control
  * @mashnode minlength min-length control
  * @mashnode maxlength max-length control
@@ -88,6 +90,7 @@ export class UIInput extends LitElement {
 
   static override properties = {
     value: { type: String },
+    mask: { type: String, reflect: true },
     name: { type: String, reflect: true },
     type: { type: String, reflect: true },
     size: { type: String, reflect: true },
@@ -104,7 +107,9 @@ export class UIInput extends LitElement {
     required: { type: Boolean, reflect: true },
   };
 
-  /** Current text value, submitted with the containing form. */
+  /** Optional display mask: # digit, A letter, * alphanumeric, backslash escapes. */
+  declare mask: string;
+  /** Raw text value, submitted with the containing form; literals are excluded when masked. */
   declare value: string;
   /** Form field name. */
   declare name: string;
@@ -141,10 +146,12 @@ export class UIInput extends LitElement {
   #nativeInvalid = false;
   #defaultValue: string | undefined;
   #formDisabled = false;
+  #composing = false;
 
   constructor() {
     super();
     this.value = "";
+    this.mask = "";
     this.name = "";
     this.type = "text";
     this.size = "inherit";
@@ -191,14 +198,86 @@ export class UIInput extends LitElement {
     this.control?.setSelectionRange(start, end, direction);
   }
 
-  #onInput = (event: Event): void => {
-    this.value = (event.currentTarget as HTMLInputElement).value;
-    this.#syncValidity();
+  /** The presentation string; value and FormData retain only the raw characters. */
+  get displayValue(): string {
+    return this.mask ? formatInputMask(this.value, this.mask).displayValue : this.value;
+  }
+
+  #readControl(): void {
+    const control = this.control;
+    if (!control || this.#composing) return;
+    if (!this.mask) this.value = control.value;
+    else {
+      const start = control.selectionStart,
+        end = control.selectionEnd;
+      const before = control.value;
+      const formatted = parseInputMask(before, this.mask);
+      const caret = (offset: number): number => {
+        const count = parseInputMask(before.slice(0, offset), this.mask).value.length;
+        return formatted.positions[count] ?? formatted.displayValue.length;
+      };
+      this.value = formatted.value;
+      control.value = formatted.displayValue;
+      if (start !== null && end !== null) control.setSelectionRange(caret(start), caret(end));
+    }
+    this.#syncFormState();
+  }
+
+  #onInput = (): void => {
+    this.#readControl();
   };
 
+  #onBeforeInput = (event: InputEvent): void => {
+    const control = this.control;
+    if (
+      !this.mask ||
+      !control ||
+      this.#composing ||
+      event.isComposing ||
+      !event.cancelable ||
+      this.readonly ||
+      this.#effectiveDisabled
+    )
+      return;
+    const start = control.selectionStart,
+      end = control.selectionEnd;
+    if (start === null || start !== end) return;
+    const backward = event.inputType === "deleteContentBackward";
+    if (!backward && event.inputType !== "deleteContentForward") return;
+    const formatted = formatInputMask(this.value, this.mask);
+    const adjacent = backward ? start - 1 : start;
+    if (adjacent < 0 || adjacent >= control.value.length || formatted.positions.includes(adjacent))
+      return;
+    const rawIndex = formatted.positions.filter((position) => position < start).length;
+    const remove = backward ? rawIndex - 1 : rawIndex;
+    if (remove < 0 || remove >= this.value.length) return;
+    event.preventDefault();
+    this.value = this.value.slice(0, remove) + this.value.slice(remove + 1);
+    const next = formatInputMask(this.value, this.mask);
+    control.value = next.displayValue;
+    const caret = next.positions[remove] ?? next.displayValue.length;
+    control.setSelectionRange(caret, caret);
+    this.#syncFormState();
+    this.dispatchEvent(
+      new InputEvent("input", { bubbles: true, composed: true, inputType: event.inputType }),
+    );
+  };
+
+  #onCompositionStart = (): void => {
+    this.#composing = true;
+  };
+  #onCompositionEnd = (): void => {
+    this.#composing = false;
+    this.#readControl();
+  };
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    if (this.mask && !this.#composing && (changed.has("mask") || changed.has("value")))
+      this.value = formatInputMask(this.value, this.mask).value;
+  }
+
   #onChange = (event: Event): void => {
-    this.value = (event.currentTarget as HTMLInputElement).value;
-    this.#syncValidity();
+    this.#readControl();
     // Native change is not composed. Publish the committed value at the host
     // so ordinary form owners receive the documented event across shadow DOM.
     event.stopPropagation();
@@ -206,7 +285,7 @@ export class UIInput extends LitElement {
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
-    if (this.#effectiveDisabled) return;
+    if (this.#effectiveDisabled || this.#composing || event.isComposing) return;
     if (event.key === "Enter" && !event.isComposing) {
       this.dispatchEvent(
         new CustomEvent<InputEnterDetail>("ui-input-enter", {
@@ -339,7 +418,7 @@ export class UIInput extends LitElement {
     return html`
       <input
         part="control"
-        .value=${this.value}
+        .value=${this.#composing ? (this.control?.value ?? this.displayValue) : this.displayValue}
         type=${this.type}
         placeholder=${this.placeholder}
         autocomplete=${this.autocomplete || nothing}
@@ -353,6 +432,9 @@ export class UIInput extends LitElement {
         ?disabled=${this.#effectiveDisabled}
         ?readonly=${this.readonly}
         ?required=${this.required}
+        @beforeinput=${this.#onBeforeInput}
+        @compositionstart=${this.#onCompositionStart}
+        @compositionend=${this.#onCompositionEnd}
         @input=${this.#onInput}
         @change=${this.#onChange}
         @keydown=${this.#onKeydown}

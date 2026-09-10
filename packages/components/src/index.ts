@@ -310,3 +310,6 @@ export type { MessageRecord, MessageRenderer } from "./message-scroller/message-
 export { UISidebar } from "./sidebar/sidebar.js";
 
 export type { CollectionSelection, CollectionSelectionAction } from "./selection/collection.js";
+
+export { formatInputMask, parseInputMask } from "./input/mask.js";
+export type { MaskedInputValue } from "./input/mask.js";
