@@ -217,7 +217,11 @@ export type {
   ScrollTargetAlignment,
   ScrollToTargetOptions,
 } from "./scroll-area/scroll-area.js";
-export { DOMTextSelectionAdapter, SelectionManager } from "./selection/selection.js";
+export {
+  DOMTextSelectionAdapter,
+  SelectionManager,
+  selectCollection,
+} from "./selection/selection.js";
 export type {
   DOMTextSelectionAdapterOptions,
   DOMTextSelectionData,
@@ -304,3 +308,5 @@ export { UIDockPanel } from "./dock-panel/dock-panel.js";
 export type { DockLayout, DockNode, DockTabs, DockSplit, DockPlacement } from "./dock/dock.js";
 export type { MessageRecord, MessageRenderer } from "./message-scroller/message-scroller.js";
 export { UISidebar } from "./sidebar/sidebar.js";
+
+export type { CollectionSelection, CollectionSelectionAction } from "./selection/collection.js";

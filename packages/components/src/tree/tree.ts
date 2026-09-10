@@ -1,6 +1,7 @@
-import { LitElement, html, type TemplateResult } from "lit";
+import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { selectCollection, type CollectionSelectionAction } from "../selection/collection.js";
 import type { UITreeItem } from "../tree-item/tree-item.js";
 
 export type TreeSelectionReason = "keyboard" | "pointer" | "imperative";
@@ -9,6 +10,12 @@ export type TreeScrollAlignment = "center" | "end" | "nearest" | "start";
 export interface TreeSelectionDetail {
   value: string;
   index: number;
+  reason: TreeSelectionReason;
+}
+
+export interface TreeSelectionChangeDetail {
+  values: readonly string[];
+  anchor: string | null;
   reason: TreeSelectionReason;
 }
 
@@ -26,7 +33,8 @@ export interface TreeRevealDetail {
 /**
  * A navigable tree surface.
  *
- * The tree owns hierarchy navigation only. Items supply reflected state and
+ * By default the tree requests selection from its owner. Opt into single or
+ * multiple selection to let it manage selectedValues. Items supply reflected state and
  * request changes through events, while an opt-in recipe decides whether the
  * same structure looks like a file browser, an outline, or a compact picker.
  *
@@ -46,6 +54,7 @@ export interface TreeRevealDetail {
  * @cssstate focused - A tree row currently owns the roving keyboard focus.
  *
  * @fires {CustomEvent<TreeSelectionDetail>} ui-tree-select - Requests selection of an identified item.
+ * @fires {CustomEvent<TreeSelectionChangeDetail>} ui-tree-selection-change - Reports managed selection after a user action.
  * @fires {CustomEvent<TreeToggleDetail>} ui-tree-toggle - Reports a child expansion request at the tree boundary.
  * @fires {CustomEvent<TreeRevealDetail>} ui-tree-reveal - Requests ancestor expansion and scroll reveal for an identified item.
  *
@@ -53,6 +62,9 @@ export interface TreeRevealDetail {
  * @mashnode children children root
  * @mashnode label label root
  * @mashnode selection-follows-focus selection-follows-focus root
+ * @mashnode selection-mode selection-mode root
+ * @mashnode selection-change change root
+ * @mashrole event ui-tree-selection-change change selection-change
  * @mashnode focused focused root
  * @mashnode select select root
  * @mashnode toggle toggle root
@@ -64,6 +76,8 @@ export interface TreeRevealDetail {
  */
 export class UITree extends LitElement {
   static override properties = {
+    selectionMode: { type: String, attribute: "selection-mode", reflect: true },
+    selectedValues: { attribute: false },
     label: { type: String, reflect: true },
     selectionFollowsFocus: {
       type: Boolean,
@@ -77,14 +91,26 @@ export class UITree extends LitElement {
   /** Requests selection whenever roving keyboard focus moves to another item. */
   declare selectionFollowsFocus: boolean;
 
+  /** Request preserves owner-managed selection; single/multiple manage selectedValues. */
+  declare selectionMode: "request" | "single" | "multiple";
+  /** Selected identities in managed mode. Assign a new array to update externally. */
+  declare selectedValues: readonly string[];
+  #selectionAnchor: string | null = null;
+  #lastSelection: readonly string[] | undefined;
+
   readonly #internals: ElementInternals;
   #typeahead = "";
   #typeaheadTimer: number | undefined;
-  readonly #collectionObserver = new MutationObserver(() => this.#syncTabStops());
+  readonly #collectionObserver = new MutationObserver(() => {
+    this.#syncSelection();
+    this.#syncTabStops();
+  });
 
   constructor() {
     super();
     this.label = "Tree";
+    this.selectionMode = "request";
+    this.selectedValues = [];
     this.selectionFollowsFocus = true;
     this.#internals = this.attachInternals();
   }
@@ -155,6 +181,7 @@ export class UITree extends LitElement {
   }
 
   #onSlotChange = (): void => {
+    this.#syncSelection();
     this.#syncTabStops();
   };
 
@@ -177,9 +204,70 @@ export class UITree extends LitElement {
     this.#internals.states.delete("focused");
   };
 
-  #requestSelection(item: UITreeItem, reason: TreeSelectionReason): void {
+  #syncSelection(): void {
+    if (this.selectionMode === "request") return;
+    const values = new Set(
+      this.selectionMode === "single" ? this.selectedValues.slice(0, 1) : this.selectedValues,
+    );
+    for (const item of this.#items()) item.selected = values.has(item.identity);
+  }
+
+  protected override updated(changed: PropertyValues<this>): void {
+    if (changed.has("selectionMode") || changed.has("selectedValues")) {
+      if (this.selectionMode === "single" && this.selectedValues.length > 1)
+        this.selectedValues = this.selectedValues.slice(0, 1);
+      if (changed.has("selectedValues") && this.selectedValues !== this.#lastSelection)
+        this.#selectionAnchor = this.selectedValues[0] ?? null;
+      this.#syncSelection();
+      this.#syncTabStops();
+    }
+  }
+
+  #select(action: CollectionSelectionAction, reason: TreeSelectionReason): void {
+    const state = selectCollection(
+      { values: this.selectedValues, anchor: this.#selectionAnchor },
+      this.#visibleItems().map((item) => item.identity),
+      action,
+    );
+    this.#selectionAnchor = state.anchor;
+    if (
+      state.values.length === this.selectedValues.length &&
+      state.values.every((value, index) => this.selectedValues[index] === value)
+    )
+      return;
+    this.selectedValues = state.values;
+    this.#lastSelection = state.values;
+    this.#syncSelection();
+    this.dispatchEvent(
+      new CustomEvent<TreeSelectionChangeDetail>("ui-tree-selection-change", {
+        bubbles: true,
+        composed: true,
+        detail: { values: [...state.values], anchor: state.anchor, reason },
+      }),
+    );
+  }
+
+  #requestSelection(
+    item: UITreeItem,
+    reason: TreeSelectionReason,
+    modifiers: { shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean } = {},
+    toggle = false,
+  ): void {
     if (item.disabled) return;
     const items = this.#visibleItems();
+    if (this.selectionMode !== "request") {
+      const multiple = this.selectionMode === "multiple";
+      const type =
+        multiple && modifiers.shiftKey
+          ? "range"
+          : multiple && (toggle || modifiers.ctrlKey || modifiers.metaKey)
+            ? "toggle"
+            : "replace";
+      this.#select(
+        { type, value: item.identity, additive: Boolean(modifiers.ctrlKey || modifiers.metaKey) },
+        reason,
+      );
+    }
     this.dispatchEvent(
       new CustomEvent<TreeSelectionDetail>("ui-tree-select", {
         bubbles: true,
@@ -196,7 +284,8 @@ export class UITree extends LitElement {
         (node): node is UITreeItem =>
           node instanceof HTMLElement && node.localName === "ui-tree-item",
       );
-    if (item) this.#requestSelection(item, "pointer");
+    if (item && item.closest("ui-tree") === this)
+      this.#requestSelection(item, "pointer", (event as CustomEvent).detail ?? {});
   };
 
   #onItemToggle = (event: Event): void => {
@@ -226,7 +315,7 @@ export class UITree extends LitElement {
         (node): node is UITreeItem =>
           node instanceof HTMLElement && node.localName === "ui-tree-item",
       );
-    if (!item) return;
+    if (!item || item.closest("ui-tree") !== this) return;
     const control = item.shadowRoot?.querySelector<HTMLElement>("[part='control']");
     if (!control || !event.composedPath().includes(control)) return;
 
@@ -234,13 +323,21 @@ export class UITree extends LitElement {
     const index = items.indexOf(item);
     if (index < 0) return;
 
+    const multiple = this.selectionMode === "multiple";
+    if (multiple && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a") {
+      event.preventDefault();
+      this.#select({ type: "all" }, "keyboard");
+      return;
+    }
     let target: UITreeItem | undefined;
     switch (event.key) {
       case "ArrowDown":
-        target = items[(index + 1) % items.length];
+        target =
+          items[multiple ? Math.min(index + 1, items.length - 1) : (index + 1) % items.length];
         break;
       case "ArrowUp":
-        target = items[(index - 1 + items.length) % items.length];
+        target =
+          items[multiple ? Math.max(index - 1, 0) : (index - 1 + items.length) % items.length];
         break;
       case "Home":
         target = items[0];
@@ -261,8 +358,9 @@ export class UITree extends LitElement {
         break;
       case "Enter":
       case " ":
-        this.#requestSelection(item, "keyboard");
-        if (item.branch) item.requestExpansion(!item.expanded);
+        this.#requestSelection(item, "keyboard", event, multiple && event.key === " ");
+        if (item.branch && (!multiple || event.key === "Enter"))
+          item.requestExpansion(!item.expanded);
         event.preventDefault();
         return;
       default:
@@ -282,7 +380,10 @@ export class UITree extends LitElement {
     event.preventDefault();
     if (target) this.#syncTabStops(target);
     target?.focusControl();
-    if (target && this.selectionFollowsFocus) this.#requestSelection(target, "keyboard");
+    if (target && (multiple ? event.shiftKey : this.selectionFollowsFocus)) {
+      if (multiple && !this.#selectionAnchor) this.#selectionAnchor = item.identity;
+      this.#requestSelection(target, "keyboard", event);
+    }
   };
 
   /** Returns the current visible-order index for a stable item identity. */
@@ -291,7 +392,10 @@ export class UITree extends LitElement {
   }
 
   /** Moves the tree's roving focus to an identified visible item. */
-  focusItem(value: string, select = this.selectionFollowsFocus): boolean {
+  focusItem(
+    value: string,
+    select = this.selectionMode !== "multiple" && this.selectionFollowsFocus,
+  ): boolean {
     const item = this.#visibleItems().find((candidate) => candidate.identity === value);
     if (!item) return false;
     this.#syncTabStops(item);
@@ -339,6 +443,7 @@ export class UITree extends LitElement {
       <div
         part="root"
         role="tree"
+        aria-multiselectable=${String(this.selectionMode === "multiple")}
         aria-label=${this.label}
         @keydown=${this.#onKeydown}
         @focusin=${this.#onFocusIn}

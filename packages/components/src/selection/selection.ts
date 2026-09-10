@@ -327,3 +327,6 @@ export class DOMTextSelectionAdapter<RecordType extends SelectionRecord = DOMTex
     });
   }
 }
+
+export { selectCollection } from "./collection.js";
+export type { CollectionSelection, CollectionSelectionAction } from "./collection.js";

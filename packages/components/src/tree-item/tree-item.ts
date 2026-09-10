@@ -269,10 +269,21 @@ export class UITreeItem extends LitElement {
       .some((element) => element.localName === "ui-tree-item");
   };
 
-  #onActivate = (): void => {
+  #onActivate = (event: MouseEvent): void => {
     if (this.disabled) return;
-    this.dispatchEvent(new CustomEvent("ui-tree-item-select", { bubbles: true, composed: true }));
-    if (this.branch) this.requestExpansion(!this.expanded);
+    const multiple = this.closest("ui-tree")?.getAttribute("selection-mode") === "multiple";
+    const disclosure = event
+      .composedPath()
+      .some((node) => node instanceof Element && node.getAttribute("part") === "disclosure");
+    if (!multiple || !disclosure)
+      this.dispatchEvent(
+        new CustomEvent("ui-tree-item-select", {
+          bubbles: true,
+          composed: true,
+          detail: { shiftKey: event.shiftKey, ctrlKey: event.ctrlKey, metaKey: event.metaKey },
+        }),
+      );
+    if (this.branch && (!multiple || disclosure)) this.requestExpansion(!this.expanded);
   };
 
   #siblings(): UITreeItem[] {

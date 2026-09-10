@@ -5,6 +5,7 @@ import {
   DOMTextSelectionAdapter,
   type DOMTextSelectionRecord,
   SelectionManager,
+  selectCollection,
   type SelectionRecord,
 } from "./selection.js";
 
@@ -75,5 +76,35 @@ describe("selection manager", () => {
 
     expect(() => adapter.setRange(range)).toThrow(/outside/);
     adapter.destroy();
+  });
+});
+
+describe("ordered collection selection", () => {
+  it("extends and shrinks a range around a stable anchor, skipping excluded rows", () => {
+    let state = selectCollection({ values: [], anchor: null }, ["a", "c", "d"], {
+      type: "replace",
+      value: "a",
+    });
+    state = selectCollection(state, ["a", "c", "d"], { type: "range", value: "d" });
+    expect(state.values).toEqual(["a", "c", "d"]);
+    state = selectCollection(state, ["a", "c", "d"], { type: "range", value: "c" });
+    expect(state).toEqual({ values: ["a", "c"], anchor: "a" });
+    state = selectCollection(state, ["c", "d"], { type: "range", value: "d" });
+    expect(state).toEqual({ values: ["d"], anchor: "d" });
+  });
+
+  it("preserves filtered selections for toggles and select-all without accepting unavailable ids", () => {
+    const initial = { values: ["hidden", "a"], anchor: "a" };
+    expect(selectCollection(initial, ["a", "b"], { type: "toggle", value: "a" }).values).toEqual([
+      "hidden",
+    ]);
+    expect(selectCollection(initial, ["a", "b", "b"], { type: "all" }).values).toEqual([
+      "hidden",
+      "a",
+      "b",
+    ]);
+    expect(selectCollection(initial, ["a", "b"], { type: "replace", value: "missing" })).toBe(
+      initial,
+    );
   });
 });
