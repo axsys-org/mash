@@ -9,13 +9,30 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-switch {
-    --_mash-checkable-font-family: var(--type-body-font-family);
-    --_mash-checkable-font-size: var(--type-body-font-size);
-    --_mash-checkable-line-height: var(--type-body-line-height);
-    --_mash-switch-track-inline: var(--layout-dimension-switch-track-medium-inline);
-    --_mash-switch-track-block: var(--layout-dimension-switch-track-medium-block);
-    --_mash-switch-thumb-size: var(--layout-dimension-switch-thumb-medium);
+    --_mash-checkable-font-family: var(
+      --_mash-context-switch-font-family,
+      var(--type-body-font-family)
+    );
+    --_mash-checkable-font-size: var(--_mash-context-switch-font-size, var(--type-body-font-size));
+    --_mash-checkable-line-height: var(
+      --_mash-context-switch-line-height,
+      var(--type-body-line-height)
+    );
+    --_mash-switch-track-inline: var(
+      --_mash-context-switch-inline,
+      var(--layout-dimension-switch-track-medium-inline)
+    );
+    --_mash-switch-track-block: var(
+      --_mash-context-switch-block,
+      var(--layout-dimension-switch-track-medium-block)
+    );
+    --_mash-switch-thumb-size: var(
+      --_mash-context-switch-thumb,
+      var(--layout-dimension-switch-thumb-medium)
+    );
     --_mash-switch-inset: var(--space-switch-inset);
+    --_mash-switch-progress: 0;
+    --_mash-switch-direction: 1;
   }
 
   :where([data-mash-catalogue="mash"]) ui-checkbox[size="xs"],
@@ -36,6 +53,7 @@
     --_mash-checkbox-mark-size: var(--layout-dimension-checkbox-mark-small);
   }
 
+  :where([data-mash-catalogue="mash"]) ui-switch[size="compact"],
   :where([data-mash-catalogue="mash"]) ui-switch[size="sm"],
   :where([data-mash-catalogue="mash"]) ui-switch[size="small"] {
     --_mash-checkable-font-family: var(--type-label-small-font-family);
@@ -204,8 +222,8 @@
     pointer-events: none;
     box-shadow: inset 0 0 0 var(--border-hairline) var(--_mash-component-boundary);
     transition:
-      background-color var(--duration-control) var(--easing-spring-snappy),
-      box-shadow var(--duration-control) var(--easing-spring-snappy);
+      background-color var(--duration-moderate-enter) var(--easing-settle),
+      box-shadow var(--duration-moderate-enter) var(--easing-settle);
   }
 
   :where([data-mash-catalogue="mash"]) ui-switch::part(thumb) {
@@ -218,11 +236,18 @@
     background: var(--_mash-component-surface-raised);
     box-shadow: 0 var(--border-hairline) var(--space-control-block-small)
       var(--_mash-component-shadow);
-    translate: var(--layout-dimension-zero) -50%;
+    translate: calc(
+        var(--_mash-switch-direction) * var(--_mash-switch-progress) *
+          (
+            var(--_mash-switch-track-inline) - var(--_mash-switch-thumb-size) - 2 *
+              var(--_mash-switch-inset)
+          )
+      ) -50%;
     transition:
-      inset-inline-start var(--duration-control) var(--easing-spring-snappy),
-      background-color var(--duration-control) var(--easing-control),
-      box-shadow var(--duration-control) var(--easing-control);
+      translate var(--duration-moderate-enter) var(--easing-settle),
+      scale var(--duration-fast-enter) var(--easing-settle),
+      background-color var(--duration-moderate-enter) var(--easing-control),
+      box-shadow var(--duration-moderate-enter) var(--easing-control);
   }
 
   :where([data-mash-catalogue="mash"]) ui-switch[checked]::part(track) {
@@ -231,7 +256,6 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-switch[checked]::part(thumb) {
-    inset-inline-start: calc(100% - var(--_mash-switch-thumb-size) - var(--_mash-switch-inset));
     background: var(--color-on-action);
   }
 
@@ -244,14 +268,13 @@
 
   :where([data-mash-catalogue="mash"]) ui-checkbox:is([disabled], :state(disabled))::part(root),
   :where([data-mash-catalogue="mash"]) ui-radio:is([disabled], :state(disabled))::part(root),
-  :where([data-mash-catalogue="mash"]) ui-switch[disabled]::part(root) {
+  :where([data-mash-catalogue="mash"]) ui-switch:is([disabled], :state(disabled))::part(root) {
     color: var(--color-text-disabled);
   }
 
   :where([data-mash-catalogue="mash"])
     ui-checkbox:is([disabled], :state(disabled))::part(indicator),
-  :where([data-mash-catalogue="mash"]) ui-radio:is([disabled], :state(disabled))::part(indicator),
-  :where([data-mash-catalogue="mash"]) ui-switch[disabled]::part(track) {
+  :where([data-mash-catalogue="mash"]) ui-radio:is([disabled], :state(disabled))::part(indicator) {
     background: var(--color-neutral);
     color: var(--color-text-disabled);
     opacity: 0.5;
@@ -1058,5 +1081,98 @@
   :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement):not(:disabled):hover,
   :where([data-mash-catalogue="mash"]) ui-number-field::part(increment):not(:disabled):hover {
     background: var(--color-surface-hover);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-switch[checked] {
+    --_mash-switch-progress: 1;
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch:dir(rtl) {
+    --_mash-switch-direction: -1;
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch::part(root) {
+    min-block-size: var(--_mash-control-input-height);
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch::part(control) {
+    touch-action: pan-y;
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch::part(label) {
+    transition: color var(--duration-fast-enter) var(--easing-settle);
+  }
+  @media (hover: hover) {
+    :where([data-mash-catalogue="mash"])
+      ui-switch:not([disabled], :state(disabled)):hover::part(thumb) {
+      scale: 1.1 1;
+    }
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-switch:not([disabled], :state(disabled)):active::part(thumb) {
+    scale: 1.2 0.85;
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch[data-dragging]::part(thumb) {
+    transition: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) ui-switch::part(thumb),
+    :where([data-mash-catalogue="mash"]) ui-switch::part(track),
+    :where([data-mash-catalogue="mash"]) ui-switch::part(label) {
+      transition: none;
+      scale: 1;
+    }
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])[data-mash-size="small"],
+  :where([data-mash-catalogue="mash"]) [data-mash-size="small"] {
+    --_mash-context-switch-inline: var(--layout-dimension-switch-track-small-inline);
+    --_mash-context-switch-block: var(--layout-dimension-switch-track-small-block);
+    --_mash-context-switch-thumb: var(--layout-dimension-switch-thumb-small);
+    --_mash-context-switch-font-family: var(--type-label-small-font-family);
+    --_mash-context-switch-font-size: var(--type-label-small-font-size);
+    --_mash-context-switch-line-height: var(--type-label-small-line-height);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])[data-mash-size="medium"],
+  :where([data-mash-catalogue="mash"]) [data-mash-size="medium"] {
+    --_mash-context-switch-inline: var(--layout-dimension-switch-track-medium-inline);
+    --_mash-context-switch-block: var(--layout-dimension-switch-track-medium-block);
+    --_mash-context-switch-thumb: var(--layout-dimension-switch-thumb-medium);
+    --_mash-context-switch-font-family: var(--type-body-font-family);
+    --_mash-context-switch-font-size: var(--type-body-font-size);
+    --_mash-context-switch-line-height: var(--type-body-line-height);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])[data-mash-size="large"],
+  :where([data-mash-catalogue="mash"]) [data-mash-size="large"] {
+    --_mash-context-switch-inline: var(--layout-dimension-switch-track-medium-inline);
+    --_mash-context-switch-block: var(--layout-dimension-switch-track-medium-block);
+    --_mash-context-switch-thumb: var(--layout-dimension-switch-thumb-medium);
+    --_mash-context-switch-font-family: var(--type-body-font-family);
+    --_mash-context-switch-font-size: var(--type-body-font-size);
+    --_mash-context-switch-line-height: var(--type-body-line-height);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-switch:is([disabled], :state(disabled))::part(track) {
+    opacity: var(--effect-opacity-disabled);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])
+    ui-switch:is([size="default"], [size="medium"], [size="md"]) {
+    --_mash-switch-track-inline: var(--layout-dimension-switch-track-medium-inline);
+    --_mash-switch-track-block: var(--layout-dimension-switch-track-medium-block);
+    --_mash-switch-thumb-size: var(--layout-dimension-switch-thumb-medium);
+    --_mash-checkable-font-family: var(--type-body-font-family);
+    --_mash-checkable-font-size: var(--type-body-font-size);
+    --_mash-checkable-line-height: var(--type-body-line-height);
   }
 }

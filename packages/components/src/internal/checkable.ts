@@ -93,6 +93,11 @@ export abstract class UICheckable extends LitElement {
     return false;
   }
 
+  /** Optional attribute label supplied by a concrete control. */
+  protected get fallbackLabel(): string {
+    return "";
+  }
+
   /** Additional independently styleable anatomy supplied by the concrete control. */
   protected renderCheckableParts(): TemplateResult | typeof nothing {
     return nothing;
@@ -163,6 +168,7 @@ export abstract class UICheckable extends LitElement {
 
   formDisabledCallback(disabled: boolean): void {
     this.#formDisabled = disabled;
+    this.syncCheckable();
     this.requestUpdate();
   }
 
@@ -177,6 +183,7 @@ export abstract class UICheckable extends LitElement {
 
   #onInput = (event: Event): void => {
     this.readCheckableState(event.currentTarget as HTMLInputElement);
+    this.syncCheckable();
   };
 
   #onChange = (): void => {
@@ -221,9 +228,9 @@ export abstract class UICheckable extends LitElement {
           @change=${this.#onChange}
         />
         ${this.renderCheckableParts()}
-        <span part="label" ?hidden=${!this._hasCheckableLabel}
-          ><slot @slotchange=${this.#onLabelSlotChange}></slot
-        ></span>
+        <span part="label" ?hidden=${!this._hasCheckableLabel && !this.fallbackLabel}
+          ><slot @slotchange=${this.#onLabelSlotChange}>${this.fallbackLabel}</slot></span
+        >
       </label>
     `;
   }
