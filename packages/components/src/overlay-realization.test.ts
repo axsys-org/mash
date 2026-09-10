@@ -298,7 +298,7 @@ describe("overlay authored-slot realizations", () => {
       <ui-dialog label="Rename project">
         <button slot="trigger">Rename</button>
         <input aria-label="Project name" />
-        <div slot="close">
+        <div slot="close" tabindex="0">
           <button>Cancel</button>
           <button>Save</button>
         </div>

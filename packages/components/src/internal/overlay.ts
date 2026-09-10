@@ -305,12 +305,20 @@ export abstract class UIOverlay extends LitElement {
     ];
     const seen = new Set<HTMLElement>();
 
-    for (const slot of slots) {
-      for (const assigned of slot.assignedElements({ flatten: true })) {
-        if (assigned instanceof HTMLElement && assigned.matches(selector)) seen.add(assigned);
-        for (const candidate of assigned.querySelectorAll<HTMLElement>(selector))
-          seen.add(candidate);
+    // Walk the rendered slot graph, including reprojected navigation and scroll
+    // regions. A focus-delegating Mash control is one stop, not its host plus input.
+    const visit = (element: Element): void => {
+      if (element instanceof HTMLSlotElement) {
+        const assigned = element.assignedElements({ flatten: true });
+        for (const child of assigned.length ? assigned : element.children) visit(child);
+      } else {
+        if (element instanceof HTMLElement && element.matches(selector)) seen.add(element);
+        if (element.matches(mashFocusable)) return;
+        for (const child of element.shadowRoot?.children ?? element.children) visit(child);
       }
+    };
+    for (const slot of slots) {
+      for (const assigned of slot.assignedElements({ flatten: true })) visit(assigned);
     }
 
     // Follow rendered visibility through slots as well as DOM ancestors. A hidden
