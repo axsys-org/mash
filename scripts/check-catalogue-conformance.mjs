@@ -15,8 +15,8 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const EXAMPLES_PATH = "apps/catalog/src/examples.ts";
-const STAGE_PATH = "apps/catalog/src/stage.ts";
-const UTILITY_RECIPES_PATH = "apps/catalog/src/utility-recipes.ts";
+const STAGE_PATH = "apps/catalog/src/fixture-stage.ts";
+const SHOWCASE_PATH = "apps/catalog/src/showcase.ts";
 const ICONS_PATH = "packages/components/src/icon/carbon-icons.generated.ts";
 
 function lineAt(source, index) {
@@ -45,7 +45,7 @@ async function main() {
     )
   ).join("\n");
   const stage = await readFile(path.join(ROOT, STAGE_PATH), "utf8");
-  const utilityRecipes = await readFile(path.join(ROOT, UTILITY_RECIPES_PATH), "utf8");
+  const showcase = await readFile(path.join(ROOT, SHOWCASE_PATH), "utf8");
   const icons = await readFile(path.join(ROOT, ICONS_PATH), "utf8");
   const problems = [];
   const iconNames = new Set([...icons.matchAll(/^  "([^"]+)": \{$/gm)].map((match) => match[1]));
@@ -71,7 +71,7 @@ async function main() {
   for (const [file, source] of [
     [EXAMPLES_PATH, examples],
     [STAGE_PATH, stage],
-    [UTILITY_RECIPES_PATH, utilityRecipes],
+    [SHOWCASE_PATH, showcase],
   ]) {
     for (const match of source.matchAll(/--_mash-[\w-]+/g)) {
       problems.push(

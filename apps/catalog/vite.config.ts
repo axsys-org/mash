@@ -1,5 +1,4 @@
 import { resolve } from "node:path";
-import process from "node:process";
 
 import { defineConfig } from "vite";
 
@@ -16,49 +15,10 @@ import { requireBuiltPackages } from "./vite.shared.js";
  * single-file browser distribution.
  */
 
-/**
- * Deployment metadata, read once, here.
- *
- * This is the *only* place the build reads the environment. Vercel exposes the
- * git context to the build as `VERCEL_*`; GitHub Actions exposes its own set.
- * Both are optional — a local `vite build` gets nulls, and src/build-info.ts
- * renders "local development".
- *
- * https://vercel.com/docs/environment-variables/system-environment-variables
- */
-function buildInfo() {
-  const env = process.env;
-
-  // On a pull request GITHUB_REF_NAME is "184/merge", which is not a branch
-  // anyone recognises; GITHUB_HEAD_REF is the source branch.
-  const branch = env.VERCEL_GIT_COMMIT_REF ?? env.GITHUB_HEAD_REF ?? env.GITHUB_REF_NAME ?? null;
-
-  const repo =
-    env.GITHUB_REPOSITORY ??
-    (env.VERCEL_GIT_REPO_OWNER && env.VERCEL_GIT_REPO_SLUG
-      ? `${env.VERCEL_GIT_REPO_OWNER}/${env.VERCEL_GIT_REPO_SLUG}`
-      : null);
-
-  return {
-    env: env.VERCEL_ENV ?? (env.CI ? "ci" : "local"),
-    branch: branch || null,
-    sha: env.VERCEL_GIT_COMMIT_SHA ?? env.GITHUB_SHA ?? null,
-    pr: env.VERCEL_GIT_PULL_REQUEST_ID ?? null,
-    repo: repo || null,
-  };
-}
-
 export default defineConfig({
   plugins: [catalogData(), requireBuiltPackages()],
 
-  // Frozen into the bundle at build time. Vite's own `import.meta.env` would
-  // require every variable to be renamed with a VITE_ prefix in the deployment
-  // platform; one define keeps the platform's names where they are documented.
-  define: {
-    __BUILD_INFO__: JSON.stringify(buildInfo()),
-  },
-
-  // Two pages: the catalog itself, and the preview frame it embeds. The frame
+  // Separate entries for the catalogue and its isolated preview documents. The frame
   // needs to be a real document rather than a srcdoc blob so that its module
   // imports resolve the same way the catalog's do.
   build: {

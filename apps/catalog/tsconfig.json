@@ -3,10 +3,7 @@
   "compilerOptions": {
     "noEmit": true,
     "resolveJsonModule": true,
-    "types": [],
-    "paths": {
-      "@blocksuite/global/gfx": ["./src/blocksuite-gfx.d.ts"]
-    }
+    "types": []
   },
   "include": ["src", "vite*.ts"]
 }

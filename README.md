@@ -277,24 +277,18 @@ That last one is the beginning of the provenance explorer:
 
 Adding a component or a token makes it appear in the catalog with no catalog changes.
 
-### The URL is the state
+### Preview routes
 
-Every catalog route is a real address, and the controls are reflected in the query string:
+Component pages show their examples directly in one scroller. Theme and example links are shareable:
 
 ```text
-/components/ui-button?variant=quiet&size=small&theme=dark
-/components/ui-tree-item?theme=dark&label=src
+/components/ui-button?theme=dark&example=Theme%20boundaries
+/components/ui-tabs?preview=shared&example=Dynamic%20tabs
 ```
 
-Configure a component, copy the address, paste it into a PR comment: whoever opens it sees exactly
-what you saw. `apps/catalog/src/url-state.ts` is the whole mechanism — two pure functions over
-`URL` and the app state, plus the calls in `main.ts`. Only values that differ from the component's
-documented defaults are written, so links stay short; anything unrecognised (an unknown component,
-an enum value that is not one of the documented options) falls back to the default rather than
-throwing, because links outlive the code they were copied from.
-
-Choosing a component pushes a history entry; nudging a control replaces one. Otherwise trying four
-variants would cost four presses of Back to leave the page.
+The current catalogue is routed by `apps/catalog/src/main.ts` and rendered by `showcase.ts`.
+Tabs and Chart offer an opt-in shared preview document; see [Catalogue preview](docs/catalogue-preview.md)
+for loading boundaries, measurements, and production review commands.
 
 ## Pull requests
 
@@ -420,12 +414,7 @@ Projects settings. The publisher retains `BLOB_READ_WRITE_TOKEN` support only as
 fallback. A public Blob remains public even when Vercel Deployment Protection protects the catalog.
 
 The rewrite exists because `/components/ui-button` is a real address the app routes client-side.
-Static files still win, so `/stage.html` and `/assets/*` are served directly.
-
-Nothing account-specific is committed: no project id, no org id, no token, no deployment URL. The
-git metadata the badge displays arrives as Vercel's own `VERCEL_*` build variables, read in exactly
-one place (`buildInfo()` in `apps/catalog/vite.config.ts`) and frozen into the bundle by Vite's
-`define`. Locally the badge reads `local development`.
+Static files still win, so `/fixture.html`, `/shared-fixture.html`, and `/assets/*` are served directly.
 
 **If the design system is not meant to be public, turn on Vercel Deployment Protection** for the
 project. The catalog is a static bundle with no backend, no secrets and no runtime APIs, so access

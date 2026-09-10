@@ -24,7 +24,6 @@ const CONSUMER_ROOTS = [
   "packages/shrine-components/src/catalogue",
   "apps/catalog/src",
 ];
-const CATALOG_SYSTEM_ENTRY = "apps/catalog/src/system.css";
 const STRUCTURAL_RECIPE_ROLES = new Map([
   ["--color-surface", "--_mash-component-surface"],
   ["--color-surface-raised", "--_mash-component-surface-raised"],
@@ -126,7 +125,6 @@ async function main() {
     .filter((filePath) => filePath.startsWith("apps/catalog/src/"));
   for (const filePath of catalogueStyles) {
     if (
-      filePath !== CATALOG_SYSTEM_ENTRY &&
       filePath !== "apps/catalog/src/fixture-stage.css" &&
       filePath !== "apps/catalog/src/shared-fixture.css" &&
       filePath !== "apps/catalog/src/showcase.css" &&
@@ -137,17 +135,9 @@ async function main() {
       !filePath.startsWith("apps/catalog/src/stories/")
     ) {
       unresolved.push(
-        `${filePath} is application styling; compose semantic utilities in utility-recipes.ts instead`,
+        `${filePath} is application styling; use public component recipes and semantic tokens`,
       );
     }
-  }
-
-  const catalogueEntry = await readFile(path.join(ROOT, CATALOG_SYSTEM_ENTRY), "utf8");
-  const authoredBlocks = catalogueEntry.replaceAll(/\/\*[\s\S]*?\*\//g, "").match(/[{}]/g) ?? [];
-  if (authoredBlocks.length > 0) {
-    unresolved.push(
-      `${CATALOG_SYSTEM_ENTRY} must remain an import-only Tailwind entrypoint with no authored rule blocks`,
-    );
   }
 
   // Imported recipe modules share one cascade and may consume each other's

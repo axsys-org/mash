@@ -14,24 +14,13 @@
     "clean": "rm -rf dist .vite"
   },
   "dependencies": {
-    "@blocksuite/affine": "0.22.4",
-    "@blocksuite/global": "0.22.4",
-    "@blocksuite/integration-test": "0.22.4",
     "@mash/shrine": "workspace:*",
     "@mash/tokens": "workspace:*",
-    "@mash/ui": "workspace:*",
-    "@preact/signals-core": "1.8.0",
-    "@toeverything/theme": "1.1.15",
-    "lit": "3.2.0",
-    "react": "19.1.0"
+    "@mash/ui": "workspace:*"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "4.3.3",
-    "@vanilla-extract/vite-plugin": "5.0.0",
     "esbuild": "0.28.2",
-    "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
-    "vite": "8.2.1",
-    "vite-plugin-wasm": "3.3.0"
+    "vite": "8.2.1"
   }
 }
