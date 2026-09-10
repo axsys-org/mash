@@ -99,8 +99,8 @@
     font-size: var(--mash-size-icon, var(--layout-size-default-icon));
   }
   :where([data-mash-catalogue="mash"]) ui-command ui-kbd::part(root) {
-    font-size: var(--mash-size-body, var(--type-scale-default-body));
     min-inline-size: 0;
+    min-block-size: 0;
   }
   :where([data-mash-catalogue="mash"]) ui-command ui-kbd:not([appearance="plain"])::part(root) {
     padding: 0;

@@ -178,6 +178,11 @@ root.querySelector("#reset-tabs").addEventListener("click", () => { tabs.select(
   ],
   "ui-kbd": [
     sample(
+      "Control sizes",
+      `<div class="mash-stack"><div class="mash-row" data-mash-size="default"><ui-button outline>Search<ui-kbd slot="suffix" shortcut="Primary+K"></ui-kbd></ui-button><span>Default</span><ui-kbd shortcut="Primary+Shift+P"></ui-kbd></div><div class="mash-row" data-mash-size="compact"><ui-button outline>Search<ui-kbd slot="suffix" shortcut="Primary+K"></ui-kbd></ui-button><span>Compact</span><ui-kbd shortcut="Primary+Shift+P"></ui-kbd><ui-kbd size="default" shortcut="Escape"></ui-kbd></div></div>`,
+      "Key labels follow the surrounding control size. The Escape key pins the default size inside a compact group.",
+    ),
+    sample(
       "Shortcuts",
       `<div class="mash-row mash-wrap">${["Primary+K", "Primary+Shift+P", "Escape", "Enter", "ArrowLeft", "F12"].map((shortcut) => `<ui-kbd shortcut="${shortcut}"></ui-kbd>`).join("\n")}</div>`,
     ),

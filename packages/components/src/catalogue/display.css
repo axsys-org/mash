@@ -1358,14 +1358,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-inline-size: var(--layout-dimension-control-xsmall);
-    padding: var(--space-control-block-small) var(--space-control-block);
+    min-inline-size: 1.6em;
+    min-block-size: 1.6em;
+    padding: 0.15em 0.4em;
     border: 0;
     border-radius: calc(var(--radius-control) / 2);
     background: var(--_mash-component-surface-sunken);
     color: var(--color-text-muted);
-    font: var(--type-code-font-weight) var(--type-label-small-font-size) / 1
-      var(--type-code-font-family);
+    font: var(--type-label-font-weight) var(--mash-size-body, var(--type-scale-default-body)) / 1.2
+      var(--type-label-font-family);
     white-space: nowrap;
   }
   :where([data-mash-catalogue="mash"]) ui-kbd[appearance="outline"]::part(root) {
@@ -1375,7 +1376,10 @@
   :where([data-mash-catalogue="mash"]) ui-kbd::part(value) {
     display: inline-flex;
     align-items: center;
-    gap: 0;
+    gap: 0.15em;
+  }
+  :where([data-mash-catalogue="mash"]) ui-kbd::part(glyph) {
+    font-size: 1.15em;
   }
   :where([data-mash-catalogue="mash"]) ui-kbd::part(key),
   :where([data-mash-catalogue="mash"]) ui-kbd::part(separator) {
@@ -1594,6 +1598,8 @@
 
 @layer mash.catalogue {
   :where([data-mash-catalogue="mash"]) ui-kbd[appearance="plain"]::part(root) {
+    min-inline-size: 0;
+    min-block-size: 0;
     border: 0;
     background: transparent;
     box-shadow: none;

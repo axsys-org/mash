@@ -52,7 +52,7 @@ const keyLabel = (key: string, mac: boolean): { label: string; glyph: boolean } 
  * Marks a keyboard shortcut or key name.
  *
  * @tag ui-kbd
- * @summary Displays a keyboard shortcut using Mash's compact code typography.
+ * @summary Displays legible keyboard shortcuts with platform-aware key labels.
  *
  * @example Keyboard shortcut
  * <p class="demo">Press <ui-kbd command="workspace.search" shortcut="Primary+K"></ui-kbd> to open command search.</p>
@@ -68,6 +68,8 @@ const keyLabel = (key: string, mac: boolean): { label: string; glyph: boolean } 
  *
  * @mashnode root root
  * @mashnode value value root
+ * @mashnode size size root
+ * @mashaxis size control-size
  * @mashnode command command root
  * @mashnode shortcut shortcut root
  * @mashnode key key value
@@ -78,12 +80,15 @@ const keyLabel = (key: string, mac: boolean): { label: string; glyph: boolean } 
  */
 export class UIKbd extends LitElement {
   static override properties = {
+    size: { type: String, reflect: true },
     platform: { type: String, reflect: true },
     appearance: { type: String, reflect: true },
     command: { type: String, reflect: true },
     shortcut: { type: String, reflect: true },
   };
 
+  /** Inherits the control size context unless explicitly pinned. */
+  declare size: "inherit" | "default" | "compact";
   /** Platform formatting; auto follows the device. */
   declare platform: "auto" | "mac" | "windows";
   /** Subtle key surface, outlined emphasis, or inline text. */
@@ -96,6 +101,7 @@ export class UIKbd extends LitElement {
 
   constructor() {
     super();
+    this.size = "inherit";
     this.platform = "auto";
     this.appearance = "key";
     this.command = "";

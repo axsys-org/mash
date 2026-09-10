@@ -15,7 +15,8 @@
         ui-stepper,
         ui-badge,
         ui-card,
-        ui-switch
+        ui-switch,
+        ui-kbd
       )[size="default"]
     ) {
     --mash-size-control: var(--layout-size-default-control);
@@ -71,7 +72,8 @@
         ui-stepper,
         ui-badge,
         ui-card,
-        ui-switch
+        ui-switch,
+        ui-kbd
       )[size="compact"]
     ) {
     --mash-size-control: var(--layout-size-compact-control);

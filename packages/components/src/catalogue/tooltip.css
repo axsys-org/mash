@@ -25,7 +25,6 @@
   :where([data-mash-catalogue="mash"]) ui-tooltip ui-kbd::part(root) {
     color: inherit;
     background: transparent;
-    font-size: inherit;
   }
   :where([data-mash-catalogue="mash"]) ui-tooltip ui-kbd::part(value) {
     gap: var(--space-control-block-small);
