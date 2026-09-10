@@ -39,7 +39,7 @@ const phases=${JSON.stringify(phases)};
 function draw() {
   const colors=phases.map((_,index)=>color(index+1));
   const working=root.querySelector("#time-window").value==="work";
-  plot.option={animationDuration:180,grid:{left:60,right:24,top:24,bottom:40,containLabel:true},xAxis:{type:"value",min:working?8:0,max:working?18:24,interval:working?2:4,name:"Hour"},yAxis:{type:"category",data:phases.map(item=>item[0]),inverse:true},tooltip:{formatter:params=>params.name+": "+(params.value[2]-params.value[1])+" hours"},series:[{name:"Duration",type:"custom",encode:{x:[1,2],y:0,tooltip:[1,2]},data:phases.map((item,index)=>({name:item[0],value:[index,item[1],item[2]]})),renderItem:(params,api)=>{
+  plot.option={animationDuration:180,grid:{left:60,right:56,top:24,bottom:40,containLabel:true},xAxis:{type:"value",min:working?8:0,max:working?18:24,interval:working?2:4,name:"Hour"},yAxis:{type:"category",data:phases.map(item=>item[0]),inverse:true},tooltip:{formatter:params=>params.name+": "+(params.value[2]-params.value[1])+" hours"},series:[{name:"Duration",type:"custom",encode:{x:[1,2],y:0,tooltip:[1,2]},data:phases.map((item,index)=>({name:item[0],value:[index,item[1],item[2]]})),renderItem:(params,api)=>{
     const start=api.coord([api.value(1),api.value(0)]), end=api.coord([api.value(2),api.value(0)]);
     const bounds=params.coordSys, height=Math.abs(api.size([0,1])[1])*0.52;
     const left=Math.max(start[0],bounds.x), right=Math.min(end[0],bounds.x+bounds.width);
