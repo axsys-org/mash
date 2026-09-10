@@ -22,7 +22,9 @@ export type SelectSize = "inherit" | "small" | "medium" | "large";
 
 function optionLabel(option: UIOption): string {
   return [...option.childNodes]
-    .filter((node) => !(node instanceof HTMLElement && node.slot))
+    .filter(
+      (node) => node.nodeType !== Node.COMMENT_NODE && !(node instanceof HTMLElement && node.slot),
+    )
     .map((node) => node.textContent ?? "")
     .join("")
     .trim();
@@ -219,7 +221,12 @@ export class UISelect extends LitElement {
     this.#positioner.queue();
   });
   readonly #positioner = new AnchoredPositionController(this, {
-    anchor: () => this.renderRoot.querySelector<HTMLElement>("[part~='control']"),
+    anchor: () => {
+      const control = this.renderRoot.querySelector<HTMLElement>("[part~='control']");
+      return control?.getClientRects().length
+        ? control
+        : this.renderRoot.querySelector<HTMLElement>("[part~='trigger']");
+    },
     popup: () => this.renderRoot.querySelector<HTMLElement>("[part~='popup']"),
     positioner: () => this.renderRoot.querySelector<HTMLElement>("[part~='positioner']"),
     config: () => this,
