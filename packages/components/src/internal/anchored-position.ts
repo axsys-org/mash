@@ -192,6 +192,9 @@ export class AnchoredPositionController {
     const anchor = point
       ? new DOMRect(point.x, point.y, 0, 0)
       : anchorElement.getBoundingClientRect();
+    // Let anchored surfaces match their field without a second observer or
+    // example-owned measurements. This is geometry, not a design token.
+    positioner.style.setProperty("--mash-anchor-inline-size", `${anchorElement.offsetWidth}px`);
     const popupRect = popup.getBoundingClientRect();
     const resolved = resolveAnchoredPosition(
       anchor,

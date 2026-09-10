@@ -1,0 +1,175 @@
+/* Editable choice controls share their field, row, motion and size vocabulary. */
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete):focus-within::part(input-group) {
+    outline-offset: 0;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)
+    ui-option[disabled]::part(control) {
+    color: var(--color-text-disabled);
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(popup) {
+    inline-size: var(--mash-anchor-inline-size, var(--layout-menu-inline-regular));
+    min-inline-size: 0;
+    max-inline-size: calc(100vw - var(--space-container-inline));
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(input-group) {
+    min-block-size: var(--mash-size-control, var(--layout-size-default-control));
+    padding-block: 3px;
+    transition:
+      background var(--duration-fast-enter) var(--easing-control),
+      border-color var(--duration-fast-enter) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)[multiple]::part(input-group) {
+    flex-wrap: wrap;
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(control) {
+    flex: 1 1 7rem;
+    inline-size: 7rem;
+    min-block-size: calc(var(--mash-size-control, var(--layout-size-default-control)) - 8px);
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete):not(:has(> [slot="trigger"]))::part(trigger) {
+    display: contents;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)[clearable]:not(:has(> [slot="clear"]))::part(clear) {
+    display: contents;
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(trigger-control),
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(clear-control) {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: calc(var(--mash-size-control, var(--layout-size-default-control)) - 8px);
+    block-size: calc(var(--mash-size-control, var(--layout-size-default-control)) - 8px);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    color: var(--color-text-muted);
+    background: transparent;
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(clear-control) {
+    order: 1;
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(trigger-control) {
+    order: 2;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)::part(clear-control):disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)::part(trigger-control):disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)::part(trigger-control):hover,
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)::part(clear-control):hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)::part(clear-control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)[variant="borderless"]:not(:focus-within):not(
+      :state(invalid)
+    )::part(input-group) {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)[variant="borderless"]:hover::part(input-group) {
+    background: var(--color-surface-hover);
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(error) {
+    color: var(--color-critical);
+    font-size: var(--mash-size-caption, var(--type-scale-default-caption));
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(viewport) {
+    position: relative;
+    isolation: isolate;
+    scrollbar-width: thin;
+    scrollbar-gutter: auto;
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(highlight) {
+    position: absolute;
+    inset: 0 auto auto 0;
+    border-radius: var(--radius-control);
+    background: var(--color-surface-hover);
+    pointer-events: none;
+    z-index: -1;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)
+    ui-option[active]::part(control),
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)
+    ui-option:not([disabled]):hover::part(control) {
+    background: transparent;
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete) ui-option::part(control) {
+    min-block-size: var(--mash-size-control, var(--layout-size-default-control));
+    font-size: var(--mash-size-body, var(--type-body-font-size));
+    padding: 6px var(--mash-size-item-inline, var(--space-control-inline));
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)
+    [data-combobox-chips]
+    ui-chip::part(root) {
+    min-block-size: calc(var(--mash-size-control, var(--layout-size-default-control)) - 10px);
+    padding: 0 4px 0 8px;
+    gap: 4px;
+    font-size: var(--mash-size-caption, var(--type-scale-default-caption));
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)
+    [data-combobox-chips]
+    button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: calc(var(--mash-size-control, var(--layout-size-default-control)) - 12px);
+    block-size: calc(var(--mash-size-control, var(--layout-size-default-control)) - 12px);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    font: inherit;
+    font-size: 18px;
+    color: var(--color-text-muted);
+    background: transparent;
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)
+    [data-combobox-chips]
+    button:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-combobox, ui-autocomplete)
+    [data-combobox-chips]
+    button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}

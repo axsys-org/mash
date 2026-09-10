@@ -36,6 +36,8 @@ const STRUCTURAL_RECIPE_ROLES = new Map([
 // without publishing that state as a design token. Every entry must retain a
 // safe CSS fallback at its use site.
 const RUNTIME_VARIABLES = new Set([
+  // Shared anchored positioning publishes the field width to popup recipes.
+  "--mash-anchor-inline-size",
   // ui-sidebar exposes preferred CSS widths and publishes its measured resize
   // limits. These are layout inputs, with explicit fallbacks in sidebar.css.
   "--mash-sidebar-width",
