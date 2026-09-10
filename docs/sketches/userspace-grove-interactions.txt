@@ -1,0 +1,368 @@
+USERSPACE GROVE INTERACTIONS — WORKING SKETCH
+2026-09-10
+
+This is a design sketch, not executable Grove or an implemented Mash API.
+The declaration forms follow the small Grove example. All ui/* vocabulary,
+package paths, types, ref(...), read(...), event(...), and gv-* attributes below
+are proposed. Expression spelling and type implementations remain to be defined.
+
+The aim: inspect a composition and see what it addresses, how it responds,
+and where its results participate. Ordinary arrangements should need little
+wiring. Existing Mash components retain their useful defaults.
+
+
+1. THE SMALL SHARED VOCABULARY
+
+These are ordinary userspace slot declarations. They do not add new @keywords.
+Names identify properties; roles constrain their types and combinations.
+
+source =
+  @slot
+  meta :
+    sys/title: "Represented source"
+
+on =
+  @slot
+  meta :
+    sys/title: "Activation trigger"
+
+invoke =
+  @slot
+  meta :
+    sys/title: "Action to request"
+
+args =
+  @slot
+  meta :
+    sys/title: "Argument bindings"
+
+into =
+  @slot
+  meta :
+    sys/title: "Result destination"
+
+project =
+  @slot
+  meta :
+    sys/title: "Presentation recipe"
+
+update =
+  @slot
+  meta :
+    sys/title: "Result placement policy"
+
+sync =
+  @slot
+  meta :
+    sys/title: "Overlapping invocation policy"
+
+bind =
+  @slot
+  meta :
+    sys/title: "Presented value bindings"
+
+These would live in an importable userspace package, shown below as ui.
+Use existing system slots for title, description, and references where their
+actual contracts fit. Do not duplicate them just to give everything a ui prefix.
+
+Proposed value meanings:
+
+  source   Reference to what this appearance represents or operates on.
+  on       Trigger descriptor: activation, value change, submission, observed
+           revision, visibility, etc.; optional timing/filter policy.
+  invoke   Reference to an Action. This declares an invocation, not its body.
+  args     Typed bindings supplying the Action's parameters.
+  into     Address of a destination in the current projection/composition.
+  project  Recipe reference, or a declared presentation preference resolved
+           against the available recipes and current context.
+  update   Place, replace, append, or another explicitly defined result policy.
+  sync     Queue, drop, or supersede overlapping work in a specified scope.
+  bind     Values presented by controls, with declared edit behavior where needed.
+
+A source reference and a destination address are different things.
+"Operate on this document" and "show the result here" must stay distinguishable.
+Paths in examples are readable locators; resolving them must retain the host's
+source identity and context rather than promoting a path string to identity.
+
+
+2. ROLES OVER THOSE SLOTS
+
+Illustrative imports; these packages/types do not exist yet:
+
+#import sys=sys/slots
+#import ui=userspace/ui/slots
+#import t=userspace/ui/types
+
+appearance =
+  @role
+  ui/source: t/reference
+  #opt ;
+    ui/project: t/recipe-reference
+    ui/bind: t/value-bindings
+
+invocation =
+  @role
+  ui/invoke: t/action-reference
+  #opt ;
+    ui/source: t/reference
+    ui/on: t/trigger
+    ui/args: t/argument-bindings
+    ui/into: t/projection-address
+    ui/project: t/recipe-reference
+    ui/update: t/update-policy
+    ui/sync: t/invocation-policy
+
+interactive_appearance =
+  @role
+  with # appearance
+  with # invocation
+
+The role composition is illustrative and must be checked against Grove's final
+role-composition rules. Appearance and invocation remain useful independently.
+There is no requirement that every visible Block perform an Action.
+
+The type contracts matter more than these names:
+
+  reference          Resolves admitted namespace ground with its identity.
+  projection-address Identifies an appearance/attachment in a contextual root.
+  argument-bindings  Values, source-slot reads, or typed event-field reads.
+  value-bindings     Source values and, separately, admitted edit operations.
+  trigger            A portable interaction/observation descriptor.
+  recipe-reference  An admitted realization and its input/output contract.
+
+Argument evaluation uses declared references and typed extraction. It must not
+mean evaluating arbitrary JavaScript strings embedded in the content.
+
+
+3. A COMPLETE SMALL INTERACTION
+
+Assume an application already provides a library-search Action and a result
+norm. Its query semantics and result meaning belong to that application.
+
+The author places a field and a results appearance:
+
+'/work/search =
+  @tree
+  meta :
+    sys/title: "Search the library"
+  ui/source: ref('/library)
+  ui/project: ref('/foundry/recipes/search-field)
+  ui/on: event(value-change, changed, delay=150ms)
+  ui/invoke: ref('/library/actions/search)
+  ui/args: { query: event(value) }
+  ui/into: ref('/work/results)
+  ui/update: replace-results
+  ui/sync: latest-in-this-appearance
+
+'/work/results =
+  @tree
+  ui/project: ref('/foundry/recipes/reference-list)
+
+Everything after a slot colon above is schematic, especially the inline map
+and event expression. This shows the intended authoring density, not a parser
+extension proposal.
+
+What the binding does:
+
+  1. Mash reports a value change through its public control contract.
+  2. The trigger policy admits an invocation with the current query.
+  3. The host resolves the referenced Action and target in context.
+  4. The Action produces results or an explicit failure/refusal.
+  5. The result appears at /work/results through the selected recipe.
+  6. Results retain their source references and may carry further interactions.
+
+Latest-in-this-appearance prevents an older search result replacing a newer one.
+It does not imply that canceling delivery can undo a committed mutation.
+
+No search-specific JavaScript controller is required at the authoring site.
+The action implementation, generic binding executor, and control still exist.
+
+
+4. ONE THING AT SEVERAL SCOPES
+
+A reference in the results can carry a continuation, schematically:
+
+'/work/results/item-42 =
+  @tree
+  ui/source: ref('/library/document-42)
+  ui/project: ref('/foundry/recipes/document-reference)
+  ui/on: event(activate)
+  ui/invoke: ref('/ui/actions/present)
+  ui/args: {
+    source: read(ui/source),
+    recipe: ref('/foundry/recipes/document-working)
+  }
+  ui/into: ref('/work/reading-place)
+
+Here present is a proposed userspace operation on the working arrangement.
+It is not an Action that edits document-42's content.
+
+The reference may be encountered inside a paragraph, a list, or a conversation.
+Following it can serve that source through a bounded working Plate. Its working
+composition may itself contain references, tools, and subordinate Plates.
+
+The same Scene may be the active root in one context and be served as a Plate
+beneath another. A meaningful composition encountered as a Block may be served
+at greater scope. That change does not assign the source a permanent UI class.
+
+Each appearance has a distinct projection address. They retain the same source
+reference. An enclosing composition constrains how a child participates without
+becoming the universal parent of the referenced source.
+
+Only declared composition relationships participate in projected containment.
+A citation, source link, or about relationship does not automatically expand
+into another rendered subtree. A Glyph terminates its particular realization.
+
+Presentation changes preserve working references and shared drafts. Whether
+an arrangement itself is saved is declared by its owning Flow/host. A local
+hover or focus state need not become durable namespace content.
+
+
+5. EDITING IS AN EXPLICIT OPERATION
+
+A value binding can supply a field's displayed title. Submission can separately
+request a rename operation:
+
+'/work/rename =
+  @tree
+  ui/source: ref('/library/document-42)
+  ui/project: ref('/foundry/recipes/title-editor)
+  ui/bind: { value: read(source, sys/title) }
+  ui/on: event(submit)
+  ui/invoke: ref('/library/actions/rename)
+  ui/args: {
+    title: event(value),
+    expected_revision: read(source, revision)
+  }
+  ui/into: ref('/work/reading-place)
+
+The working draft must not be overwritten on every source refresh. The value
+binding contract needs an explicit initial/synchronized/draft policy. A refusal
+or revision conflict leaves the draft available and provides an intelligible
+result to its current appearance.
+
+Some projected edits may have a declared reverse transformation. Others invoke
+an Action. A get-only transformation has no implied writeback. The author and
+inspector should be able to see which case applies.
+
+Likewise, a drag can request:
+
+  rearrange this appearance;
+  move a semantic attachment;
+  attach another reference;
+  make a deliberate copy.
+
+Those are different operations sharing the same drag mechanics. Motion handles
+the immediate feedback; the declared operation determines the actual change.
+
+
+6. NORMS AND REALIZATION
+
+Use @norm to constrain the occupied shape of a composition and the roles at its
+positions. Use @dyed where a namespace transformation connects declared norms.
+The application supplies its own data norms; a presentation transformation can
+produce the structure a realization consumes.
+
+The exact norm patterns and transform implementations are intentionally omitted
+here. They depend on the actual composition representation, not DOM tag names.
+
+A recipe contract needs to answer:
+
+  What admitted structure can this realize?
+  Which values and relationships does it expose?
+  What structure/attachments can it produce?
+  Which interactions remain available?
+  What source correspondences survive the transformation?
+  How do edits route back, or why are they unavailable?
+  What fallback applies when this renderer cannot realize it?
+
+A recipe may produce an arrangement of smaller realizations. Useful recipes
+should compose and specialize through ordinary userspace definitions. This does
+not require registering a new Web Component for every application role.
+
+Defaults can come from the declared composition context. Explicit local values
+win where allowed; inspection should show the effective value and its origin.
+The semantic context supplies that relationship. Incidental DOM reparenting must
+not silently change the target of a source Action.
+
+
+7. THE MASH WEB REALIZATION
+
+Possible emitted markup for the search example:
+
+<ui-input
+  label="Search the library"
+  gv-source="/library"
+  gv-on="input changed delay:150ms"
+  gv-invoke="/library/actions/search"
+  gv-args="query <- event.value"
+  gv-into="/work/results"
+  gv-project="/foundry/recipes/search-field"
+  gv-sync="latest">
+</ui-input>
+
+The gv-* attributes above are hypothetical serialized Web bindings. They are
+not htmx attributes, current Mash features, or a second source of application
+meaning. A renderer could also bind the same descriptor programmatically.
+The arrow expression is illustrative, not an implemented mini-language.
+
+The portable value-change trigger lowers to the control's actual public event
+and value-reading contract. Custom event details, native input events, and form
+submission must not be assumed to have identical payloads.
+
+Mash's existing surfaces keep their jobs:
+
+  properties / attributes  Public configuration and values.
+  authored HTML slots      Content supplied to a realization.
+  CSS parts                Styling access to realized anatomy.
+  custom states            Interaction and lifecycle feedback.
+  composed events          Interaction outputs and requests.
+  motion / drag / gestures Existing behavior used by the realization.
+
+A Grove slot identifier is not automatically an HTML slot name. A CSS part is
+not automatically a separately addressable source Block. The Web binding maps
+the meaningful relationships deliberately.
+
+Prefer bindings on public hosts and authored composition. Private shadow DOM
+remains an implementation detail; nested controls must expose the public events,
+values, and attachment points needed by their owner.
+
+
+8. MINIMUM FIRST PROOF
+
+Implement only enough vocabulary to show:
+
+  A search field invokes an existing action and presents referenced results.
+  One result opens at greater scope with its source reference intact.
+  The same source appears in a second composition without a copied draft.
+  A field proposes an edit; conflict/refusal preserves the user's draft.
+  A projection can unmount and remount without losing its working context.
+  Moving a presentation does not change its source Action target.
+
+Use a deterministic local host fixture first. Label runtime-simulated outcomes
+honestly. Keep the binding executor shared, the markup concise, and the existing
+Mash primitives independently usable.
+
+The next design review should settle the slot/value types, context resolution,
+projection addressing, and writeback contract. It should not add another layer
+of controller classes around each example.
+
+
+REFERENCES
+
+htmx documentation: https://htmx.org/docs/
+Locality of Behaviour: https://htmx.org/essays/locality-of-behaviour/
+Hypermedia-Driven Applications:
+https://htmx.org/essays/hypermedia-driven-applications/
+Web Component integration: https://htmx.org/examples/web-components/
+
+Illustrative Grove declaration forms:
+https://gist.github.com/liam-fitzgerald/20e28360b86b5f75011c77a4e2ae008d
+
+Local product requirements:
+JShrine/docs/PRODUCT-SCHEMA.md
+JShrine/docs/LOCUS-FLOW-CASE-STUDY.md
+
+Local Mash contract and audit:
+docs/mash-contract.md
+docs/audit/composition-boundaries.md
