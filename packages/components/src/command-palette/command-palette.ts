@@ -312,20 +312,23 @@ export class UICommandItem extends LitElement {
   declare disabled: boolean;
   /** Current keyboard highlight, assigned by the command list. */
   declare selected: boolean;
-  #internals = this.attachInternals();
   constructor() {
     super();
     this.value = "";
     this.keywords = "";
     this.disabled = false;
     this.selected = false;
-    this.#internals.role = "option";
     this.addEventListener("click", () => {
       if (!this.disabled)
         this.dispatchEvent(
           new CustomEvent("ui-command-item-select", { bubbles: true, composed: true }),
         );
     });
+  }
+  override connectedCallback(): void {
+    super.connectedCallback();
+    // Keep the collection role on its light-DOM active-descendant target.
+    if (!this.hasAttribute("role")) this.role = "option";
   }
   static override styles = [
     baseStyles,
@@ -349,8 +352,8 @@ export class UICommandItem extends LitElement {
     `,
   ];
   protected override updated(): void {
-    this.#internals.ariaSelected = String(this.selected);
-    this.#internals.ariaDisabled = String(this.disabled);
+    this.ariaSelected = String(this.selected);
+    this.ariaDisabled = String(this.disabled);
   }
   #slotChange = (event: Event): void => {
     const slot = event.target as HTMLSlotElement;
