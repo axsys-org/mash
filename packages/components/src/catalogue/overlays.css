@@ -228,16 +228,6 @@
     pointer-events: auto;
   }
 
-  :where([data-mash-catalogue="mash"]) ui-tooltip::part(popup) {
-    border-radius: var(--radius-control);
-    padding: var(--space-control-block) var(--space-control-inline);
-    background: var(--color-surface-inverse);
-    color: var(--_mash-component-inverse-label);
-    font-family: var(--type-label-font-family);
-    font-size: var(--type-label-small-font-size);
-    line-height: var(--type-label-small-line-height);
-  }
-
   :where([data-mash-catalogue="mash"]) ui-calendar::part(root) {
     display: grid;
     inline-size: max-content;

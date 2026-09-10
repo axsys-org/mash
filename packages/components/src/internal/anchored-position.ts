@@ -116,6 +116,8 @@ export interface AnchoredPositionElements {
   positioner(): HTMLElement | null;
   config(): AnchoredPositionConfig | null;
   point?(): { x: number; y: number } | null;
+  /** Optional virtual anchor bounds while retaining the real element for observation and direction. */
+  anchorRect?(): DOMRect | null;
 }
 
 /** Web realization of the renderer-neutral anchored-position contract. */
@@ -191,7 +193,7 @@ export class AnchoredPositionController {
     const point = this.#elements.point?.();
     const anchor = point
       ? new DOMRect(point.x, point.y, 0, 0)
-      : anchorElement.getBoundingClientRect();
+      : (this.#elements.anchorRect?.() ?? anchorElement.getBoundingClientRect());
     // Let anchored surfaces match their field without a second observer or
     // example-owned measurements. This is geometry, not a design token.
     positioner.style.setProperty("--mash-anchor-inline-size", `${anchorElement.offsetWidth}px`);

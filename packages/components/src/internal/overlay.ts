@@ -118,6 +118,7 @@ export abstract class UIOverlay extends LitElement {
     positioner: () => this.renderRoot.querySelector<HTMLElement>("[part='positioner']"),
     config: () => this.positioningConfig(),
     point: () => this.#contextPoint,
+    anchorRect: () => this.positionAnchorRect(),
   });
 
   constructor() {
@@ -196,6 +197,11 @@ export abstract class UIOverlay extends LitElement {
     return this.#triggerElements()[0] ?? null;
   }
 
+  /** Optional virtual bounds resolved by the shared anchored positioning controller. */
+  protected positionAnchorRect(): DOMRect | null {
+    return null;
+  }
+
   /** Re-measures an open anchored overlay after its external anchor changes. */
   protected queuePosition(): void {
     this.#positioner.queue();
@@ -270,6 +276,11 @@ export abstract class UIOverlay extends LitElement {
       this.#interactionTimer = undefined;
       this.requestOpenChange(open, reason);
     }, delay);
+  }
+
+  /** Cancels delayed hover/focus work when an owner changes interaction policy. */
+  protected cancelPendingInteraction(): void {
+    this.#cancelInteractionChange();
   }
 
   #cancelInteractionChange(): void {
