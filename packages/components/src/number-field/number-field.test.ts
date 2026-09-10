@@ -24,7 +24,7 @@ describe("ui-number-field", () => {
 
   it("reports a cancellable semantic step request before changing value", async () => {
     const field = await fixture<UINumberField>(
-      `<ui-number-field value="3" step="2" label="Seats"></ui-number-field>`,
+      `<ui-number-field value="4" step="2" label="Seats"></ui-number-field>`,
     );
     const requests: Array<{ direction: string; value: number }> = [];
     field.addEventListener("ui-number-field-step", (event) => {
@@ -35,8 +35,8 @@ describe("ui-number-field", () => {
 
     inShadow<HTMLButtonElement>(field, '[part="increment"]').click();
 
-    expect(requests).toEqual([{ direction: "increment", value: 5 }]);
-    expect(field.value).toBe(3);
+    expect(requests).toEqual([{ direction: "increment", value: 6 }]);
+    expect(field.value).toBe(4);
   });
 });
 
@@ -88,4 +88,67 @@ it("allows an optional empty value and forwards native step validity", async () 
   field.value = 2;
   await settled(form);
   expect(form.checkValidity()).toBe(true);
+});
+
+it("preserves out-of-range drafts and synchronizes form data before input callbacks", async () => {
+  const form = await fixture<HTMLFormElement>(
+    '<form><ui-number-field name="amount" value="120" min="100" max="500"></ui-number-field></form>',
+  );
+  const field = form.querySelector<UINumberField>("ui-number-field")!;
+  const input = inShadow<HTMLInputElement>(field, "input");
+  const submitted: FormDataEntryValue[] = [];
+  field.addEventListener("ui-number-field-input", () =>
+    submitted.push(new FormData(form).get("amount")!),
+  );
+  input.value = "2";
+  input.dispatchEvent(new InputEvent("input"));
+  await settled(form);
+  expect(input.value).toBe("2");
+  expect(field.value).toBe(2);
+  expect(submitted).toEqual(["2"]);
+  expect(form.checkValidity()).toBe(false);
+  input.dispatchEvent(new Event("change"));
+  await settled(form);
+  expect(input.value).toBe("100");
+  expect(new FormData(form).get("amount")).toBe("100");
+  expect(form.checkValidity()).toBe(true);
+});
+
+it("steps decimals on the native grid and disables no-op controls", async () => {
+  const field = await fixture<UINumberField>(
+    '<ui-number-field value="0.2" min="0" max="0.35" step="0.1"></ui-number-field>',
+  );
+  const input = inShadow<HTMLInputElement>(field, "input");
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", cancelable: true }));
+  await settled(field);
+  expect(field.value).toBe(0.3);
+  expect(input.value).toBe("0.3");
+  expect(inShadow<HTMLButtonElement>(field, '[part="increment"]').disabled).toBe(true);
+  input.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "ArrowDown", shiftKey: true, cancelable: true }),
+  );
+  await settled(field);
+  expect(field.value).toBe(0);
+  expect(inShadow<HTMLButtonElement>(field, '[part="decrement"]').disabled).toBe(true);
+});
+
+it("keeps read-only values submitted and honors fieldset disabling", async () => {
+  const form = await fixture<HTMLFormElement>(
+    '<form><fieldset><ui-number-field name="count" value="12" readonly></ui-number-field></fieldset></form>',
+  );
+  const field = form.querySelector<UINumberField>("ui-number-field")!;
+  const input = inShadow<HTMLInputElement>(field, "input");
+  expect(input.readOnly).toBe(true);
+  expect(new FormData(form).get("count")).toBe("12");
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", cancelable: true }));
+  expect(field.value).toBe(12);
+  field.readonly = false;
+  form.querySelector("fieldset")!.disabled = true;
+  await settled(form);
+  expect(input.disabled).toBe(true);
+  expect(new FormData(form).has("count")).toBe(false);
+  form.querySelector("fieldset")!.disabled = false;
+  await settled(form);
+  expect(input.disabled).toBe(false);
+  expect(new FormData(form).get("count")).toBe("12");
 });

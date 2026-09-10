@@ -891,7 +891,6 @@
   :where([data-mash-catalogue="mash"]) ui-textarea:state(invalid)::part(control),
   :where([data-mash-catalogue="mash"]) ui-textarea:invalid::part(control),
   :where([data-mash-catalogue="mash"]) ui-editor:state(invalid)::part(root),
-  :where([data-mash-catalogue="mash"]) ui-number-field:state(invalid)::part(control),
   :where([data-mash-catalogue="mash"]) ui-otp-field:state(invalid)::part(cell),
   :where([data-mash-catalogue="mash"]) ui-slider:state(invalid)::part(track),
   :where([data-mash-catalogue="mash"]) ui-select:state(invalid)::part(trigger),

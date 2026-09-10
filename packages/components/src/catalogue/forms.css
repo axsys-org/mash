@@ -506,45 +506,119 @@
     gap: var(--space-group-block);
   }
 
+  :where([data-mash-catalogue="mash"]) ui-number-field {
+    display: inline-block;
+    inline-size: 12rem;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+  }
   :where([data-mash-catalogue="mash"]) ui-number-field::part(root) {
     display: grid;
     gap: var(--space-control-gap);
+    min-inline-size: 0;
   }
-
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(group) {
+    display: flex;
+    align-items: center;
+    min-inline-size: 0;
+    min-block-size: var(--_mash-control-input-height);
+    padding: var(--border-strong);
+    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
+    border-radius: var(--radius-control);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    transition: border-color var(--duration-control) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(group):focus-within {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field:state(invalid)::part(group) {
+    border-color: var(--color-critical-text);
+  }
   :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement),
   :where([data-mash-catalogue="mash"]) ui-number-field::part(increment) {
-    min-inline-size: calc(var(--space-container-inline) + var(--space-control-inline));
-    min-block-size: var(--_mash-control-input-height);
-    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
-    background: var(--_mash-component-surface);
-    color: var(--color-text);
-    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
-      var(--type-label-font-family);
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: calc(var(--_mash-control-input-height) - 2 * var(--border-strong));
+    align-self: stretch;
+    border: 0;
+    border-radius: max(0px, calc(var(--radius-control) - var(--border-strong)));
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: var(--type-label-large-font-size);
+    cursor: pointer;
+    transition:
+      background var(--duration-control) var(--easing-control),
+      color var(--duration-control) var(--easing-control);
   }
-
-  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement) {
-    border-radius: var(--radius-control) 0 0 var(--radius-control);
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement):disabled,
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment):disabled {
+    opacity: var(--effect-opacity-disabled);
+    cursor: default;
   }
-
-  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment) {
-    border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment):focus-visible {
+    outline: var(--border-hairline) solid var(--color-focus-ring);
+    outline-offset: calc(-1 * var(--border-hairline));
   }
-
   :where([data-mash-catalogue="mash"]) ui-number-field::part(control) {
-    min-block-size: var(--_mash-control-input-height);
-    min-inline-size: calc(var(--space-container-inline) + var(--space-container-inline));
-    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
-    border-inline: 0;
-    padding: 0 var(--_mash-control-inline);
-    background: var(--_mash-component-surface);
-    color: var(--color-text);
+    flex: 1;
+    inline-size: 100%;
+    min-inline-size: 0;
+    field-sizing: fixed;
+    min-block-size: calc(var(--_mash-control-input-height) - 2 * var(--border-strong));
+    border: 0;
+    outline: none;
+    padding: 0 var(--space-control-inline-small);
+    background: transparent;
+    color: inherit;
+    text-align: center;
     font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
       var(--type-body-font-family);
+    font-variant-numeric: tabular-nums;
   }
-
-  :where([data-mash-catalogue="mash"]) ui-number-field::part(control):focus-visible,
-  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement):focus-visible,
-  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(suffix) {
+    flex: none;
+    color: var(--color-text-muted);
+    padding-inline: var(--space-control-gap);
+    font-size: var(--type-label-font-size);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field:state(disabled)::part(group) {
+    opacity: var(--effect-opacity-disabled);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field[readonly]::part(group) {
+    background: var(--_mash-component-surface-sunken);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(group) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "prefix control suffix increment" "prefix control suffix decrement";
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(control) {
+    grid-area: control;
+    text-align: start;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(prefix) {
+    grid-area: prefix;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(suffix) {
+    grid-area: suffix;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(increment) {
+    grid-area: increment;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(decrement) {
+    grid-area: decrement;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(increment),
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(decrement) {
+    font-size: var(--type-label-font-size);
+    line-height: 1;
+  }
   :where([data-mash-catalogue="mash"]) ui-otp-field::part(cell):focus-visible {
     outline: var(--border-focus-ring) solid var(--color-focus-ring);
     outline-offset: var(--border-focus-ring-offset);
@@ -981,8 +1055,8 @@
   :where([data-mash-catalogue="mash"]) ui-switch:not([checked]):not([disabled]):hover::part(track) {
     background: var(--color-neutral-hover);
   }
-  :where([data-mash-catalogue="mash"]) ui-number-field:not([disabled])::part(decrement):hover,
-  :where([data-mash-catalogue="mash"]) ui-number-field:not([disabled])::part(increment):hover {
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement):not(:disabled):hover,
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment):not(:disabled):hover {
     background: var(--color-surface-hover);
   }
 }
