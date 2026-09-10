@@ -150,3 +150,100 @@ it("reveals highlighted commands inside the list without moving its containing w
   const row = command.querySelector('ui-command-item[value="29"]')!.getBoundingClientRect();
   expect(row.bottom).toBeLessThanOrEqual(list.getBoundingClientRect().bottom + 1);
 });
+
+it("groups suggested data once, preserves rows, and returns to authored content", async () => {
+  const menu = await fixture<UICommand>(
+    '<ui-command><ui-command-item value="authored">Authored</ui-command-item></ui-command>',
+  );
+  menu.items = [
+    { value: "new", label: "New file", group: "Actions" },
+    { value: "notes", label: "Team notes", group: "Pages", keywords: ["meeting"] },
+  ];
+  menu.suggestions = ["notes", "missing", "notes"];
+  await settled(menu);
+  const row = menu.querySelector('[value="notes"]')!;
+  expect(menu.querySelector('[aria-label="Suggestions"]')!.contains(row)).toBe(true);
+  expect(menu.querySelectorAll('[value="notes"]')).toHaveLength(1);
+  menu.query = "meeting";
+  await settled(menu);
+  expect(menu.querySelector('[value="notes"]')).toBe(row);
+  expect(menu.querySelector('[aria-label="Pages"]')!.contains(row)).toBe(true);
+  expect(menu.querySelector('[aria-label="Suggestions"]')).toBeNull();
+  menu.items = undefined;
+  menu.query = "";
+  await settled(menu);
+  expect(menu.querySelectorAll("ui-command-item")).toHaveLength(1);
+  expect(menu.querySelector("ui-command-item")!.getAttribute("value")).toBe("authored");
+});
+
+it("filters original data with custom rendering and executes callbacks before the selection event", async () => {
+  const menu = await fixture<UICommand>("<ui-command></ui-command>");
+  const calls: string[] = [];
+  const available = {
+    value: "one",
+    label: "One",
+    keywords: ["team"],
+    onSelect: () => calls.push("item"),
+  };
+  menu.items = [available, { value: "two", label: "Two", disabled: true }];
+  menu.renderItem = (item) => `Custom ${item.label}`;
+  menu.filter = (item, query) => !query || ("label" in item && item === available);
+  menu.addEventListener("ui-command-select", (event) => {
+    expect((event as CustomEvent).detail.item).toBe(available);
+    calls.push("root");
+  });
+  menu.query = "team";
+  await settled(menu);
+  expect(menu.querySelector("ui-command-item")!.textContent).toBe("Custom One");
+  const search = inShadow<HTMLInputElement>(menu, "input");
+  search.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }),
+  );
+  expect(calls).toEqual(["item", "root"]);
+  menu.query = "";
+  await settled(menu);
+  menu.querySelector<UICommandItem>('[value="two"]')!.click();
+  expect(calls).toHaveLength(2);
+});
+
+it("emits user query changes and lets the containing dialog handle Escape when configured", async () => {
+  const menu = await fixture<UICommand>("<ui-command></ui-command>");
+  const changes = vi.fn();
+  menu.addEventListener("ui-command-query-change", changes);
+  const search = inShadow<HTMLInputElement>(menu, "input");
+  search.value = "notes";
+  search.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+  await settled(menu);
+  expect(changes.mock.calls[0]![0].detail.query).toBe("notes");
+  menu.escapeClears = false;
+  const escape = new KeyboardEvent("keydown", {
+    key: "Escape",
+    bubbles: true,
+    composed: true,
+    cancelable: true,
+  });
+  search.dispatchEvent(escape);
+  expect(escape.defaultPrevented).toBe(false);
+  expect(menu.query).toBe("notes");
+  menu.escapeClears = true;
+  search.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }),
+  );
+  expect(changes.mock.calls[1]![0].detail.query).toBe("");
+});
+
+it("resumes highlight motion after disconnecting with a pending frame", async () => {
+  const host = await fixture<HTMLElement>(
+    '<div><ui-command><ui-command-item value="one" style="display:block;height:30px">One</ui-command-item><ui-command-item value="two" style="display:block;height:30px">Two</ui-command-item></ui-command></div>',
+  );
+  const menu = host.querySelector<UICommand>("ui-command")!;
+  menu.highlight("one");
+  menu.remove();
+  host.append(menu);
+  menu.highlight("two");
+  await settled(menu);
+  await new Promise(requestAnimationFrame);
+  const highlight = inShadow<HTMLElement>(menu, '[part="highlight"]');
+  expect(highlight.hidden).toBe(false);
+  expect(highlight.style.translate).toMatch(/30px$/);
+});

@@ -1,0 +1,135 @@
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-command {
+    font-size: var(--mash-size-body, var(--type-scale-default-body));
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(root) {
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    overflow: hidden;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(search-row) {
+    gap: var(--mash-size-gap, var(--space-control-gap));
+    padding: var(--space-control-gap) var(--space-control-inline);
+    color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(search) {
+    min-block-size: var(--mash-size-control, var(--layout-size-default-control));
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    outline: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(root):focus-within {
+    border-color: var(--_mash-component-boundary-strong);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(filters) {
+    padding: 0 var(--space-control-gap) var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(footer) {
+    padding: var(--space-control-gap) var(--space-control-inline);
+    border-block-start: var(--border-hairline) solid var(--_mash-component-boundary);
+    color: var(--color-text-muted);
+    font-size: var(--mash-size-caption, var(--type-scale-default-caption));
+  }
+  :where([data-mash-catalogue="mash"]) ui-command [data-command-heading] {
+    display: block;
+    padding: var(--space-control-gap) var(--space-control-inline);
+    color: var(--color-text-muted);
+    font-size: var(--mash-size-caption, var(--type-scale-default-caption));
+    font-weight: var(--type-label-font-weight);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command [role="group"][hidden] {
+    display: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(list) {
+    border-block-start: var(--border-hairline) solid var(--_mash-component-boundary);
+    padding: var(--space-control-gap);
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-text-disabled) transparent;
+    overscroll-behavior: contain;
+    scroll-padding-block: var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(highlight) {
+    background: var(--color-surface-hover);
+    border-radius: var(--radius-menu-item);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command::part(empty) {
+    padding: var(--space-container-gap);
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item {
+    display: block;
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item::part(root) {
+    display: flex;
+    align-items: center;
+    gap: var(--mash-size-gap, var(--space-control-gap));
+    padding: var(--space-control-block-small)
+      var(--mash-size-item-inline, var(--space-control-inline));
+    min-block-size: var(--mash-size-control, var(--layout-size-default-control));
+    border-radius: var(--radius-menu-item);
+    font-size: inherit;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item::part(text) {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    min-inline-size: 0;
+    gap: 0 var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item::part(label) {
+    overflow-wrap: anywhere;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item::part(description),
+  :where([data-mash-catalogue="mash"]) ui-command-item::part(shortcut) {
+    color: var(--color-text-muted);
+    font-size: inherit;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item::part(shortcut),
+  :where([data-mash-catalogue="mash"]) ui-command-item::part(icon) {
+    flex-shrink: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command ui-icon {
+    font-size: var(--mash-size-icon, var(--layout-size-default-icon));
+  }
+  :where([data-mash-catalogue="mash"]) ui-command ui-kbd::part(root) {
+    font-size: var(--mash-size-body, var(--type-scale-default-body));
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command ui-kbd:not([appearance="plain"])::part(root) {
+    padding: 0;
+    background: transparent;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command ui-kbd::part(value) {
+    gap: var(--space-control-block-small);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command ui-kbd:not([appearance="plain"])::part(key) {
+    min-inline-size: 1.5em;
+    min-block-size: 1.5em;
+    padding-inline: var(--space-control-block-small);
+    border-radius: calc(var(--radius-control) / 2);
+    background: var(--_mash-component-surface-sunken);
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item[selected]::part(root) {
+    background: var(--color-surface-hover);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-command[data-command-highlight]
+    ui-command-item[selected]::part(root) {
+    background: transparent;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item[disabled] {
+    color: var(--color-text-disabled);
+    cursor: default;
+  }
+  :where([data-mash-catalogue="mash"]) ui-command-item[disabled]::part(description),
+  :where([data-mash-catalogue="mash"]) ui-command-item[disabled]::part(shortcut) {
+    color: var(--color-text-disabled);
+  }
+}

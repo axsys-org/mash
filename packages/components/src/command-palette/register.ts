@@ -1,3 +1,5 @@
+import "../icon/register.js";
+import "../kbd/register.js";
 import { UICommand, UICommandItem } from "./command-palette.js";
 if (!customElements.get("ui-command")) customElements.define("ui-command", UICommand);
 export * from "./command-palette.js";

@@ -1,4 +1,7 @@
 import { LitElement, css, html, type PropertyValues, type TemplateResult } from "lit";
+import { CommandCollection, type CommandItem, type CommandItemRenderer } from "./collection.js";
+import { ReorderMotionController } from "../internal/reorder-motion.js";
+export type { CommandItem, CommandItemRenderer } from "./collection.js";
 import { baseStyles } from "../internal/base-styles.js";
 
 /**
@@ -10,6 +13,7 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot - Command items, with optional labelled sections.
  * @slot search-prefix - Search icon or leading context.
  * @slot search-suffix - Search shortcut or adjacent action.
+ * @slot filters - Tabs, selects, or other controls below the search.
  * @slot empty - Content shown when the query has no matches.
  * @slot footer - Shortcut hints or contextual actions.
  * @csspart root - The command surface.
@@ -18,6 +22,8 @@ import { baseStyles } from "../internal/base-styles.js";
  * @csspart search-prefix - Leading search accessory.
  * @csspart search-suffix - Trailing search accessory.
  * @csspart list - The command list.
+ * @csspart filters - Optional controls below search.
+ * @csspart highlight - Shared moving row highlight.
  * @csspart empty - No-results state.
  * @csspart footer - Optional contextual footer.
  * @mashnode root command
@@ -26,9 +32,14 @@ import { baseStyles } from "../internal/base-styles.js";
  * @mashnode search-prefix prefix search-row
  * @mashnode search-suffix suffix search-row
  * @mashnode list list root
+ * @mashnode filters row root
+ * @mashnode highlight indicator list
+ * @mashnode size size root
+ * @mashaxis size control-size
  * @mashnode empty empty list
  * @mashnode footer footer root
- * @fires {CustomEvent<{ value: string }>} ui-command-select - The user activates a command.
+ * @fires {CustomEvent<{ query: string }>} ui-command-query-change - The user changes the query.
+ * @fires {CustomEvent<{ value: string, item?: CommandItem }>} ui-command-select - The user activates a command.
  */
 export class UICommand extends LitElement {
   static override properties = {
@@ -36,6 +47,14 @@ export class UICommand extends LitElement {
     placeholder: { type: String, reflect: true },
     query: { type: String, reflect: true },
     searchable: { type: Boolean, reflect: true },
+    items: { attribute: false },
+    renderItem: { attribute: false },
+    filter: { attribute: false },
+    suggestions: { attribute: false },
+    suggestionsLabel: { type: String, attribute: "suggestions-label" },
+    size: { type: String, reflect: true },
+    escapeClears: { type: Boolean, attribute: "escape-clears", reflect: true },
+    _filters: { state: true },
     _empty: { state: true },
     _footer: { state: true },
   };
@@ -47,9 +66,28 @@ export class UICommand extends LitElement {
   declare query: string;
   /** Show a search input; false exposes a keyboard-focusable quick-action list. */
   declare searchable: boolean;
+  /** Optional data items; values must be unique. Omit to author rows directly. */
+  declare items: readonly CommandItem[] | undefined;
+  /** Replaces data row text with application-owned nodes; icons and shortcut caps remain. */
+  declare renderItem: CommandItemRenderer | undefined;
+  /** Match data items or authored rows against the current query. */
+  declare filter: ((item: CommandItem | UICommandItem, query: string) => boolean) | undefined;
+  /** Data values shown once in the leading group while the query is empty. */
+  declare suggestions: readonly string[];
+  /** Accessible heading for suggested data items. */
+  declare suggestionsLabel: string;
+  /** Optional size pin; otherwise follows the surrounding CSS size context. */
+  declare size: "default" | "compact" | undefined;
+  /** Clear on Escape when inline. Set false inside a dialog to let Escape dismiss immediately. */
+  declare escapeClears: boolean;
+  protected _filters = false;
   protected _empty = false;
   protected _footer = false;
   #active?: UICommandItem;
+  #collection = new CommandCollection(this);
+  #motion = new ReorderMotionController(this);
+  #frame = 0;
+  #resize = new ResizeObserver(() => this.#scheduleHighlight());
   #observer = new MutationObserver(() => this.#filter());
   constructor() {
     super();
@@ -57,12 +95,16 @@ export class UICommand extends LitElement {
     this.placeholder = "Search commands…";
     this.query = "";
     this.searchable = true;
+    this.suggestions = [];
+    this.suggestionsLabel = "Suggestions";
+    this.escapeClears = true;
     this.addEventListener("ui-command-item-select", this.#onSelect);
     this.addEventListener("pointermove", (event) => {
       const item = event
         .composedPath()
         .find((node): node is UICommandItem => node instanceof UICommandItem);
-      if (item && this.#available.includes(item)) this.#activate(item);
+      if (event.pointerType !== "touch" && item && this.#available.includes(item))
+        this.#activate(item);
     });
   }
   static override styles = [
@@ -92,13 +134,26 @@ export class UICommand extends LitElement {
         display: none;
       }
       [part="list"] {
+        position: relative;
+        isolation: isolate;
         max-block-size: 20rem;
         overflow: auto;
+      }
+      [part="highlight"] {
+        position: absolute;
+        inset: 0 auto auto 0;
+        pointer-events: none;
+        z-index: -1;
       }
     `,
   ];
   override connectedCallback(): void {
     super.connectedCallback();
+    this.#observe();
+    this.#resize.observe(this);
+    this.#scheduleHighlight();
+  }
+  #observe(): void {
     this.#observer.observe(this, {
       childList: true,
       subtree: true,
@@ -109,6 +164,10 @@ export class UICommand extends LitElement {
   }
   override disconnectedCallback(): void {
     this.#observer.disconnect();
+    this.#resize.disconnect();
+    cancelAnimationFrame(this.#frame);
+    this.#frame = 0;
+    this.#motion.destroy();
     super.disconnectedCallback();
   }
   get #items(): UICommandItem[] {
@@ -119,8 +178,34 @@ export class UICommand extends LitElement {
   get #available(): UICommandItem[] {
     return this.#items.filter((item) => !item.hidden && !item.disabled);
   }
-  protected override updated(changed: PropertyValues<this>): void {
-    if (changed.has("query") || changed.has("searchable")) this.#filter();
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    const dataChanged = changed.has("items") || changed.has("renderItem");
+    const suggestionModeChanged =
+      changed.has("query") &&
+      Boolean(String(changed.get("query") ?? "").trim()) !== Boolean(this.query.trim());
+    if (
+      dataChanged ||
+      suggestionModeChanged ||
+      changed.has("suggestions") ||
+      changed.has("suggestionsLabel")
+    ) {
+      this.#observer.disconnect();
+      if (dataChanged) this.#collection.render(this.items, this.renderItem);
+      this.#collection.group(this.query.trim() ? [] : this.suggestions, this.suggestionsLabel);
+      if (this.isConnected) this.#observe();
+    }
+    if (
+      dataChanged ||
+      changed.has("query") ||
+      changed.has("searchable") ||
+      changed.has("filter") ||
+      changed.has("suggestions") ||
+      changed.has("suggestionsLabel")
+    )
+      this.#filter();
+  }
+  protected override updated(): void {
+    this.#activate(this.#active);
   }
   /** Focuses the search field or the searchless command list. */
   override focus(options?: FocusOptions): void {
@@ -142,14 +227,20 @@ export class UICommand extends LitElement {
     if (!item || !list) return;
     const viewport = list.getBoundingClientRect();
     const row = item.getBoundingClientRect();
-    if (row.top < viewport.top) list.scrollTop += row.top - viewport.top;
-    else if (row.bottom > viewport.bottom) list.scrollTop += row.bottom - viewport.bottom;
+    const scale = viewport.height / list.offsetHeight || 1;
+    if (row.top < viewport.top) list.scrollTop += (row.top - viewport.top) / scale;
+    else if (row.bottom > viewport.bottom) list.scrollTop += (row.bottom - viewport.bottom) / scale;
   }
   #filter = (): void => {
     const terms = this.query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
     for (const item of this.#items) {
-      const text = `${item.textContent} ${item.keywords}`.toLocaleLowerCase();
-      item.hidden = !terms.every((term) => text.includes(term));
+      const data = this.#collection.sources.get(item);
+      const text = data
+        ? `${data.label} ${data.description ?? ""} ${(data.keywords ?? []).join(" ")}`
+        : `${item.textContent} ${item.keywords}`;
+      item.hidden = this.filter
+        ? !this.filter(data ?? item, this.query)
+        : !terms.every((term) => text.toLocaleLowerCase().includes(term));
     }
     for (const group of this.querySelectorAll<HTMLElement>('[role="group"]')) {
       if (group.closest("ui-command") !== this) continue;
@@ -160,20 +251,61 @@ export class UICommand extends LitElement {
   };
   #activate(item?: UICommandItem): void {
     this.#active = item;
+    this.#scheduleHighlight();
     for (const entry of this.#items) entry.selected = entry === item;
     const control = this.renderRoot.querySelector<HTMLElement>(
       this.searchable ? '[part="search"]' : '[part="list"]',
     );
     if (control) control.ariaActiveDescendantElement = item ?? null;
   }
+  #scheduleHighlight(): void {
+    if (!this.isConnected || this.#frame) return;
+    this.#frame = requestAnimationFrame(() => {
+      this.#frame = 0;
+      const highlight = this.renderRoot.querySelector<HTMLElement>('[part="highlight"]');
+      const list = this.renderRoot.querySelector<HTMLElement>('[part="list"]');
+      if (!highlight || !list) return;
+      const active = this.#active;
+      const immediate = !this.hasAttribute("data-command-highlight");
+      highlight.hidden = !active || active.hidden;
+      this.toggleAttribute("data-command-highlight", !highlight.hidden);
+      if (highlight.hidden || !active) return;
+      const row = active.getBoundingClientRect();
+      const viewport = list.getBoundingClientRect();
+      // Overlay presence and preview zoom can scale the containing surface.
+      // Translate viewport measurements back into the list’s local layout space.
+      const scaleX = viewport.width / list.offsetWidth || 1;
+      const scaleY = viewport.height / list.offsetHeight || 1;
+      highlight.style.width = `${row.width / scaleX}px`;
+      highlight.style.height = `${row.height / scaleY}px`;
+      this.#motion.move(
+        highlight,
+        (row.left - viewport.left) / scaleX + list.scrollLeft - list.clientLeft,
+        (row.top - viewport.top) / scaleY + list.scrollTop - list.clientTop,
+        immediate,
+      );
+    });
+  }
+  #setQuery(query: string): void {
+    this.query = query;
+    this.dispatchEvent(
+      new CustomEvent("ui-command-query-change", {
+        bubbles: true,
+        composed: true,
+        detail: { query },
+      }),
+    );
+  }
   #select(item?: UICommandItem): void {
     if (!item || item.disabled || item.hidden) return;
     this.#activate(item);
+    const data = this.#collection.sources.get(item);
+    data?.onSelect?.();
     this.dispatchEvent(
       new CustomEvent("ui-command-select", {
         bubbles: true,
         composed: true,
-        detail: { value: item.value },
+        detail: { value: item.value, item: data },
       }),
     );
   }
@@ -202,16 +334,20 @@ export class UICommand extends LitElement {
       event.preventDefault();
       const current = items.indexOf(this.#active!);
       const next =
-        items[(current + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
+        current < 0
+          ? event.key === "ArrowDown"
+            ? items[0]
+            : items.at(-1)
+          : items[(current + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
       this.#activate(next);
       this.#reveal(next);
     } else if (event.key === "Enter") {
       event.preventDefault();
       this.#select(this.#active);
-    } else if (event.key === "Escape" && this.query) {
+    } else if (event.key === "Escape" && this.query && this.escapeClears) {
       event.preventDefault();
       event.stopPropagation();
-      this.query = "";
+      this.#setQuery("");
     }
   };
   #accessoryChange = (event: Event): void => {
@@ -239,7 +375,7 @@ export class UICommand extends LitElement {
                 placeholder=${this.placeholder}
                 .value=${this.query}
                 @input=${(event: Event) => {
-                  this.query = (event.target as HTMLInputElement).value;
+                  this.#setQuery((event.target as HTMLInputElement).value);
                 }}
               /><slot
                 name="search-suffix"
@@ -249,6 +385,14 @@ export class UICommand extends LitElement {
             </div>`
           : ""
       }
+      <div part="filters" ?hidden=${!this._filters}>
+        <slot
+          name="filters"
+          @slotchange=${(event: Event) => {
+            this._filters = (event.target as HTMLSlotElement).assignedElements().length > 0;
+          }}
+        ></slot>
+      </div>
       <div
         id="commands"
         part="list"
@@ -256,6 +400,7 @@ export class UICommand extends LitElement {
         aria-label=${this.label}
         tabindex=${this.searchable ? "-1" : "0"}
       >
+        <div part="highlight" hidden aria-hidden="true"></div>
         <slot @slotchange=${this.#filter}></slot>
       </div>
       <div part="empty" role="status" ?hidden=${!this._empty}>
