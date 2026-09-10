@@ -186,3 +186,55 @@ test("two-axis scroll composition exposes both controls and uses native bars on 
     await context.close();
   }
 });
+
+test("number fields retain native drafts, stable geometry and bounded keyboard steps", async ({
+  page,
+}) => {
+  await page.goto("/components/ui-number-field?example=Units%20and%20compact%20controls");
+  const frame = page.frameLocator('iframe[data-variant="Units and compact controls"]');
+  const rotation = frame.getByRole("spinbutton", { name: "Rotation", exact: true });
+  const host = frame.locator('ui-number-field[label="Rotation"]');
+  const original = (await host.boundingBox())!;
+  await rotation.fill("");
+  await rotation.pressSequentially("-12.5");
+  await expect(rotation).toHaveValue("-12.5");
+  expect((await host.boundingBox())!.width).toBeCloseTo(original.width, 0);
+  await rotation.press("ArrowUp");
+  await expect(rotation).toHaveValue("-12");
+  await rotation.press("Shift+ArrowUp");
+  await expect(rotation).toHaveValue("-2");
+  const group = (await host.locator('[part="group"]').boundingBox())!;
+  const increment = (await host.getByRole("button", { name: "Increase Rotation" }).boundingBox())!;
+  const decrement = (await host.getByRole("button", { name: "Decrease Rotation" }).boundingBox())!;
+  expect(increment.x).toBeCloseTo(decrement.x, 0);
+  expect(increment.y + increment.height).toBeLessThanOrEqual(decrement.y + 1);
+  expect(decrement.y + decrement.height).toBeLessThanOrEqual(group.y + group.height);
+  const opacity = frame.getByRole("spinbutton", { name: "Opacity", exact: true });
+  await opacity.fill("100");
+  await opacity.press("Tab");
+  await expect(frame.getByRole("button", { name: "Increase Opacity" })).toBeDisabled();
+});
+
+test("number editing can cross the minimum, submit empty optional values and reset", async ({
+  page,
+}) => {
+  await page.goto("/components/ui-number-field?example=Editing%20and%20validation");
+  const frame = page.frameLocator('iframe[data-variant="Editing and validation"]');
+  const quantity = frame.getByRole("spinbutton", { name: "Quantity", exact: true });
+  await quantity.fill("");
+  await quantity.pressSequentially("250");
+  await expect(quantity).toHaveValue("250");
+  await frame.getByRole("button", { name: "Apply values", exact: true }).click();
+  await expect(frame.locator("output")).toHaveText("Quantity: 250 · no discount");
+  await quantity.fill("2");
+  await expect(quantity).toHaveValue("2");
+  await quantity.press("Tab");
+  await expect(quantity).toHaveValue("100");
+  await quantity.fill("");
+  await frame.getByRole("button", { name: "Apply values", exact: true }).click();
+  await expect(quantity).toHaveValue("");
+  await expect(quantity).toHaveAttribute("aria-invalid", "true");
+  await frame.getByRole("button", { name: "Reset", exact: true }).click();
+  await expect(quantity).toHaveValue("120");
+  await expect(quantity).not.toHaveAttribute("aria-invalid", "true");
+});

@@ -152,6 +152,25 @@ form.addEventListener("ui-form-submit", event => { event.preventDefault(); const
     ),
   ],
   "ui-number-field": [
+    sample(
+      "Units and compact controls",
+      `<div class="mash-grid"><ui-number-field label="Width" value="320" min="0" max="1920"><span slot="suffix">px</span></ui-number-field><ui-number-field label="Price" value="24.95" min="0" step="0.05"><span slot="prefix">$</span></ui-number-field><ui-number-field class="mash-number-stacked" label="Opacity" value="80" min="0" max="100"><span slot="suffix">%</span></ui-number-field><ui-number-field class="mash-number-stacked" label="Rotation" value="-15" min="-180" max="180"><span slot="suffix">°</span></ui-number-field></div>`,
+      "Units use prefix and suffix slots. Stacked controls use the same input, buttons and keyboard behavior. Arrow keys step; Shift steps ten times.",
+    ),
+    sample(
+      "Sizes and states",
+      `<div class="mash-grid"><div data-mash-size="small"><ui-number-field label="Small quantity" value="3" min="0" max="10"></ui-number-field></div><div data-mash-size="medium"><ui-number-field label="Medium quantity" value="3" min="0" max="10"></ui-number-field></div><div data-mash-size="large"><ui-number-field label="Large quantity" value="3" min="0" max="10"></ui-number-field></div><ui-number-field label="Read only" value="128" readonly><span slot="suffix">GB</span></ui-number-field><ui-number-field label="Unavailable" value="64" disabled><span slot="suffix">GB</span></ui-number-field><ui-number-field label="At the limit" value="5" min="1" max="5"></ui-number-field></div>`,
+      "Control height follows the surrounding size context. Read-only values remain selectable; disabled fields do not submit. Step buttons stop at valid limits.",
+    ),
+    demo(
+      "Editing and validation",
+      `<ui-form id="number-form"><ui-number-field id="edited-number" name="quantity" label="Quantity" value="120" min="100" max="500" required></ui-number-field><ui-number-field id="optional-number" name="discount" label="Optional discount" placeholder="None" value="NaN" min="0" max="100"><span slot="suffix">%</span></ui-number-field><div class="mash-row"><ui-button type="submit" variant="primary">Apply values</ui-button><ui-button type="reset">Reset</ui-button></div></ui-form><output id="number-result" aria-live="polite">Quantity: 120 · no discount</output>`,
+      `const form = document.querySelector("#number-form"); const result = document.querySelector("#number-result"); const quantity = document.querySelector("#edited-number");
+quantity.addEventListener("ui-number-field-input", () => { result.textContent = Number.isFinite(quantity.value) ? "Editing quantity: " + quantity.value : "Enter a quantity."; });
+form.addEventListener("ui-form-submit", event => { event.preventDefault(); const values = Object.fromEntries(event.detail.formData); result.textContent = "Quantity: " + values.quantity + " · " + (values.discount === "" ? "no discount" : values.discount + "% discount"); });
+form.addEventListener("reset", () => { result.textContent = "Quantity: 120 · no discount"; });`,
+      "Type a complete number without the field interrupting your draft. Leaving the field clamps it to 100–500. Empty required values block submission; optional empty values stay empty.",
+    ),
     demo(
       "Fractional, negative, and bounded",
       `<div class="mash-grid"><ui-number-field id="quantity" label="Seats · 1–12" value="3" min="1" max="12"></ui-number-field><ui-number-field id="hourly" label="Hours · quarter hour steps" value="1.5" min="0.25" max="8" step="0.25"></ui-number-field><ui-number-field label="Temperature offset" value="-2" min="-10" max="10" step="0.5"></ui-number-field><ui-number-field label="Managed limit" value="100" disabled></ui-number-field></div><output id="estimate" aria-live="polite"></output>`,

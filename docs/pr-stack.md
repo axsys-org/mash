@@ -88,3 +88,7 @@ PR #53 removes unreachable legacy catalogue controllers and their dependencies i
 ## Hover and color patterns
 
 `codex/stack/hover-color-patterns` builds on `codex/stack/scrollbar-patterns`. Separate commits cover shared select fixes, hover tracking on Motion, and composed color editing with four formats. No dependency changes. API and lifecycle details are in `docs/hover-and-color.md`.
+
+## Number field rehabilitation
+
+`codex/stack/number-field-rehab` builds on `codex/stack/hover-color-patterns`. Component behavior and recipes are separate from the expanded catalogue examples. It fixes draft editing, decimal stepping, limit controls and stable sizing; adds unit slots, a stacked recipe and read-only state; and documents the form contract in `docs/number-field.md`.
