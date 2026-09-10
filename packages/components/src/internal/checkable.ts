@@ -132,7 +132,7 @@ export abstract class UICheckable extends LitElement {
   }
 
   protected syncCheckable(): void {
-    const control = this.renderRoot.querySelector<HTMLInputElement>("input");
+    const control = this.renderRoot?.querySelector<HTMLInputElement>("input");
     const participates = this.checked && !this.#isDisabled && Boolean(this.name);
 
     this.#internals.setFormValue(
