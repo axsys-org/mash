@@ -1,4 +1,5 @@
 import type { ComponentSchema } from "./schema.js";
+import "@mash/ui/select";
 import { catalogue } from "virtual:mash/catalog-index";
 import { formatMarkup } from "./format-markup.js";
 import type { UIOption, UISelect } from "@mash/ui";
