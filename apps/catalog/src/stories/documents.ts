@@ -190,12 +190,13 @@ export async function mount(
       redo = $<HTMLElement & { disabled: boolean }>("#documents-redo");
     undo.disabled = !history.canUndo;
     redo.disabled = !history.canRedo;
-    $("#documents-block-count").textContent = doc().blocks.length + " blocks";
-    $("#documents-word-count").textContent =
-      doc().blocks.reduce(
-        (n, b) => n + (b.text.trim() ? b.text.trim().split(/\s+/).length : 0),
-        0,
-      ) + " words";
+    const blocks = doc().blocks.length;
+    const words = doc().blocks.reduce(
+      (n, b) => n + (b.text.trim() ? b.text.trim().split(/\s+/).length : 0),
+      0,
+    );
+    $("#documents-block-count").textContent = `${blocks} ${blocks === 1 ? "block" : "blocks"}`;
+    $("#documents-word-count").textContent = `${words} ${words === 1 ? "word" : "words"}`;
   };
   const commit = (
     label: string,

@@ -771,6 +771,9 @@
   }
 }
 @media (max-width: 1000px) {
+  .issues-app:has(#issue-detail-panel:not([hidden])) .issue-main {
+    visibility: hidden;
+  }
   .issues-app #issue-detail-panel:not([hidden]) {
     position: absolute;
     inset: 0 0 0 auto;
