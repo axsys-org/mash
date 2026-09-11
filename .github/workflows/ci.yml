@@ -146,6 +146,9 @@ jobs:
       - name: Portable catalogue examples
         run: pnpm run test:catalogue
 
+      - name: Connected document workflows
+        run: pnpm --filter @mash/visual-tests exec playwright test specs/connected-documents.spec.ts
+
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

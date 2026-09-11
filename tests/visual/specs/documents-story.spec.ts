@@ -15,6 +15,7 @@ test("document blocks retain edits, formatting, comments and typed undo history"
   await texts.nth(1).press("Enter");
   await expect(texts).toHaveCount(9);
   await page.keyboard.type("A second thought");
+  await expect(texts.nth(2)).toHaveText("A second thought");
   await page.locator('[data-action="undo"]').click();
   await expect(texts.nth(2)).toHaveText("");
   await page.locator('[data-action="undo"]').click();

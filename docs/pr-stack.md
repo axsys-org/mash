@@ -161,3 +161,37 @@ Branch `codex/stack/interaction-contracts` builds on `codex/stack/message-patter
 Validation: production catalogue/IIFE build, full local quality check, focused component and production browser regressions, and light/dark/narrow visual review. One narrow-preview initialization timeout during concurrent local checks passed in an isolated rerun; assertions were not relaxed. Remote CI and deployment status remain tied to the eventual PR head.
 
 Remaining coverage outside this chunk: a carousel primitive, independent plot scale/axis/mark composition, coordinated question flows, command virtualization, and the larger code-editor capabilities noted in the coverage audit. These are follow-up work, not implied by the new controllers.
+
+## Connected document workspaces
+
+`codex/stack/connected-documents` follows `codex/stack/interaction-contracts`.
+The commits separate the shared document store/editor, issue documents, study sources,
+and workspace search, followed by their integration checks.
+
+Documents, project issues, linked study cards, and search now use the same document
+and block identities. The existing page/canvas editor mounts inside an issue without
+creating a second editor implementation. Legacy descriptions and captured notes
+migrate to shared documents; exports include linked block content. Workspace navigation
+and document/block deep links connect all four views. Their chrome has no app logos
+or app-name headers. Studio is unchanged.
+
+The store merges an editor's changed fields and ordered block lists with the latest
+local snapshot. Incoming changes also rebase its undo history. This is a local story
+fixture, not a collaborative text algorithm or the future Slot/Block/Plate/Scene
+runtime. Concurrent edits to the same text field use the latest saved field value.
+The broader hierarchy decomposition remains the next separately scoped task.
+
+Four focused browser cases cover an issue block becoming a card, source updates and
+removal preserving its schedule/answer, exact block navigation from search, and
+cross-view undo, plus conflict-safe backup import. Existing editor, canvas, project, study, and search interaction
+checks remain. Tests run against production assets and are not shipped in them.
+
+The `bd` executable is unavailable in this environment; the remaining hierarchy work
+is recorded here rather than reported as a created tracker issue.
+
+Validation: production catalogue and browser bundle build; catalogue/test TypeScript;
+scoped lint and formatting; token-consumer checks; 17 browser scenarios verified
+across focused runs, including the four new source-continuity cases. Visual review
+covered all four workspaces in the live preview, including narrow layouts and dark
+search. No dependencies were added. This records local validation; it does not
+represent a new remote CI or Vercel result.
