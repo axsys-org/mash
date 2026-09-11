@@ -195,3 +195,27 @@ across focused runs, including the four new source-continuity cases. Visual revi
 covered all four workspaces in the live preview, including narrow layouts and dark
 search. No dependencies were added. This records local validation; it does not
 represent a new remote CI or Vercel result.
+
+## Desktop composition
+
+`codex/stack/desktop-story` follows `codex/stack/connected-documents` at `32439a7`.
+Review this branch against that base, preserving the earlier stack.
+
+The desktop story composes seven existing applications as live panes. Five workspaces,
+three tiling layouts, floating and pinned windows, pointer/keyboard resizing, a launcher,
+overview, settings, and fullscreen share existing Mash primitives. The app bridge keeps
+source links inside the desktop, preserves drafts while rearranging panes, and flushes
+editors before cleanup. Scoped embedded styles remove repeated chrome and give small
+panes usable layouts. The catalogue controller is lazy so app frames do not load the
+example machinery. All data remains the same local story fixture; this does not introduce
+the future semantic hierarchy or a new component registration system.
+
+Review units separate catalogue boot/loading, embedded app integration, desktop
+composition, and its focused browser workflows/documentation. No dependencies are added.
+The new checks run against built production files, never inside deployed assets.
+
+Validation: production catalogue and browser bundle builds; catalogue and test TypeScript;
+scoped lint/format/token checks; four desktop workflows plus six catalogue/navigation
+scenarios. Each of the seven apps also completed a real interaction during visual
+review. Local checks do not assert remote CI or deployment status. `bd` remains
+unavailable; this document records the branch boundary and completed scope.

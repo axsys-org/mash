@@ -25,3 +25,48 @@ Changes are stored in this browser. Export controls provide portable copies. The
 Source lives in `apps/catalog/src/stories/`. Each module exports `mount(root)` and returns its cleanup function. Application layout stays in its lazy stylesheet, while interaction and visual contracts come from the base controls. The token checker also validates all Story styles. This prevents application-specific layout from accumulating in the base library's recipes.
 
 Run `pnpm test:stories` after `pnpm build:preview` for production interaction, routing and layout checks. The tests use real pointer/keyboard actions, not synthetic application events. Screenshots are attached to the run outputs for visual review; load/interaction checks alone do not prove complete visual equivalence to a reference application.
+
+## Desktop
+
+`/stories/desktop` opens the existing applications in live panes. Five workspaces each
+keep their own Dwindle, Master, or Columns layout and divider positions. Drag a title
+to swap tiles, or float a window and move it freely. Resize dividers and floating
+edges with a pointer or arrow keys. Windows can be maximized, minimized, or pinned
+across workspaces. The launcher, dock, window menu, and overview expose the same
+actions. Appearance, wallpaper, spacing, and window arrangement persist locally.
+
+| Shortcut               | Action                     |
+| ---------------------- | -------------------------- |
+| Alt Space              | Open application launcher  |
+| Alt 1–5                | Switch workspace           |
+| Alt Shift 1–5          | Move the focused window    |
+| Alt + arrow keys       | Focus a neighboring window |
+| Alt Shift + arrow keys | Swap tiled windows         |
+| Alt T                  | Toggle floating            |
+| Alt Enter              | Maximize or restore        |
+| Alt J                  | Cycle the workspace layout |
+| Alt W                  | Close the focused window   |
+| Alt /                  | Open shortcut help         |
+
+The desktop uses Mash's drag controller, resize handles, command palette, dialogs,
+calendar, slider, buttons, icons, keyboard caps, and motion timing. Application-specific
+geometry stays in the story model. No dependencies or base component APIs were added.
+This is an in-browser desktop; fullscreen affects the browser, and the app controls
+do not manage operating-system processes or devices.
+
+Only visible, opened apps acquire frames. Switching workspaces, tiling, floating,
+minimizing, or resizing preserves those browsing contexts and their unsent drafts.
+Closing invokes app cleanup before removing the frame. The shared document seed is
+initialized before parallel app startup. Document, issue, and study source links open
+the exact source in another pane; ordinary app shortcuts remain local to their frame.
+An origin- and source-checked bridge carries desktop actions, focus, theme, and cleanup.
+The `embedded=desktop` route removes catalogue chrome and adapts the app's existing
+responsive layout. Narrow screens show the focused window with the same dock and
+workspace controls. Nothing is scaled into an unreadable thumbnail.
+
+The catalogue module loads only when a component route is opened. Desktop and app
+frames do not fetch the catalogue example controller or unopened application views.
+Layouts persist independently of app data. Reload restores open views; transient app
+state follows each app's existing persistence contract. Four production browser
+workflows exercise source continuity, unsent drafts, keyboard launching, frame
+identity, tiling, resizing, pin/minimize/close, session restoration, and narrow layouts.
