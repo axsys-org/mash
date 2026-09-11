@@ -1,51 +1,43 @@
 .launcher-app {
   background: var(--color-canvas);
+  color: var(--color-text);
+}
+.launcher-app ui-icon {
+  width: var(--icon-size, 18px);
+  height: var(--icon-size, 18px);
+  font-size: var(--icon-size, 18px);
+  flex: none;
 }
 .launcher-desktop {
   height: 100%;
-  position: relative;
-  overflow: auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80px 24px 40px;
-  background:
-    radial-gradient(
-      ellipse at 25% 75%,
-      color-mix(in srgb, var(--color-chart3) 13%, transparent),
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse at 85% 0%,
-      color-mix(in srgb, var(--color-chart1) 14%, transparent),
-      transparent 60%
-    ),
-    var(--color-canvas);
+  overflow: auto;
+  padding: 24px clamp(16px, 4vw, 64px) 28px;
+  background: color-mix(in srgb, var(--color-surface-sunken) 45%, var(--color-canvas));
 }
-.launcher-desktop-bar {
-  position: absolute;
-  inset: 0 0 auto;
-  display: flex;
-  justify-content: space-between;
-  padding: 16px 28px;
-  font-size: 12px;
-  color: var(--color-text-muted);
+.launcher-workspace-nav {
+  width: min(1040px, 100%);
+  margin-bottom: 24px;
 }
-.launcher-desktop-bar strong {
-  color: var(--color-text);
-  font-weight: 550;
+.launcher-workspace-nav .workspace-navigation {
+  width: 208px;
+  max-width: 100%;
 }
 .launcher-window {
-  width: min(900px, 100%);
-  min-height: 560px;
+  width: min(1040px, 100%);
+  height: min(670px, calc(100dvh - 200px));
+  min-height: 480px;
   position: relative;
+  flex-shrink: 0;
   border: 1px solid var(--color-border);
-  border-radius: 13px;
-  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
-  backdrop-filter: blur(24px) saturate(1.2);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
   box-shadow:
-    0 24px 90px color-mix(in srgb, var(--color-shadow) 20%, transparent),
-    0 2px 6px color-mix(in srgb, var(--color-shadow) 8%, transparent);
+    0 16px 50px color-mix(in srgb, var(--color-shadow) 8%, transparent),
+    0 2px 8px color-mix(in srgb, var(--color-shadow) 4%, transparent);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -53,31 +45,37 @@
 .launcher-window-top {
   display: flex;
   align-items: center;
-  gap: 9px;
-  height: 41px;
-  padding: 0 12px 0 17px;
+  gap: 12px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  font-size: 11px;
-}
-.launcher-symbol {
-  font-size: 17px;
-  color: var(--color-text);
-}
-.launcher-window-top > div {
-  display: flex;
-  margin-left: auto;
 }
 .launcher-categories {
   display: flex;
-  padding: 8px 13px;
-  gap: 4px;
-  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
   overflow: auto;
+  scrollbar-width: thin;
+}
+.launcher-categories ui-button {
+  flex: none;
 }
 .launcher-categories ui-button::part(control) {
-  min-height: 26px;
-  font-size: 11px;
+  min-height: 30px;
+  padding-inline: 11px;
+  font-size: 12px;
+}
+.launcher-window-tools {
+  display: flex;
+  gap: 3px;
+  margin-left: auto;
+}
+.launcher-app ui-button ui-icon {
+  --icon-size: 18px;
+}
+.launcher-window-tools ui-button::part(control) {
+  width: 30px;
+  padding: 0;
 }
 .launcher-body {
   display: grid;
@@ -85,115 +83,248 @@
   flex: 1;
   min-height: 0;
 }
+.launcher-app #launcher-command {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
 .launcher-app #launcher-command::part(root) {
   border: 0;
   background: transparent;
   border-radius: 0;
+  height: 100%;
+  min-height: 0;
 }
 .launcher-app #launcher-command::part(search-row) {
+  padding: 14px 18px;
+  gap: 11px;
   border-bottom: 1px solid var(--color-border);
-  padding: 10px 16px;
-  gap: 8px;
 }
 .launcher-app #launcher-command::part(search) {
+  padding: 7px 0;
   font-size: 14px;
-  padding: 8px 0;
   background: transparent;
 }
-.launcher-app #launcher-command::part(list) {
-  max-height: 364px;
-  min-height: 320px;
-  padding: 7px;
-  overflow: auto;
-}
-.launcher-app #launcher-command::part(footer) {
-  min-height: 35px;
-  padding: 8px 14px;
-  font-size: 10px;
+.launcher-app #launcher-command > ui-icon {
+  --icon-size: 20px;
   color: var(--color-text-muted);
 }
+.launcher-app #launcher-command::part(list) {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  padding: 8px;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+.launcher-app #launcher-command::part(footer) {
+  padding: 9px 17px;
+  min-height: 36px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.launcher-app #launcher-command [slot="footer"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 .launcher-app ui-command-item::part(root) {
-  min-height: 54px;
-  padding: 8px 10px;
-  border-radius: 6px;
+  min-height: 59px;
+  padding: 9px 11px;
+  border-radius: 7px;
+  gap: 12px;
 }
 .launcher-app ui-command-item::part(description) {
   font-size: 11px;
+  max-width: 310px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 260px;
 }
 .launcher-app ui-command-item::part(shortcut) {
   font-size: 10px;
+  text-transform: capitalize;
+  opacity: 0.72;
 }
 .launcher-result-title {
-  font-size: 12px;
+  display: block;
+  font-size: 13px;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .launcher-result-icon {
   display: grid;
   place-items: center;
-  width: 29px;
-  height: 29px;
+  width: 32px;
+  height: 32px;
   flex: none;
-  background: var(--color-surface-sunken);
   border: 1px solid var(--color-border);
-  border-radius: 7px;
-  font-size: 17px;
+  border-radius: 8px;
+  background: var(--color-surface);
   color: var(--color-text-muted);
 }
-.launcher-result-icon[data-kind="note"] {
-  color: var(--color-warning-text);
+.launcher-result-icon ui-icon {
+  --icon-size: 19px;
 }
-.launcher-result-icon[data-kind="link"] {
+.launcher-result-icon[data-kind="card"] {
+  color: var(--color-chart3);
+  background: color-mix(in srgb, var(--color-chart3) 5%, var(--color-surface));
+}
+.launcher-result-icon[data-kind="issue"] {
   color: var(--color-action);
 }
-.launcher-result-icon[data-kind="snippet"] {
-  color: var(--color-chart3);
-}
-.launcher-search-icon {
-  color: var(--color-text-muted);
-  font-size: 23px;
-}
 .launcher-detail {
-  border-left: 1px solid var(--color-border);
-  padding: 26px;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  max-height: 435px;
+  min-height: 0;
+  padding: 25px 27px;
+  border-left: 1px solid var(--color-border);
   overflow: auto;
+  scrollbar-width: thin;
+  background: color-mix(in srgb, var(--color-surface-sunken) 18%, transparent);
 }
 .launcher-detail > header {
   display: flex;
   align-items: center;
   gap: 9px;
-  color: var(--color-text-muted);
+  margin-bottom: 24px;
   font-size: 11px;
-  margin-bottom: 23px;
+  color: var(--color-text-muted);
   text-transform: capitalize;
 }
 .launcher-detail > header ui-button {
   margin-left: auto;
 }
 .launcher-detail h2 {
-  font-size: 19px;
-  line-height: 1.4;
-  letter-spacing: -0.02em;
-  margin: 0 0 16px;
+  margin: 0 0 9px;
+  font-size: 21px;
+  line-height: 1.35;
+  letter-spacing: -0.035em;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.launcher-source-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-size: 10px;
+  text-transform: none;
+}
+.launcher-source-indicator::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  background: var(--color-positive-text);
+  border-radius: 50%;
+}
+.launcher-source-context {
+  margin: 0 0 20px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+.launcher-document-preview {
+  min-height: 120px;
+  font-size: 12px;
+  line-height: 1.8;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  user-select: text;
+  scrollbar-width: thin;
+}
+.launcher-document-preview > :first-child {
+  margin-top: 0;
+}
+.launcher-document-preview p {
+  margin: 10px 0;
+  white-space: pre-wrap;
+}
+.launcher-document-preview h3 {
+  font-size: 14px;
+  font-weight: 550;
+  margin: 18px 0 7px;
+}
+.launcher-document-preview blockquote {
+  padding: 10px 13px;
+  margin: 14px 0;
+  border-left: 2px solid var(--color-border);
+  background: var(--color-surface-sunken);
+}
+.launcher-document-preview pre {
+  overflow-x: auto;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--color-surface-sunken);
+  font: 11px/1.7 var(--type-code-font-family);
+}
+.launcher-document-preview hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 18px 0;
+}
+.launcher-preview-todo,
+.launcher-preview-bullet {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.launcher-preview-todo ui-icon {
+  --icon-size: 15px;
+  flex: none;
+  align-self: start;
+  margin-top: 3px;
+  color: var(--color-text-muted);
+}
+.launcher-preview-todo[data-checked="true"] span {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+.launcher-preview-table > div {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.launcher-preview-table small,
+.launcher-preview-more {
+  color: var(--color-text-muted);
+  font-size: 10px;
 }
 .launcher-item-content {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 12px;
-  line-height: 1.75;
-  max-height: 190px;
+  font-size: 13px;
+  line-height: 1.8;
   overflow: auto;
   user-select: text;
 }
 .launcher-detail-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 18px;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 22px;
+}
+.launcher-detail-actions ui-button::part(control) {
+  gap: 6px;
+}
+.launcher-source-foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-top: 20px;
+  margin-top: auto;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+.launcher-source-foot ui-icon {
+  --icon-size: 14px;
+  flex: none;
 }
 .launcher-detail dl {
   display: grid;
@@ -222,37 +353,40 @@
   margin-bottom: 20px;
 }
 .launcher-command-preview {
-  min-height: 320px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
+  padding: 20px 0;
 }
 .launcher-command-preview > span {
   display: grid;
   place-items: center;
-  width: 60px;
-  height: 60px;
-  font-size: 32px;
+  width: 52px;
+  height: 52px;
   color: var(--color-text-muted);
-  background: var(--color-surface-sunken);
-  border-radius: 14px;
+  background: var(--color-surface);
+  border-radius: 12px;
   border: 1px solid var(--color-border);
-  margin-bottom: 24px;
+  margin-bottom: 22px;
+}
+.launcher-command-preview > span ui-icon {
+  --icon-size: 25px;
 }
 .launcher-command-preview h2 {
-  font-size: 17px;
-  margin-bottom: 8px;
+  font-size: 18px;
+  margin-bottom: 9px;
 }
 .launcher-command-preview p {
   color: var(--color-text-muted);
   font-size: 12px;
-  max-width: 220px;
+  max-width: 240px;
   margin: 0 0 24px;
 }
 .launcher-answer {
-  min-height: 330px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -277,14 +411,13 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  min-height: 43px;
+  min-height: 46px;
   padding: 6px 12px;
   border-top: 1px solid var(--color-border);
-  background: color-mix(in srgb, var(--color-surface-sunken) 25%, transparent);
 }
 .launcher-footer > span {
   margin-right: auto;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--color-text-muted);
   padding-left: 5px;
 }
@@ -297,33 +430,42 @@
   margin-left: 0;
 }
 .launcher-desktop-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px;
   color: var(--color-text-muted);
   font-size: 11px;
-  margin-top: 24px;
+  margin: 20px 0 0;
 }
-.launcher-desktop-hint ui-kbd {
-  margin-inline: 6px;
+.launcher-desktop-hint button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border);
+  text-underline-offset: 3px;
 }
 .launcher-reopen {
   margin: 160px auto;
-  padding: 13px 20px;
-  border: 1px solid var(--color-border);
-  border-radius: 9px;
-  background: var(--color-surface);
-  box-shadow: 0 8px 30px color-mix(in srgb, var(--color-shadow) 10%, transparent);
 }
 .launcher-app #launcher-notice {
   position: absolute;
-  inset: auto 14px 50px;
+  inset: auto 14px 54px;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border: 1px solid var(--color-border);
-  border-radius: 7px;
+  border-radius: 8px;
   background: var(--color-surface-raised);
   box-shadow: 0 8px 25px color-mix(in srgb, var(--color-shadow) 12%, transparent);
   font-size: 12px;
+  z-index: 1;
 }
 .launcher-app #launcher-notice span {
   flex: 1;
@@ -339,17 +481,20 @@
   font-size: 11px;
 }
 .launcher-app #launcher-edit::part(popup) {
-  width: min(600px, calc(100vw - 32px));
+  width: min(560px, calc(100vw - 32px));
 }
 .launcher-compact ui-command-item::part(root) {
-  min-height: 37px;
+  min-height: 40px;
 }
 .launcher-compact ui-command-item::part(description) {
   display: none;
 }
-@media (max-width: 680px) {
+@media (max-width: 760px) {
   .launcher-desktop {
-    padding: 48px 10px 20px;
+    padding: 16px 10px;
+  }
+  .launcher-workspace-nav {
+    margin-bottom: 15px;
   }
   .launcher-body {
     grid-template-columns: 1fr;
@@ -358,16 +503,24 @@
     display: none;
   }
   .launcher-window {
-    min-height: 540px;
+    min-height: 440px;
+    height: calc(100dvh - 170px);
   }
-  .launcher-app #launcher-command::part(list) {
-    max-height: 50dvh;
+  .launcher-window-top {
+    gap: 3px;
+    padding: 7px;
+  }
+  .launcher-categories ui-button::part(control) {
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+  .launcher-app ui-command-item::part(description) {
+    max-width: 55vw;
+  }
+  .launcher-app #launcher-command::part(search) {
+    font-size: 13px;
   }
   .launcher-desktop-hint {
-    text-align: center;
-  }
-  .launcher-categories {
-    padding-inline: 6px;
-    gap: 0;
+    font-size: 10px;
   }
 }

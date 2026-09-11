@@ -5,6 +5,7 @@ export type CollectionItem = {
   content: string;
   pinned: boolean;
   updated: number;
+  document?: string;
 };
 export type LauncherState = {
   version: 1;
@@ -72,6 +73,7 @@ export function isLauncherState(value: unknown): value is LauncherState {
         ["note", "link", "snippet", "clipboard"].includes(item.kind) &&
         typeof item.title === "string" &&
         typeof item.content === "string" &&
+        (item.document === undefined || typeof item.document === "string") &&
         typeof item.pinned === "boolean",
     ) &&
     new Set(state.items.map((item) => item.id)).size === state.items.length
