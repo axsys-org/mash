@@ -1,3 +1,6 @@
+import { readState, writeState } from "./shared.js";
+import { documentBlockText, ensureDocuments, readNotebook } from "./documents-store.js";
+
 export const statuses = [
   "Backlog",
   "Todo",
@@ -13,6 +16,7 @@ export type Issue = {
   id: number;
   title: string;
   description: string;
+  document?: string;
   status: Status;
   priority: number;
   assignee: string;
@@ -153,6 +157,7 @@ export function isIssueState(value: unknown): value is IssueState {
           issue.cycle,
           issue.due,
         ].every((item) => typeof item === "string") &&
+        (issue.document === undefined || typeof issue.document === "string") &&
         statuses.includes(issue.status) &&
         Number.isInteger(issue.priority) &&
         issue.priority >= 0 &&
@@ -199,4 +204,53 @@ export function filterIssues(
       (!filter.project || issue.project === filter.project)
     );
   });
+}
+
+export const issueStorageKey = "mash-story-projects-v1";
+
+/** Migrate legacy descriptions once; shared documents own the live title and blocks. */
+export function connectIssueDocuments(state: IssueState): void {
+  const legacy = state.issues.filter((issue) => !issue.document);
+  if (legacy.length) {
+    ensureDocuments(
+      legacy.map((issue) => ({
+        id: `issue:${issue.id}`,
+        title: issue.title,
+        text: issue.description,
+      })),
+    );
+    for (const issue of legacy) issue.document = `issue:${issue.id}`;
+  }
+  const documents = new Map(readNotebook().documents.map((doc) => [doc.id, doc]));
+  for (const issue of state.issues) {
+    const doc = documents.get(issue.document!);
+    if (!doc) continue;
+    issue.title = doc.title;
+    issue.description = doc.blocks.map(documentBlockText).filter(Boolean).join("\n\n");
+  }
+}
+
+export function readIssueState(): IssueState {
+  const state = readState(issueStorageKey, initialState, isIssueState);
+  const before = JSON.stringify(state);
+  connectIssueDocuments(state);
+  if (JSON.stringify(state) !== before) writeState(issueStorageKey, state);
+  return state;
+}
+
+/** Refresh searchable summaries without copying or rewriting document content. */
+export function refreshIssueDocuments(state: IssueState): boolean {
+  const documents = new Map(readNotebook().documents.map((doc) => [doc.id, doc]));
+  let changed = false;
+  for (const issue of state.issues) {
+    const doc = documents.get(issue.document ?? "");
+    if (!doc) continue;
+    const description = doc.blocks.map(documentBlockText).filter(Boolean).join("\n\n");
+    if (issue.title !== doc.title || issue.description !== description) {
+      issue.title = doc.title;
+      issue.description = description;
+      changed = true;
+    }
+  }
+  return changed;
 }
