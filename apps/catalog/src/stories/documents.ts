@@ -52,25 +52,42 @@ import {
   type CollectionView,
 } from "./documents-render.js";
 import "./documents.css";
-import { notebookStorageKey as storageKey } from "./documents-store.js";
+import {
+  readNotebook,
+  writeNotebook,
+  subscribeNotebook,
+  mergeNotebooks,
+  notebooksEqual,
+} from "./documents-store.js";
+import { workspaceNavigation, workspaceHref } from "./workspace-navigation.js";
 
 export async function mount(
   root: HTMLElement,
-  options: { activeDocument?: string; onChange?: (notebook: Notebook) => void } = {},
-): Promise<() => void> {
+  options: {
+    activeDocument?: string;
+    activeBlock?: string;
+    embedded?: boolean;
+    onChange?: (notebook: Notebook) => void;
+  } = {},
+): Promise<(() => void) & { flush: () => void }> {
   const controller = new AbortController();
   const signal = controller.signal;
   let initial = seedNotebook(),
     loadError = "";
   try {
-    const stored = localStorage.getItem(storageKey);
-    if (stored) initial = parseNotebook(stored);
+    initial = readNotebook();
   } catch {
     loadError =
       "Saved data could not be read. A fresh notebook is open; import an exported copy to restore it.";
   }
-  if (options.activeDocument && initial.documents.some((doc) => doc.id === options.activeDocument))
-    initial.active = options.activeDocument;
+  const route = new URL(location.href).searchParams;
+  const activeDocument =
+    options.activeDocument ?? (!options.embedded ? route.get("document") : null);
+  const activeBlock = options.activeBlock ?? (!options.embedded ? route.get("block") : null);
+  let baseline = structuredClone(initial);
+  if (activeDocument && initial.documents.some((doc) => doc.id === activeDocument))
+    initial.active = activeDocument;
+  let writing = false;
   const history = new NotebookHistory(initial);
   let mode: "document" | "canvas" = "document",
     selected: string | null = null,
@@ -87,37 +104,79 @@ export async function mount(
     collectionViews = new Map<string, CollectionView>();
   let cleaned = false;
   root.classList.add("documents-app");
+  root.classList.toggle("documents-embedded", !!options.embedded);
   root.dataset.mashCatalogue = "mash";
   root.dataset.mashSize = "small";
   root.innerHTML = `<ui-resizable class="documents-layout" label="Document workspace">
-  <ui-resizable-panel class="documents-sidebar-panel" size="232" min="175" max="330"><aside class="documents-sidebar"><div class="documents-brand"><span class="documents-logo" aria-hidden="true">N</span><strong>Notebook</strong><ui-button class="documents-close-sidebar" data-action="close-sidebar" size="small" variant="ghost" aria-label="Close page navigation"><ui-icon name="action.dismiss"></ui-icon></ui-button><ui-button data-action="new-document" size="small" variant="ghost" aria-label="New document"><ui-icon name="action.add"></ui-icon></ui-button></div><ui-button class="documents-search-button" data-action="search" variant="ghost"><ui-icon slot="prefix" name="action.search"></ui-icon>Search everything<ui-kbd slot="suffix" shortcut="Primary+K"></ui-kbd></ui-button><ui-input id="documents-filter" type="search" label="Filter documents" placeholder="Find a page…" size="small" clean-on-escape></ui-input><div class="documents-rail-heading"><span>WORKSPACE</span><ui-button data-action="new-document" size="xsmall" variant="ghost" aria-label="Add a page">+</ui-button></div><nav id="documents-tree" aria-label="Notebook pages"></nav><div class="documents-sidebar-bottom"><ui-button data-action="import" variant="ghost"><ui-icon slot="prefix" name="action.upload"></ui-icon>Import notebook</ui-button><span id="documents-storage">Saved in this browser</span></div></aside></ui-resizable-panel>
+  <ui-resizable-panel class="documents-sidebar-panel" size="232" min="175" max="330"><aside class="documents-sidebar">${options.embedded ? "" : workspaceNavigation("documents")}<div class="documents-sidebar-tools"><ui-button class="documents-search-button" data-action="search" variant="ghost"><ui-icon slot="prefix" name="action.search"></ui-icon>Search pages<ui-kbd slot="suffix" shortcut="Primary+K"></ui-kbd></ui-button><ui-button class="documents-close-sidebar" data-action="close-sidebar" size="small" variant="ghost" aria-label="Close page navigation"><ui-icon name="action.dismiss"></ui-icon></ui-button><ui-button data-action="new-document" size="small" variant="ghost" aria-label="New document"><ui-icon name="action.add"></ui-icon></ui-button></div><ui-input id="documents-filter" type="search" label="Filter documents" placeholder="Find a page…" size="small" clean-on-escape></ui-input><div class="documents-rail-heading"><span>Pages</span></div><nav id="documents-tree" aria-label="Notebook pages"></nav><div class="documents-sidebar-bottom"><ui-button data-action="import" variant="ghost"><ui-icon slot="prefix" name="action.upload"></ui-icon>Import notebook</ui-button><span id="documents-storage">Saved in this browser</span></div></aside></ui-resizable-panel>
   <ui-resizable-handle label="Resize document navigation"></ui-resizable-handle>
   <ui-resizable-panel class="documents-main-panel" min="320"><section class="documents-main"><header class="documents-topbar"><ui-button data-action="sidebar" variant="ghost" size="small" aria-label="Toggle page navigation"><ui-icon name="navigation.menu"></ui-icon></ui-button><span id="documents-breadcrumb"></span><ui-button id="documents-favorite" data-action="favorite" variant="ghost" size="small" aria-label="Favorite document">☆</ui-button><div class="documents-topbar-spacer"></div><ui-tabs id="documents-mode" value="document" variant="segmented" size="small" label="Document view"><ui-tab slot="tab" value="document">Page</ui-tab><ui-tab slot="tab" value="canvas">Canvas</ui-tab></ui-tabs><ui-button data-action="inspector" variant="ghost" size="small" aria-label="Toggle document details"><ui-icon name="navigation.more.horizontal"></ui-icon></ui-button><ui-menu label="Document actions" density="compact"><ui-button slot="trigger" variant="ghost" size="small" aria-label="Document actions"><ui-icon name="navigation.more.vertical"></ui-icon></ui-button><ui-menu-item value="rename-document">Rename</ui-menu-item><ui-menu-item value="duplicate-document">Duplicate document</ui-menu-item><ui-menu-item value="new-child">New child page</ui-menu-item><ui-menu-item value="export-json">Export notebook</ui-menu-item><ui-menu-item value="export-markdown">Export page as Markdown</ui-menu-item><ui-menu-item value="delete-document" tone="critical">Delete document</ui-menu-item></ui-menu></header>
   <ui-toolbar class="documents-formatbar" label="Editing tools"><ui-button id="documents-undo" data-action="undo" variant="ghost" size="small" aria-label="Undo"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 4L3 8l4 4M3 8h8a5 5 0 0 1 0 10"/></svg></ui-button><ui-button id="documents-redo" data-action="redo" variant="ghost" size="small" aria-label="Redo"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13 4l4 4-4 4m4-4H9a5 5 0 0 0 0 10"/></svg></ui-button><span class="documents-tool-rule"></span><ui-button data-action="insert" variant="ghost" size="small"><ui-icon slot="prefix" name="action.add"></ui-icon>Insert</ui-button><span class="documents-tool-rule"></span><ui-button data-action="format-bold" variant="ghost" size="small" aria-label="Bold"><strong>B</strong></ui-button><ui-button data-action="format-italic" variant="ghost" size="small" aria-label="Italic"><em>I</em></ui-button><ui-button data-action="format-underline" variant="ghost" size="small" aria-label="Underline"><u>U</u></ui-button><ui-button data-action="format-code" variant="ghost" size="small" aria-label="Inline code">&lt;/&gt;</ui-button><ui-button data-action="format-link" variant="ghost" size="small">Link</ui-button><span class="documents-toolbar-spacer"></span><ui-button data-action="comment" variant="ghost" size="small">Comment</ui-button></ui-toolbar>
-  <div id="documents-page" class="documents-page-scroll"><article class="documents-page"><div class="documents-page-overline">YOUR NOTEBOOK</div><input id="documents-title" aria-label="Document title" placeholder="Untitled" maxlength="200"><p class="documents-page-meta"><span id="documents-word-count"></span><span>Only on this device</span></p><div id="documents-blocks"></div><ui-button class="documents-add-block" data-action="insert" variant="ghost"><ui-icon slot="prefix" name="action.add"></ui-icon>Add a block <span class="documents-muted">or type /</span></ui-button></article></div>
+  <div id="documents-page" class="documents-page-scroll"><article class="documents-page"><input id="documents-title" aria-label="Document title" placeholder="Untitled" maxlength="200"><p class="documents-page-meta"><span id="documents-word-count"></span><a id="documents-study-link">Study this page</a></p><div id="documents-blocks"></div><ui-button class="documents-add-block" data-action="insert" variant="ghost"><ui-icon slot="prefix" name="action.add"></ui-icon>Add a block <span class="documents-muted">or type /</span></ui-button></article></div>
   <div id="documents-canvas-wrap" class="documents-canvas-wrap" hidden><div id="documents-canvas"></div><ui-toolbar class="documents-canvas-tools" label="Canvas tools"><ui-button data-action="tool-select" selected variant="ghost" size="small">Select</ui-button><ui-button data-action="tool-hand" variant="ghost" size="small">Pan</ui-button><ui-button data-action="tool-connect" variant="ghost" size="small">Connect</ui-button><span class="documents-tool-rule"></span><ui-button data-action="group" variant="ghost" size="small">Group</ui-button><ui-button data-action="ungroup" variant="ghost" size="small">Ungroup</ui-button><ui-button data-action="canvas-delete" variant="ghost" size="small" aria-label="Delete selected blocks"><ui-icon name="action.dismiss"></ui-icon></ui-button><span class="documents-tool-rule"></span><ui-button data-action="zoom-out" variant="ghost" size="small" aria-label="Zoom out">−</ui-button><output id="documents-zoom">75%</output><ui-button data-action="zoom-in" variant="ghost" size="small" aria-label="Zoom in">+</ui-button><ui-button data-action="fit" variant="ghost" size="small">Fit</ui-button></ui-toolbar></div><footer class="documents-statusbar"><output id="documents-status" role="status" aria-live="polite">Ready to write</output><span id="documents-block-count"></span></footer></section></ui-resizable-panel>
   <ui-resizable-handle class="documents-inspector-handle" label="Resize document details"></ui-resizable-handle><ui-resizable-panel class="documents-inspector-panel" size="252" min="200" max="360"><aside class="documents-inspector"><header><strong>On this page</strong><ui-button data-action="inspector" size="small" variant="ghost" aria-label="Close document details"><ui-icon name="action.dismiss"></ui-icon></ui-button></header><nav id="documents-outline" aria-label="Document outline"></nav><div id="documents-properties"></div><section class="documents-comments"><div class="documents-section-heading"><strong>Comments</strong><span id="documents-comment-count"></span></div><div id="documents-comments"></div><ui-textarea id="documents-comment" label="New comment" rows="3" placeholder="Leave a note on this block…"></ui-textarea><ui-button data-action="add-comment" size="small" variant="secondary">Add comment</ui-button></section></aside></ui-resizable-panel></ui-resizable>
   <ui-dialog id="documents-palette" label="Workspace commands"><ui-command id="documents-command" label="Find a command" placeholder="Search…"></ui-command></ui-dialog><ui-dialog id="documents-prompt" label="Edit document"><strong slot="title" id="documents-prompt-title"></strong><p id="documents-prompt-description"></p><ui-input id="documents-prompt-value" label="Value"></ui-input><div slot="actions" class="documents-dialog-actions"><ui-button data-action="cancel-prompt" variant="ghost">Cancel</ui-button><ui-button data-action="submit-prompt" variant="primary">Continue</ui-button></div></ui-dialog><input id="documents-import-file" type="file" accept="application/json,.json" hidden><input id="documents-image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>`;
   const $ = <T extends Element = HTMLElement>(selector: string): T =>
     root.querySelector<T>(selector)!;
+  if (options.embedded) {
+    for (const item of root.querySelectorAll(
+      'ui-menu-item[value="duplicate-document"], ui-menu-item[value="new-child"], ui-menu-item[value="delete-document"]',
+    ))
+      item.remove();
+  }
   const doc = (): NotebookDocument =>
     history.state.documents.find((d) => d.id === history.state.active)!;
   const block = (id: string | null = selected): DocumentBlock | undefined =>
     doc().blocks.find((b) => b.id === id);
+  function retainFocus(): () => void {
+    const focused = document.activeElement as HTMLElement | null;
+    const editing = focused?.closest<HTMLElement>("[data-editable]");
+    const offsets = editing && root.contains(editing) ? textOffsets(editing) : null;
+    const titleFocused = focused === $("#documents-title");
+    const titlePosition = titleFocused
+      ? $<HTMLInputElement>("#documents-title").selectionStart
+      : null;
+    return () => {
+      if (editing && offsets && block(editing.dataset.editable)) {
+        const fresh = root.querySelector<HTMLElement>(
+          `[data-editable="${CSS.escape(editing.dataset.editable!)}"]`,
+        );
+        if (fresh) selectText(fresh, offsets.start, offsets.end);
+      } else if (titleFocused) {
+        const title = $<HTMLInputElement>("#documents-title");
+        title.focus();
+        title.setSelectionRange(titlePosition, titlePosition);
+      }
+    };
+  }
   const announce = (text: string): void => {
     $("#documents-status").textContent = text;
   };
   const flush = (): void => {
     clearTimeout(saveTimer);
     try {
-      localStorage.setItem(storageKey, JSON.stringify(history.state));
-      options.onChange?.(history.state);
+      const previous = structuredClone(history.state);
+      writing = true;
+      const submitted = options.embedded ? { ...previous, active: baseline.active } : previous;
+      const saved = writeNotebook(submitted, baseline);
+      const editorState = { ...saved, active: previous.active };
+      if (!notebooksEqual(editorState, previous)) {
+        const restore = retainFocus();
+        history.rebase((snapshot) => mergeNotebooks(editorState, previous, snapshot));
+        renderDocument();
+        restore();
+      }
+      baseline = structuredClone(saved);
+      options.onChange?.(saved);
       saveError = false;
       $("#documents-storage").textContent = "Saved in this browser";
     } catch {
       saveError = true;
       $("#documents-storage").textContent = "Storage full · export to keep changes";
       announce("Your changes remain open. Export the notebook to keep a copy.");
+    } finally {
+      writing = false;
+      saveTimer = 0;
     }
   };
   const persist = (): void => {
@@ -192,6 +251,7 @@ export async function mount(
     $("#documents-page").scrollTop = 0;
   }
   function renderNavigation(): void {
+    if (options.embedded) return;
     const host = $("#documents-tree");
     host.replaceChildren();
     const docs = history.state.documents;
@@ -260,6 +320,9 @@ export async function mount(
   function renderDocument(): void {
     const title = $<HTMLInputElement>("#documents-title");
     title.value = doc().title;
+    $<HTMLAnchorElement>("#documents-study-link").href = workspaceHref("study", {
+      document: doc().id,
+    });
     $("#documents-breadcrumb").textContent =
       (doc().parent
         ? history.state.documents.find((d) => d.id === doc().parent)?.title + " / "
@@ -297,6 +360,8 @@ export async function mount(
       ["duplicate-block", "Duplicate"],
       ["convert-block", "Turn into…"],
       ["comment", "Add comment"],
+      ["study-block", "Make a study card"],
+      ["copy-block-link", "Copy link to block"],
       ["delete-block", "Delete"],
     ]) {
       const item = element("ui-menu-item", "", label);
@@ -616,7 +681,7 @@ export async function mount(
       );
   }
   function focusBlock(id: string, offset?: number): void {
-    const target = $<HTMLElement>(`[data-editable="${id}"]`);
+    const target = $<HTMLElement>(`[data-editable="${CSS.escape(id)}"]`);
     if (!target) return;
     target.scrollIntoView({ block: "center", behavior: "smooth" });
     selectText(target, offset ?? target.textContent?.length ?? 0);
@@ -679,7 +744,9 @@ export async function mount(
         command.append(item);
       }
     else {
-      for (const page of history.state.documents) {
+      for (const page of history.state.documents.filter(
+        (candidate) => !options.embedded || candidate.id === activeDocument,
+      )) {
         const item = element("ui-command-item");
         item.setAttribute("value", "page:" + page.id);
         item.setAttribute("keywords", page.blocks.map((b) => b.text).join(" "));
@@ -694,6 +761,7 @@ export async function mount(
         ["redo", "Redo last change"],
         ["fit", "Fit canvas"],
       ]) {
+        if (options.embedded && id === "new-document") continue;
         const item = element("ui-command-item", "", label);
         item.setAttribute("value", "action:" + id);
         command.append(item);
@@ -738,6 +806,24 @@ export async function mount(
   }
   function action(name: string, target?: HTMLElement): void {
     const row = target?.closest<HTMLElement>("[data-block]");
+    if (name === "study-block" || name === "copy-block-link") {
+      const id = row?.dataset.block ?? selected;
+      if (!id) return;
+      if (name === "study-block") {
+        flush();
+        location.assign(workspaceHref("study", { document: doc().id, block: id }));
+      } else {
+        const href = new URL(
+          workspaceHref("documents", { document: doc().id, block: id }),
+          location.origin,
+        ).href;
+        void navigator.clipboard.writeText(href).then(
+          () => announce("Block link copied"),
+          () => announce("Clipboard unavailable"),
+        );
+      }
+      return;
+    }
     if (row) selected = row.dataset.block!;
     const b = block();
     if (name.startsWith("format-")) {
@@ -861,7 +947,8 @@ export async function mount(
       case "comment":
         if (!selected && doc().blocks[0]) selected = doc().blocks[0]!.id;
         root.classList.remove("hide-inspector");
-        if (matchMedia("(max-width:1100px)").matches) root.classList.add("show-inspector");
+        if (options.embedded || matchMedia("(max-width:1100px)").matches)
+          root.classList.add("show-inspector");
         renderInspector();
         $<HTMLElement>("#documents-comment").focus();
         break;
@@ -897,7 +984,9 @@ export async function mount(
         break;
       case "inspector":
         root.classList.toggle(
-          matchMedia("(max-width:1100px)").matches ? "show-inspector" : "hide-inspector",
+          options.embedded || matchMedia("(max-width:1100px)").matches
+            ? "show-inspector"
+            : "hide-inspector",
         );
         break;
       case "tool-select":
@@ -1449,23 +1538,59 @@ export async function mount(
     },
     { signal },
   );
+  subscribeNotebook(
+    (incoming) => {
+      if (writing || cleaned) return;
+      const active = history.state.active;
+      const restore = retainFocus();
+      const previous = structuredClone(history.state);
+      const merged = mergeNotebooks(previous, baseline, incoming);
+      history.rebase((snapshot) => {
+        const rebased = mergeNotebooks(merged, previous, snapshot);
+        if (rebased.documents.some((page) => page.id === active)) rebased.active = active;
+        return rebased;
+      });
+      baseline = structuredClone(incoming);
+      const missing =
+        options.embedded && !incoming.documents.some((page) => page.id === activeDocument);
+      $(".documents-layout").hidden = !!missing;
+      root.querySelector(".documents-missing")?.remove();
+      if (missing) {
+        const message = element(
+          "p",
+          "documents-missing",
+          "This source document was removed. Your issue still keeps its last saved summary.",
+        );
+        root.append(message);
+        return;
+      }
+      if (options.embedded && activeDocument) history.state.active = activeDocument;
+      renderDocument();
+      restore();
+    },
+    { signal },
+  );
   renderDocument();
   setMode("document");
+  if (activeBlock && block(activeBlock)) {
+    selected = activeBlock;
+    renderDocument();
+    requestAnimationFrame(() => {
+      if (!cleaned) focusBlock(activeBlock);
+    });
+  }
   if (loadError) announce(loadError);
-  return () => {
+  const dispose = (): void => {
+    if (cleaned) return;
     cleaned = true;
     controller.abort();
-    canvas.destroy();
     clearTimeout(saveTimer);
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(history.state));
-      options.onChange?.(history.state);
-    } catch {
-      /* The visible storage message already directs export when storage is unavailable. */
-    }
+    flush();
+    canvas.destroy();
     root.replaceChildren();
     root.classList.remove(
       "documents-app",
+      "documents-embedded",
       "hide-inspector",
       "hide-sidebar",
       "show-inspector",
@@ -1473,4 +1598,5 @@ export async function mount(
     );
     delete root.dataset.view;
   };
+  return Object.assign(dispose, { flush });
 }

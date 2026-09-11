@@ -369,6 +369,13 @@ export class NotebookHistory {
   get canRedo(): boolean {
     return this.#future.length > 0;
   }
+  /** Bring external source changes into every snapshot so undo remains local to this editor. */
+  rebase(merge: (snapshot: Notebook) => Notebook): void {
+    this.state = merge(this.state);
+    this.#past = this.#past.map(merge);
+    this.#future = this.#future.map(merge);
+    this.#key = "";
+  }
   transact(edit: (state: Notebook) => void, key = ""): boolean {
     const previous = clone(this.state);
     edit(this.state);
