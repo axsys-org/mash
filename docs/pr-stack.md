@@ -198,6 +198,8 @@ represent a new remote CI or Vercel result.
 
 ## Desktop composition
 
+Status: **Draft**. Keep the desktop PR in draft until explicitly promoted.
+
 `codex/stack/desktop-story` follows `codex/stack/connected-documents` at `32439a7`.
 Review this branch against that base, preserving the earlier stack.
 
