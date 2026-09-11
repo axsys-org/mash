@@ -107,6 +107,53 @@
   overflow: hidden;
   isolation: isolate;
 }
+[data-story-immersive] {
+  height: 100dvh;
+  overflow: hidden;
+}
+[data-story-immersive] > .story-mount {
+  height: 100%;
+}
+[data-story-embedded="desktop"] .launcher-desktop {
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+}
+[data-story-embedded="desktop"] .launcher-workspace-nav {
+  width: 100%;
+  margin: 0;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+[data-story-embedded="desktop"] .launcher-window {
+  flex: 1;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+[data-story-embedded="desktop"] .launcher-desktop-hint,
+[data-story-embedded="desktop"] .characters-intro {
+  display: none;
+}
+[data-story-embedded="desktop"] .characters-desktop {
+  padding: 12px;
+  background: var(--color-canvas);
+}
+[data-story-embedded="desktop"] .characters-workbench {
+  gap: 16px;
+}
+[data-story-embedded="desktop"] .studio-emblem,
+[data-story-embedded="desktop"] .studio-titlebar > strong,
+[data-story-embedded="desktop"] .studio-title-divider,
+[data-story-embedded="desktop"] .community-workspace-mark,
+[data-story-embedded="desktop"] .community-topbar > [data-workspace],
+[data-story-embedded="desktop"] .community-topbar-divider,
+[data-story-embedded="desktop"] .community-topbar-context {
+  display: none;
+}
 .story-loading {
   display: grid;
   place-content: center;
@@ -132,4 +179,33 @@
   .story-card {
     transition: none;
   }
+}
+
+.story-card-preview[data-story="desktop"] {
+  position: relative;
+  padding: 33px 18px 18px;
+  gap: 8px;
+  background: linear-gradient(145deg, #677465, #23312c);
+}
+.story-card-preview[data-story="desktop"]::before {
+  content: "";
+  position: absolute;
+  inset: 12px 18px auto;
+  height: 13px;
+  background: var(--color-surface);
+  opacity: 0.85;
+  border-radius: 3px;
+}
+.story-card-preview[data-story="desktop"] .story-card-rail {
+  width: 52%;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  padding-top: 24px;
+}
+.story-card-preview[data-story="desktop"] .story-card-content {
+  border-radius: 5px;
+  padding: 16px;
+}
+.story-card-preview[data-story="desktop"] .story-card-content span {
+  font-size: 22px;
 }

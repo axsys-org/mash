@@ -33,6 +33,7 @@ import {
 import type { StudyCollection } from "./study-model.js";
 import type { IssueState } from "./issues-model.js";
 import { workspaceNavigation, workspaceHref } from "./workspace-navigation.js";
+import { navigateWorkspace, requestDesktopAction } from "./desktop-bridge.js";
 import "./launcher.css";
 
 const key = "mash-story-command-center-v1";
@@ -504,7 +505,9 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   }
   function toggle(open?: boolean) {
     const panel = find<"section">(".launcher-window");
-    panel.hidden = open === undefined ? !panel.hidden : !open;
+    const shouldOpen = open ?? panel.hidden;
+    if (!shouldOpen && requestDesktopAction({ action: "close" })) return;
+    panel.hidden = !shouldOpen;
     find<"ui-button">(".launcher-reopen").hidden = !panel.hidden;
     if (!panel.hidden) {
       const input = command.shadowRoot?.querySelector<HTMLInputElement>('[part="search"]');
@@ -546,7 +549,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   async function run(id: string) {
     const result = results.find((entry) => entry.id === id);
     if (result?.href) {
-      location.assign(result.href);
+      navigateWorkspace(result.href);
       return;
     }
     if (commands.some((item) => item.id === id)) {
@@ -617,7 +620,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     ) {
       const doc = notebook.documents.find((entry) => entry.id === result.document);
       const block = result.block ?? doc?.blocks.find((entry) => entry.text.trim())?.id;
-      location.assign(
+      navigateWorkspace(
         workspaceHref(name === "study-source" ? "study" : "documents", {
           document: result.document,
           ...(block ? { block } : {}),

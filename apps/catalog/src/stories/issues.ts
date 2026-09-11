@@ -49,6 +49,7 @@ import {
 } from "./documents-model.js";
 import "./issues.css";
 import { workspaceNavigation, workspaceHref } from "./workspace-navigation.js";
+import { navigateWorkspace } from "./desktop-bridge.js";
 
 const storeKey = issueStorageKey;
 const icon = (name: string) => `<ui-icon name="${name}" aria-hidden="true"></ui-icon>`;
@@ -396,7 +397,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     if (["open-document", "export-workspace", "copy-issue", "duplicate"].includes(name))
       destroyDocumentEditor?.flush?.();
     if (name === "open-document" && issue?.document) {
-      location.assign(workspaceHref("documents", { document: issue.document }));
+      navigateWorkspace(workspaceHref("documents", { document: issue.document }));
     } else if (name === "new") newIssue();
     else if (name === "command") openCommand();
     else if (name === "close-detail") closeIssue();

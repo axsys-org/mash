@@ -60,6 +60,7 @@ import {
   notebooksEqual,
 } from "./documents-store.js";
 import { workspaceNavigation, workspaceHref } from "./workspace-navigation.js";
+import { beforeWorkspaceNavigation, navigateWorkspace } from "./desktop-bridge.js";
 
 export async function mount(
   root: HTMLElement,
@@ -185,6 +186,7 @@ export async function mount(
   };
   window.addEventListener("pagehide", flush, { signal });
   window.addEventListener("beforeunload", flush, { signal });
+  window.addEventListener(beforeWorkspaceNavigation, flush, { signal });
   const refreshControls = (): void => {
     const undo = $<HTMLElement & { disabled: boolean }>("#documents-undo"),
       redo = $<HTMLElement & { disabled: boolean }>("#documents-redo");
@@ -812,7 +814,7 @@ export async function mount(
       if (!id) return;
       if (name === "study-block") {
         flush();
-        location.assign(workspaceHref("study", { document: doc().id, block: id }));
+        navigateWorkspace(workspaceHref("study", { document: doc().id, block: id }));
       } else {
         const href = new URL(
           workspaceHref("documents", { document: doc().id, block: id }),

@@ -43,6 +43,7 @@ import {
   type SearchHit,
 } from "./studio-model.js";
 import { seedStudio } from "./studio-seed.js";
+import { isDesktopEmbedded } from "./desktop-bridge.js";
 import { createRunner, previewDocument, type RuntimeMessage } from "./studio-runtime.js";
 
 const storageKey = "mash-story-studio-v1";
@@ -96,6 +97,7 @@ class Studio {
   disposed = false;
   syncing = false;
   running = false;
+  toolsCollapsedForPane = isDesktopEmbedded() && innerHeight < 500;
   saveTimer?: ReturnType<typeof setTimeout>;
   searchTimer?: ReturnType<typeof setTimeout>;
   treeTimer?: ReturnType<typeof setTimeout>;
@@ -293,7 +295,8 @@ class Studio {
         group: "View",
         shortcut: "Primary+J",
         run: (s) => {
-          s.state.preferences.panel = !s.state.preferences.panel;
+          s.state.preferences.panel = s.toolsCollapsedForPane || !s.state.preferences.panel;
+          s.toolsCollapsedForPane = false;
           s.applyPreferences();
         },
       },
@@ -939,7 +942,8 @@ class Studio {
   applyPreferences() {
     const preferences = this.state.preferences;
     this.query<UIResizablePanel>("[data-sidebar]").visible = preferences.sidebar;
-    this.query<UIResizablePanel>("[data-bottom]").visible = preferences.panel;
+    this.query<UIResizablePanel>("[data-bottom]").visible =
+      preferences.panel && !this.toolsCollapsedForPane;
     this.query<UISelect>("[data-font]").value = String(preferences.fontSize);
     this.query<HTMLElement & { checked: boolean }>("[data-wrap]").checked = preferences.wrap;
     this.query<HTMLElement & { checked: boolean }>("[data-whitespace]").checked =
@@ -948,6 +952,7 @@ class Studio {
     this.scheduleSave();
   }
   showTool(name: string) {
+    this.toolsCollapsedForPane = false;
     this.state.preferences.panel = true;
     this.applyPreferences();
     this.query<UITabs>("[data-tools]").value = name;

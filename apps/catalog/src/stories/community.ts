@@ -1,3 +1,4 @@
+import { isDesktopEmbedded } from "./desktop-bridge.js";
 import "@mash/ui/button";
 import "@mash/ui/icon";
 import "@mash/ui/input";
@@ -77,6 +78,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   }
   const model = new CommunityModel(restoreCommunity(stored));
   const state = model.state;
+  let inspectorCollapsedForPane = isDesktopEmbedded() && innerWidth < 950;
   const lifetime = new AbortController();
   const blobs = new Map<string, Blob>();
   const urls = new Map<string, string>();
@@ -159,11 +161,12 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     app.toggleAttribute("data-compact", state.settings.compact);
     app.toggleAttribute("data-no-avatars", !state.settings.showAvatars);
     app.toggleAttribute("data-sidebar", state.settings.sidebar);
-    app.toggleAttribute("data-inspector", state.settings.inspector);
+    const showInspector = state.settings.inspector && !inspectorCollapsedForPane;
+    app.toggleAttribute("data-inspector", showInspector);
     query<UIResizablePanel>(".community-sidebar-panel").visible = state.settings.sidebar;
     query<UIResizablePanel>(".community-sidebar-panel").hidden = !state.settings.sidebar;
-    query<UIResizablePanel>(".community-inspector-panel").visible = state.settings.inspector;
-    query<UIResizablePanel>(".community-inspector-panel").hidden = !state.settings.inspector;
+    query<UIResizablePanel>(".community-inspector-panel").visible = showInspector;
+    query<UIResizablePanel>(".community-inspector-panel").hidden = !showInspector;
     query("[data-workspace]").textContent = state.workspace;
     mainComposer?.refresh();
     threadComposer?.refresh();
@@ -371,6 +374,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     if (message.channelId !== current().id) openChannel(message.channelId);
     threadId = message.parentId ?? message.id;
     inspectorMode = "thread";
+    inspectorCollapsedForPane = false;
     state.settings.inspector = true;
     syncAppearance();
     renderInspector();
@@ -866,13 +870,15 @@ export async function mount(root: HTMLElement): Promise<() => void> {
         queueSave();
         break;
       case "inspector":
-        state.settings.inspector = !state.settings.inspector;
+        state.settings.inspector = inspectorCollapsedForPane || !state.settings.inspector;
+        inspectorCollapsedForPane = false;
         syncAppearance();
         queueSave();
         break;
       case "members":
         inspectorMode = "members";
         threadId = undefined;
+        inspectorCollapsedForPane = false;
         state.settings.inspector = true;
         syncAppearance();
         renderInspector();
@@ -886,6 +892,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       case "saved":
         closeModal();
         inspectorMode = name;
+        inspectorCollapsedForPane = false;
         state.settings.inspector = true;
         syncAppearance();
         renderInspector();

@@ -1,4 +1,9 @@
 import { siteHeader } from "./site-header.js";
+import {
+  connectDesktopStory,
+  flushDesktopFrames,
+  isDesktopEmbedded,
+} from "./stories/desktop-bridge.js";
 import "./stories.css";
 
 type Story = {
@@ -10,6 +15,13 @@ type Story = {
 };
 
 const stories: Story[] = [
+  {
+    id: "desktop",
+    title: "Desktop",
+    description: "A tiling workspace for documents, projects, study, and everything in between.",
+    symbol: "▦",
+    load: () => import("./stories/desktop.js"),
+  },
   {
     id: "study",
     title: "Recall",
@@ -65,13 +77,26 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   const controller = new AbortController();
   let destroyApp: (() => void) | undefined;
   let loadVersion = 0;
+  let openPending: Promise<void> | undefined;
+  const id = location.pathname.split("/")[2];
+  const desktop = id === "desktop";
+  const embedded = !desktop && isDesktopEmbedded();
+  const immersive = embedded || desktop;
+  const bridge = embedded
+    ? connectDesktopStory(async () => {
+        dispose();
+        await openPending;
+      })
+    : undefined;
   const theme =
     new URL(location.href).searchParams.get("theme") ??
     localStorage.getItem("mash-theme") ??
-    "light";
+    (desktop ? "dark" : "light");
   document.documentElement.dataset.theme = theme;
-  root.innerHTML = siteHeader("stories", theme);
-  root.querySelector(".theme-toggle")!.addEventListener(
+  root.innerHTML = immersive ? "" : siteHeader("stories", theme);
+  if (embedded) root.dataset.storyEmbedded = "desktop";
+  if (immersive) root.dataset.storyImmersive = "";
+  root.querySelector(".theme-toggle")?.addEventListener(
     "click",
     () => {
       const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
@@ -84,7 +109,6 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     },
     { signal: controller.signal },
   );
-  const id = location.pathname.split("/")[2];
   const story = stories.find((item) => item.id === id);
   if (!id) {
     const main = document.createElement("main");
@@ -111,23 +135,37 @@ export async function mount(root: HTMLElement): Promise<() => void> {
         target.replaceChildren();
         const cleanup = await module.mount(target);
         if (controller.signal.aborted || version !== loadVersion) cleanup();
-        else destroyApp = cleanup;
+        else {
+          destroyApp = cleanup;
+          bridge?.ready();
+        }
       } catch {
         if (controller.signal.aborted || version !== loadVersion) return;
         target.innerHTML =
           '<div class="story-loading" role="alert"><p>This workspace could not open.</p><button type="button">Try again</button></div>';
-        target
-          .querySelector("button")!
-          .addEventListener("click", () => void open(), { once: true, signal: controller.signal });
+        target.querySelector("button")!.addEventListener(
+          "click",
+          () => {
+            openPending = open();
+          },
+          { once: true, signal: controller.signal },
+        );
+        bridge?.ready();
       } finally {
         if (version === loadVersion) target.removeAttribute("aria-busy");
       }
     };
-    void open();
+    openPending = open();
   }
-  return () => {
+  function dispose() {
+    if (controller.signal.aborted) return;
+    if (desktop) flushDesktopFrames(root);
     controller.abort();
+    bridge?.disconnect();
     ++loadVersion;
     destroyApp?.();
-  };
+    delete root.dataset.storyEmbedded;
+    delete root.dataset.storyImmersive;
+  }
+  return dispose;
 }
