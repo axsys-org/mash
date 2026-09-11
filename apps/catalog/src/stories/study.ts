@@ -15,8 +15,9 @@ import type { UIInput } from "@mash/ui/input";
 import type { UITextarea } from "@mash/ui/textarea";
 import type { UISelect } from "@mash/ui/select";
 import { escape as esc, download, writeState } from "./shared.js";
-import { readNotebook, notebookStorageKey } from "./documents-store.js";
-import { seedNotebook, type Notebook } from "./documents-model.js";
+import { readNotebook, subscribeNotebook, documentBlockText } from "./documents-store.js";
+import { workspaceNavigation, workspaceHref } from "./workspace-navigation.js";
+import { seedNotebook, blockKinds, type Notebook } from "./documents-model.js";
 import {
   studyKey,
   makeDeck,
@@ -75,7 +76,6 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   }
   try {
     notebook = readNotebook();
-    if (!localStorage.getItem(notebookStorageKey)) writeState(notebookStorageKey, notebook);
   } catch {
     notebook = seedNotebook();
     initialMessage = "Notebook storage is unavailable. Source pages are temporary.";
@@ -83,6 +83,9 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   let view = "decks",
     deckId = "",
     query = "",
+    sourceQuery = "",
+    sourceDocument = "",
+    sourceBlockId = "",
     browserPage = 0,
     filter = "all",
     selected = new Set<string>(),
@@ -102,7 +105,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   root.classList.add("study-app");
   root.dataset.mashCatalogue = "mash";
   root.dataset.mashSize = "small";
-  root.innerHTML = `<ui-resizable class="study-layout" label="Study workspace"><ui-resizable-panel class="study-rail-panel" size="220" min="180" max="290"><aside class="study-rail"><div class="study-brand"><span class="study-brand-mark">${icon("object.layers")}</span><strong>Recall<span>A little, every day.</span></strong></div><nav aria-label="Study navigation" id="study-nav"></nav><div class="study-rail-label"><span>YOUR DECKS</span>${btn("", "new-deck", "action.add", "ghost", 'aria-label="Create deck"')}</div><nav id="study-deck-nav" aria-label="Decks"></nav><div class="study-rail-bottom">${btn("Import collection", "import", "action.upload")}<div class="study-local"><span></span>Private · stored on this device</div></div></aside></ui-resizable-panel><ui-resizable-handle label="Resize study navigation"></ui-resizable-handle><ui-resizable-panel class="study-content-panel" min="280"><section class="study-main"><header class="study-topbar"><ui-button data-action="sidebar" variant="ghost" size="small" aria-label="Toggle study navigation">${icon("navigation.menu")}</ui-button><span id="study-crumb">Your library</span><div class="study-spacer"></div>${btn("Browse", "browse", "action.search")}${btn("Add note", "add", "action.add", "primary")}<ui-menu label="Collection actions"><ui-button slot="trigger" variant="ghost" size="small" aria-label="Collection actions">${icon("navigation.more.horizontal")}</ui-button><ui-menu-item value="templates">Card appearance</ui-menu-item><ui-menu-item value="export">Export collection</ui-menu-item><ui-menu-item value="csv">Export notes as CSV</ui-menu-item><ui-menu-item value="import">Import collection</ui-menu-item><ui-menu-item value="shortcuts">Keyboard shortcuts</ui-menu-item></ui-menu></header><main id="study-content" tabindex="-1"></main><footer class="study-status"><span id="study-status" role="status" aria-live="polite">${esc(initialMessage)}</span><span>Recall <span aria-hidden="true">/</span> Study workspace</span></footer></section></ui-resizable-panel></ui-resizable><ui-dialog id="study-dialog" label="Study workspace" class="study-dialog"><strong slot="title" id="study-dialog-title"></strong><div id="study-dialog-body"></div><div slot="actions" id="study-dialog-actions"></div></ui-dialog><input id="study-file" type="file" accept=".json,.csv,.tsv,text/csv,application/json" hidden><input id="study-media" type="file" accept="image/png,image/jpeg,image/webp,image/gif,audio/mpeg,audio/wav,audio/ogg,audio/webm,audio/mp4" hidden>`;
+  root.innerHTML = `<ui-resizable class="study-layout" label="Study workspace"><ui-resizable-panel class="study-rail-panel" size="220" min="180" max="290"><aside class="study-rail">${workspaceNavigation("study")}<nav aria-label="Study navigation" id="study-nav"></nav><div class="study-rail-label"><span>Decks</span>${btn("", "new-deck", "action.add", "ghost", 'aria-label="Create deck"')}</div><nav id="study-deck-nav" aria-label="Decks"></nav><div class="study-rail-bottom">${btn("Import collection", "import", "action.upload")}<div class="study-local"><span></span>Saved on this device</div></div></aside></ui-resizable-panel><ui-resizable-handle label="Resize study navigation"></ui-resizable-handle><ui-resizable-panel class="study-content-panel" min="280"><section class="study-main"><header class="study-topbar"><ui-button data-action="sidebar" variant="ghost" size="small" aria-label="Toggle study navigation">${icon("navigation.menu")}</ui-button><span id="study-crumb">Your library</span><div class="study-spacer"></div>${btn("Browse", "browse", "action.search")}${btn("Add note", "add", "action.add", "primary")}<ui-menu label="Collection actions"><ui-button slot="trigger" variant="ghost" size="small" aria-label="Collection actions">${icon("navigation.more.horizontal")}</ui-button><ui-menu-item value="templates">Card appearance</ui-menu-item><ui-menu-item value="export">Export collection</ui-menu-item><ui-menu-item value="csv">Export notes as CSV</ui-menu-item><ui-menu-item value="import">Import collection</ui-menu-item><ui-menu-item value="shortcuts">Keyboard shortcuts</ui-menu-item></ui-menu></header><main id="study-content" tabindex="-1"></main><footer class="study-status"><span id="study-status" role="status" aria-live="polite">${esc(initialMessage)}</span><span>Cards stay connected to their sources</span></footer></section></ui-resizable-panel></ui-resizable><ui-dialog id="study-dialog" label="Study workspace" class="study-dialog"><strong slot="title" id="study-dialog-title"></strong><div id="study-dialog-body"></div><div slot="actions" id="study-dialog-actions"></div></ui-dialog><input id="study-file" type="file" accept=".json,.csv,.tsv,text/csv,application/json" hidden><input id="study-media" type="file" accept="image/png,image/jpeg,image/webp,image/gif,audio/mpeg,audio/wav,audio/ogg,audio/webm,audio/mp4" hidden>`;
   const $ = <T extends HTMLElement = HTMLElement>(selector: string): T =>
     root.querySelector<T>(selector)!;
   const content = $("#study-content"),
@@ -133,7 +136,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       ?.blocks.find((b) => b.id === note.source?.block);
   const effective = (note: StudyNote): StudyNote => {
     const block = sourceBlock(note);
-    return block ? { ...note, back: block.text } : note;
+    return block ? { ...note, back: documentBlockText(block) } : note;
   };
   const active = (): StudyCard | undefined => state.cards.find((c) => c.id === activeCard);
   const due = (id = deckId): StudyCard[] => queue(state, id, Date.now(), ahead);
@@ -152,11 +155,17 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     $("#study-nav").innerHTML = [
       ["decks", "Library", "object.layers"],
       ["browse", "Card browser", "action.search"],
-      ["sources", "Source pages", "object.document"],
+      ["sources", "Documents", "object.document"],
       ["stats", "Insights", "object.table"],
     ]
       .map(([id, label, name]) =>
-        btn(label!, `nav:${id}`, name!, "ghost", `${view === id ? 'aria-current="page"' : ""}`),
+        btn(
+          label!,
+          `nav:${id}`,
+          name!,
+          "ghost",
+          `${view === id || (view === "documents" && id === "sources") ? 'aria-current="page"' : ""}`,
+        ),
       )
       .join("");
     $("#study-deck-nav").innerHTML = state.decks
@@ -175,9 +184,9 @@ export async function mount(root: HTMLElement): Promise<() => void> {
             : ({
                 decks: "Your library",
                 browse: "Card browser",
-                sources: "Source pages",
+                sources: "Documents",
                 stats: "Insights",
-              }[view] ?? "Recall");
+              }[view] ?? "Study");
   };
   const heatmap = (): string => {
     const now = midnight(Date.now());
@@ -199,14 +208,14 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       cards = counts.fresh + counts.learn + counts.review;
     const deck = state.decks.find((d) => d.id === deckId),
       visible = deck ? state.decks.filter((d) => deckIds(state, deckId).has(d.id)) : state.decks;
-    content.innerHTML = `<div class="study-page"><div class="study-heading"><div><p class="study-eyebrow">${deck ? "DECK OVERVIEW" : new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toUpperCase()}</p><h1>${deck ? esc(deck.name.split("::").pop()) : "Make room for what matters."}</h1><p>${esc(deck?.description ?? "Small sessions. Stronger connections. Knowledge that stays.")}</p></div>${deck ? btn("Deck options", "deck-options", "action.settings") : btn("New deck", "new-deck", "action.add", "secondary")}</div><section class="study-hero"><div><div class="study-eyebrow">${cards ? "READY WHEN YOU ARE" : "A MOMENT TO CATCH YOUR BREATH"}</div><h2>${cards ? `${cards} cards.<br>A little more clarity.` : "You’re all caught up."}</h2><p>${cards ? "Pick up where you left off. Your next session is ready." : "Add something new, or revisit your collection with custom study."}</p><div class="study-hero-actions">${btn(cards ? "Start studying" : "Custom study", cards ? "start" : "custom", "action.play", "primary")}${cards ? btn("Custom study", "custom", "", "ghost") : btn("Add a note", "add", "action.add")}</div></div><div class="study-stack-art" aria-hidden="true"><div></div><div></div><div><span>REMEMBER</span><strong>A little,<br>every day.</strong><span>↗</span></div></div></section><div class="study-metrics"><div><span class="study-metric-dot" data-tone="new"></span><strong>${counts.fresh}</strong><span>New to explore</span></div><div><span class="study-metric-dot" data-tone="learn"></span><strong>${counts.learn}</strong><span>Still learning</span></div><div><span class="study-metric-dot" data-tone="due"></span><strong>${counts.review}</strong><span>Ready to review</span></div><div>${icon("action.confirm")}<strong>${reviewed.length}</strong><span>Reviewed today</span></div></div><div class="study-section-heading"><h2>${deck ? "In this deck" : "Your collection"}</h2><span>${state.notes.filter((n) => !deck || deckIds(state, deckId).has(n.deck)).length} notes · ${state.cards.filter((c) => !deck || deckIds(state, deckId).has(noteFor(c).deck)).length} cards</span></div><div class="study-deck-table"><div class="study-deck-table-head"><span>DECK</span><span>NEW</span><span>LEARNING</span><span>DUE</span><span></span></div>${visible
+    content.innerHTML = `<div class="study-page"><div class="study-heading"><div><p class="study-eyebrow">${deck ? "DECK OVERVIEW" : new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }).toUpperCase()}</p><h1>${deck ? esc(deck.name.split("::").pop()) : "Your collection"}</h1><p>${esc(deck?.description ?? "Review your cards or build a new question from a document block.")}</p></div>${deck ? btn("Deck options", "deck-options", "action.settings") : btn("New deck", "new-deck", "action.add", "secondary")}</div><section class="study-hero"><div><div class="study-eyebrow">TODAY</div><h2>${cards ? `${cards} cards ready` : "All caught up"}</h2><p>${cards ? `${counts.fresh} new · ${counts.learn + counts.review} to review` : "Your progress is saved. Add a note or explore your documents."}</p></div><div class="study-hero-actions">${btn(cards ? "Start studying" : "Custom study", cards ? "start" : "custom", "action.play", "primary")}${cards ? btn("Custom study", "custom", "", "ghost") : btn("Add a note", "add", "action.add")}</div></section><div class="study-metrics"><div><span class="study-metric-dot" data-tone="new"></span><strong>${counts.fresh}</strong><span>New to explore</span></div><div><span class="study-metric-dot" data-tone="learn"></span><strong>${counts.learn}</strong><span>Still learning</span></div><div><span class="study-metric-dot" data-tone="due"></span><strong>${counts.review}</strong><span>Ready to review</span></div><div>${icon("action.confirm")}<strong>${reviewed.length}</strong><span>Reviewed today</span></div></div><div class="study-section-heading"><h2>${deck ? "In this deck" : "Your collection"}</h2><span>${state.notes.filter((n) => !deck || deckIds(state, deckId).has(n.deck)).length} notes · ${state.cards.filter((c) => !deck || deckIds(state, deckId).has(noteFor(c).deck)).length} cards</span></div><div class="study-deck-table"><div class="study-deck-table-head"><span>DECK</span><span>NEW</span><span>LEARNING</span><span>DUE</span><span></span></div>${visible
       .map((d, i) => {
         const c = totals(d.id);
         return `<div class="study-deck-row"><button class="study-deck-title" data-action="deck:${esc(d.id)}"><span class="study-deck-tile" data-tile="${i % 4}">${icon(d.name.includes("::") ? "object.document" : "object.layers")}</span><span><strong>${esc(d.name.split("::").pop())}</strong><small>${d.name.includes("::") ? esc(d.name.split("::").slice(0, -1).join(" / ")) : state.notes.filter((n) => n.deck === d.id).length + " notes"}</small></span></button><span data-tone="new">${c.fresh}</span><span data-tone="learn">${c.learn}</span><span data-tone="due">${c.review}</span>${btn("", `options:${d.id}`, "navigation.more.horizontal", "ghost", `aria-label="Options for ${esc(d.name)}"`)}</div>`;
       })
       .join(
         "",
-      )}</div><section class="study-activity"><div><h3>Consistency, at your own pace.</h3><p>${reviewed.length ? `${reviewed.length} reviews today. Keep making those connections.` : "Your first review starts the story. Every square is a day."}</p></div>${heatmap()}</section></div>`;
+      )}</div><section class="study-activity"><div><h3>Review activity</h3><p>${reviewed.length} reviewed today · last 12 weeks</p></div>${heatmap()}</section></div>`;
   }
   const shownCards = (): StudyCard[] =>
     state.cards.filter((c) => {
@@ -248,7 +257,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       : '<tr><td colspan="6"><div class="study-empty">No cards match. Try another search or add a note.</div></td></tr>';
   }
   function renderBrowser(): void {
-    content.innerHTML = `<div class="study-page study-browser"><div class="study-heading"><div><p class="study-eyebrow">YOUR KNOWLEDGE, CONNECTED</p><h1>Card browser</h1><p>Find a thought. Refine a question. Make it stick.</p></div>${btn("Add note", "add", "action.add", "secondary")}</div><div class="study-browser-tools"><ui-input id="study-search" type="search" label="Search cards" placeholder="Search questions, answers, tags…" value="${esc(query)}" clean-on-escape></ui-input>${select("Deck", "study-filter-deck", deckId, [["", "All decks"], ...state.decks.map((d) => [d.id, d.name] as [string, string])])}${select(
+    content.innerHTML = `<div class="study-page study-browser"><div class="study-heading"><div><h1>Card browser</h1><p>Search questions, answers, tags, and linked sources.</p></div>${btn("Add note", "add", "action.add", "secondary")}</div><div class="study-browser-tools"><ui-input id="study-search" type="search" label="Search cards" placeholder="Search questions, answers, tags…" value="${esc(query)}" clean-on-escape></ui-input>${select("Deck", "study-filter-deck", deckId, [["", "All decks"], ...state.decks.map((d) => [d.id, d.name] as [string, string])])}${select(
       "Status",
       "study-filter-status",
       filter,
@@ -291,13 +300,13 @@ export async function mount(root: HTMLElement): Promise<() => void> {
           (c.state === "learning" || c.state === "relearning"),
       );
       const next = eligible.sort((a, b) => a.due - b.due)[0];
-      content.innerHTML = `<section class="study-complete"><span class="study-complete-mark">${icon("action.confirm")}</span><p class="study-eyebrow">SESSION COMPLETE</p><h1>A little more, remembered.</h1><p>${sessionCount} cards reviewed · ${Math.max(1, Math.round((Date.now() - sessionStarted) / 60000))} min of focused practice.</p>${next ? `<p>Learning cards return ${new Date(next.due).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}.</p>` : "<p>Your progress is saved. Come back when you’re ready.</p>"}<div>${btn("Back to decks", "nav:decks", "navigation.back", "secondary")}${btn("Check due cards", "resume", "action.refresh")}</div>${heatmap()}</section>`;
+      content.innerHTML = `<section class="study-complete"><span class="study-complete-mark">${icon("action.confirm")}</span><p class="study-eyebrow">SESSION COMPLETE</p><h1>Session complete</h1><p>${sessionCount} cards reviewed · ${Math.max(1, Math.round((Date.now() - sessionStarted) / 60000))} min of focused practice.</p>${next ? `<p>Learning cards return ${new Date(next.due).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}.</p>` : "<p>Your progress is saved. Come back when you’re ready.</p>"}<div>${btn("Back to decks", "nav:decks", "navigation.back", "secondary")}${btn("Check due cards", "resume", "action.refresh")}</div>${heatmap()}</section>`;
       return;
     }
     const note = noteFor(card),
       pair = sides(effective(note), card),
       count = due().length;
-    content.innerHTML = `<section class="study-review"><div class="study-review-top">${btn("End session", "nav:decks", "navigation.back")}<span>${esc(deckName(note.deck).replaceAll("::", " / "))}</span><span class="study-pill">${sessionCount} reviewed · ${count} ready</span></div><div class="study-review-center">${cardMarkup(note, card, revealed)}${note.kind === "typed" && !revealed ? '<ui-input id="study-typed" label="Your answer" placeholder="Type what you remember…" autocomplete="off"></ui-input>' : ""}${note.kind === "typed" && revealed ? `<div class="study-typed-result">${typed.trim().toLocaleLowerCase() === pair.back.trim().toLocaleLowerCase() ? "✓ Matched" : "Compare your answer"}: <strong>${esc(typed || "No answer entered")}</strong></div>` : ""}${note.tags.length ? `<div class="study-tags">${note.tags.map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : ""}${note.source ? btn(sourceBlock(note) ? "Linked source page" : "Source missing · using saved answer", `source:${note.source.document}`, "object.document") : ""}</div><footer class="study-review-footer"><div class="study-review-utility">${btn("Undo", "undo", "action.reset", "ghost", state.reviews.length ? "" : "disabled")}${btn("Edit note", `edit:${note.id}`, "action.edit")}${btn("Bury", "bury")}${btn("Suspend", "suspend")}</div>${revealed ? `<div class="study-grades">${([1, 2, 3, 4] as Grade[]).map((g, i) => `<ui-button data-action="grade:${g}" variant="${g === 3 ? "primary" : "secondary"}" class="study-grade" data-grade="${g}"><span><strong>${["Again", "Hard", "Good", "Easy"][i]}</strong><small>${intervalLabel(card, g)}</small></span><ui-kbd slot="suffix">${g}</ui-kbd></ui-button>`).join("")}</div>` : `<ui-button class="study-flip" variant="primary" data-action="reveal">Show answer<ui-kbd slot="suffix">Space</ui-kbd></ui-button>`}<p>${ahead ? "Custom study · answers update the regular schedule" : "Trust your recall. Choose how well you remembered."}</p></footer></section>`;
+    content.innerHTML = `<section class="study-review"><div class="study-review-top">${btn("End session", "nav:decks", "navigation.back")}<span>${esc(deckName(note.deck).replaceAll("::", " / "))}</span><span class="study-pill">${sessionCount} reviewed · ${count} ready</span></div><div class="study-review-center">${cardMarkup(note, card, revealed)}${note.kind === "typed" && !revealed ? '<ui-input id="study-typed" label="Your answer" placeholder="Type what you remember…" autocomplete="off"></ui-input>' : ""}${note.kind === "typed" && revealed ? `<div class="study-typed-result">${typed.trim().toLocaleLowerCase() === pair.back.trim().toLocaleLowerCase() ? "✓ Matched" : "Compare your answer"}: <strong>${esc(typed || "No answer entered")}</strong></div>` : ""}${note.tags.length ? `<div class="study-tags">${note.tags.map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : ""}${note.source ? btn(sourceBlock(note) ? "Linked source page" : "Source missing · using saved answer", `source:${encodeURIComponent(note.source.document)}:${encodeURIComponent(note.source.block)}`, "object.document") : ""}</div><footer class="study-review-footer"><div class="study-review-utility">${btn("Undo", "undo", "action.reset", "ghost", state.reviews.length ? "" : "disabled")}${btn("Edit note", `edit:${note.id}`, "action.edit")}${btn("Bury", "bury")}${btn("Suspend", "suspend")}</div>${revealed ? `<div class="study-grades">${([1, 2, 3, 4] as Grade[]).map((g, i) => `<ui-button data-action="grade:${g}" variant="${g === 3 ? "primary" : "secondary"}" class="study-grade" data-grade="${g}"><span><strong>${["Again", "Hard", "Good", "Easy"][i]}</strong><small>${intervalLabel(card, g)}</small></span><ui-kbd slot="suffix">${g}</ui-kbd></ui-button>`).join("")}</div>` : `<ui-button class="study-flip" variant="primary" data-action="reveal">Show answer<ui-kbd slot="suffix">Space</ui-kbd></ui-button>`}<p>${ahead ? "Custom study · answers update the regular schedule" : "Trust your recall. Choose how well you remembered."}</p></footer></section>`;
     if (note.kind === "typed" && !revealed) $<UIInput>("#study-typed").focus();
   }
   function nextCard(preferred?: string): void {
@@ -326,7 +335,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       ).length;
     });
     const max = Math.max(1, ...forecast);
-    content.innerHTML = `<div class="study-page"><div class="study-heading"><div><p class="study-eyebrow">THE BIGGER PICTURE</p><h1>Every session adds up.</h1><p>A clear view of your practice, from your actual review history.</p></div>${btn("Export collection", "export", "action.download")}</div><div class="study-metrics"><div><strong>${total}</strong><span>Lifetime reviews</span></div><div><strong>${retention}%</strong><span>Answers recalled</span></div><div><strong>${Math.round(today.reduce((n, r) => n + r.ms, 0) / 60000)}m</strong><span>Studied today</span></div><div><strong>${state.cards.filter((c) => c.interval >= 21).length}</strong><span>Mature cards</span></div></div><div class="study-stat-grid"><section class="study-stat-panel"><h2>Upcoming reviews</h2><p>Next 14 days · ${state.cards.filter((c) => c.state !== "new" && !c.suspended && c.due < midnight(Date.now())).length} overdue</p><div class="study-bars" role="img" aria-label="Upcoming reviews: ${forecast.join(", ")}">${forecast.map((n, i) => `<div><span>${n}</span><i style="height:${Math.max(3, (n / max) * 150)}px"></i><small>${i === 0 ? "Today" : "+" + i}</small></div>`).join("")}</div></section><section class="study-stat-panel"><h2>Collection health</h2><p>${state.notes.length} notes generate ${state.cards.length} cards.</p>${[
+    content.innerHTML = `<div class="study-page"><div class="study-heading"><div><h1>Review history</h1><p>Scheduling, retention, and activity across your collection.</p></div>${btn("Export collection", "export", "action.download")}</div><div class="study-metrics"><div><strong>${total}</strong><span>Lifetime reviews</span></div><div><strong>${retention}%</strong><span>Answers recalled</span></div><div><strong>${Math.round(today.reduce((n, r) => n + r.ms, 0) / 60000)}m</strong><span>Studied today</span></div><div><strong>${state.cards.filter((c) => c.interval >= 21).length}</strong><span>Mature cards</span></div></div><div class="study-stat-grid"><section class="study-stat-panel"><h2>Upcoming reviews</h2><p>Next 14 days · ${state.cards.filter((c) => c.state !== "new" && !c.suspended && c.due < midnight(Date.now())).length} overdue</p><div class="study-bars" role="img" aria-label="Upcoming reviews: ${forecast.join(", ")}">${forecast.map((n, i) => `<div><span>${n}</span><i style="height:${Math.max(3, (n / max) * 150)}px"></i><small>${i === 0 ? "Today" : "+" + i}</small></div>`).join("")}</div></section><section class="study-stat-panel"><h2>Collection health</h2><p>${state.notes.length} notes generate ${state.cards.length} cards.</p>${[
       "new",
       "learning",
       "review",
@@ -358,23 +367,58 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     }
   }
   const sourceLimits = new Map<string, number>();
+  const documentHref = (id: string, block?: string): string =>
+    workspaceHref("documents", { document: id, ...(block ? { block } : {}) });
+  function renderSourceResults(): void {
+    const needle = sourceQuery.trim().toLocaleLowerCase();
+    const documents = notebook.documents.filter(
+      (doc) =>
+        !needle ||
+        doc.title.toLocaleLowerCase().includes(needle) ||
+        doc.blocks.some((block) => documentBlockText(block).toLocaleLowerCase().includes(needle)),
+    );
+    const doc = documents.find((item) => item.id === sourceDocument) || documents[0];
+    sourceDocument = doc?.id || "";
+    $("#study-source-documents").innerHTML =
+      documents
+        .map((item) => {
+          const linked = state.notes.filter((note) => note.source?.document === item.id).length;
+          return `<button class="study-source-document" data-action="select-source:${esc(item.id)}" ${item.id === sourceDocument ? 'aria-current="true"' : ""}>${icon("object.document")}<span><strong>${esc(item.title || "Untitled")}</strong><small>${item.blocks.length} blocks${linked ? ` · ${linked} linked` : ""}</small></span>${item.id === sourceDocument ? icon("navigation.forward") : ""}</button>`;
+        })
+        .join("") || '<p class="study-empty">No matching documents.</p>';
+    const detail = $("#study-source-detail");
+    if (!doc) {
+      detail.innerHTML =
+        '<div class="study-source-empty">No documents found. Try another search.</div>';
+      return;
+    }
+    const linked = state.notes.filter((note) => note.source?.document === doc.id).length;
+    const blocks = doc.blocks.filter(
+      (block) =>
+        documentBlockText(block).trim() &&
+        (!needle ||
+          doc.title.toLocaleLowerCase().includes(needle) ||
+          documentBlockText(block).toLocaleLowerCase().includes(needle)),
+    );
+    const limit = sourceLimits.get(doc.id) ?? 12;
+    detail.innerHTML = `<section class="study-source-page"><header><div><h2>${esc(doc.title || "Untitled")}</h2><small>${doc.blocks.length} blocks · ${linked} linked notes</small></div>${btn("Edit document", `source:${encodeURIComponent(doc.id)}`, "action.edit")}<a class="study-document-link" href="${esc(documentHref(doc.id))}" aria-label="Open ${esc(doc.title)} in documents">${icon("navigation.forward")}</a></header><div class="study-source-blocks">${
+      blocks
+        .slice(0, limit)
+        .map((block) => {
+          const notes = state.notes.filter(
+            (note) => note.source?.document === doc.id && note.source.block === block.id,
+          );
+          const kind = blockKinds.find((item) => item.kind === block.kind);
+          return `<article class="study-source-block" data-source-block="${esc(block.id)}" data-kind="${block.kind}" ${sourceBlockId === block.id ? "data-highlighted" : ""}><div class="study-source-block-heading"><span>${icon(kind?.icon || "object.document")}${esc(kind?.label || block.kind)}</span><div>${btn("Edit block", `source:${encodeURIComponent(doc.id)}:${encodeURIComponent(block.id)}`, "action.edit")}${btn("Make a card", `link:${encodeURIComponent(doc.id)}:${encodeURIComponent(block.id)}`, "action.add", "secondary")}</div></div><p>${esc(documentBlockText(block))}</p>${notes.length ? `<div class="study-linked-notes">${notes.map((note) => btn(note.front, `edit:${note.id}`, "object.layers")).join("")}</div>` : ""}</article>`;
+        })
+        .join("") ||
+      '<div class="study-source-empty">Add a text block to this document to create a linked card.</div>'
+    }</div>${blocks.length > limit ? `<div class="study-source-more">${btn(`Show ${Math.min(12, blocks.length - limit)} more blocks`, `more-source:${doc.id}`, "navigation.down")}</div>` : ""}</section>`;
+  }
   function renderSources(): void {
     refreshNotebook();
-    content.innerHTML = `<div class="study-page"><div class="study-heading"><div><p class="study-eyebrow">FROM UNDERSTANDING TO RECALL</p><h1>Keep the context.</h1><p>Turn a page block into a question. Its answer stays linked as your writing evolves.</p></div>${btn("Open notebook", "document-editor", "object.document", "secondary")}</div><div class="study-source-grid">${notebook.documents
-      .map(
-        (doc) =>
-          `<section class="study-source-page"><header><span class="study-deck-tile">${icon("object.document")}</span><div><h2>${esc(doc.title)}</h2><small>${doc.blocks.length} blocks · ${state.notes.filter((n) => n.source?.document === doc.id).length} linked notes</small></div>${btn("Edit", `source:${doc.id}`)}</header>${doc.blocks
-            .filter((b) => b.text.trim() && b.kind !== "code")
-            .slice(0, sourceLimits.get(doc.id) ?? 30)
-            .map(
-              (b) =>
-                `<div class="study-source-block"><span class="study-eyebrow">${esc(b.kind)}</span><p>${esc(b.text)}</p>${btn("Make a card", `link:${encodeURIComponent(doc.id)}:${encodeURIComponent(b.id)}`, "action.add")}</div>`,
-            )
-            .join(
-              "",
-            )}${doc.blocks.filter((b) => b.text.trim() && b.kind !== "code").length > (sourceLimits.get(doc.id) ?? 30) ? btn("Show more blocks", `more-source:${doc.id}`, "navigation.down") : ""}</section>`,
-      )
-      .join("")}</div></div>`;
+    content.innerHTML = `<div class="study-page study-sources"><div class="study-heading"><div><h1>Document sources</h1><p>Make a question from a block. Its answer follows the source as you edit.</p></div>${btn("Open documents", "document-editor", "object.document", "secondary")}</div><div class="study-source-workspace"><aside class="study-source-sidebar"><ui-input id="study-source-search" type="search" label="Search documents and blocks" placeholder="Find a document or block" value="${esc(sourceQuery)}">${icon("action.search", "prefix")}</ui-input><nav id="study-source-documents" aria-label="Source documents"></nav></aside><div id="study-source-detail"></div></div></div>`;
+    renderSourceResults();
   }
   function render(): void {
     renderNav();
@@ -393,27 +437,21 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     render();
     content.focus({ preventScroll: true });
   }
-  async function openDocument(id?: string): Promise<void> {
+  async function openDocument(id?: string, block?: string): Promise<void> {
+    sourceDocument = id || sourceDocument;
+    sourceBlockId = block || "";
     navigate("documents");
     const version = ++documentVersion;
-    content.innerHTML = `<div class="study-document-host"><div class="study-document-toolbar">${btn("Back to source pages", "nav:sources", "navigation.back")}<span>The same blocks power your pages and linked cards.</span></div><div id="study-notebook" class="study-notebook"></div></div>`;
+    content.innerHTML = `<div class="study-document-host"><div class="study-document-toolbar">${btn("Back to source pages", "nav:sources", "navigation.back")}<span>Linked cards follow your edits.</span>${id ? `<a class="study-document-link" href="${esc(documentHref(id, block))}">Open in documents ${icon("navigation.forward")}</a>` : ""}</div><div id="study-notebook" class="study-notebook"></div></div>`;
     const module = await import("./documents.js");
     if (disposed || version !== documentVersion) return;
-    documentCleanup = await module.mount($("#study-notebook"), {
+    const cleanup = await module.mount($("#study-notebook"), {
       activeDocument: id,
-      onChange: (next) => {
-        notebook = next;
-        let changed = false;
-        for (const n of state.notes) {
-          const block = sourceBlock(n);
-          if (block && n.back !== block.text) {
-            n.back = block.text;
-            changed = true;
-          }
-        }
-        if (changed) save();
-      },
+      activeBlock: block,
+      embedded: true,
     });
+    if (disposed || version !== documentVersion) cleanup();
+    else documentCleanup = cleanup;
   }
   function openModal(title: string, body: string, actions: string, mode: string): void {
     modalMode = mode;
@@ -441,13 +479,13 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     if (!draft) return;
     const note = draft;
     openModal(
-      state.notes.some((n) => n.id === note.id) ? "Edit note" : "A new connection",
+      state.notes.some((n) => n.id === note.id) ? "Edit note" : "New note",
       `<div class="study-form-grid">${select("Note type", "study-note-kind", note.kind, Object.entries(kindNames) as [string, string][])}${select(
         "Deck",
         "study-note-deck",
         note.deck,
         state.decks.map((d) => [d.id, d.name]),
-      )}</div>${field(note.kind === "cloze" ? "Text with deletions" : "Question", "study-note-front", note.front, true)}${note.kind === "cloze" ? '<p class="study-form-help">Hide a phrase with {{c1::answer}}. Use c2 for another card. Add ::hint after the answer for a clue.</p>' : ""}${field(note.kind === "cloze" ? "Additional answer" : "Answer", "study-note-back", note.back, true)}${note.source ? `<div class="study-source-link">${icon("object.document")}Linked to ${esc(notebook.documents.find((d) => d.id === note.source?.document)?.title ?? "a missing page")}. Source edits update the answer. ${btn("Detach", "detach")}</div>` : ""}${field("Extra context", "study-note-extra", note.extra, true)}${field("Tags", "study-note-tags", note.tags.join(" "))}<div class="study-editor-tools">${btn("Attach image or audio", "attach", "action.upload")}${note.image || note.audio ? btn("Remove media", "remove-media") : ""}${btn("Preview cards", "preview", "action.play")}</div><div id="study-note-preview"></div><p class="study-form-error" id="study-form-error" role="alert"></p>`,
+      )}</div>${field(note.kind === "cloze" ? "Text with deletions" : "Question", "study-note-front", note.front, true)}${note.kind === "cloze" ? '<p class="study-form-help">Hide a phrase with {{c1::answer}}. Use c2 for another card. Add ::hint after the answer for a clue.</p>' : ""}${field(note.kind === "cloze" ? "Additional answer" : "Answer", "study-note-back", note.back, true)}${note.source ? `<div class="study-source-link">${icon("object.document")}Linked to ${esc(notebook.documents.find((d) => d.id === note.source?.document)?.title ?? "a missing page")}. ${sourceBlock(note) ? "Source edits update the answer." : "This source block is missing. The last saved answer is kept."} ${btn("Detach", "detach")}</div>` : ""}${field("Extra context", "study-note-extra", note.extra, true)}${field("Tags", "study-note-tags", note.tags.join(" "))}<div class="study-editor-tools">${btn("Attach image or audio", "attach", "action.upload")}${note.image || note.audio ? btn("Remove media", "remove-media") : ""}${btn("Preview cards", "preview", "action.play")}</div><div id="study-note-preview"></div><p class="study-form-error" id="study-form-error" role="alert"></p>`,
       btn("Save note", "save-note", "action.confirm", "primary"),
       "note",
     );
@@ -794,7 +832,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       announce("Notes exported as CSV. Media and schedules are included in JSON exports.");
     } else if (name === "import")
       openModal(
-        "Bring your knowledge along",
+        "Import collection",
         `<p>Import a collection JSON backup, or add notes from CSV / TSV.</p><div class="study-import-info"><strong>Text columns</strong><p>Front, Back, Tags, Deck, Type. The first two columns are required. Types: basic, reverse, cloze, typed.</p><strong>Collection backup</strong><p>A JSON backup replaces this collection after confirmation. CSV adds notes; existing cards stay in place.</p></div><p class="study-form-help">Up to 8 MB. Archive packages are not supported.</p>`,
         btn("Choose file", "choose-file", "action.upload", "primary"),
         "import",
@@ -808,10 +846,18 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       save();
       dialog.open = false;
       navigate("decks");
-    } else if (name === "document-editor" || name === "source") await openDocument(id || undefined);
-    else if (name === "more-source") {
-      sourceLimits.set(id, (sourceLimits.get(id) ?? 30) + 30);
-      renderSources();
+    } else if (name === "document-editor" || name === "source")
+      await openDocument(
+        rest[0] ? decodeURIComponent(rest[0]) : undefined,
+        rest[1] ? decodeURIComponent(rest[1]) : undefined,
+      );
+    else if (name === "select-source") {
+      sourceDocument = id;
+      sourceBlockId = "";
+      renderSourceResults();
+    } else if (name === "more-source") {
+      sourceLimits.set(id, (sourceLimits.get(id) ?? 12) + 12);
+      renderSourceResults();
     } else if (name === "link") {
       const [documentId, blockId] = rest.map(decodeURIComponent);
       const doc = notebook.documents.find((d) => d.id === documentId),
@@ -820,15 +866,15 @@ export async function mount(root: HTMLElement): Promise<() => void> {
         draft = {
           ...makeNote(deckId || state.decks[0]!.id),
           front: `What should you remember about ${doc.title.toLowerCase()}?`,
-          back: block.text,
+          back: documentBlockText(block),
           source: { document: doc.id, block: block.id },
-          tags: ["from-notebook"],
+          tags: ["linked"],
         };
         noteEditor();
       }
     } else if (name === "shortcuts")
       openModal(
-        "A little faster",
+        "Keyboard shortcuts",
         '<div class="study-shortcuts"><p><ui-kbd>A</ui-kbd> Add a note</p><p><ui-kbd shortcut="Primary+K"></ui-kbd> Search cards</p><p><ui-kbd>Space</ui-kbd> Reveal answer</p><p><ui-kbd>1–4</ui-kbd> Again · Hard · Good · Easy</p><p><ui-kbd shortcut="Primary+Z"></ui-kbd> Undo last review</p><p><ui-kbd>Escape</ui-kbd> Leave review</p></div>',
         "",
         "help",
@@ -859,7 +905,10 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   root.addEventListener(
     "input",
     (event) => {
-      if ((event.target as HTMLElement).id === "study-search") {
+      if ((event.target as HTMLElement).id === "study-source-search") {
+        sourceQuery = value("study-source-search");
+        renderSourceResults();
+      } else if ((event.target as HTMLElement).id === "study-search") {
         query = value("study-search");
         browserPage = 0;
         renderBrowserRows();
@@ -1045,17 +1094,73 @@ export async function mount(root: HTMLElement): Promise<() => void> {
     },
     { signal },
   );
-  window.addEventListener(
-    "storage",
-    (event) => {
-      if (event.key === notebookStorageKey && view !== "documents") {
-        refreshNotebook();
-        if (view === "sources" || view === "review") render();
+  subscribeNotebook(
+    (next) => {
+      notebook = next;
+      // Source refreshes must not replace reviews saved by another open view.
+      try {
+        const saved = localStorage.getItem(studyKey);
+        if (saved) state = parseStudy(saved);
+      } catch {
+        announce("Source changed. The saved collection could not be refreshed safely.");
+        return;
       }
+      let changed = false;
+      for (const note of state.notes) {
+        const block = sourceBlock(note);
+        if (block && note.back !== documentBlockText(block)) {
+          note.back = documentBlockText(block);
+          changed = true;
+        }
+      }
+      if (changed) save();
+      if (draft?.source && modalMode === "note") {
+        const block = sourceBlock(draft);
+        if (block) {
+          draft.back = documentBlockText(block);
+          $<UITextarea>("#study-note-back").value = documentBlockText(block);
+        }
+      }
+      if (view === "sources") renderSourceResults();
+      else if (view === "browse") renderBrowserRows();
+      else if (view === "review") {
+        if ($<UIInput>("#study-typed")) typed = value("study-typed");
+        renderReview();
+        if ($<UIInput>("#study-typed")) $<UIInput>("#study-typed").value = typed;
+      } else if (view === "decks" || view === "stats") render();
     },
     { signal },
   );
+  const route = new URL(location.href).searchParams;
+  const requestedDocument = route.get("document"),
+    requestedBlock = route.get("block");
+  if (requestedDocument) {
+    sourceDocument = requestedDocument;
+    sourceBlockId = requestedBlock || "";
+    view = "sources";
+    const target = notebook.documents.find((doc) => doc.id === requestedDocument);
+    if (target && requestedBlock) {
+      const blockIndex = target.blocks
+        .filter((block) => documentBlockText(block).trim())
+        .findIndex((block) => block.id === requestedBlock);
+      if (blockIndex >= 0) sourceLimits.set(target.id, Math.max(12, blockIndex + 1));
+    }
+  }
   render();
+  if (requestedDocument && requestedBlock) {
+    const target = notebook.documents
+      .find((doc) => doc.id === requestedDocument)
+      ?.blocks.find((block) => block.id === requestedBlock);
+    if (target)
+      await action(
+        `link:${encodeURIComponent(requestedDocument)}:${encodeURIComponent(requestedBlock)}`,
+      );
+    else announce("That source block is no longer available.");
+  } else if (route.get("note")) {
+    const noteId = route.get("note")!;
+    if (state.notes.some((note) => note.id === noteId)) editNote(noteId);
+    else announce("That note is no longer available.");
+  }
   return () => {
     disposed = true;
     documentVersion++;

@@ -276,7 +276,7 @@ export function seedStudy(): StudyCollection {
     notes: [],
     cards: [],
     reviews: [],
-    template: { front: "{{Front}}", back: "{{Back}}", font: "serif", align: "center" },
+    template: { front: "{{Front}}", back: "{{Back}}", font: "sans", align: "center" },
   };
   const examples: [number, string, string, string, NoteKind][] = [
     [
