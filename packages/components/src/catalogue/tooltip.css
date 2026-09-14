@@ -1,0 +1,32 @@
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-tooltip::part(popup) {
+    pointer-events: auto;
+    max-inline-size: min(24rem, calc(100vw - var(--space-container-inline) * 2));
+    padding: var(--space-control-block) var(--space-control-inline);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--color-surface-inverse);
+    color: var(--_mash-component-inverse-label);
+    font-family: var(--type-label-font-family);
+    font-size: var(--mash-size-body, var(--type-scale-default-body));
+    line-height: var(--type-label-line-height);
+    overflow-wrap: anywhere;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tooltip::part(description) {
+    color: inherit;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tooltip:state(entering)::part(popup) {
+    animation: mash-overlay-enter var(--duration-fast-enter) var(--easing-spring-snappy) both;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tooltip:state(exiting)::part(popup) {
+    animation: mash-overlay-exit var(--duration-fast-exit) var(--easing-control) both;
+    pointer-events: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tooltip ui-kbd::part(root) {
+    color: inherit;
+    background: transparent;
+  }
+  :where([data-mash-catalogue="mash"]) ui-tooltip ui-kbd::part(value) {
+    gap: var(--space-control-block-small);
+  }
+}

@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIMotion };
+
+export * from "./motion.js";

@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIOptionRow };
+
+export * from "./option-row.js";

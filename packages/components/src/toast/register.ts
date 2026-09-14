@@ -9,3 +9,5 @@ declare global {
 }
 
 export { UIToast };
+
+export * from "./toast.js";

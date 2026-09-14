@@ -51,6 +51,29 @@ export type ShrineMythVariant = "record" | "preview";
  * @csspart actions - The record action region.
  * @csspart card-content - The card's primary content region.
  * @csspart limbs - The composed limb region.
+ * @mashnode root record
+ * @mashnode identity identity root
+ * @mashnode title title identity
+ * @mashnode path path identity
+ * @mashnode kind kind identity
+ * @mashnode actions actions root
+ * @mashnode content content root
+ * @mashnode limbs fields content
+ * @mashnode variant variant root
+ * @mashrole slot default fields limbs
+ * @mashrole slot limbs fields limbs
+ * @mashrole slot title title title
+ * @mashrole slot path path path
+ * @mashrole slot kind kind kind
+ * @mashrole slot actions actions actions
+ * @mashrole part root record root
+ * @mashrole part identity identity identity
+ * @mashrole part title title title
+ * @mashrole part path path path
+ * @mashrole part kind kind kind
+ * @mashrole part actions actions actions
+ * @mashrole part limbs fields limbs
+ * @mashrole attribute variant variant variant
  */
 export class ShrineMyth extends LitElement {
   static override properties = {

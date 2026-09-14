@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UISwitch };
+
+export * from "./switch.js";

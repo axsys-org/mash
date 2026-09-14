@@ -43,3 +43,116 @@ describe("ui-tooltip", () => {
     expect(tooltip.open).toBe(true);
   });
 });
+
+it("opens immediately on keyboard focus and describes the native Mash control", async () => {
+  const tip = await fixture<UITooltip>(`<ui-tooltip label="Save your work" open-delay="10000">
+    <ui-button slot="trigger" aria-label="Save">Save</ui-button>
+  </ui-tooltip>`);
+  await settled(tip);
+  const button = tip.querySelector("ui-button")!;
+  const control = inShadow<HTMLButtonElement>(button, "button");
+  control.focus();
+  await settled(tip);
+  expect(tip.open).toBe(true);
+  expect(control.ariaDescribedByElements?.map((node) => node.textContent)).toContain(
+    "Save your work",
+  );
+  expect(inShadow(tip, '[part="description"]').textContent).toContain("Save your work");
+  control.dispatchEvent(
+    new KeyboardEvent("keydown", {
+      key: "Escape",
+      bubbles: true,
+      composed: true,
+      cancelable: true,
+    }),
+  );
+  expect(tip.open).toBe(false);
+  expect(button.shadowRoot!.activeElement).toBe(control);
+  const description = control.ariaDescribedByElements!.at(-1)!;
+  tip.label = "Save the latest draft";
+  await settled(tip);
+  expect(description.textContent).toBe("Save the latest draft");
+  tip.remove();
+  expect(control.ariaDescribedByElements).not.toContain(description);
+});
+
+it("pins visibility and cancels pending hover before returning to automatic behavior", async () => {
+  const tip = await fixture<UITooltip>(
+    '<ui-tooltip open-delay="50" label="Hint"><button slot="trigger">Trigger</button></ui-tooltip>',
+  );
+  const button = tip.querySelector("button")!;
+  button.dispatchEvent(new PointerEvent("pointerover", { bubbles: true }));
+  tip.forceOpen = false;
+  await settled(tip);
+  tip.forceOpen = undefined;
+  await settled(tip);
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  expect(tip.open).toBe(false);
+  tip.forceOpen = true;
+  await settled(tip);
+  expect(tip.open).toBe(true);
+  tip.dismiss("escape");
+  expect(tip.open).toBe(true);
+  tip.forceOpen = false;
+  await settled(tip);
+  tip.show();
+  expect(tip.open).toBe(false);
+});
+
+it("tracks one cursor axis and falls back to the control anchor on keyboard focus", async () => {
+  const tip = await fixture<UITooltip>(
+    '<ui-tooltip follow-cursor="x" label="Timeline" open-delay="0"><button slot="trigger" style="width:300px;height:50px;margin:80px">Timeline</button></ui-tooltip>',
+  );
+  const trigger = tip.querySelector("button")!;
+  inShadow<HTMLElement>(tip, '[part="popup"]').style.width = "100px";
+  const move = async (x: number) => {
+    const rect = trigger.getBoundingClientRect();
+    trigger.dispatchEvent(
+      new PointerEvent("pointermove", {
+        bubbles: true,
+        composed: true,
+        pointerType: "mouse",
+        clientX: rect.left + x,
+        clientY: rect.top + 20,
+      }),
+    );
+    tip.show();
+    await settled(tip);
+    await new Promise(requestAnimationFrame);
+    return tip.positionSnapshot!;
+  };
+  const first = await move(60),
+    second = await move(160);
+  expect(second.left - first.left).toBeCloseTo(100, 0);
+  expect(second.top).toBe(first.top);
+  trigger.focus();
+  await settled(tip);
+  await new Promise(requestAnimationFrame);
+  expect(tip.positionSnapshot!.left).not.toBe(second.left);
+});
+
+it("settles scaled entry geometry without waiting for another pointer move", async () => {
+  const host = await fixture<HTMLElement>(`
+    <div>
+      <style>
+        @keyframes tooltip-test-entry { from { scale: 0.5; } }
+        #settling-tooltip::part(popup) { display: block; width: 100px; height: 30px; }
+        #settling-tooltip:state(entering)::part(popup) {
+          animation: tooltip-test-entry 100ms linear both;
+        }
+      </style>
+      <ui-tooltip id="settling-tooltip" trigger="manual" placement="left" offset="8" label="Details">
+        <button slot="trigger" style="width:100px;height:30px;margin:150px">Details</button>
+      </ui-tooltip>
+    </div>
+  `);
+  const tip = host.querySelector<UITooltip>("ui-tooltip")!;
+  const trigger = tip.querySelector("button")!;
+  tip.show();
+  await expect.poll(() => tip.matches(":state(active)")).toBe(true);
+  const popup = inShadow<HTMLElement>(tip, '[part="popup"]');
+  expect(popup.getBoundingClientRect().right).toBeCloseTo(
+    trigger.getBoundingClientRect().left - 8,
+    0,
+  );
+});

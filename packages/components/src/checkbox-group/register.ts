@@ -1,3 +1,4 @@
+import "../checkbox/register.js";
 import { UICheckboxGroup } from "./checkbox-group.js";
 
 if (!customElements.get("ui-checkbox-group")) {
@@ -11,3 +12,5 @@ declare global {
 }
 
 export { UICheckboxGroup };
+
+export * from "./checkbox-group.js";

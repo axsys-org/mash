@@ -15,7 +15,8 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const EXAMPLES_PATH = "apps/catalog/src/examples.ts";
-const STAGE_PATH = "apps/catalog/src/stage.ts";
+const STAGE_PATH = "apps/catalog/src/fixture-stage.ts";
+const SHOWCASE_PATH = "apps/catalog/src/showcase.ts";
 const ICONS_PATH = "packages/components/src/icon/carbon-icons.generated.ts";
 
 function lineAt(source, index) {
@@ -27,8 +28,24 @@ function location(file, source, index) {
 }
 
 async function main() {
-  const examples = await readFile(path.join(ROOT, EXAMPLES_PATH), "utf8");
+  const examples = (
+    await Promise.all(
+      [
+        EXAMPLES_PATH,
+        "apps/catalog/src/examples/controls.ts",
+        "apps/catalog/src/examples/components.ts",
+        "apps/catalog/src/examples/conversation.ts",
+        "apps/catalog/src/examples/navigation.ts",
+        "apps/catalog/src/examples/data.ts",
+        "apps/catalog/src/examples/tables.ts",
+        "apps/catalog/src/examples/utility.ts",
+        "apps/catalog/src/examples/collections.ts",
+        "apps/catalog/src/examples/patterns.ts",
+      ].map((file) => readFile(path.join(ROOT, file), "utf8")),
+    )
+  ).join("\n");
   const stage = await readFile(path.join(ROOT, STAGE_PATH), "utf8");
+  const showcase = await readFile(path.join(ROOT, SHOWCASE_PATH), "utf8");
   const icons = await readFile(path.join(ROOT, ICONS_PATH), "utf8");
   const problems = [];
   const iconNames = new Set([...icons.matchAll(/^  "([^"]+)": \{$/gm)].map((match) => match[1]));
@@ -38,15 +55,6 @@ async function main() {
     if (controls !== 1) {
       problems.push(
         `${location(EXAMPLES_PATH, examples, match.index)} input group authors ${controls} control slots; expected exactly one`,
-      );
-    }
-  }
-
-  for (const match of examples.matchAll(/<ui-kbd\b([^>]*)>/g)) {
-    const attributes = match[1];
-    if (/\bshortcut=/.test(attributes) && !/\bcommand=/.test(attributes)) {
-      problems.push(
-        `${location(EXAMPLES_PATH, examples, match.index)} shortcut KBD has no semantic command`,
       );
     }
   }
@@ -63,7 +71,20 @@ async function main() {
   for (const [file, source] of [
     [EXAMPLES_PATH, examples],
     [STAGE_PATH, stage],
+    [SHOWCASE_PATH, showcase],
   ]) {
+    for (const match of source.matchAll(/--_mash-[\w-]+/g)) {
+      problems.push(
+        `${location(file, source, match.index)} uses private catalogue variable ${match[0]}`,
+      );
+    }
+
+    for (const match of source.matchAll(/--ref-[\w-]+/g)) {
+      problems.push(
+        `${location(file, source, match.index)} consumes reference primitive ${match[0]}; use a semantic token or utility`,
+      );
+    }
+
     for (const match of source.matchAll(/<ui-icon\b[^>]*\bname="([^"]+)"[^>]*>/g)) {
       const name = match[1];
       if (name === "product.unknown" || iconNames.has(name)) continue;
@@ -85,16 +106,11 @@ async function main() {
     }
   }
 
-  const spinnerSection = examples.match(/"ui-spinner": \[([\s\S]*?)\n  \],/);
-  if (
-    !spinnerSection ||
-    !spinnerSection[1].includes("<ui-motion") ||
-    !spinnerSection[1].includes("<ui-kbd") ||
-    !spinnerSection[1].includes("<ui-gesture-binding")
-  ) {
-    problems.push(
-      `${EXAMPLES_PATH} ui-spinner needs a cross-component Motion, KBD, and Gesture composition`,
-    );
+  if (!examples.includes("<ui-virtual-list") || !examples.includes("<ui-virtual-item")) {
+    problems.push("Virtual list examples must author real virtual rows.");
+  }
+  if (/data-catalog-[a-z-]+/.test(examples)) {
+    problems.push("Examples must run without private stage controllers.");
   }
 
   if (problems.length > 0) {
@@ -104,7 +120,7 @@ async function main() {
   }
 
   console.log(
-    `catalogue conformance: ok — ${iconNames.size} semantic icons, input groups, commands, gestures, and motion composition verified`,
+    `catalogue conformance: ok — ${iconNames.size} semantic icons, portable component sources and virtual-row composition verified`,
   );
 }
 

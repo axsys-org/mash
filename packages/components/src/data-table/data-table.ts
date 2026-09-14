@@ -202,7 +202,7 @@ export class UIDataTable extends LitElement {
     this.addEventListener("reset", this.#onReset);
     this.#collectionObserver.observe(this, {
       attributes: true,
-      attributeFilter: ["row-index", "column-index"],
+      attributeFilter: ["row-index", "column-index", "hidden"],
       childList: true,
       subtree: true,
     });
@@ -250,15 +250,21 @@ export class UIDataTable extends LitElement {
   }
 
   get #rows(): UITableRow[] {
-    return [...this.querySelectorAll<UITableRow>("ui-table-row")];
+    return [...this.querySelectorAll<UITableRow>("ui-table-row")].filter(
+      (part) => !part.closest("[hidden]"),
+    );
   }
 
   get #heads(): UITableHead[] {
-    return [...this.querySelectorAll<UITableHead>("ui-table-head")];
+    return [...this.querySelectorAll<UITableHead>("ui-table-head")].filter(
+      (part) => !part.closest("[hidden]"),
+    );
   }
 
   get #cells(): UITableCell[] {
-    return [...this.querySelectorAll<UITableCell>("ui-table-cell")];
+    return [...this.querySelectorAll<UITableCell>("ui-table-cell")].filter(
+      (part) => !part.closest("[hidden]"),
+    );
   }
 
   #rowIndex(element: Element): number {

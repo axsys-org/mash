@@ -9,3 +9,5 @@ declare global {
 }
 
 export { UITooltip };
+
+export * from "./tooltip.js";

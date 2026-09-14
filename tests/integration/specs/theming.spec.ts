@@ -18,7 +18,7 @@ test.describe("theme nesting", () => {
     const pair = await page.evaluate(async () => {
       const host = document.createElement("div");
       host.dataset.theme = "light";
-      host.innerHTML = `<ui-button>Primary</ui-button>`;
+      host.innerHTML = `<ui-button variant="primary">Primary</ui-button>`;
       document.body.append(host);
       await customElements.whenDefined("ui-button");
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));

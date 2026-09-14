@@ -181,3 +181,63 @@ describe("ui-tree", () => {
     expect(tree.indexOf("leaf")).toBe(1);
   });
 });
+
+describe("controlled tree expansion", () => {
+  it("applies pointer and keyboard owner requests without losing nested expansion or edited content", async () => {
+    const tree = await fixture<UITree>(
+      `<ui-tree><ui-tree-item value="root" title="Root" kind="folder" expanded><ui-tree-item slot="children" value="branch" title="Branch" kind="folder" expanded><ui-tree-item slot="children" value="leaf" title="Leaf" selected><input slot="actions" value="Draft"></ui-tree-item></ui-tree-item></ui-tree-item></ui-tree>`,
+    );
+    const [root, branch, leaf] = [...tree.querySelectorAll("ui-tree-item")];
+    tree.addEventListener("ui-tree-toggle", (event) => {
+      const { value, expanded } = (event as CustomEvent<{ value: string; expanded: boolean }>)
+        .detail;
+      const item = [...tree.querySelectorAll("ui-tree-item")].find(
+        (candidate) => candidate.value === value,
+      );
+      if (item) item.expanded = expanded;
+    });
+    const control = inShadow<HTMLButtonElement>(root!, '[part="control"]');
+    const input = leaf!.querySelector("input")!;
+    input.value = "Retained edit";
+    control.click();
+    await settled(tree);
+    expect(root!.expanded).toBe(false);
+    expect(inShadow<HTMLElement>(root!, '[part="children"]').hidden).toBe(true);
+    expect(branch!.expanded).toBe(true);
+    expect(inShadow<HTMLButtonElement>(leaf!, '[part="control"]').tabIndex).toBe(-1);
+    control.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, composed: true }),
+    );
+    await settled(tree);
+    expect(root!.expanded).toBe(true);
+    expect(inShadow<HTMLElement>(root!, '[part="children"]').hidden).toBe(false);
+    expect(branch!.expanded).toBe(true);
+    expect(input.value).toBe("Retained edit");
+    expect(leaf!.selected).toBe(true);
+    expect(
+      [...tree.querySelectorAll("ui-tree-item")].filter(
+        (item) => inShadow<HTMLButtonElement>(item, '[part="control"]').tabIndex === 0,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("returns focus to a collapsed ancestor and skips disabled children", async () => {
+    const tree = await fixture<UITree>(
+      `<ui-tree><ui-tree-item value="root" title="Root" kind="folder" expanded><ui-tree-item slot="children" disabled title="Unavailable"></ui-tree-item><ui-tree-item slot="children" value="leaf" title="Leaf" selected></ui-tree-item></ui-tree-item></ui-tree>`,
+    );
+    const root = tree.querySelector("ui-tree-item")!;
+    const leaf = tree.querySelector('ui-tree-item[value="leaf"]')!;
+    const rootControl = inShadow<HTMLButtonElement>(root, '[part="control"]');
+    rootControl.focus();
+    rootControl.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, composed: true }),
+    );
+    expect(leaf.shadowRoot!.activeElement).toBe(inShadow(leaf, '[part="control"]'));
+    root.expanded = false;
+    await settled(tree);
+    expect(root.shadowRoot!.activeElement).toBe(rootControl);
+    expect(rootControl.tabIndex).toBe(0);
+    expect(inShadow<HTMLButtonElement>(leaf, '[part="control"]').tabIndex).toBe(-1);
+    expect(leaf.hasAttribute("selected")).toBe(true);
+  });
+});

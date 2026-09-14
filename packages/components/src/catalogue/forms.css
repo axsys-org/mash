@@ -1,0 +1,1178 @@
+/** Mash forms recipes. Included by catalogue/mash.css. */
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-checkbox {
+    --_mash-checkable-font-family: var(--type-body-font-family);
+    --_mash-checkable-font-size: var(--type-body-font-size);
+    --_mash-checkable-line-height: var(--type-body-line-height);
+    --_mash-checkbox-indicator-size: var(--mash-size-icon, var(--layout-dimension-checkbox-medium));
+    --_mash-checkbox-mark-size: var(--layout-dimension-checkbox-mark-medium);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch {
+    --_mash-checkable-font-family: var(
+      --_mash-context-switch-font-family,
+      var(--type-body-font-family)
+    );
+    --_mash-checkable-font-size: var(--_mash-context-switch-font-size, var(--type-body-font-size));
+    --_mash-checkable-line-height: var(
+      --_mash-context-switch-line-height,
+      var(--type-body-line-height)
+    );
+    --_mash-switch-track-inline: var(
+      --_mash-context-switch-inline,
+      var(--layout-dimension-switch-track-medium-inline)
+    );
+    --_mash-switch-track-block: var(
+      --_mash-context-switch-block,
+      var(--layout-dimension-switch-track-medium-block)
+    );
+    --_mash-switch-thumb-size: var(
+      --_mash-context-switch-thumb,
+      var(--layout-dimension-switch-thumb-medium)
+    );
+    --_mash-switch-inset: var(--space-switch-inset);
+    --_mash-switch-progress: 0;
+    --_mash-switch-direction: 1;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox[size="xs"],
+  :where([data-mash-catalogue="mash"]) ui-checkbox[size="xsmall"] {
+    --_mash-checkable-font-family: var(--type-label-small-font-family);
+    --_mash-checkable-font-size: var(--type-label-small-font-size);
+    --_mash-checkable-line-height: var(--type-label-small-line-height);
+    --_mash-checkbox-indicator-size: var(--layout-dimension-checkbox-xsmall);
+    --_mash-checkbox-mark-size: var(--layout-dimension-checkbox-mark-xsmall);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox[size="sm"],
+  :where([data-mash-catalogue="mash"]) ui-checkbox[size="small"] {
+    --_mash-checkable-font-family: var(--type-callout-font-family);
+    --_mash-checkable-font-size: var(--type-callout-font-size);
+    --_mash-checkable-line-height: var(--type-callout-line-height);
+    --_mash-checkbox-indicator-size: var(--layout-dimension-checkbox-small);
+    --_mash-checkbox-mark-size: var(--layout-dimension-checkbox-mark-small);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch[size="compact"],
+  :where([data-mash-catalogue="mash"]) ui-switch[size="sm"],
+  :where([data-mash-catalogue="mash"]) ui-switch[size="small"] {
+    --_mash-checkable-font-family: var(--type-label-small-font-family);
+    --_mash-checkable-font-size: var(--type-label-small-font-size);
+    --_mash-checkable-line-height: var(--type-label-small-line-height);
+    --_mash-switch-track-inline: var(--layout-dimension-switch-track-small-inline);
+    --_mash-switch-track-block: var(--layout-dimension-switch-track-small-block);
+    --_mash-switch-thumb-size: var(--layout-dimension-switch-thumb-small);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox[size="base"],
+  :where([data-mash-catalogue="mash"]) ui-checkbox[size="md"],
+  :where([data-mash-catalogue="mash"]) ui-checkbox[size="medium"] {
+    --_mash-checkable-font-family: var(--type-body-font-family);
+    --_mash-checkable-font-size: var(--type-body-font-size);
+    --_mash-checkable-line-height: var(--type-body-line-height);
+    --_mash-checkbox-indicator-size: var(--mash-size-icon, var(--layout-dimension-checkbox-medium));
+    --_mash-checkbox-mark-size: var(--layout-dimension-checkbox-mark-medium);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox[size="lg"],
+  :where([data-mash-catalogue="mash"]) ui-checkbox[size="large"] {
+    --_mash-checkable-font-family: var(--type-label-large-font-family);
+    --_mash-checkable-font-size: var(--type-label-large-font-size);
+    --_mash-checkable-line-height: var(--type-label-large-line-height);
+    --_mash-checkbox-indicator-size: var(--layout-dimension-checkbox-large);
+    --_mash-checkbox-mark-size: var(--layout-dimension-checkbox-mark-large);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(root),
+  :where([data-mash-catalogue="mash"]) ui-radio::part(root),
+  :where([data-mash-catalogue="mash"]) ui-switch::part(root) {
+    display: inline-grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-control-gap);
+    color: var(--color-text);
+    font-family: var(--_mash-checkable-font-family, var(--type-body-font-family));
+    font-size: var(--_mash-checkable-font-size, var(--type-body-font-size));
+    line-height: var(--_mash-checkable-line-height, var(--type-body-line-height));
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(root) {
+    align-items: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch::part(root) {
+    grid-template-columns: var(--_mash-switch-track-inline) minmax(0, 1fr);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch[label-side="left"]::part(root) {
+    grid-template-columns: minmax(0, 1fr) var(--_mash-switch-track-inline);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(label) {
+    line-height: 1.2;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch::part(label) {
+    grid-column: 2;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch[label-side="left"]::part(label) {
+    grid-column: 1;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(control),
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(indicator),
+  :where([data-mash-catalogue="mash"]) ui-radio::part(control),
+  :where([data-mash-catalogue="mash"]) ui-radio::part(indicator),
+  :where([data-mash-catalogue="mash"]) ui-switch::part(control),
+  :where([data-mash-catalogue="mash"]) ui-switch::part(track) {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(control),
+  :where([data-mash-catalogue="mash"]) ui-radio::part(control),
+  :where([data-mash-catalogue="mash"]) ui-switch::part(control) {
+    z-index: var(--layer-raised);
+    margin: var(--layout-dimension-zero);
+    border: 0;
+    padding: var(--layout-dimension-zero);
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(control),
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(indicator),
+  :where([data-mash-catalogue="mash"]) ui-radio::part(control),
+  :where([data-mash-catalogue="mash"]) ui-radio::part(indicator) {
+    inline-size: var(--layout-dimension-glyph);
+    block-size: var(--layout-dimension-glyph);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(control),
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(indicator) {
+    inline-size: var(--_mash-checkbox-indicator-size);
+    block-size: var(--_mash-checkbox-indicator-size);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(indicator),
+  :where([data-mash-catalogue="mash"]) ui-radio::part(indicator) {
+    display: grid;
+    place-items: center;
+    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
+    background: var(--_mash-component-surface);
+    color: var(--color-on-action);
+    pointer-events: none;
+    transition:
+      border-color var(--duration-control) var(--easing-control),
+      background-color var(--duration-control) var(--easing-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(indicator) {
+    border-radius: calc(var(--radius-control) / 2);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox[checked]::part(indicator),
+  :where([data-mash-catalogue="mash"]) ui-checkbox[indeterminate]::part(indicator) {
+    border-color: var(--color-action);
+    background: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox[checked]::part(indicator)::before {
+    content: "✓";
+    font-size: var(--_mash-checkbox-mark-size);
+    line-height: 1;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox[indeterminate]::part(indicator)::before {
+    content: "−";
+    font-size: var(--_mash-checkbox-mark-size);
+    line-height: 1;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-radio::part(indicator) {
+    border-radius: 50%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-radio[checked]::part(indicator)::before {
+    inline-size: calc(var(--layout-dimension-glyph) / 2);
+    block-size: calc(var(--layout-dimension-glyph) / 2);
+    border-radius: 50%;
+    background: var(--color-action);
+    content: "";
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch::part(control),
+  :where([data-mash-catalogue="mash"]) ui-switch::part(track) {
+    inline-size: var(--_mash-switch-track-inline);
+    block-size: var(--_mash-switch-track-block);
+    border-radius: var(--radius-pill);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch[label-side="left"]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-switch[label-side="left"]::part(track) {
+    grid-column: 2;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch::part(track) {
+    position: relative;
+    border: 0;
+    background: var(--color-neutral);
+    pointer-events: none;
+    box-shadow: inset 0 0 0 var(--border-hairline) var(--_mash-component-boundary);
+    transition:
+      background-color var(--duration-moderate-enter) var(--easing-settle),
+      box-shadow var(--duration-moderate-enter) var(--easing-settle);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch::part(thumb) {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: var(--_mash-switch-inset);
+    inline-size: var(--_mash-switch-thumb-size);
+    block-size: var(--_mash-switch-thumb-size);
+    border-radius: 50%;
+    background: var(--_mash-component-surface-raised);
+    box-shadow: 0 var(--border-hairline) var(--space-control-block-small)
+      var(--_mash-component-shadow);
+    translate: calc(
+        var(--_mash-switch-direction) * var(--_mash-switch-progress) *
+          (
+            var(--_mash-switch-track-inline) - var(--_mash-switch-thumb-size) - 2 *
+              var(--_mash-switch-inset)
+          )
+      ) -50%;
+    transition:
+      translate var(--duration-moderate-enter) var(--easing-settle),
+      scale var(--duration-fast-enter) var(--easing-settle),
+      background-color var(--duration-moderate-enter) var(--easing-control),
+      box-shadow var(--duration-moderate-enter) var(--easing-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch[checked]::part(track) {
+    background: var(--color-action);
+    box-shadow: inset 0 0 0 var(--border-hairline) var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-switch[checked]::part(thumb) {
+    background: var(--color-on-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-radio::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-switch::part(control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox:is([disabled], :state(disabled))::part(root),
+  :where([data-mash-catalogue="mash"]) ui-radio:is([disabled], :state(disabled))::part(root),
+  :where([data-mash-catalogue="mash"]) ui-switch:is([disabled], :state(disabled))::part(root) {
+    color: var(--color-text-disabled);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-checkbox:is([disabled], :state(disabled))::part(indicator),
+  :where([data-mash-catalogue="mash"]) ui-radio:is([disabled], :state(disabled))::part(indicator) {
+    background: var(--color-neutral);
+    color: var(--color-text-disabled);
+    opacity: 0.5;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox-group::part(root),
+  :where([data-mash-catalogue="mash"]) ui-radio-group::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-checkbox-group[orientation="horizontal"]::part(root),
+  :where([data-mash-catalogue="mash"]) ui-radio-group[orientation="horizontal"]::part(root) {
+    grid-auto-flow: column;
+    justify-content: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    color: var(--color-text);
+    font-family: var(--type-label-font-family);
+    font-size: var(--type-label-font-size);
+    font-weight: var(--type-label-font-weight);
+    line-height: var(--type-label-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field > ui-slider[slot="control"]::part(label) {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(control),
+  :where([data-mash-catalogue="mash"]) ui-slider::part(start-control),
+  :where([data-mash-catalogue="mash"]) ui-slider::part(track) {
+    grid-row: 2;
+    grid-column: 1;
+    inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(control),
+  :where([data-mash-catalogue="mash"]) ui-slider::part(start-control) {
+    z-index: var(--layer-raised);
+    block-size: var(--layout-dimension-glyph);
+    margin: var(--layout-dimension-zero);
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(track) {
+    position: relative;
+    align-self: center;
+    block-size: var(--space-control-block);
+    overflow: visible;
+    border-radius: var(--radius-pill);
+    background: var(--_mash-component-surface-sunken);
+    pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(indicator) {
+    position: absolute;
+    inset-block: var(--layout-dimension-zero);
+    border-radius: inherit;
+    background: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(ticks) {
+    position: absolute;
+    inset-inline: var(--layout-dimension-zero);
+    inset-block-start: calc(100% + var(--space-control-block-small));
+    color: var(--color-text-muted);
+    font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-small-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(thumb),
+  :where([data-mash-catalogue="mash"]) ui-slider::part(start-thumb) {
+    position: absolute;
+    inset-block-start: 50%;
+    inline-size: var(--layout-dimension-glyph);
+    block-size: var(--layout-dimension-glyph);
+    border: var(--border-hairline) solid var(--color-action);
+    border-radius: 50%;
+    background: var(--_mash-component-surface);
+    translate: -50% -50%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider::part(thumb-value) {
+    position: absolute;
+    inset-inline-start: 50%;
+    inset-block-end: calc(100% + var(--space-control-block-small));
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block-small) var(--space-control-inline-small);
+    background: var(--color-surface-inverse);
+    color: var(--_mash-component-inverse-label);
+    font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-small-font-family);
+    opacity: 0;
+    pointer-events: none;
+    translate: -50% 0;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider:hover::part(thumb-value),
+  :where([data-mash-catalogue="mash"]) ui-slider:focus-within::part(thumb-value) {
+    opacity: 1;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider:dir(rtl)::part(thumb),
+  :where([data-mash-catalogue="mash"]) ui-slider:dir(rtl)::part(start-thumb) {
+    translate: 50% -50%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider:dir(rtl)::part(control),
+  :where([data-mash-catalogue="mash"]) ui-slider:dir(rtl)::part(start-control),
+  :where([data-mash-catalogue="mash"]) ui-slider[reversed]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-slider[reversed]::part(start-control) {
+    direction: rtl;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider:dir(rtl)[reversed]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-slider:dir(rtl)[reversed]::part(start-control) {
+    direction: ltr;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"] {
+    display: inline-block;
+    block-size: var(--layout-dimension-compact);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(root) {
+    block-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(start-control),
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(track) {
+    grid-row: 2;
+    justify-self: center;
+    inline-size: var(--layout-dimension-glyph);
+    block-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(start-control) {
+    direction: rtl;
+    writing-mode: vertical-lr;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"][reversed]::part(control),
+  :where([data-mash-catalogue="mash"])
+    ui-slider[orientation="vertical"][reversed]::part(start-control) {
+    direction: ltr;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(track) {
+    inline-size: var(--space-control-block);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(indicator) {
+    inset-block-start: revert-layer;
+    inset-inline: var(--layout-dimension-zero);
+    inset-block-end: auto;
+    inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(thumb),
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]::part(start-thumb),
+  :where([data-mash-catalogue="mash"]) ui-slider[orientation="vertical"]:dir(rtl)::part(thumb),
+  :where([data-mash-catalogue="mash"])
+    ui-slider[orientation="vertical"]:dir(rtl)::part(start-thumb) {
+    inset-block-start: revert-layer;
+    inset-inline-start: 50%;
+    translate: -50% -50%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[disabled]::part(track),
+  :where([data-mash-catalogue="mash"]) ui-slider[disabled]::part(indicator) {
+    background: var(--_mash-component-surface-sunken);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[disabled]::part(thumb) {
+    border-color: var(--_mash-component-boundary);
+    background: var(--_mash-component-surface-sunken);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[disabled]::part(start-thumb) {
+    border-color: var(--_mash-component-boundary);
+    background: var(--_mash-component-surface-sunken);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[readonly]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-slider[readonly]::part(start-control) {
+    cursor: default;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-slider[readonly]::part(indicator) {
+    background: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    min-inline-size: var(--layout-dimension-zero);
+    color: var(--color-text);
+    font-family: var(--type-body-font-family);
+    font-size: var(--type-body-font-size);
+    line-height: var(--type-body-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field::part(label),
+  :where([data-mash-catalogue="mash"]) ui-fieldset::part(legend),
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(label),
+  :where([data-mash-catalogue="mash"]) ui-otp-field::part(label) {
+    color: var(--color-text);
+    font-family: var(--type-label-font-family);
+    font-size: var(--type-label-font-size);
+    font-weight: var(--type-label-font-weight);
+    line-height: var(--type-label-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field::part(description) {
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+    line-height: var(--type-label-small-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field::part(error) {
+    color: var(--color-critical-text);
+    font-size: var(--type-label-small-font-size);
+    line-height: var(--type-label-small-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-fieldset::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    margin: 0;
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    padding: var(--space-container-block) var(--space-container-inline);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-fieldset::part(legend) {
+    padding-inline: var(--space-control-block);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-form::part(root) {
+    display: grid;
+    gap: var(--space-group-block);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-number-field {
+    display: inline-block;
+    inline-size: 12rem;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(root) {
+    display: grid;
+    gap: var(--space-control-gap);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(group) {
+    display: flex;
+    align-items: center;
+    min-inline-size: 0;
+    min-block-size: var(--_mash-control-input-height);
+    padding: var(--border-strong);
+    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
+    border-radius: var(--radius-control);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    transition: border-color var(--duration-control) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(group):focus-within {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field:state(invalid)::part(group) {
+    border-color: var(--color-critical-text);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement),
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment) {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: calc(var(--_mash-control-input-height) - 2 * var(--border-strong));
+    align-self: stretch;
+    border: 0;
+    border-radius: max(0px, calc(var(--radius-control) - var(--border-strong)));
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: var(--type-label-large-font-size);
+    cursor: pointer;
+    transition:
+      background var(--duration-control) var(--easing-control),
+      color var(--duration-control) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement):disabled,
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment):disabled {
+    opacity: var(--effect-opacity-disabled);
+    cursor: default;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment):focus-visible {
+    outline: var(--border-hairline) solid var(--color-focus-ring);
+    outline-offset: calc(-1 * var(--border-hairline));
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(control) {
+    flex: 1;
+    inline-size: 100%;
+    min-inline-size: 0;
+    field-sizing: fixed;
+    min-block-size: calc(var(--_mash-control-input-height) - 2 * var(--border-strong));
+    border: 0;
+    outline: none;
+    padding: 0 var(--space-control-inline-small);
+    background: transparent;
+    color: inherit;
+    text-align: center;
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+    font-variant-numeric: tabular-nums;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(suffix) {
+    flex: none;
+    color: var(--color-text-muted);
+    padding-inline: var(--space-control-gap);
+    font-size: var(--type-label-font-size);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field:state(disabled)::part(group) {
+    opacity: var(--effect-opacity-disabled);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field[readonly]::part(group) {
+    background: var(--_mash-component-surface-sunken);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(group) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "prefix control suffix increment" "prefix control suffix decrement";
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(control) {
+    grid-area: control;
+    text-align: start;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(prefix) {
+    grid-area: prefix;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(suffix) {
+    grid-area: suffix;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(increment) {
+    grid-area: increment;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(decrement) {
+    grid-area: decrement;
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(increment),
+  :where([data-mash-catalogue="mash"]) ui-number-field.mash-number-stacked::part(decrement) {
+    font-size: var(--type-label-font-size);
+    line-height: 1;
+  }
+  :where([data-mash-catalogue="mash"]) ui-otp-field::part(cell):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-otp-field::part(root) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-control-gap);
+    align-items: center;
+    color: var(--color-text);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-otp-field::part(label) {
+    flex-basis: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-otp-field::part(cell) {
+    inline-size: var(--_mash-control-input-height);
+    block-size: var(--_mash-control-input-height);
+    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
+    border-radius: var(--radius-control);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    font: var(--type-label-font-weight) var(--_mash-control-text) / 1 var(--type-label-font-family);
+    text-align: center;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select {
+    display: inline-block;
+    min-inline-size: var(--layout-dimension-zero);
+    max-inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field > ui-select[slot="control"] {
+    display: block;
+    inline-size: 100%;
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-field > ui-select[slot="control"]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-field > ui-select[slot="control"]::part(trigger) {
+    inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(trigger),
+  :where([data-mash-catalogue="mash"]) ui-autocomplete::part(input-group),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(input-group) {
+    box-sizing: border-box;
+    min-block-size: var(--_mash-control-input-height);
+    min-inline-size: calc(var(--space-container-inline) * 4);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-control);
+    padding: 0 var(--_mash-control-inline);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--_mash-control-text) / var(--type-body-line-height)
+      var(--type-body-font-family);
+    text-align: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(control) {
+    display: inline-flex;
+    gap: var(--space-control-gap);
+    align-items: center;
+    min-inline-size: var(--layout-dimension-zero);
+    max-inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(trigger) {
+    display: inline-flex;
+    flex: 1 1 auto;
+    gap: var(--space-control-gap);
+    align-items: center;
+    justify-content: space-between;
+    min-inline-size: min(calc(var(--space-container-inline) * 4), 100%);
+    max-inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(value) {
+    display: block;
+    flex: 1 1 auto;
+    min-inline-size: var(--layout-dimension-zero);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(icon) {
+    display: inline-flex;
+    flex: none;
+    color: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select:not(:has(> [slot="icon"]))::part(icon) {
+    inline-size: calc(var(--layout-dimension-glyph) * 0.375);
+    block-size: calc(var(--layout-dimension-glyph) * 0.375);
+    margin-inline: var(--space-control-block-small);
+    border-inline-end: var(--border-hairline) solid currentColor;
+    border-block-end: var(--border-hairline) solid currentColor;
+    transform: translateY(-25%) rotate(45deg);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-autocomplete::part(input-group),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(input-group) {
+    display: inline-flex;
+    inline-size: 100%;
+    min-inline-size: 0;
+    flex-wrap: nowrap;
+    gap: var(--_mash-control-gap);
+    align-items: center;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(ui-autocomplete, ui-combobox):not(:has(> [slot="label"]))::part(label) {
+    display: none;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-autocomplete, ui-combobox):not(:has(> [slot="chips"]))::part(chips) {
+    display: none;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-autocomplete, ui-combobox):not(:has(> [slot="value"]))::part(value) {
+    display: none;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-autocomplete, ui-combobox):not(:has(> [slot="icon"]))::part(icon) {
+    display: none;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-autocomplete, ui-combobox):not(:has(> [slot="trigger"]))::part(trigger) {
+    display: none;
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-autocomplete, ui-combobox):not(:has(> [slot="clear"]))::part(clear) {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-autocomplete::part(chips),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(chips) {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-control-gap);
+    align-items: center;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-autocomplete > [slot="chips"],
+  :where([data-mash-catalogue="mash"]) ui-combobox > [slot="chips"] {
+    display: contents;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-combobox > [slot="chips"][data-catalog-drag-source] {
+    display: inline-block;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-autocomplete::part(control),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(control) {
+    flex: 1 1 auto;
+    min-inline-size: var(--layout-dimension-zero);
+    border: none;
+    padding: var(--layout-dimension-zero);
+    outline: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-autocomplete::part(icon),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(icon) {
+    order: -1;
+    flex: none;
+    display: inline-flex;
+    color: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select[disabled]::part(trigger),
+  :where([data-mash-catalogue="mash"]) ui-combobox[disabled]::part(input-group) {
+    background: var(--_mash-component-surface-sunken);
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(trigger):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-autocomplete:focus-within::part(input-group),
+  :where([data-mash-catalogue="mash"]) ui-combobox:focus-within::part(input-group),
+  :where([data-mash-catalogue="mash"]) ui-option:focus-visible::part(control) {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(positioner),
+  :where([data-mash-catalogue="mash"]) ui-autocomplete::part(positioner),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(positioner) {
+    z-index: var(--layer-overlay);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-autocomplete::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(popup) {
+    display: grid;
+    gap: var(--border-hairline);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    padding: var(--space-control-block);
+    background: var(--_mash-component-surface-raised);
+    box-shadow: 0 4px 12px var(--_mash-component-shadow);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(ui-select, ui-autocomplete, ui-combobox):state(entering)::part(popup) {
+    animation: mash-menu-enter var(--duration-transient) var(--easing-spring-snappy) both;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    :is(ui-select, ui-autocomplete, ui-combobox):state(exiting)::part(popup) {
+    animation: mash-menu-exit var(--duration-transient) var(--easing-control) both;
+    pointer-events: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(popup),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(popup) {
+    inline-size: max-content;
+    min-inline-size: min(
+      var(--layout-menu-inline-mini),
+      calc(100vw - var(--space-container-inline))
+    );
+    max-inline-size: min(
+      var(--layout-menu-inline-regular),
+      calc(100vw - var(--space-container-inline))
+    );
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(viewport),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(viewport) {
+    min-block-size: var(--layout-dimension-zero);
+    max-block-size: min(
+      calc(var(--layout-menu-row-regular) * 8),
+      calc(100vh - var(--space-region) * 2)
+    );
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(search) {
+    display: block;
+    border-block-end: var(--border-hairline) solid var(--_mash-component-boundary);
+    margin-block-end: var(--space-control-block-small);
+    padding-block-end: var(--space-control-block);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(search-control) {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: var(--layout-dimension-control-small);
+    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block-small) var(--space-control-inline-small);
+    outline: none;
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(search-control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select:not([searchable])::part(search) {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(listbox),
+  :where([data-mash-catalogue="mash"]) ui-autocomplete::part(listbox),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(listbox) {
+    display: grid;
+    gap: var(--border-hairline);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select::part(empty),
+  :where([data-mash-catalogue="mash"]) ui-autocomplete::part(empty),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(empty),
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(loading) {
+    display: block;
+    padding: var(--space-control-block) var(--space-control-inline);
+    color: var(--color-text-muted);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-select:not(:state(empty))::part(empty),
+  :where([data-mash-catalogue="mash"]) ui-autocomplete:not(:state(empty))::part(empty),
+  :where([data-mash-catalogue="mash"]) ui-combobox:not(:state(empty))::part(empty) {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-combobox::part(footer) {
+    display: flex;
+    gap: var(--space-control-gap);
+    align-items: center;
+    justify-content: space-between;
+    border-block-start: var(--border-hairline) solid var(--_mash-component-boundary);
+    margin-block-start: var(--space-control-block-small);
+    padding: var(--space-control-block) var(--space-control-inline) 0;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-combobox:not(:has(> [slot="footer"]))::part(footer) {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-option::part(control) {
+    display: flex;
+    gap: var(--space-control-gap);
+    align-items: center;
+    inline-size: 100%;
+    border: 0;
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block) var(--space-control-inline);
+    background: transparent;
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+    text-align: start;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-option::part(label),
+  :where([data-mash-catalogue="mash"]) ui-option::part(text) {
+    display: block;
+    flex: 1 1 auto;
+    min-inline-size: var(--layout-dimension-zero);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-option::part(indicator) {
+    flex: none;
+    margin-inline-start: auto;
+    color: var(--color-action);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-option-group::part(root),
+  :where([data-mash-catalogue="mash"]) ui-option-group::part(children) {
+    display: grid;
+    gap: var(--border-hairline);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-option-group::part(label) {
+    padding: var(--space-control-block) var(--space-control-inline);
+    color: var(--color-text-muted);
+    font: var(--type-label-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-option-row::part(row) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--layout-dimension-compact), 1fr));
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-chip::part(root) {
+    display: inline-flex;
+    gap: var(--space-control-block-small);
+    align-items: center;
+    border-radius: var(--radius-control);
+    padding: var(--border-hairline) var(--space-control-inline-small);
+    background: var(--color-neutral);
+    color: var(--color-on-neutral);
+    font: var(--type-label-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-chip::part(root):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-chip[disabled]::part(root) {
+    color: var(--color-text-disabled);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-option[active]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-option:not([disabled]):hover::part(control) {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-textarea::part(control) {
+    box-sizing: border-box;
+    min-inline-size: calc(var(--space-container-inline) * 2);
+    min-block-size: var(--_mash-control-input-height);
+    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
+    border-radius: var(--radius-control);
+    padding: var(--space-control-block) var(--_mash-control-inline);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--_mash-control-text) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+  :where([data-mash-catalogue="mash"]) ui-textarea::part(control) {
+    display: block;
+    inline-size: 100%;
+    min-block-size: var(--_mash-control-input-height);
+  }
+  :where([data-mash-catalogue="mash"]) ui-textarea::part(control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+  :where([data-mash-catalogue="mash"]) ui-textarea[disabled]::part(control) {
+    background: var(--_mash-component-surface-sunken);
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+  }
+  :where([data-mash-catalogue="mash"]) ui-option[selected]::part(control) {
+    background: var(--color-selection);
+    color: var(--color-on-selection);
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-checkbox, ui-radio):not([disabled], :state(disabled)):hover::part(indicator) {
+    border-color: var(--color-focus-ring);
+    background: var(--color-surface-hover);
+  }
+  :where([data-mash-catalogue="mash"])
+    :is(ui-checkbox, ui-radio)[checked]:not([disabled], :state(disabled)):hover::part(indicator),
+  :where([data-mash-catalogue="mash"])
+    ui-checkbox[indeterminate]:not([disabled], :state(disabled)):hover::part(indicator),
+  :where([data-mash-catalogue="mash"]) ui-switch[checked]:not([disabled]):hover::part(track) {
+    background: var(--color-action-hover);
+    border-color: var(--color-action-hover);
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch:not([checked]):not([disabled]):hover::part(track) {
+    background: var(--color-neutral-hover);
+  }
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(decrement):not(:disabled):hover,
+  :where([data-mash-catalogue="mash"]) ui-number-field::part(increment):not(:disabled):hover {
+    background: var(--color-surface-hover);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-switch[checked] {
+    --_mash-switch-progress: 1;
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch:dir(rtl) {
+    --_mash-switch-direction: -1;
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch::part(root) {
+    min-block-size: var(--_mash-control-input-height);
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch::part(control) {
+    touch-action: pan-y;
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch::part(label) {
+    transition: color var(--duration-fast-enter) var(--easing-settle);
+  }
+  @media (hover: hover) {
+    :where([data-mash-catalogue="mash"])
+      ui-switch:not([disabled], :state(disabled)):hover::part(thumb) {
+      scale: 1.1 1;
+    }
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-switch:not([disabled], :state(disabled)):active::part(thumb) {
+    scale: 1.2 0.85;
+  }
+  :where([data-mash-catalogue="mash"]) ui-switch[data-dragging]::part(thumb) {
+    transition: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) ui-switch::part(thumb),
+    :where([data-mash-catalogue="mash"]) ui-switch::part(track),
+    :where([data-mash-catalogue="mash"]) ui-switch::part(label) {
+      transition: none;
+      scale: 1;
+    }
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])[data-mash-size="small"],
+  :where([data-mash-catalogue="mash"]) [data-mash-size="small"] {
+    --_mash-context-switch-inline: var(--layout-dimension-switch-track-small-inline);
+    --_mash-context-switch-block: var(--layout-dimension-switch-track-small-block);
+    --_mash-context-switch-thumb: var(--layout-dimension-switch-thumb-small);
+    --_mash-context-switch-font-family: var(--type-label-small-font-family);
+    --_mash-context-switch-font-size: var(--type-label-small-font-size);
+    --_mash-context-switch-line-height: var(--type-label-small-line-height);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])[data-mash-size="medium"],
+  :where([data-mash-catalogue="mash"]) [data-mash-size="medium"] {
+    --_mash-context-switch-inline: var(--layout-dimension-switch-track-medium-inline);
+    --_mash-context-switch-block: var(--layout-dimension-switch-track-medium-block);
+    --_mash-context-switch-thumb: var(--layout-dimension-switch-thumb-medium);
+    --_mash-context-switch-font-family: var(--type-body-font-family);
+    --_mash-context-switch-font-size: var(--type-body-font-size);
+    --_mash-context-switch-line-height: var(--type-body-line-height);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])[data-mash-size="large"],
+  :where([data-mash-catalogue="mash"]) [data-mash-size="large"] {
+    --_mash-context-switch-inline: var(--layout-dimension-switch-track-medium-inline);
+    --_mash-context-switch-block: var(--layout-dimension-switch-track-medium-block);
+    --_mash-context-switch-thumb: var(--layout-dimension-switch-thumb-medium);
+    --_mash-context-switch-font-family: var(--type-body-font-family);
+    --_mash-context-switch-font-size: var(--type-body-font-size);
+    --_mash-context-switch-line-height: var(--type-body-line-height);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-switch:is([disabled], :state(disabled))::part(track) {
+    opacity: var(--effect-opacity-disabled);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"])
+    ui-switch:is([size="default"], [size="medium"], [size="md"]) {
+    --_mash-switch-track-inline: var(--layout-dimension-switch-track-medium-inline);
+    --_mash-switch-track-block: var(--layout-dimension-switch-track-medium-block);
+    --_mash-switch-thumb-size: var(--layout-dimension-switch-thumb-medium);
+    --_mash-checkable-font-family: var(--type-body-font-family);
+    --_mash-checkable-font-size: var(--type-body-font-size);
+    --_mash-checkable-line-height: var(--type-body-line-height);
+  }
+}

@@ -1,3 +1,4 @@
+import "../toggle/register.js";
 import { UIToggleGroup } from "./toggle-group.js";
 
 if (!customElements.get("ui-toggle-group")) {
@@ -11,3 +12,5 @@ declare global {
 }
 
 export { UIToggleGroup };
+
+export * from "./toggle-group.js";

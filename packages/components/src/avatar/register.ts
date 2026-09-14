@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UIAvatar };
+
+export * from "./avatar.js";

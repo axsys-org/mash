@@ -11,3 +11,5 @@ declare global {
     "sh-triptych": ShrineTriptych;
   }
 }
+
+export * from "./triptych.js";

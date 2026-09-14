@@ -1,3 +1,4 @@
+import "../menu/register.js";
 import { UIMenubar } from "./menubar.js";
 
 if (!customElements.get("ui-menubar")) customElements.define("ui-menubar", UIMenubar);
@@ -9,3 +10,5 @@ declare global {
 }
 
 export { UIMenubar };
+
+export * from "./menubar.js";

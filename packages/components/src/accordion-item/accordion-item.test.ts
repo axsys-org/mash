@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { fixture, inShadow } from "../test-support/fixture.js";
+import type { UIReveal } from "../reveal/reveal.js";
 import type { UIAccordionItem } from "./accordion-item.js";
 import "./register.js";
 
@@ -13,12 +14,16 @@ describe("ui-accordion-item", () => {
       </ui-accordion-item>
     `);
     const trigger = inShadow<HTMLButtonElement>(item, '[part="trigger"]');
-    const content = inShadow<HTMLElement>(item, '[part="content"]');
+    const content = inShadow<UIReveal>(item, '[part="content"]');
 
     expect(
       inShadow<HTMLSlotElement>(item, 'slot[name="title"]').assignedElements()[0]?.textContent,
     ).toBe("Authored title");
+    expect(content.localName).toBe("ui-reveal");
+    expect(content.open).toBe(true);
     expect(content.getAttribute("aria-labelledby")).toBe(trigger.id);
+    expect(content.getAttribute("role")).toBe("region");
+    expect(content.getAttribute("exportparts")).toContain("content:reveal-content");
     expect(item.matches(":state(open)")).toBe(true);
     expect(item.matches(":state(disabled)")).toBe(true);
   });

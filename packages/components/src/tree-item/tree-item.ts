@@ -84,6 +84,7 @@ export type TreeItemKind = "file" | "folder";
  * @mashnode children children root
  * @mashnode kind kind root
  * @mashnode size size root
+ * @mashaxis size control-size
  * @mashnode expanded expanded children
  * @mashnode current current control
  * @mashnode selected selected control
@@ -233,8 +234,11 @@ export class UITreeItem extends LitElement {
     this.renderRoot.querySelector<HTMLButtonElement>("[part='control']")?.focus();
   }
 
+  #tabbable = true;
+
   /** Assigns this item as the tree's one sequential keyboard stop. */
   setTabbable(tabbable: boolean): void {
+    this.#tabbable = tabbable;
     const control = this.renderRoot.querySelector<HTMLButtonElement>("[part='control']");
     if (control) control.tabIndex = tabbable ? 0 : -1;
   }
@@ -265,10 +269,21 @@ export class UITreeItem extends LitElement {
       .some((element) => element.localName === "ui-tree-item");
   };
 
-  #onActivate = (): void => {
+  #onActivate = (event: MouseEvent): void => {
     if (this.disabled) return;
-    this.dispatchEvent(new CustomEvent("ui-tree-item-select", { bubbles: true, composed: true }));
-    if (this.branch) this.requestExpansion(!this.expanded);
+    const multiple = this.closest("ui-tree")?.getAttribute("selection-mode") === "multiple";
+    const disclosure = event
+      .composedPath()
+      .some((node) => node instanceof Element && node.getAttribute("part") === "disclosure");
+    if (!multiple || !disclosure)
+      this.dispatchEvent(
+        new CustomEvent("ui-tree-item-select", {
+          bubbles: true,
+          composed: true,
+          detail: { shiftKey: event.shiftKey, ctrlKey: event.ctrlKey, metaKey: event.metaKey },
+        }),
+      );
+    if (this.branch && (!multiple || disclosure)) this.requestExpansion(!this.expanded);
   };
 
   #siblings(): UITreeItem[] {
@@ -332,7 +347,7 @@ export class UITreeItem extends LitElement {
           part="control"
           type="button"
           role="treeitem"
-          tabindex="0"
+          tabindex=${this.#tabbable ? "0" : "-1"}
           aria-current=${this.current ? "page" : nothing}
           aria-expanded=${this.branch ? String(this.expanded) : nothing}
           aria-level=${this.#level()}

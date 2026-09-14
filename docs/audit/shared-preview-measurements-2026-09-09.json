@@ -1,0 +1,107 @@
+{
+  "date": "2026-09-09",
+  "implementationCommit": "658615a",
+  "browser": "Playwright Chromium",
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "build": "Same frozen production build for all four cases",
+  "heapScope": "JavaScript heap after CDP garbage collection; excludes native renderer and total browser memory",
+  "resourceScope": "Unique decoded response bodies across parent and frames; excludes HTML navigation bodies; not compressed transfer",
+  "timingScope": "Single local run on a busy workstation; not a reliable latency comparison",
+  "results": [
+    {
+      "tag": "ui-tabs",
+      "mode": "frames",
+      "readyMs": 8419.70000000298,
+      "initial": {
+        "frames": 9,
+        "loadedFrames": 2,
+        "documents": 13,
+        "nodes": 4716,
+        "heapBytes": 6443372,
+        "uniqueBytes": 470342,
+        "scriptBytes": 171695
+      },
+      "full": {
+        "frames": 9,
+        "loadedFrames": 9,
+        "documents": 20,
+        "nodes": 11112,
+        "heapBytes": 13506704,
+        "uniqueBytes": 550459,
+        "scriptBytes": 247112
+      }
+    },
+    {
+      "tag": "ui-tabs",
+      "mode": "shared",
+      "readyMs": 1162.5,
+      "initial": {
+        "frames": 1,
+        "loadedFrames": 1,
+        "documents": 4,
+        "nodes": 5619,
+        "heapBytes": 3579304,
+        "uniqueBytes": 471069,
+        "scriptBytes": 172296
+      },
+      "full": {
+        "frames": 1,
+        "loadedFrames": 1,
+        "documents": 4,
+        "nodes": 9291,
+        "heapBytes": 4634736,
+        "uniqueBytes": 546486,
+        "scriptBytes": 247713
+      }
+    },
+    {
+      "tag": "ui-chart",
+      "mode": "frames",
+      "readyMs": 2456.2000000029802,
+      "initial": {
+        "frames": 51,
+        "loadedFrames": 3,
+        "documents": 56,
+        "nodes": 2589,
+        "heapBytes": 26279012,
+        "uniqueBytes": 1343269,
+        "scriptBytes": 1044622
+      },
+      "full": {
+        "frames": 51,
+        "loadedFrames": 51,
+        "documents": 104,
+        "nodes": 15751,
+        "heapBytes": 112376532,
+        "uniqueBytes": 1354120,
+        "scriptBytes": 1052653
+      }
+    },
+    {
+      "tag": "ui-chart",
+      "mode": "shared",
+      "readyMs": 2265.5999999940395,
+      "initial": {
+        "frames": 1,
+        "loadedFrames": 1,
+        "documents": 4,
+        "nodes": 2112,
+        "heapBytes": 6711140,
+        "uniqueBytes": 1343996,
+        "scriptBytes": 1045223
+      },
+      "full": {
+        "frames": 1,
+        "loadedFrames": 1,
+        "documents": 4,
+        "nodes": 12470,
+        "heapBytes": 16148148,
+        "uniqueBytes": 1352027,
+        "scriptBytes": 1053254
+      }
+    }
+  ]
+}

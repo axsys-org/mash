@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { fixture, inShadow, settled, shadow } from "../test-support/fixture.js";
 import { UIInput } from "./input.js";
@@ -15,7 +15,7 @@ describe("ui-input", () => {
 
     expect(input).toBeInstanceOf(UIInput);
     expect(input.type).toBe("text");
-    expect(input.size).toBe("medium");
+    expect(input.size).toBe("inherit");
     expect(control.localName).toBe("input");
     expect(control.placeholder).toBe("Search");
     expect(control.getAttribute("aria-label")).toBe("Search");
@@ -85,5 +85,76 @@ describe("ui-input", () => {
     await settled(form.parentElement!);
 
     expect(form.checkValidity()).toBe(true);
+  });
+
+  it("forwards native text constraints and clears editable text on Escape when requested", async () => {
+    const input = await fixture<UIInput>(`
+      <ui-input
+        value="MASH01"
+        autocomplete="off"
+        inputmode="text"
+        pattern="[A-Z]{4}[0-9]{2}"
+        minlength="6"
+        maxlength="10"
+        clean-on-escape
+      ></ui-input>
+    `);
+    const control = inShadow<HTMLInputElement>(input, '[part="control"]');
+    let inputEvents = 0;
+    input.addEventListener("input", () => inputEvents++);
+
+    expect(control.autocomplete).toBe("off");
+    expect(control.inputMode).toBe("text");
+    expect(control.pattern).toBe("[A-Z]{4}[0-9]{2}");
+    expect(control.minLength).toBe(6);
+    expect(control.maxLength).toBe(10);
+
+    control.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }),
+    );
+    await settled(input.parentElement!);
+
+    expect(input.value).toBe("");
+    expect(inputEvents).toBe(1);
+  });
+
+  it("forwards focus, selection, Enter, and native invalid state through the host", async () => {
+    const input = await fixture<UIInput>(`
+      <ui-input value="MASH01" pattern="[A-Z]{4}[0-9]{2}"></ui-input>
+    `);
+    const control = inShadow<HTMLInputElement>(input, '[part="control"]');
+    const enter = vi.fn();
+    const focusChange = vi.fn();
+
+    input.addEventListener("ui-input-enter", enter);
+    input.addEventListener("ui-input-focus-change", focusChange);
+
+    input.focus();
+    await settled(input.parentElement!);
+    expect(input.shadowRoot?.activeElement).toBe(control);
+    expect(input.matches(":state(focused)")).toBe(true);
+    expect(focusChange.mock.calls.at(-1)?.[0].detail).toEqual({ focused: true });
+
+    input.setSelectionRange(0, 4);
+    expect(control.selectionStart).toBe(0);
+    expect(control.selectionEnd).toBe(4);
+
+    control.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true }),
+    );
+    expect(enter.mock.calls.at(-1)?.[0].detail).toEqual({
+      value: "MASH01",
+      secondary: true,
+    });
+
+    control.value = "bad";
+    control.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    await settled(input.parentElement!);
+    expect(input.matches(":state(invalid)")).toBe(true);
+
+    input.blur();
+    await settled(input.parentElement!);
+    expect(input.matches(":state(focused)")).toBe(false);
+    expect(focusChange.mock.calls.at(-1)?.[0].detail).toEqual({ focused: false });
   });
 });

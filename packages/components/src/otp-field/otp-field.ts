@@ -20,6 +20,7 @@ import { baseStyles } from "../internal/base-styles.js";
  *
  * @csspart root - The labelled OTP group.
  * @csspart cell - Each single-character native input.
+ * @csspart separator - Visual separator between groups of cells.
  * @csspart label - The accessible visible group label.
  *
  * @cssstate complete - Matches `:state(complete)` when every cell has a character.
@@ -33,6 +34,8 @@ import { baseStyles } from "../internal/base-styles.js";
  * @mashnode root root
  * @mashnode label label root
  * @mashnode cell cell root
+ * @mashnode separator separator root
+ * @mashnode group-size group-size root
  * @mashnode value value root
  * @mashnode length length root
  * @mashnode name name root
@@ -53,6 +56,7 @@ export class UIOtpField extends LitElement {
   static override properties = {
     value: { type: String, reflect: true },
     length: { type: Number, reflect: true },
+    groupSize: { type: Number, attribute: "group-size", reflect: true },
     name: { type: String, reflect: true },
     label: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
@@ -64,6 +68,8 @@ export class UIOtpField extends LitElement {
   declare value: string;
   /** Required number of passcode characters. */
   declare length: number;
+  /** Cells per visual group; zero keeps one uninterrupted group. */
+  declare groupSize: number;
   /** Form key used for submission. */
   declare name: string;
   /** Accessible label for the code group. */
@@ -85,6 +91,7 @@ export class UIOtpField extends LitElement {
     super();
     this.value = "";
     this.length = 6;
+    this.groupSize = 0;
     this.name = "";
     this.label = "Verification code";
     this.disabled = false;
@@ -274,20 +281,20 @@ export class UIOtpField extends LitElement {
         ${Array.from(
           { length: this.#normalizedLength },
           (_, index) =>
-            html`<input
-              part="cell"
-              data-index=${index}
-              type=${this.masked ? "password" : "text"}
-              inputmode="numeric"
-              autocomplete=${index === 0 ? "one-time-code" : "off"}
-              maxlength="1"
-              aria-label=${`${label}, character ${index + 1} of ${this.#normalizedLength}`}
-              .value=${value[index] ?? ""}
-              ?disabled=${this.#isDisabled}
-              @input=${this.#onInput}
-              @keydown=${this.#onKeydown}
-              @paste=${this.#onPaste}
-            />`,
+            html`${this.groupSize > 0 && index > 0 && index % Math.max(1, Math.floor(this.groupSize)) === 0 ? html`<span part="separator" aria-hidden="true">–</span>` : nothing}<input
+                part="cell"
+                data-index=${index}
+                type=${this.masked ? "password" : "text"}
+                inputmode="numeric"
+                autocomplete=${index === 0 ? "one-time-code" : "off"}
+                maxlength="1"
+                aria-label=${`${label}, character ${index + 1} of ${this.#normalizedLength}`}
+                .value=${value[index] ?? ""}
+                ?disabled=${this.#isDisabled}
+                @input=${this.#onInput}
+                @keydown=${this.#onKeydown}
+                @paste=${this.#onPaste}
+              />`,
         )}
       </div>
     `;

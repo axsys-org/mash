@@ -14,3 +14,5 @@ declare global {
 }
 
 export { ShrineLimb };
+
+export * from "./limb.js";

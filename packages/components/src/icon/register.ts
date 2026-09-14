@@ -14,3 +14,7 @@ declare global {
 }
 
 export { UIIcon };
+
+export * from "./icon.js";
+
+export * from "./carbon.js";

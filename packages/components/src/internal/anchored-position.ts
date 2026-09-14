@@ -1,4 +1,4 @@
-/** Physical popup side shared with GPUI Base's portable Positioner contract. */
+/** Physical popup side shared with the portable positioner contract. */
 export type AnchoredPlacement = "top" | "bottom" | "left" | "right";
 /** Logical alignment along the selected popup side. */
 export type AnchoredAlign = "start" | "center" | "end";
@@ -7,6 +7,7 @@ export interface AnchoredPositionConfig {
   placement: AnchoredPlacement;
   align: AnchoredAlign;
   offset: number;
+  crossAxisOffset?: number;
   collisionPadding: number;
 }
 
@@ -39,6 +40,10 @@ export function resolveAnchoredPosition(
     Number.isFinite(config.collisionPadding) ? config.collisionPadding : 4,
   );
   const offset = Math.max(0, Number.isFinite(config.offset) ? config.offset : 0);
+  const crossAxisOffset =
+    typeof config.crossAxisOffset === "number" && Number.isFinite(config.crossAxisOffset)
+      ? config.crossAxisOffset
+      : 0;
   const available = {
     top: Math.max(0, anchor.top - margin),
     bottom: Math.max(0, viewport.height - margin - anchor.bottom),
@@ -93,13 +98,13 @@ export function resolveAnchoredPosition(
       ? anchor.left - popup.width - offset
       : placement === "right"
         ? anchor.right + offset
-        : alignedX;
+        : alignedX + crossAxisOffset;
   let top =
     placement === "top"
       ? anchor.top - popup.height - offset
       : placement === "bottom"
         ? anchor.bottom + offset
-        : alignedY;
+        : alignedY + crossAxisOffset;
   left = Math.min(Math.max(margin, left), Math.max(margin, viewport.width - margin - popup.width));
   top = Math.min(Math.max(margin, top), Math.max(margin, viewport.height - margin - popup.height));
   return { placement, left, top };
@@ -111,6 +116,8 @@ export interface AnchoredPositionElements {
   positioner(): HTMLElement | null;
   config(): AnchoredPositionConfig | null;
   point?(): { x: number; y: number } | null;
+  /** Optional virtual anchor bounds while retaining the real element for observation and direction. */
+  anchorRect?(): DOMRect | null;
 }
 
 /** Web realization of the renderer-neutral anchored-position contract. */
@@ -186,7 +193,10 @@ export class AnchoredPositionController {
     const point = this.#elements.point?.();
     const anchor = point
       ? new DOMRect(point.x, point.y, 0, 0)
-      : anchorElement.getBoundingClientRect();
+      : (this.#elements.anchorRect?.() ?? anchorElement.getBoundingClientRect());
+    // Let anchored surfaces match their field without a second observer or
+    // example-owned measurements. This is geometry, not a design token.
+    positioner.style.setProperty("--mash-anchor-inline-size", `${anchorElement.offsetWidth}px`);
     const popupRect = popup.getBoundingClientRect();
     const resolved = resolveAnchoredPosition(
       anchor,
@@ -212,12 +222,15 @@ export class AnchoredPositionController {
     if (Math.abs(deltaY) > 0.5) {
       positioner.style.insetBlockStart = `${Math.round(resolved.top + deltaY)}px`;
     }
+    const finalPopup = popup.getBoundingClientRect();
     positioner.dataset.side = resolved.placement;
     positioner.dataset.align = config.align;
     this.#snapshot = {
       ...resolved,
+      left: finalPopup.left,
+      top: finalPopup.top,
       align: config.align,
-      popup: DOMRect.fromRect(popupRect),
+      popup: DOMRect.fromRect(finalPopup),
     };
   }
 }

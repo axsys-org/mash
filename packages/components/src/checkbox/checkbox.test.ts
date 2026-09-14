@@ -1,19 +1,25 @@
 import { userEvent } from "vitest/browser";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { fixture, inShadow, settled } from "../test-support/fixture.js";
 import { UICheckbox } from "./checkbox.js";
 import "./register.js";
+import "../catalogue/mash.css";
 
 const control = (checkbox: Element) => inShadow<HTMLInputElement>(checkbox, "input");
 
 describe("ui-checkbox", () => {
+  afterEach(() => {
+    delete document.documentElement.dataset.mashCatalogue;
+  });
+
   it("registers an unstyled native checkbox contract", async () => {
     expect(customElements.get("ui-checkbox")).toBe(UICheckbox);
 
     const checkbox = await fixture<UICheckbox>(`<ui-checkbox>Release notes</ui-checkbox>`);
     expect(control(checkbox).type).toBe("checkbox");
     expect(checkbox.checked).toBe(false);
+    expect(inShadow<HTMLElement>(checkbox, '[part="label"]').hasAttribute("hidden")).toBe(false);
     expect(
       [...checkbox.shadowRoot!.querySelectorAll("[part]")].map((part) => part.getAttribute("part")),
     ).toEqual(expect.arrayContaining(["root", "control", "indicator", "label"]));
@@ -84,5 +90,34 @@ describe("ui-checkbox", () => {
     checkbox.checked = true;
     await settled(checkbox.parentElement!);
     expect(checkbox.matches(":valid")).toBe(true);
+  });
+
+  it("hides the label lane when no visible label is authored", async () => {
+    const checkbox = await fixture<UICheckbox>(
+      `<ui-checkbox aria-label="Select billing migration" checked></ui-checkbox>`,
+    );
+
+    expect(inShadow<HTMLElement>(checkbox, '[part="label"]').hasAttribute("hidden")).toBe(true);
+    expect(control(checkbox).getAttribute("aria-label")).toBe("Select billing migration");
+  });
+
+  it("applies size aliases through checkbox geometry tokens", async () => {
+    document.documentElement.dataset.mashCatalogue = "mash";
+    const host = await fixture<HTMLDivElement>(`
+      <div>
+        <ui-checkbox size="xsmall" checked>Extra small</ui-checkbox>
+        <ui-checkbox size="small" checked>Small</ui-checkbox>
+        <ui-checkbox size="medium" checked>Medium</ui-checkbox>
+        <ui-checkbox size="large" checked>Large</ui-checkbox>
+      </div>
+    `);
+    const [xsmall, small, medium, large] = [
+      ...host.querySelectorAll<UICheckbox>("ui-checkbox"),
+    ].map((checkbox) => inShadow<HTMLElement>(checkbox, '[part="indicator"]'));
+
+    expect(getComputedStyle(xsmall!).inlineSize).toBe("12px");
+    expect(getComputedStyle(small!).inlineSize).toBe("14px");
+    expect(getComputedStyle(medium!).inlineSize).toBe("16px");
+    expect(getComputedStyle(large!).inlineSize).toBe("18px");
   });
 });

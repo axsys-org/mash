@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIToggle };
+
+export * from "./toggle.js";

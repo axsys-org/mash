@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UISeparator };
+
+export * from "./separator.js";

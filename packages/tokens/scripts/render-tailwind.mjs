@@ -38,6 +38,14 @@ function tailwindThemeName(token) {
     return `--spacing-${suffix(id, 2)}`;
   }
 
+  if (id.startsWith("layout.size.")) {
+    return `--spacing-size-${suffix(id, 2)}`;
+  }
+
+  if (id.startsWith("type.scale.")) {
+    return `--text-scale-${suffix(id, 2)}`;
+  }
+
   // Component-specific layout roles remain semantic spacing values. Keeping
   // the family name avoids collisions with generic dimensions while allowing
   // utilities such as w-menu-inline-compact and h-menu-row-mini.
@@ -126,6 +134,7 @@ function renderTokenUtilities(
   value = (cssVar) => `var(${cssVar})`,
 ) {
   return tokenEntries(graph)
+    .filter((token) => token.layer !== "reference")
     .map((token) => [token, pattern.exec(token.id)])
     .filter(([, match]) => match)
     .map(([token, match]) => {
@@ -150,6 +159,7 @@ function renderMaterialUtilities(graph) {
   return materialRoles(graph)
     .map(
       (role) => `@utility material-${kebab(role)} {
+  --mash-material-display: block;
   --mash-material-compositor: var(--mash-vibrancy-blend-mode, normal);
   --_mash-component-surface-sunken: var(--mash-material-fill-quaternary);
   --_mash-component-boundary: var(--mash-material-separator);
@@ -160,8 +170,6 @@ function renderMaterialUtilities(graph) {
   --color-text-disabled: var(--mash-material-label-disabled);
   --color-border: var(--mash-material-separator);
   --color-border-strong: var(--mash-material-separator-strong);
-  --color-neutral: var(--mash-material-fill-primary);
-  --color-action: var(--mash-material-accent-action);
   color: var(--mash-material-label-primary);
   background-color: var(--color-surface-raised);
   transition:
@@ -171,8 +179,18 @@ function renderMaterialUtilities(graph) {
 
   @supports ((-webkit-backdrop-filter: blur(0)) or (backdrop-filter: blur(0))) {
     background-color: var(--mash-material-background, var(--color-background-material-${kebab(role)}));
+    background-image: linear-gradient(
+      to bottom,
+      var(--mash-material-background-highlight, transparent),
+      transparent 62%
+    );
+    background-blend-mode: normal;
     -webkit-backdrop-filter: var(--mash-material-backdrop, blur(var(--blur-background-material-${kebab(role)})) saturate(var(--mash-material-backdrop-saturation, var(--effect-material-backdrop-saturation-standard))));
     backdrop-filter: var(--mash-material-backdrop, blur(var(--blur-background-material-${kebab(role)})) saturate(var(--mash-material-backdrop-saturation, var(--effect-material-backdrop-saturation-standard))));
+  }
+
+  @supports (dynamic-range-limit: constrained) {
+    dynamic-range-limit: var(--mash-material-dynamic-range-limit, standard);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -190,6 +208,18 @@ function renderVibrancyScope() {
   initial-value: 1;
 }
 
+@property --mash-material-luminance {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --mash-material-highlight-alpha {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.13;
+}
+
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
@@ -200,6 +230,10 @@ function renderVibrancyScope() {
   --mash-opaque-label-quaternary: rgb(from var(--mash-label-source, var(--color-text-quaternary-opaque)) r g b / var(--opacity-label-quaternary));
   --mash-opaque-label-quinary: rgb(from var(--mash-label-source, var(--color-text-quinary-opaque)) r g b / var(--opacity-label-quinary));
   --mash-opaque-label-seximal: rgb(from var(--mash-label-source, var(--color-text-seximal-opaque)) r g b / var(--opacity-label-seximal));
+  --mash-material-luminance: var(--effect-material-luminance-standard);
+  --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
+  --mash-material-selection-background: var(--color-menu-selection);
+  --mash-material-dynamic-range-limit: standard;
 }
 
 :root,
@@ -216,6 +250,8 @@ function renderVibrancyScope() {
 :root,
 [data-vibrancy="auto"] {
   --mash-material-backdrop-saturation: var(--effect-material-backdrop-saturation-standard);
+  --mash-material-luminance: var(--effect-material-luminance-standard);
+  --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
   --mash-material-background: initial;
   --mash-material-background-highlight: var(--color-background-material-highlight);
   --mash-material-backdrop: initial;
@@ -234,11 +270,15 @@ function renderVibrancyScope() {
   --mash-material-separator: var(--color-separator-vibrant);
   --mash-material-separator-strong: var(--color-separator-strong-vibrant);
   --mash-material-accent-action: var(--color-action-vibrant);
+  --mash-material-selection-background: var(--color-menu-selection);
+  --mash-material-dynamic-range-limit: standard;
   --mash-vibrancy-blend-mode: var(--mash-vibrancy-theme-blend-mode);
 }
 
 [data-vibrancy="vibrant"] {
   --mash-material-backdrop-saturation: var(--effect-material-backdrop-saturation-enhanced);
+  --mash-material-luminance: var(--effect-material-luminance-standard);
+  --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
   --mash-material-background: initial;
   --mash-material-background-highlight: var(--color-background-material-highlight);
   --mash-material-backdrop: initial;
@@ -257,11 +297,41 @@ function renderVibrancyScope() {
   --mash-material-separator: var(--color-separator-vibrant);
   --mash-material-separator-strong: var(--color-separator-strong-vibrant);
   --mash-material-accent-action: var(--color-action-vibrant);
+  --mash-material-selection-background: var(--color-menu-selection);
+  --mash-material-dynamic-range-limit: standard;
   --mash-vibrancy-blend-mode: var(--mash-vibrancy-theme-blend-mode);
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+  @media (color-gamut: p3) {
+    :root:not([data-vibrancy="reduced"]),
+    [data-vibrancy="auto"],
+    [data-vibrancy="vibrant"] {
+      --mash-material-luminance: var(--effect-material-luminance-wide-gamut);
+      --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-wide-gamut);
+      --mash-material-background-highlight: color(display-p3 1 1 1 / var(--mash-material-highlight-alpha));
+      --mash-material-selection-background: var(--color-menu-selection);
+      --mash-material-accent-action: var(--color-action);
+    }
+  }
+}
+
+@supports (dynamic-range-limit: constrained) {
+  @media (dynamic-range: high) {
+    :root:not([data-vibrancy="reduced"]),
+    [data-vibrancy="auto"],
+    [data-vibrancy="vibrant"] {
+      --mash-material-luminance: var(--effect-material-luminance-high-dynamic-range);
+      --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-high-dynamic-range);
+      --mash-material-dynamic-range-limit: constrained;
+    }
+  }
 }
 
 [data-vibrancy="reduced"] {
   --mash-material-backdrop-saturation: var(--effect-material-backdrop-saturation-reduced);
+  --mash-material-luminance: var(--effect-material-luminance-standard);
+  --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
   --mash-material-background: var(--color-surface-raised);
   --mash-material-background-highlight: transparent;
   --mash-material-backdrop: none;
@@ -281,6 +351,8 @@ function renderVibrancyScope() {
   --mash-material-separator-strong: var(--color-separator-strong-opaque);
   --mash-material-separator-source: var(--color-separator-strong-opaque);
   --mash-material-accent-action: var(--color-action-opaque);
+  --mash-material-selection-background: var(--color-menu-selection);
+  --mash-material-dynamic-range-limit: standard;
   --mash-vibrancy-blend-mode: normal;
 }
 
@@ -288,6 +360,8 @@ function renderVibrancyScope() {
   :root:not([data-vibrancy]),
   [data-vibrancy="auto"] {
     --mash-material-backdrop-saturation: var(--effect-material-backdrop-saturation-reduced);
+    --mash-material-luminance: var(--effect-material-luminance-standard);
+    --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
     --mash-material-background: var(--color-surface-raised);
     --mash-material-background-highlight: transparent;
     --mash-material-backdrop: none;
@@ -307,6 +381,8 @@ function renderVibrancyScope() {
     --mash-material-separator-strong: var(--color-separator-strong-opaque);
     --mash-material-separator-source: var(--color-separator-strong-opaque);
     --mash-material-accent-action: var(--color-action-opaque);
+    --mash-material-selection-background: var(--color-menu-selection);
+    --mash-material-dynamic-range-limit: standard;
     --mash-vibrancy-blend-mode: normal;
   }
 }
@@ -315,6 +391,8 @@ function renderVibrancyScope() {
   :root,
   [data-vibrancy] {
     --mash-material-backdrop-saturation: var(--effect-material-backdrop-saturation-reduced);
+    --mash-material-luminance: var(--effect-material-luminance-standard);
+    --mash-material-highlight-alpha: var(--effect-material-highlight-alpha-standard);
     --mash-material-background: Canvas;
     --mash-material-background-highlight: transparent;
     --mash-material-backdrop: none;
@@ -333,6 +411,8 @@ function renderVibrancyScope() {
     --mash-material-separator-strong: CanvasText;
     --mash-material-separator-source: CanvasText;
     --mash-material-accent-action: LinkText;
+    --mash-material-selection-background: Highlight;
+    --mash-material-dynamic-range-limit: standard;
     --mash-vibrancy-blend-mode: normal;
   }
 }`;
@@ -374,8 +454,8 @@ ${fills}
 function renderUtilities(graph) {
   const duration = renderTokenUtilities(
     graph,
-    /^duration\.([^.]+)$/,
-    (name) => `duration-${kebab(name)}`,
+    /^duration\.(.+)$/,
+    (name) => `duration-${name.split(".").map(kebab).join("-")}`,
     "transition-duration",
   );
   const border = renderTokenUtilities(
@@ -400,6 +480,12 @@ function renderUtilities(graph) {
     graph,
     /^motion\.opacity\.([^.]+)$/,
     (name) => `opacity-motion-${kebab(name)}`,
+    "opacity",
+  );
+  const effectOpacity = renderTokenUtilities(
+    graph,
+    /^effect\.opacity\.([^.]+)$/,
+    (name) => `opacity-${kebab(name)}`,
     "opacity",
   );
   const motionRotation = renderTokenUtilities(
@@ -570,6 +656,7 @@ ${border}
 ${motionScale}
 
 ${motionOpacity}
+${effectOpacity}
 
 ${motionRotation}
 

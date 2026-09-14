@@ -169,14 +169,13 @@ of `part="prefix"`, `slot="prefix"`, or `:state(has-prefix)` therefore yields th
 `part-prefix:*`, `slot-prefix:*`, and `state-has-prefix:*` without maintaining a second anatomy
 list. See [docs/tailwind.md](docs/tailwind.md) for the utility contract and component boundary.
 
-### Paper synchronization
+### Foundation contract
 
-The Interzone Paper foundation is tracked by the reviewed contract at
-`packages/tokens/src/paper-contract.json`. It records the Paper content hash and
-the semantic aliases Mash is expected to preserve. `pnpm run check:paper` compares
-that contract with the generated token graph and fails when a Paper-aligned alias
-drifts. See `docs/paper-sync.md` for the supervised design-to-code workflow and
-the PR preview handoff; synchronized changes are recorded in `CHANGELOG.md`.
+Mash's reviewed foundation aliases live in `docs/reference/foundations.json`.
+`pnpm run check:foundations` compares them with the generated token graph. Palette,
+type, geometry, and component recipes are rebuilt together on the component rebuild
+branch. See [the rebuild contract](docs/component-rebuild.md) for composition,
+example requirements, migration notes, and the remaining reference review.
 
 ## The component layer
 
@@ -227,18 +226,21 @@ content is a genuine independent axis that the shared tokens cannot express.
 The same underscore convention marks internals in JavaScript, and the manifest build strips
 `_`-prefixed members so they never reach the public schema.
 
-### Definition and registration are separate
+### Import and use
 
 ```ts
-import { UIButton } from "@mash/ui/button"; // defines nothing
-import "@mash/ui/button/register"; // defines <ui-button>
-import "@mash/ui/register"; // defines everything
+import "@mash/ui";
+import "@mash/tokens/tokens.css";
+import "@mash/ui/catalogue/mash.css";
 ```
 
-Definition modules are side-effect free, which is what lets a bundler drop unused components.
-`sideEffects` names only the registration modules, and `pnpm run check:exports` verifies that claim
-against the emitted code — including transitively, since the `register.js` barrel registers
-elements without containing a `define` call of its own.
+A normal package import defines the complete component set. Write the elements in markup;
+there is no registration list or family setup. `@mash/shrine` also makes the base UI elements
+available. Optional component imports such as `@mash/ui/button` define their elements too,
+while exporting the same classes and types as the package entry.
+
+The package metadata preserves these effects through production bundling. Internal definition
+modules and headless helpers remain free of registration effects.
 
 Headless pointer movement follows the same rule. `@mash/ui/drag` exposes typed containment,
 snapping, auto-scroll, and positioning without registering an element or touching the document at
@@ -275,26 +277,22 @@ That last one is the beginning of the provenance explorer:
 
 Adding a component or a token makes it appear in the catalog with no catalog changes.
 
-### The URL is the state
+### Preview routes
 
-Every catalog route is a real address, and the controls are reflected in the query string:
+Component pages show their examples directly in one scroller. Theme and example links are shareable:
 
 ```text
-/components/ui-button?variant=quiet&size=small&theme=dark
-/components/ui-tree-item?theme=dark&label=src
+/components/ui-button?theme=dark&example=Theme%20boundaries
+/components/ui-tabs?preview=shared&example=Dynamic%20tabs
 ```
 
-Configure a component, copy the address, paste it into a PR comment: whoever opens it sees exactly
-what you saw. `apps/catalog/src/url-state.ts` is the whole mechanism — two pure functions over
-`URL` and the app state, plus the calls in `main.ts`. Only values that differ from the component's
-documented defaults are written, so links stay short; anything unrecognised (an unknown component,
-an enum value that is not one of the documented options) falls back to the default rather than
-throwing, because links outlive the code they were copied from.
-
-Choosing a component pushes a history entry; nudging a control replaces one. Otherwise trying four
-variants would cost four presses of Back to leave the page.
+The current catalogue is routed by `apps/catalog/src/main.ts` and rendered by `showcase.ts`.
+Tabs and Chart offer an opt-in shared preview document; see [Catalogue preview](docs/catalogue-preview.md)
+for loading boundaries, measurements, and production review commands.
 
 ## Pull requests
+
+See [CI and deployment](docs/ci.md) for test scope, production boundaries, and full validation commands.
 
 ```text
 push branch
@@ -303,7 +301,6 @@ open PR
      ├── GitHub Actions ── build and checks
      │                     browser tests (Chromium)
      │                     catalog build
-     │                     visual regression (non-blocking scaffold)
      │
      └── Vercel ────────── preview deployment
                                 ↓
@@ -418,12 +415,7 @@ Projects settings. The publisher retains `BLOB_READ_WRITE_TOKEN` support only as
 fallback. A public Blob remains public even when Vercel Deployment Protection protects the catalog.
 
 The rewrite exists because `/components/ui-button` is a real address the app routes client-side.
-Static files still win, so `/stage.html` and `/assets/*` are served directly.
-
-Nothing account-specific is committed: no project id, no org id, no token, no deployment URL. The
-git metadata the badge displays arrives as Vercel's own `VERCEL_*` build variables, read in exactly
-one place (`buildInfo()` in `apps/catalog/vite.config.ts`) and frozen into the bundle by Vite's
-`define`. Locally the badge reads `local development`.
+Static files still win, so `/fixture.html`, `/shared-fixture.html`, and `/assets/*` are served directly.
 
 **If the design system is not meant to be public, turn on Vercel Deployment Protection** for the
 project. The catalog is a static bundle with no backend, no secrets and no runtime APIs, so access
@@ -493,14 +485,7 @@ dependencies, and add it to the catalog's `sources` list in `apps/catalog/src/sc
 Build order, export checks and CI pick it up on their own — `pnpm -r` sequences by the
 dependency graph, and `check-exports` discovers packages rather than reading a list.
 
-A composed component's registration module registers what it composes:
-
-```ts
-import "@mash/shrine/confirm/register"; // also registers ui-card and ui-button
-```
-
-Definition modules stay pure either way — importing `@mash/shrine/confirm` registers
-nothing.
+Import `@mash/shrine` to use Shrine compositions with their base components already available.
 
 ## Notes on tool choices
 

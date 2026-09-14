@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fixture, inShadow } from "../test-support/fixture.js";
+import { fixture, inShadow, settled } from "../test-support/fixture.js";
 import type { UIOtpField } from "./otp-field.js";
 import "./register.js";
 
@@ -27,4 +27,21 @@ describe("ui-otp-field", () => {
     expect(field.value).toBe("4821");
     expect(field.matches(":state(masked)")).toBe(true);
   });
+});
+
+it("keeps grouped paste and form values as one code", async () => {
+  const form = await fixture<HTMLFormElement>(
+    `<form><ui-otp-field name="code" length="6" group-size="3"></ui-otp-field></form>`,
+  );
+  const field = form.querySelector<UIOtpField>("ui-otp-field")!;
+  const data = new DataTransfer();
+  data.setData("text", "123456");
+  inShadow<HTMLInputElement>(field, '[part="cell"]').dispatchEvent(
+    new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }),
+  );
+  await settled(form);
+  expect(field.shadowRoot!.querySelectorAll('[part="separator"]')).toHaveLength(1);
+  expect(field.shadowRoot!.querySelectorAll("input")).toHaveLength(6);
+  expect(new FormData(form).get("code")).toBe("123456");
+  expect(field.matches(":state(complete)")).toBe(true);
 });

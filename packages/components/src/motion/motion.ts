@@ -1,6 +1,10 @@
 import { LitElement, css, html, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { HoverController, type HoverOptions } from "./hover.js";
+export type { HoverOptions } from "./hover.js";
+export { motionTiming, exitFallbackMs, type MotionTier } from "./timing.js";
+
 import { MotionLifecycleController } from "../internal/motion-lifecycle.js";
 
 export type MotionRecipe =
@@ -84,6 +88,7 @@ export class UIMotion extends LitElement {
     motion: { type: String, reflect: true },
     state: { type: String, reflect: true },
     target: { type: String, reflect: true },
+    pace: { type: String, reflect: true },
   };
 
   /** Semantic motion recipe. `custom` leaves visual realization entirely to CSS parts. */
@@ -92,6 +97,17 @@ export class UIMotion extends LitElement {
   declare state: MotionState;
   /** Scene lane that receives the recipe. */
   declare target: MotionTarget;
+  /** Timing tier; inherit preserves authored duration and easing roles. */
+  declare pace: "inherit" | "fast" | "moderate" | "slow";
+
+  #hover: HoverController | undefined;
+
+  /** Tracks authored hover/focus items with the existing motion underlay and spring tokens. */
+  trackHover(options: HoverOptions): HoverController {
+    this.#hover?.destroy();
+    this.#hover = new HoverController(this, options);
+    return this.#hover;
+  }
 
   readonly #internals: ElementInternals;
   readonly #lifecycle: MotionLifecycleController<MotionEventDetail>;
@@ -101,6 +117,7 @@ export class UIMotion extends LitElement {
     this.motion = "none";
     this.state = "idle";
     this.target = "content";
+    this.pace = "inherit";
     this.#internals = this.attachInternals();
     this.#lifecycle = new MotionLifecycleController(this, {
       target: () => this.renderRoot.querySelector<HTMLElement>(".motion-target"),
@@ -135,6 +152,67 @@ export class UIMotion extends LitElement {
     css`
       :host {
         display: inline-block;
+        --_mash-motion-duration-control: var(--duration-control, 120ms);
+        --_mash-motion-duration-surface: var(--duration-surface, 200ms);
+        --_mash-motion-duration-exit: var(--duration-surface, 200ms);
+        --_mash-motion-easing-control: var(--easing-control, cubic-bezier(0.2, 0, 0, 1));
+        --_mash-motion-easing-surface: var(--easing-surface, cubic-bezier(0.3, 0, 0, 1));
+        --_mash-motion-easing-spring-gentle: var(
+          --easing-spring-gentle,
+          cubic-bezier(0.3, 0, 0, 1)
+        );
+        --_mash-motion-easing-spring-snappy: var(
+          --easing-spring-snappy,
+          cubic-bezier(0.2, 0, 0, 1)
+        );
+        --_mash-motion-distance-short: var(--motion-distance-short, 0.25rem);
+        --_mash-motion-distance-medium: var(--motion-distance-medium, 0.75rem);
+        --_mash-motion-scale-rest: var(--motion-scale-rest, 1);
+        --_mash-motion-scale-enter: var(--motion-scale-enter, 0.96);
+        --_mash-motion-scale-pressed: var(--motion-scale-pressed, 0.98);
+        --_mash-motion-scale-emphasized: var(--motion-scale-emphasized, 1.04);
+        --_mash-motion-blur-none: var(--motion-blur-none, 0px);
+        --_mash-motion-blur-subtle: var(--motion-blur-subtle, 4px);
+        --_mash-motion-blur-emphasized: var(--motion-blur-emphasized, 12px);
+        --_mash-motion-opacity-hidden: var(--motion-opacity-hidden, 0);
+        --_mash-motion-opacity-muted: var(--motion-opacity-muted, 0.56);
+        --_mash-motion-opacity-visible: var(--motion-opacity-visible, 1);
+        --_mash-motion-rotation-quarter: var(--motion-rotation-quarter, 0.25);
+        --_mash-motion-rotation-full: var(--motion-rotation-full, 1);
+      }
+
+      :host([pace="fast"]) {
+        --_mash-motion-duration-control: var(--duration-fast-enter, 80ms);
+        --_mash-motion-duration-surface: var(--duration-fast-enter, 80ms);
+        --_mash-motion-duration-exit: var(--duration-fast-exit, 60ms);
+        --_mash-motion-easing-spring-snappy: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-spring-gentle: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-control: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-surface: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+      }
+      :host([pace="moderate"]) {
+        --_mash-motion-duration-control: var(--duration-moderate-enter, 160ms);
+        --_mash-motion-duration-surface: var(--duration-moderate-enter, 160ms);
+        --_mash-motion-duration-exit: var(--duration-moderate-exit, 120ms);
+        --_mash-motion-easing-spring-snappy: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-spring-gentle: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-control: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-surface: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+      }
+      :host([pace="slow"]) {
+        --_mash-motion-duration-control: var(--duration-slow-enter, 240ms);
+        --_mash-motion-duration-surface: var(--duration-slow-enter, 240ms);
+        --_mash-motion-duration-exit: var(--duration-slow-exit, 160ms);
+        --_mash-motion-easing-spring-snappy: var(
+          --easing-spring-surface,
+          cubic-bezier(0.22, 1.15, 0.36, 1)
+        );
+        --_mash-motion-easing-spring-gentle: var(
+          --easing-spring-surface,
+          cubic-bezier(0.22, 1.15, 0.36, 1)
+        );
+        --_mash-motion-easing-control: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
+        --_mash-motion-easing-surface: var(--easing-settle, cubic-bezier(0.22, 1, 0.36, 1));
       }
 
       [part="root"] {
@@ -182,68 +260,82 @@ export class UIMotion extends LitElement {
 
       .motion-target {
         transform-origin: center;
+      }
+
+      :host(:state(animating)) .motion-target {
         will-change: filter, opacity, rotate, scale, translate;
       }
 
       :host([motion="fade"]) .motion-target {
-        transition: opacity var(--duration-control) var(--easing-control);
+        transition: opacity var(--_mash-motion-duration-control) var(--_mash-motion-easing-control);
       }
 
       :host([motion="fade"][state="active"]) .motion-target {
-        opacity: var(--motion-opacity-muted);
+        opacity: var(--_mash-motion-opacity-muted);
       }
 
       :host([motion="scale"]) .motion-target {
-        transition: scale var(--duration-control) var(--easing-spring-snappy);
+        transition: scale var(--_mash-motion-duration-control)
+          var(--_mash-motion-easing-spring-snappy);
       }
 
       :host([motion="scale"][state="active"]) .motion-target {
-        scale: var(--motion-scale-pressed);
+        scale: var(--_mash-motion-scale-pressed);
       }
 
       :host([motion="rotate"]) .motion-target,
       :host([motion="spin"]) .motion-target {
-        transition: rotate var(--duration-control) var(--easing-spring-snappy);
+        transition: rotate var(--_mash-motion-duration-control)
+          var(--_mash-motion-easing-spring-snappy);
       }
 
       :host([motion="rotate"][state="active"]) .motion-target,
       :host([motion="spin"][state="active"]) .motion-target {
-        rotate: calc(var(--motion-rotation-quarter) * 1turn);
+        rotate: calc(var(--_mash-motion-rotation-quarter) * 1turn);
       }
 
       :host([motion="slide-inline"]) .motion-target {
-        transition: translate var(--duration-surface) var(--easing-spring-gentle);
+        transition: translate var(--_mash-motion-duration-surface)
+          var(--_mash-motion-easing-spring-gentle);
       }
 
       :host([motion="slide-inline"][state="active"]) .motion-target {
-        translate: var(--motion-distance-short) 0;
+        translate: var(--_mash-motion-distance-short) 0;
       }
 
       :host([motion="slide-block"]) .motion-target {
-        transition: translate var(--duration-surface) var(--easing-spring-gentle);
+        transition: translate var(--_mash-motion-duration-surface)
+          var(--_mash-motion-easing-spring-gentle);
       }
 
       :host([motion="slide-block"][state="active"]) .motion-target {
-        translate: 0 var(--motion-distance-short);
+        translate: 0 var(--_mash-motion-distance-short);
       }
 
       :host([motion="blur"]) .motion-target {
         transition:
-          filter var(--duration-surface) var(--easing-surface),
-          opacity var(--duration-surface) var(--easing-surface);
+          filter var(--_mash-motion-duration-surface) var(--_mash-motion-easing-surface),
+          opacity var(--_mash-motion-duration-surface) var(--_mash-motion-easing-surface);
+      }
+
+      .motion-target {
+        transition-delay: var(--mash-stagger-delay, 0ms);
       }
 
       :host([motion="blur"][state="active"]) .motion-target {
-        filter: blur(var(--motion-blur-subtle));
-        opacity: var(--motion-opacity-muted);
+        filter: blur(var(--_mash-motion-blur-subtle));
+        opacity: var(--_mash-motion-opacity-muted);
       }
 
       :host([state="entering"]) .motion-target {
-        animation: mash-motion-enter var(--duration-surface) var(--easing-spring-gentle) both;
+        animation: mash-motion-enter var(--_mash-motion-duration-surface)
+          var(--_mash-motion-easing-spring-gentle) var(--mash-stagger-delay, 0ms) both;
       }
 
       :host([state="exiting"]) .motion-target {
-        animation: mash-motion-exit var(--duration-surface) var(--easing-surface) both;
+        animation: mash-motion-exit
+          var(--_mash-motion-duration-exit, var(--_mash-motion-duration-surface))
+          var(--_mash-motion-easing-surface) var(--mash-stagger-delay, 0ms) both;
       }
 
       :host([motion="slide-inline"][state="entering"]) .motion-target {
@@ -271,87 +363,89 @@ export class UIMotion extends LitElement {
       }
 
       :host([motion="shake"][state="active"]) .motion-target {
-        animation: mash-motion-shake var(--duration-surface) var(--easing-control) both;
+        animation: mash-motion-shake var(--_mash-motion-duration-surface)
+          var(--_mash-motion-easing-control) var(--mash-stagger-delay, 0ms) both;
       }
 
       :host([motion="spin"][state="loading"]) .motion-target {
-        animation: mash-motion-spin calc(var(--duration-surface) * 5) var(--easing-control) infinite;
+        animation: mash-motion-spin calc(var(--_mash-motion-duration-surface) * 5)
+          var(--_mash-motion-easing-control) var(--mash-stagger-delay, 0ms) infinite;
       }
 
       :host([motion="pulse"][state="loading"]) .motion-target {
-        animation: mash-motion-pulse calc(var(--duration-surface) * 5) var(--easing-surface)
-          infinite alternate;
+        animation: mash-motion-pulse calc(var(--_mash-motion-duration-surface) * 5)
+          var(--_mash-motion-easing-surface) var(--mash-stagger-delay, 0ms) infinite alternate;
       }
 
       @keyframes mash-motion-enter {
         from {
-          opacity: var(--motion-opacity-hidden);
-          scale: var(--motion-scale-enter);
+          opacity: var(--_mash-motion-opacity-hidden);
+          scale: var(--_mash-motion-scale-enter);
         }
         to {
-          opacity: var(--motion-opacity-visible);
-          scale: var(--motion-scale-rest);
+          opacity: var(--_mash-motion-opacity-visible);
+          scale: var(--_mash-motion-scale-rest);
         }
       }
 
       @keyframes mash-motion-exit {
         from {
-          opacity: var(--motion-opacity-visible);
-          scale: var(--motion-scale-rest);
+          opacity: var(--_mash-motion-opacity-visible);
+          scale: var(--_mash-motion-scale-rest);
         }
         to {
-          opacity: var(--motion-opacity-hidden);
-          scale: var(--motion-scale-enter);
+          opacity: var(--_mash-motion-opacity-hidden);
+          scale: var(--_mash-motion-scale-enter);
         }
       }
 
       @keyframes mash-motion-enter-inline {
         from {
-          opacity: var(--motion-opacity-hidden);
-          translate: calc(var(--motion-distance-medium) * -1) 0;
+          opacity: var(--_mash-motion-opacity-hidden);
+          translate: calc(var(--_mash-motion-distance-medium) * -1) 0;
         }
       }
 
       @keyframes mash-motion-exit-inline {
         to {
-          opacity: var(--motion-opacity-hidden);
-          translate: var(--motion-distance-medium) 0;
+          opacity: var(--_mash-motion-opacity-hidden);
+          translate: var(--_mash-motion-distance-medium) 0;
         }
       }
 
       @keyframes mash-motion-enter-block {
         from {
-          opacity: var(--motion-opacity-hidden);
-          translate: 0 calc(var(--motion-distance-medium) * -1);
+          opacity: var(--_mash-motion-opacity-hidden);
+          translate: 0 calc(var(--_mash-motion-distance-medium) * -1);
         }
       }
 
       @keyframes mash-motion-exit-block {
         to {
-          opacity: var(--motion-opacity-hidden);
-          translate: 0 var(--motion-distance-medium);
+          opacity: var(--_mash-motion-opacity-hidden);
+          translate: 0 var(--_mash-motion-distance-medium);
         }
       }
 
       @keyframes mash-motion-enter-blur {
         from {
-          filter: blur(var(--motion-blur-emphasized));
-          opacity: var(--motion-opacity-hidden);
+          filter: blur(var(--_mash-motion-blur-emphasized));
+          opacity: var(--_mash-motion-opacity-hidden);
         }
         to {
-          filter: blur(var(--motion-blur-none));
-          opacity: var(--motion-opacity-visible);
+          filter: blur(var(--_mash-motion-blur-none));
+          opacity: var(--_mash-motion-opacity-visible);
         }
       }
 
       @keyframes mash-motion-exit-blur {
         from {
-          filter: blur(var(--motion-blur-none));
-          opacity: var(--motion-opacity-visible);
+          filter: blur(var(--_mash-motion-blur-none));
+          opacity: var(--_mash-motion-opacity-visible);
         }
         to {
-          filter: blur(var(--motion-blur-emphasized));
-          opacity: var(--motion-opacity-hidden);
+          filter: blur(var(--_mash-motion-blur-emphasized));
+          opacity: var(--_mash-motion-opacity-hidden);
         }
       }
 
@@ -361,27 +455,27 @@ export class UIMotion extends LitElement {
           translate: 0;
         }
         25% {
-          translate: calc(var(--motion-distance-short) * -1) 0;
+          translate: calc(var(--_mash-motion-distance-short) * -1) 0;
         }
         75% {
-          translate: var(--motion-distance-short) 0;
+          translate: var(--_mash-motion-distance-short) 0;
         }
       }
 
       @keyframes mash-motion-spin {
         to {
-          rotate: calc(var(--motion-rotation-full) * 1turn);
+          rotate: calc(var(--_mash-motion-rotation-full) * 1turn);
         }
       }
 
       @keyframes mash-motion-pulse {
         from {
-          opacity: var(--motion-opacity-muted);
-          scale: var(--motion-scale-rest);
+          opacity: var(--_mash-motion-opacity-muted);
+          scale: var(--_mash-motion-scale-rest);
         }
         to {
-          opacity: var(--motion-opacity-visible);
-          scale: var(--motion-scale-emphasized);
+          opacity: var(--_mash-motion-opacity-visible);
+          scale: var(--_mash-motion-scale-emphasized);
         }
       }
 
@@ -389,9 +483,9 @@ export class UIMotion extends LitElement {
         .motion-target {
           animation: none !important;
           filter: none !important;
-          opacity: var(--motion-opacity-visible) !important;
+          opacity: var(--_mash-motion-opacity-visible) !important;
           rotate: none !important;
-          scale: var(--motion-scale-rest) !important;
+          scale: var(--_mash-motion-scale-rest) !important;
           translate: none !important;
           transition: none !important;
         }
@@ -400,13 +494,18 @@ export class UIMotion extends LitElement {
   ];
 
   protected override updated(changed: PropertyValues<this>): void {
-    if (!changed.has("state") && !changed.has("motion")) return;
+    if (!changed.has("state") && !changed.has("motion") && !changed.has("pace")) return;
     const previousState = (changed.get("state") as MotionState | undefined) ?? "idle";
-    if (changed.get("state") === undefined && this.state === "idle") return;
+    if (this.state === "idle") {
+      this.#lifecycle.cancel();
+      return;
+    }
     this.#begin(previousState);
   }
 
   override disconnectedCallback(): void {
+    this.#hover?.destroy();
+    this.#hover = undefined;
     this.#lifecycle.destroy();
     super.disconnectedCallback();
   }
@@ -414,8 +513,14 @@ export class UIMotion extends LitElement {
   /** Replays a lifecycle state even when it is already current. */
   async play(state: Exclude<MotionState, "idle"> = "active"): Promise<void> {
     if (this.state === state) {
+      const target = this.#motionTarget();
+      const restoreMotion = target ? this.#suspendTargetMotion(target) : undefined;
       this.state = "idle";
       await this.updateComplete;
+      target?.getBoundingClientRect();
+      await this.#nextPaint();
+      restoreMotion?.();
+      target?.getBoundingClientRect();
     }
     this.state = state;
     await this.updateComplete;
@@ -435,6 +540,32 @@ export class UIMotion extends LitElement {
 
   #targetClass(target: MotionTarget): string {
     return this.target === target ? "motion-target" : "";
+  }
+
+  #motionTarget(): HTMLElement | null {
+    return this.renderRoot.querySelector<HTMLElement>(".motion-target");
+  }
+
+  #suspendTargetMotion(target: HTMLElement): () => void {
+    const animation = target.style.animation;
+    const transition = target.style.transition;
+    target.style.animation = "none";
+    target.style.transition = "none";
+    return () => {
+      target.style.animation = animation;
+      target.style.transition = transition;
+    };
+  }
+
+  #nextFrame(): Promise<void> {
+    const view = this.ownerDocument.defaultView;
+    if (!view) return Promise.resolve();
+    return new Promise((resolve) => view.requestAnimationFrame(() => resolve()));
+  }
+
+  async #nextPaint(): Promise<void> {
+    await this.#nextFrame();
+    await this.#nextFrame();
   }
 
   protected override render(): TemplateResult {

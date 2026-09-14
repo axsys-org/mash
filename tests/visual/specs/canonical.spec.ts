@@ -15,17 +15,17 @@ const STATES = [
   {
     name: "button-primary-light",
     tag: "ui-button",
-    url: "/components/ui-button?example=controls",
+    url: "/components/ui-button?example=controls&variant=primary",
   },
   {
     name: "button-primary-dark",
     tag: "ui-button",
-    url: "/components/ui-button?example=controls&theme=dark",
+    url: "/components/ui-button?example=controls&variant=primary&theme=dark",
   },
   {
-    name: "button-quiet-light",
+    name: "button-ghost-light",
     tag: "ui-button",
-    url: "/components/ui-button?example=controls&variant=quiet",
+    url: "/components/ui-button?example=controls&variant=ghost",
   },
   {
     name: "button-disabled",
@@ -35,12 +35,12 @@ const STATES = [
   {
     name: "card-light",
     tag: "ui-card",
-    url: "/components/ui-card?example=Project+card",
+    url: "/components/ui-card?example=Card",
   },
   {
     name: "card-dark",
     tag: "ui-card",
-    url: "/components/ui-card?theme=dark&example=Project+card",
+    url: "/components/ui-card?theme=dark&example=Card",
   },
 ] as const;
 
@@ -52,7 +52,7 @@ for (const state of STATES) {
     // to be visible is what guarantees the frame has loaded, its registry has
     // been populated and the component has rendered — the catalog does all of
     // that asynchronously.
-    const preview = page.frameLocator("iframe.stage-frame").locator(state.tag);
+    const preview = page.frameLocator("iframe.stage-frame").locator(state.tag).first();
     await expect(preview).toBeVisible();
 
     // Fonts settle after first paint; without this the first run and every

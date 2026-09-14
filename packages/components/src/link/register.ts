@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UILink };
+
+export * from "./link.js";

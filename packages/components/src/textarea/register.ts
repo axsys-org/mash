@@ -12,3 +12,5 @@ declare global {
 }
 
 export { UITextarea };
+
+export * from "./textarea.js";

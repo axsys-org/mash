@@ -14,6 +14,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { cssVarName } from "../packages/tokens/config/layers.mjs";
+import { catalogueFiles } from "./lib/catalogue-css.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const TOKEN_SOURCE_ROOT = path.join(ROOT, "packages/tokens/src");
@@ -23,7 +24,6 @@ const CONSUMER_ROOTS = [
   "packages/shrine-components/src/catalogue",
   "apps/catalog/src",
 ];
-const CATALOG_SYSTEM_ENTRY = "apps/catalog/src/system.css";
 const STRUCTURAL_RECIPE_ROLES = new Map([
   ["--color-surface", "--_mash-component-surface"],
   ["--color-surface-raised", "--_mash-component-surface-raised"],
@@ -36,8 +36,19 @@ const STRUCTURAL_RECIPE_ROLES = new Map([
 // without publishing that state as a design token. Every entry must retain a
 // safe CSS fallback at its use site.
 const RUNTIME_VARIABLES = new Set([
+  // Shared anchored positioning publishes the field width to popup recipes.
+  "--mash-anchor-inline-size",
+  // ui-sidebar exposes preferred CSS widths and publishes its measured resize
+  // limits. These are layout inputs, with explicit fallbacks in sidebar.css.
+  "--mash-sidebar-width",
+  "--mash-sidebar-width-mobile",
+  "--_mash-sidebar-width",
+  "--_mash-sidebar-width-mobile",
+  "--_mash-sidebar-min",
+  "--_mash-sidebar-max",
   // Published by the generated material/vibrancy utility layer rather than the
   // DTCG token graph. Every catalogue use retains a semantic token fallback.
+  "--mash-material-display",
   "--mash-material-background",
   "--mash-material-background-highlight",
   "--mash-material-backdrop",
@@ -123,26 +134,39 @@ async function main() {
     .map((filePath) => path.relative(ROOT, filePath))
     .filter((filePath) => filePath.startsWith("apps/catalog/src/"));
   for (const filePath of catalogueStyles) {
-    if (filePath !== CATALOG_SYSTEM_ENTRY) {
+    if (
+      filePath !== "apps/catalog/src/fixture-stage.css" &&
+      filePath !== "apps/catalog/src/shared-fixture.css" &&
+      filePath !== "apps/catalog/src/showcase.css" &&
+      filePath !== "apps/catalog/src/stories.css" &&
+      // Lazy application examples own their layout; promoting these styles to
+      // the base recipes would make every component consumer pay for them.
+      // All token references below remain checked for these files.
+      !filePath.startsWith("apps/catalog/src/stories/")
+    ) {
       unresolved.push(
-        `${filePath} is application styling; compose semantic utilities in utility-recipes.ts instead`,
+        `${filePath} is application styling; use public component recipes and semantic tokens`,
       );
     }
   }
 
-  const catalogueEntry = await readFile(path.join(ROOT, CATALOG_SYSTEM_ENTRY), "utf8");
-  const authoredBlocks = catalogueEntry.replaceAll(/\/\*[\s\S]*?\*\//g, "").match(/[{}]/g) ?? [];
-  if (authoredBlocks.length > 0) {
-    unresolved.push(
-      `${CATALOG_SYSTEM_ENTRY} must remain an import-only Tailwind entrypoint with no authored rule blocks`,
+  // Imported recipe modules share one cascade and may consume each other's
+  // private roles. Unimported files retain only their own local declarations.
+  const recipeVariables = new Map();
+  for (const root of CONSUMER_ROOTS.filter((entry) => entry.startsWith("packages/"))) {
+    const files = await catalogueFiles(path.join(ROOT, root, "mash.css"));
+    const variables = files.flatMap(({ source }) =>
+      [...source.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]),
     );
+    for (const { file } of files) recipeVariables.set(file, variables);
   }
 
   for (const filePath of cssFiles) {
     const source = await readFile(filePath, "utf8");
     const relativePath = path.relative(ROOT, filePath);
     const localVariables = new Set(
-      [...source.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]),
+      recipeVariables.get(filePath) ??
+        [...source.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]),
     );
 
     if (relativePath.startsWith("packages/") && relativePath.includes("/src/catalogue/")) {

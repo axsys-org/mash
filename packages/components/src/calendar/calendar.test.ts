@@ -84,4 +84,40 @@ describe("ui-calendar", () => {
       inShadow(calendar, `[data-month="2026-09"] [data-date="2026-09-03"]`).getAttribute("part"),
     ).toContain("selected");
   });
+
+  it("applies date bounds to month/year choices and navigation pages", async () => {
+    const calendar = await fixture<UICalendar>(
+      `<ui-calendar month="2026-09" min="2026-09-08" max="2026-11-20"></ui-calendar>`,
+    );
+    expect(inShadow<HTMLButtonElement>(calendar, 'button[part="previous"]').disabled).toBe(true);
+    inShadow<HTMLButtonElement>(calendar, '[part="month-toggle"]').click();
+    await settled(calendar);
+    const months = [
+      ...calendar.shadowRoot!.querySelectorAll<HTMLButtonElement>('[part~="month-option"]'),
+    ];
+    expect(months.filter((month) => !month.disabled)).toHaveLength(3);
+    months[0]!.click();
+    expect(calendar.month).toBe("2026-09");
+    inShadow<HTMLButtonElement>(calendar, '[part="year-toggle"]').click();
+    await settled(calendar);
+    expect(
+      [...calendar.shadowRoot!.querySelectorAll<HTMLButtonElement>('[part~="year-option"]')]
+        .filter((year) => !year.disabled)
+        .map((year) => year.textContent!.trim()),
+    ).toEqual(["2026"]);
+    expect(inShadow<HTMLButtonElement>(calendar, 'button[part="previous"]').disabled).toBe(true);
+    expect(inShadow<HTMLButtonElement>(calendar, 'button[part="next"]').disabled).toBe(true);
+  });
+
+  it("moves PageDown to the last valid day of a shorter month", async () => {
+    const calendar = await fixture<UICalendar>(
+      `<ui-calendar month="2026-01" value="2026-01-31"></ui-calendar>`,
+    );
+    const day = inShadow<HTMLButtonElement>(calendar, '[data-date="2026-01-31"]');
+    day.focus();
+    day.dispatchEvent(new KeyboardEvent("keydown", { key: "PageDown", bubbles: true }));
+    await settled(calendar);
+    expect(calendar.month).toBe("2026-02");
+    expect((calendar.shadowRoot!.activeElement as HTMLElement).dataset.date).toBe("2026-02-28");
+  });
 });

@@ -6,6 +6,40 @@ from resolved token values.
 
 ## Unreleased
 
+### Component rebuild
+
+- Normal package imports now define the component set automatically; component
+  subpaths also define their elements. Removed registration setup from catalog
+  examples and replaced family navigation with a flat searchable list.
+- Separated hover, pressed, persistent selection, and inverse surface pairs.
+  Corrected status text/fill contrast in both themes and prevented material
+  gamut settings from changing semantic action colors.
+- Expanded portable examples across all 112 component pages, removed over 2,200 lines
+  of oversized examples, and split the public recipe into focused CSS modules.
+  Menus use opaque surfaces by default with deliberate material opt-in.
+
+- Added charts, messages, attachments, conversation markers and scrolling,
+  persistent alerts, ratings, command lists, and steppers. Charts load a themed
+  SVG/canvas renderer on demand and support a slotted data alternative.
+- Added five tab treatments, owner-controlled closing, platform-aware keyboard
+  hints, native menu links, and focused sorting/editing examples. Icon-only
+  button labels now reach the native accessible control.
+- Rebuilt the catalog navigation, example toolbar, usage code, API, and token
+  sections. Retired the application stage from production and moved its recipe
+  code alongside the retained prototypes.
+
+- Rebased the shared palette, typography, spacing, and corners onto Mash's
+  neutral light/dark foundations. `check:foundations` verifies the reviewed
+  semantic aliases.
+- Added inherited control sizing and public row, stack, grid, and panel layouts.
+  The default button is bordered; filled actions use `variant="primary"`.
+- Replaced eight control pages with focused examples and a stage that loads
+  only their displayed imports. Removed the toolbar application demos and
+  their automatic runtime imports from the base stage.
+- Added blocking production-catalog tests for example dependencies, theme
+  restoration, alignment, and keyboard behavior. The remaining rebuild work
+  and migration notes are in `docs/component-rebuild.md`.
+
 ### Paper foundation sync
 
 - Added the reviewed Interzone foundation contract at

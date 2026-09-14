@@ -5,7 +5,7 @@ import { baseStyles } from "../internal/base-styles.js";
 /**
  * One removable selected value in a multiple-value control.
  *
- * The owning Select or Combobox persists the value collection. `ui-chip` only
+ * The owning Combobox persists the value collection. `ui-chip` only
  * exposes its label/remove anatomy and reports a removal request.
  *
  * @tag ui-chip
@@ -34,6 +34,11 @@ import { baseStyles } from "../internal/base-styles.js";
  * @mashrole event ui-chip-remove remove remove
  */
 export class UIChip extends LitElement {
+  static override shadowRootOptions: ShadowRootInit = {
+    ...LitElement.shadowRootOptions,
+    delegatesFocus: true,
+  };
+
   static override properties = {
     value: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
@@ -97,6 +102,7 @@ export class UIChip extends LitElement {
   #onKeydown = (event: KeyboardEvent): void => {
     if (event.key !== "Backspace" && event.key !== "Delete") return;
     event.preventDefault();
+    event.stopPropagation();
     this.#requestRemove();
   };
 
@@ -104,8 +110,7 @@ export class UIChip extends LitElement {
     return html`
       <span
         part="root"
-        role="listitem"
-        tabindex=${this.disabled ? "-1" : "0"}
+        tabindex="-1"
         aria-disabled=${this.disabled ? "true" : undefined}
         aria-readonly=${this.readonly ? "true" : undefined}
         @keydown=${this.#onKeydown}

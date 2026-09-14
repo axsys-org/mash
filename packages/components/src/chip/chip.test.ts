@@ -18,7 +18,23 @@ describe("ui-chip", () => {
     await settled(chip.parentElement!);
 
     expect(removed).toEqual(["maya"]);
-    expect(inShadow(chip, "[part=root]").getAttribute("role")).toBe("listitem");
+    expect(inShadow(chip, "[part=root]").hasAttribute("role")).toBe(false);
+    expect(inShadow(chip, "[part=root]").getAttribute("tabindex")).toBe("-1");
+  });
+
+  it("requests keyboard removal without entering the ordinary Tab order", async () => {
+    const chip = await fixture<UIChip>(`<ui-chip value="maya">Maya</ui-chip>`);
+    const removed: string[] = [];
+    chip.addEventListener("ui-chip-remove", (event) => {
+      removed.push((event as CustomEvent<{ value: string }>).detail.value);
+    });
+
+    inShadow<HTMLElement>(chip, "[part=root]").dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Backspace", bubbles: true, composed: true }),
+    );
+    await settled(chip.parentElement!);
+
+    expect(removed).toEqual(["maya"]);
   });
 
   it("does not request removal while readonly", async () => {

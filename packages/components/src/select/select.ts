@@ -7,14 +7,24 @@ import {
 } from "../internal/anchored-position.js";
 import { baseStyles } from "../internal/base-styles.js";
 import type { OverlayChangeReason, OverlayOpenChangeDetail } from "../internal/overlay.js";
-import { stringArrayConverter } from "../internal/string-array.js";
+import {
+  PresenceLifecycleController,
+  type PresenceLifecycleContext,
+  type PresenceLifecycleEventDetail,
+  type PresenceState,
+} from "../internal/presence-lifecycle.js";
 import type { UIOption } from "../option/option.js";
 
 let selectListId = 0;
 
+export type SelectFilter = "contains" | "none" | "starts-with";
+export type SelectSize = "inherit" | "default" | "compact" | "small" | "medium" | "large";
+
 function optionLabel(option: UIOption): string {
   return [...option.childNodes]
-    .filter((node) => !(node instanceof HTMLElement && node.slot))
+    .filter(
+      (node) => node.nodeType !== Node.COMMENT_NODE && !(node instanceof HTMLElement && node.slot),
+    )
     .map((node) => node.textContent ?? "")
     .join("")
     .trim();
@@ -41,20 +51,29 @@ function optionLabel(option: UIOption): string {
  * @slot label - Optional visible label content.
  * @slot value - Optional authored selected-value presentation.
  * @slot icon - Optional symbolic content inside the trigger.
+ * @slot clear - Optional control that clears the current value.
  * @slot backdrop - Optional renderer-specific backdrop content.
  * @slot arrow - Optional connector between the popup and its anchor.
+ * @slot empty - Content shown when no enabled option is available.
  * @slot scroll-up - Optional action that reveals earlier options.
  * @slot scroll-down - Optional action that reveals later options.
  *
  * @csspart root - The complete select realization.
  * @csspart label - The optional visible label.
+ * @csspart control - The trigger and adjacent authored actions.
  * @csspart trigger - The native listbox trigger button.
  * @csspart value - The selected-value presentation inside the trigger.
  * @csspart icon - Optional symbolic content inside the trigger.
+ * @csspart clear - The optional clear action.
  * @csspart backdrop - The optional layer behind the popup.
  * @csspart positioner - The owner of anchor-relative popup placement.
  * @csspart popup - The floating option surface.
  * @csspart arrow - The popup-to-anchor connector.
+ * @csspart search - The optional search-field row above the listbox.
+ * @csspart search-control - The native search input.
+ * @csspart status - The live result-count announcement.
+ * @csspart empty - The authored empty-option content.
+ * @csspart viewport - The natively scrollable option viewport.
  * @csspart scroll-up - The action that reveals earlier options.
  * @csspart scroll-down - The action that reveals later options.
  * @csspart listbox - The semantic option list.
@@ -62,27 +81,40 @@ function optionLabel(option: UIOption): string {
  * @csspart children - The authored option collection.
  *
  * @cssstate open - Matches `:state(open)` while choices are visible.
+ * @cssstate present - Matches while the popup is rendered, including exit motion.
+ * @cssstate entering - Matches while the popup is entering.
+ * @cssstate active - Matches after enter motion settles.
+ * @cssstate exiting - Matches while the popup is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  * @cssstate readonly - Matches `:state(readonly)` while selection cannot change.
- * @cssstate multiple - Matches `:state(multiple)` while multiple values are selected.
+ * @cssstate empty - Matches `:state(empty)` while no enabled option is available.
  * @cssstate invalid - Matches `:state(invalid)` while the owning field reports an error.
  *
- * @fires {CustomEvent<{ value: string; values: string[] }>} ui-select-change - Emitted after selection changes.
+ * @fires {CustomEvent<{ value: string }>} ui-select-change - Emitted after selection changes.
+ * @fires {CustomEvent<{ value: string }>} ui-select-confirm - Emitted when the open option surface closes with the current value.
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-select-open-change - Emitted after interaction changes list visibility, including a portable reason.
+ * @fires {CustomEvent<PresenceLifecycleEventDetail>} mash-presence-start - Announces select popup enter or exit presence.
+ * @fires {CustomEvent<PresenceLifecycleEventDetail>} mash-presence-end - Announces completion or interruption of select popup presence.
  *
  * @mashrole slot arrow pointer arrow
  * @mashrole part arrow pointer arrow
+ * @mashrole slot clear clear clear
+ * @mashrole part clear clear clear
+ * @mashrole slot empty empty empty
+ * @mashrole part empty empty empty
  * @mashrole slot scroll-up scroll-backward scroll-start
  * @mashrole part scroll-up scroll-backward scroll-start
  * @mashrole slot scroll-down scroll-forward scroll-end
  * @mashrole part scroll-down scroll-forward scroll-end
  * @mashrole part list listbox listbox
- * @mashrole attribute values value values
  * @mashnode root root
  * @mashnode label label root
- * @mashnode trigger trigger root
+ * @mashnode control group root
+ * @mashnode trigger trigger control
  * @mashnode value value trigger
  * @mashnode icon icon trigger
+ * @mashnode clear clear control
  * @mashnode backdrop backdrop root
  * @mashnode positioner positioner root
  * @mashnode placement placement positioner
@@ -91,13 +123,27 @@ function optionLabel(option: UIOption): string {
  * @mashnode collision-padding collision-padding positioner
  * @mashnode popup popup positioner
  * @mashnode arrow pointer popup
+ * @mashnode search search popup
+ * @mashnode search-control control search
+ * @mashnode status status popup
+ * @mashnode empty empty popup
+ * @mashnode viewport viewport popup
  * @mashnode scroll-start scroll-backward popup
  * @mashnode scroll-end scroll-forward popup
- * @mashnode listbox listbox popup
+ * @mashnode listbox listbox viewport
  * @mashnode children children listbox
- * @mashnode values value root
+ * @mashnode size size root
+ * @mashaxis size control-size
+ * @mashnode searchable searchable root
  * @mashnode open open root
+ * @mashnode present present popup
+ * @mashnode entering entering popup
+ * @mashnode active active popup
+ * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
  * @mashnode invalid invalid trigger
+ * @mashrole event ui-select-change change value
+ * @mashrole event ui-select-confirm confirm value
  * @mashrole event ui-select-open-change open open
  * @mashrole slot default children children
  */
@@ -109,8 +155,10 @@ export class UISelect extends LitElement {
   };
   static override properties = {
     value: { type: String, reflect: true },
-    values: { converter: stringArrayConverter, reflect: true },
-    multiple: { type: Boolean, reflect: true },
+    size: { type: String, reflect: true },
+    searchable: { type: Boolean, reflect: true },
+    filter: { type: String, reflect: true },
+    searchPlaceholder: { type: String, attribute: "search-placeholder", reflect: true },
     name: { type: String, reflect: true },
     label: { type: String, reflect: true },
     placeholder: { type: String, reflect: true },
@@ -121,14 +169,20 @@ export class UISelect extends LitElement {
     align: { type: String, reflect: true },
     offset: { type: Number, reflect: true },
     collisionPadding: { type: Number, attribute: "collision-padding", reflect: true },
+    popupPresent: { state: true },
+    _resultCount: { type: Number, state: true },
   };
 
   /** Value of the selected option. */
   declare value: string;
-  /** Selected values while `multiple` is active. */
-  declare values: string[];
-  /** Allows more than one option to be selected. */
-  declare multiple: boolean;
+  /** Physical scale of the select trigger; inherit follows data-mash-size. */
+  declare size: SelectSize;
+  /** Shows an inline search field inside the option popup. */
+  declare searchable: boolean;
+  /** Client-side label matching policy for the popup search field. */
+  declare filter: SelectFilter;
+  /** Hint shown inside the popup search field. */
+  declare searchPlaceholder: string;
   /** Form key used for submission. */
   declare name: string;
   /** Accessible name for the select trigger. */
@@ -149,32 +203,43 @@ export class UISelect extends LitElement {
   declare offset: number;
   /** Minimum viewport-edge clearance in CSS pixels. */
   declare collisionPadding: number;
+  /** Internal render-presence; public state remains the `open` contract. */
+  declare protected popupPresent: boolean;
+  declare private _resultCount: number;
 
   readonly #internals: ElementInternals;
   readonly #listboxId = `ui-select-listbox-${++selectListId}`;
   #formDisabled = false;
   #defaultValue: string | undefined;
-  #defaultValues: string[] | undefined;
   #typeahead = "";
   #typeaheadTimer: number | undefined;
   #fieldDescription = "";
   #fieldInvalid = false;
+  #query = "";
   readonly #collectionObserver = new MutationObserver(() => {
     this.#sync();
     this.#positioner.queue();
   });
   readonly #positioner = new AnchoredPositionController(this, {
-    anchor: () => this.renderRoot.querySelector<HTMLElement>("[part~='trigger']"),
+    anchor: () => {
+      const control = this.renderRoot.querySelector<HTMLElement>("[part~='control']");
+      return control?.getClientRects().length
+        ? control
+        : this.renderRoot.querySelector<HTMLElement>("[part~='trigger']");
+    },
     popup: () => this.renderRoot.querySelector<HTMLElement>("[part~='popup']"),
     positioner: () => this.renderRoot.querySelector<HTMLElement>("[part~='positioner']"),
     config: () => this,
   });
+  readonly #presence: PresenceLifecycleController<"entering" | "exiting">;
 
   constructor() {
     super();
     this.value = "";
-    this.values = [];
-    this.multiple = false;
+    this.size = "inherit";
+    this.searchable = false;
+    this.filter = "contains";
+    this.searchPlaceholder = "Search options";
     this.name = "";
     this.label = "Select an option";
     this.placeholder = "Select…";
@@ -185,7 +250,23 @@ export class UISelect extends LitElement {
     this.align = "start";
     this.offset = 4;
     this.collisionPadding = 4;
+    this.popupPresent = false;
+    this._resultCount = 0;
     this.#internals = this.attachInternals();
+    this.#presence = new PresenceLifecycleController(this, {
+      target: () => this.renderRoot.querySelector<HTMLElement>("[part~='popup']"),
+      present: () => this.popupPresent,
+      setPresent: (present) => {
+        this.popupPresent = present;
+      },
+      setState: (state, present) => this.#setPresenceState(state, present),
+      onStart: (context) => this.#emitPresenceEvent("mash-presence-start", context),
+      onFinish: (context) => this.#emitPresenceEvent("mash-presence-end", context),
+      onSettle: (phase) => {
+        if (phase === "absent") this.#positioner.stop();
+        else this.#positioner.queue();
+      },
+    });
     this.addEventListener("ui-option-select", this.#onOptionSelect);
     this.addEventListener("click", this.#onComposedClick);
     this.addEventListener("keydown", this.#onOptionKeydown);
@@ -196,12 +277,30 @@ export class UISelect extends LitElement {
     css`
       [part~="root"],
       [part~="label"],
+      [part~="control"],
       [part~="value"],
       [part~="icon"],
+      [part~="clear"],
       [part~="arrow"],
+      [part~="search"],
+      [part~="empty"],
       [part~="scroll-up"],
       [part~="scroll-down"] {
         display: contents;
+      }
+
+      [part~="search"][hidden],
+      [part~="empty"][hidden] {
+        display: none;
+      }
+
+      [part~="status"] {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
       }
     `,
   ];
@@ -216,7 +315,6 @@ export class UISelect extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback();
     this.#defaultValue ??= this.value;
-    this.#defaultValues ??= [...this.values];
     this.#collectionObserver.observe(this, {
       childList: true,
       subtree: true,
@@ -226,23 +324,35 @@ export class UISelect extends LitElement {
 
   override disconnectedCallback(): void {
     this.#collectionObserver.disconnect();
+    this.#presence.destroy();
     this.#positioner.stop();
     this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
     super.disconnectedCallback();
   }
 
   #sync(): void {
-    for (const option of this.#options()) {
-      option.selected = this.multiple
-        ? this.values.includes(option.value)
-        : option.value === this.value;
+    const needle = this.#query.trim().toLocaleLowerCase();
+    const options = this.#options();
+    for (const option of options) {
+      const label = optionLabel(option).toLocaleLowerCase();
+      option.hidden =
+        this.searchable &&
+        Boolean(needle) &&
+        this.filter !== "none" &&
+        (this.filter === "starts-with" ? !label.startsWith(needle) : !label.includes(needle));
+      option.selected = option.value === this.value;
     }
+    for (const group of this.querySelectorAll<HTMLElement>("ui-option-group")) {
+      const groupOptions = [...group.querySelectorAll<UIOption>("ui-option")];
+      group.hidden = groupOptions.length > 0 && groupOptions.every((option) => option.hidden);
+    }
+    this._resultCount = options.filter((option) => !option.hidden && !option.disabled).length;
+    if (this._resultCount === 0) this.#internals.states.add("empty");
+    else this.#internals.states.delete("empty");
+    const active = options.find((option) => option.active);
+    if (active && (active.hidden || active.disabled)) this.#setActive(null, false);
     if (this.#isDisabled || !this.name) {
       this.#internals.setFormValue(null);
-    } else if (this.multiple) {
-      const formValue = new FormData();
-      for (const value of this.values) formValue.append(this.name, value);
-      this.#internals.setFormValue(formValue);
     } else {
       this.#internals.setFormValue(this.value);
     }
@@ -250,54 +360,98 @@ export class UISelect extends LitElement {
     else this.#internals.states.delete("open");
     if (this.#isDisabled) this.#internals.states.add("disabled");
     else this.#internals.states.delete("disabled");
-    for (const state of ["readonly", "multiple"] as const) {
+    for (const state of ["readonly"] as const) {
       if (this[state]) this.#internals.states.add(state);
       else this.#internals.states.delete(state);
     }
   }
 
-  protected override updated(changed: PropertyValues<this>): void {
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    if (changed.has("open") && this.open) this.popupPresent = true;
     if (
       changed.has("value") ||
-      changed.has("values") ||
-      changed.has("multiple") ||
       changed.has("name") ||
       changed.has("open") ||
       changed.has("disabled") ||
-      changed.has("readonly")
+      changed.has("readonly") ||
+      changed.has("searchable") ||
+      changed.has("filter")
     )
       this.#sync();
-    if (this.open) {
-      this.#positioner.start();
+  }
+
+  protected override updated(changed: PropertyValues<this>): void {
+    if (changed.has("open")) {
+      if (this.open) {
+        this.#positioner.start();
+        this.#positioner.queue();
+        this.ownerDocument.addEventListener("pointerdown", this.#onDocumentPointerDown, true);
+        this.#presence.enter("entering");
+      } else {
+        this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
+        this.#presence.exit("exiting", changed.get("open") === true);
+      }
+    } else if (this.open || this.popupPresent) {
       this.#positioner.queue();
-      this.ownerDocument.addEventListener("pointerdown", this.#onDocumentPointerDown, true);
-    } else {
-      this.#positioner.stop();
-      this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
     }
+  }
+
+  #setPresenceState(state: PresenceState, present: boolean): void {
+    if (present) this.#internals.states.add(state);
+    else this.#internals.states.delete(state);
+  }
+
+  #emitPresenceEvent(
+    type: "mash-presence-start" | "mash-presence-end",
+    context: PresenceLifecycleContext<"entering" | "exiting">,
+  ): void {
+    const eventInit: CustomEventInit<PresenceLifecycleEventDetail> = {
+      bubbles: true,
+      composed: true,
+      detail: {
+        open: context.open,
+        phase: context.phase,
+        reducedMotion: context.reducedMotion,
+        interrupted: context.interrupted,
+      },
+    };
+    if (type === "mash-presence-start") {
+      this.dispatchEvent(
+        new CustomEvent<PresenceLifecycleEventDetail>("mash-presence-start", eventInit),
+      );
+      return;
+    }
+    this.dispatchEvent(
+      new CustomEvent<PresenceLifecycleEventDetail>("mash-presence-end", eventInit),
+    );
   }
 
   formDisabledCallback(disabled: boolean): void {
     this.#formDisabled = disabled;
-    this.requestUpdate();
+    // This also runs while Lit reflects our own disabled attribute, after
+    // render() has read the previous effective state. Schedule a fresh update
+    // after that cycle so enabling the select clears the native trigger too.
+    queueMicrotask(() => {
+      this.#sync();
+      this.requestUpdate();
+    });
   }
   formResetCallback(): void {
     this.value = this.#defaultValue ?? "";
-    this.values = [...(this.#defaultValues ?? [])];
+    this.open = false;
+    this.#query = "";
   }
   formStateRestoreCallback(state: string | File | FormData | null): void {
     if (typeof state === "string") this.value = state;
-    else if (state instanceof FormData) {
-      this.values = state
-        .getAll(this.name)
-        .filter((value): value is string => typeof value === "string");
-    }
   }
 
   #setOpen(open: boolean, reason: OverlayChangeReason): void {
     if (this.#isDisabled || (this.readonly && open) || this.open === open) return;
     this.open = open;
-    if (!open) this.#setActive(null, false);
+    if (!open) {
+      this.#query = "";
+      this.#setActive(null, false);
+    }
     this.dispatchEvent(
       new CustomEvent<OverlayOpenChangeDetail>("ui-select-open-change", {
         bubbles: true,
@@ -305,6 +459,15 @@ export class UISelect extends LitElement {
         detail: { open, reason },
       }),
     );
+    if (!open) {
+      this.dispatchEvent(
+        new CustomEvent<{ value: string }>("ui-select-confirm", {
+          bubbles: true,
+          composed: true,
+          detail: { value: this.value },
+        }),
+      );
+    }
   }
 
   #onDocumentPointerDown = (event: PointerEvent): void => {
@@ -328,21 +491,16 @@ export class UISelect extends LitElement {
   };
 
   #commitOption(option: UIOption): void {
-    if (this.multiple) {
-      this.values = this.values.includes(option.value)
-        ? this.values.filter((value) => value !== option.value)
-        : [...this.values, option.value];
-    } else {
-      this.value = option.value;
-      this.#setOpen(false, "select");
-    }
+    this.value = option.value;
     this.dispatchEvent(
-      new CustomEvent<{ value: string; values: string[] }>("ui-select-change", {
+      new CustomEvent<{ value: string }>("ui-select-change", {
         bubbles: true,
         composed: true,
-        detail: { value: this.value, values: this.multiple ? [...this.values] : [this.value] },
+        detail: { value: this.value },
       }),
     );
+    this.#setOpen(false, "select");
+    queueMicrotask(() => this.#focusTrigger());
   }
 
   #visibleOptions(): UIOption[] {
@@ -352,6 +510,10 @@ export class UISelect extends LitElement {
   #setActive(option: UIOption | null, focus = true): void {
     for (const candidate of this.#options()) candidate.active = candidate === option;
     if (focus) option?.focus();
+  }
+
+  #activeOption(): UIOption | undefined {
+    return this.#visibleOptions().find((option) => option.active);
   }
 
   #moveActive(current: UIOption, direction: 1 | -1): void {
@@ -381,13 +543,96 @@ export class UISelect extends LitElement {
     else this.#setActive(match);
   }
 
+  #searchInput(): HTMLInputElement | null {
+    return this.renderRoot.querySelector<HTMLInputElement>("[part~='search-control']");
+  }
+
+  #focusTrigger(): void {
+    this.renderRoot.querySelector<HTMLButtonElement>("button[part~=trigger]")?.focus();
+  }
+
+  #focusAfterOpen(target: "option" | "search", direction: 1 | -1): void {
+    void this.updateComplete.then(() => {
+      if (!this.open) return;
+      if (target === "search") {
+        this.#searchInput()?.focus();
+        return;
+      }
+      this.#focusInitial(direction);
+    });
+  }
+
+  #onTriggerClick = (event: MouseEvent): void => {
+    event.preventDefault();
+    const nextOpen = !this.open;
+    this.#setOpen(nextOpen, "trigger");
+    if (nextOpen) this.#focusAfterOpen(this.searchable ? "search" : "option", 1);
+  };
+
+  #onSearchInput = (event: Event): void => {
+    if (this.readonly) return;
+    this.#query = (event.currentTarget as HTMLInputElement).value;
+    this.#setActive(null, false);
+    this.#sync();
+    this.#positioner.queue();
+  };
+
+  #onSearchKeydown = (event: KeyboardEvent): void => {
+    if (this.readonly && event.key !== "Escape") return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      this.#setOpen(false, "escape");
+      queueMicrotask(() => this.#focusTrigger());
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      this.#focusInitial(event.key === "ArrowDown" ? 1 : -1);
+      return;
+    }
+    if (event.key === "Tab") {
+      this.#setOpen(false, "keyboard");
+      return;
+    }
+    if (event.key !== "Enter") return;
+    const active = this.#activeOption();
+    const [onlyOption, extraOption] = this.#visibleOptions();
+    const target = active ?? (onlyOption && !extraOption ? onlyOption : undefined);
+    if (!target) return;
+    event.preventDefault();
+    this.#commitOption(target);
+  };
+
   #onTriggerKeydown = (event: KeyboardEvent): void => {
     if (this.readonly && event.key !== "Escape") return;
     if (event.key === "Escape") {
       this.#setOpen(false, "escape");
       return;
     }
-    if (!this.open && event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    if (
+      !this.open &&
+      this.searchable &&
+      event.key.length === 1 &&
+      event.key !== " " &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
+      event.preventDefault();
+      this.#query = event.key;
+      this.#sync();
+      this.#setOpen(true, "keyboard");
+      this.#focusAfterOpen("search", 1);
+      return;
+    }
+    if (
+      !this.open &&
+      event.key.length === 1 &&
+      event.key !== " " &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
       this.#matchTypeahead(event.key, true);
       return;
     }
@@ -399,12 +644,18 @@ export class UISelect extends LitElement {
     ) {
       event.preventDefault();
       if (this.open && (event.key === "Enter" || event.key === " ")) {
-        this.#setOpen(false, "select");
+        const active = this.#activeOption();
+        if (active) this.#commitOption(active);
+        else this.#setOpen(false, "select");
         return;
       }
       const direction: 1 | -1 = event.key === "ArrowUp" ? -1 : 1;
       this.#setOpen(true, "keyboard");
-      queueMicrotask(() => this.#focusInitial(direction));
+      const focusTarget =
+        event.key === "ArrowDown" || event.key === "ArrowUp" || !this.searchable
+          ? "option"
+          : "search";
+      this.#focusAfterOpen(focusTarget, direction);
     }
   };
 
@@ -434,9 +685,11 @@ export class UISelect extends LitElement {
     if (event.key === "Escape") {
       event.preventDefault();
       this.#setOpen(false, "escape");
-      queueMicrotask(() =>
-        this.renderRoot.querySelector<HTMLButtonElement>("button[part~=trigger]")?.focus(),
-      );
+      queueMicrotask(() => this.#focusTrigger());
+      return;
+    }
+    if (event.key === "Tab") {
+      this.#setOpen(false, "keyboard");
       return;
     }
     if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
@@ -446,11 +699,31 @@ export class UISelect extends LitElement {
 
   #onSlotChange = (): void => this.#sync();
 
-  #onComposedClick = (event: MouseEvent): void => {
+  #eventIsWithinSlot(event: Event, name: string): boolean {
     const path = event.composedPath();
-    const label = this.querySelector<HTMLElement>(":scope > [slot='label']");
-    if (!label || !path.includes(label)) return;
-    this.renderRoot.querySelector<HTMLButtonElement>("button[part~='trigger']")?.focus();
+    return [...this.querySelectorAll<HTMLElement>(`:scope > [slot="${name}"]`)].some((element) =>
+      path.includes(element),
+    );
+  }
+
+  #onComposedClick = (event: MouseEvent): void => {
+    if (this.#eventIsWithinSlot(event, "label")) {
+      this.#focusTrigger();
+      return;
+    }
+    if (!this.#eventIsWithinSlot(event, "clear") || this.#isDisabled || this.readonly) return;
+    event.preventDefault();
+    if (!this.value) return;
+    this.value = "";
+    this.dispatchEvent(
+      new CustomEvent<{ value: string }>("ui-select-change", {
+        bubbles: true,
+        composed: true,
+        detail: { value: "" },
+      }),
+    );
+    this.#setOpen(false, "clear");
+    queueMicrotask(() => this.#focusTrigger());
   };
 
   /** Opens the option surface through the portable open-change contract. */
@@ -469,45 +742,70 @@ export class UISelect extends LitElement {
   }
 
   protected override render(): TemplateResult {
-    const selected = this.#options().filter((option) =>
-      this.multiple ? this.values.includes(option.value) : option.value === this.value,
-    );
-    const selectedText = selected.map(optionLabel).join(", ");
+    const selected = this.#options().find((option) => option.value === this.value);
+    const selectedText = selected ? optionLabel(selected) : "";
     return html`
       <span part="root">
         <span part="label"><slot name="label"></slot></span>
-        <button
-          part="trigger"
-          type="button"
-          role="combobox"
-          aria-label=${this.label}
-          aria-description=${this.#fieldDescription || nothing}
-          aria-invalid=${this.#fieldInvalid ? "true" : nothing}
-          aria-controls=${this.open ? this.#listboxId : nothing}
-          aria-expanded=${this.open ? "true" : "false"}
-          ?disabled=${this.#isDisabled}
-          aria-readonly=${this.readonly ? "true" : nothing}
-          @click=${() => this.#setOpen(!this.open, "trigger")}
-          @keydown=${this.#onTriggerKeydown}
-        >
-          <span part="value">
-            <slot name="value">${selectedText || this.placeholder}</slot>
-          </span>
-          <span part="icon"><slot name="icon"></slot></span>
-        </button>
-        <span part="backdrop" ?hidden=${!this.open}><slot name="backdrop"></slot></span>
-        <div part="positioner" ?hidden=${!this.open}>
+        <span part="control">
+          <button
+            part="trigger"
+            type="button"
+            role="combobox"
+            aria-label=${this.label}
+            aria-description=${this.#fieldDescription || nothing}
+            aria-invalid=${this.#fieldInvalid ? "true" : nothing}
+            aria-controls=${this.open ? this.#listboxId : nothing}
+            aria-expanded=${this.open ? "true" : "false"}
+            aria-haspopup="listbox"
+            ?disabled=${this.#isDisabled}
+            aria-readonly=${this.readonly ? "true" : nothing}
+            @click=${this.#onTriggerClick}
+            @keydown=${this.#onTriggerKeydown}
+          >
+            <span part="value">
+              <slot name="value">${selectedText || this.placeholder}</slot>
+            </span>
+            <span part="icon"><slot name="icon"></slot></span>
+          </button>
+          <span part="clear"><slot name="clear"></slot></span>
+        </span>
+        <span part="backdrop" ?hidden=${!this.popupPresent} .inert=${!this.open}
+          ><slot name="backdrop"></slot
+        ></span>
+        <div part="positioner" ?hidden=${!this.popupPresent} .inert=${!this.open}>
           <div part="popup">
             <span part="scroll-up"><slot name="scroll-up"></slot></span>
             <span part="arrow"><slot name="arrow"></slot></span>
-            <div
-              part="listbox list"
-              id=${this.#listboxId}
-              role="listbox"
-              aria-label=${this.label}
-              aria-multiselectable=${this.multiple ? "true" : nothing}
-            >
-              <slot part="children" @slotchange=${this.#onSlotChange}></slot>
+            <span part="search" ?hidden=${!this.searchable}>
+              <input
+                part="search-control"
+                type="search"
+                .value=${this.#query}
+                placeholder=${this.searchPlaceholder}
+                aria-label=${this.searchPlaceholder}
+                aria-controls=${this.#listboxId}
+                ?disabled=${this.#isDisabled}
+                ?readonly=${this.readonly}
+                @input=${this.#onSearchInput}
+                @keydown=${this.#onSearchKeydown}
+              />
+            </span>
+            <span part="status" role="status" aria-live="polite">
+              ${this._resultCount} ${this._resultCount === 1 ? "option" : "options"} available
+            </span>
+            <span part="empty" ?hidden=${this._resultCount !== 0}>
+              <slot name="empty"></slot>
+            </span>
+            <div part="viewport">
+              <div
+                part="listbox list"
+                id=${this.#listboxId}
+                role="listbox"
+                aria-label=${this.label}
+              >
+                <slot part="children" @slotchange=${this.#onSlotChange}></slot>
+              </div>
             </div>
             <span part="scroll-down"><slot name="scroll-down"></slot></span>
           </div>

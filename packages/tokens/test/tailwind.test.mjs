@@ -51,6 +51,22 @@ test("keeps material thickness, backdrop tuning, and semantic vibrancy independe
   }
 
   assert.ok(tokens["effect.material.backdropSaturation.standard"]);
+  assert.equal(
+    tokens["effect.material.luminance.wideGamut"].aliasOf,
+    "effect.reference.material.luminance.wideGamut",
+  );
+  assert.equal(
+    tokens["effect.material.luminance.highDynamicRange"].aliasOf,
+    "effect.reference.material.luminance.highDynamicRange",
+  );
+  assert.equal(
+    tokens["effect.material.highlightAlpha.wideGamut"].aliasOf,
+    "effect.reference.material.highlightAlpha.wideGamut",
+  );
+  assert.equal(
+    tokens["effect.material.highlightAlpha.highDynamicRange"].aliasOf,
+    "effect.reference.material.highlightAlpha.highDynamicRange",
+  );
   assert.deepEqual(tokens["color.backgroundMaterialHighlight"].values, {
     light: "oklch(1.0000 0.0000 0.00 / 0.13)",
     dark: "oklch(1.0000 0.0000 0.00 / 0.13)",
@@ -72,7 +88,7 @@ test("keeps material thickness, backdrop tuning, and semantic vibrancy independe
     light: 0.5,
     dark: 0.55,
   });
-  assert.equal(tokens["type.body.fontSize"].value, "0.8125rem");
+  assert.equal(tokens["type.body.fontSize"].value, "0.875rem");
   assert.equal(tokens["type.largeTitle.lineHeight"].value, 1.230769);
   assert.equal(
     Object.keys(tokens).some((id) => id.startsWith("effect.vibrancy.")),
@@ -80,33 +96,25 @@ test("keeps material thickness, backdrop tuning, and semantic vibrancy independe
   );
 });
 
-test("keeps legacy neutral consumers on contextual Apple fill tiers", async () => {
+test("keeps opaque control foundations separate from opt-in material fills", async () => {
   const { tokens } = JSON.parse(await readFile(path.join(DIST_DIR, "tokens.json"), "utf8"));
-
-  assert.deepEqual(tokens["color.surfaceSunken"].aliasOf, {
-    light: "color.reference.fill.light.opaque.quaternary",
-    dark: "color.reference.fill.dark.opaque.quaternary",
-  });
-  assert.deepEqual(tokens["color.neutral"].values, {
-    light: "oklch(0.0000 0.0000 0.00 / 0.05)",
-    dark: "oklch(1.0000 0.0000 0.00 / 0.05)",
-  });
-  assert.deepEqual(tokens["color.neutralPressed"].values, {
-    light: "oklch(0.0000 0.0000 0.00 / 0.15)",
-    dark: "oklch(1.0000 0.0000 0.00 / 0.15)",
-  });
-  assert.deepEqual(tokens["color.onNeutral"].aliasOf, {
-    light: "color.reference.label.light.opaque.primary",
-    dark: "color.reference.label.dark.opaque.primary",
-  });
-  assert.deepEqual(tokens["color.border"].aliasOf, {
-    light: "color.reference.fill.light.opaque.tertiary",
-    dark: "color.reference.fill.dark.opaque.tertiary",
-  });
-  assert.deepEqual(tokens["color.borderStrong"].aliasOf, {
-    light: "color.reference.fill.light.opaque.primary",
-    dark: "color.reference.fill.dark.opaque.primary",
-  });
+  for (const theme of ["light", "dark"]) {
+    for (const id of [
+      "color.surface",
+      "color.surfaceSunken",
+      "color.neutral",
+      "color.neutralPressed",
+      "color.border",
+    ]) {
+      assert.doesNotMatch(tokens[id].values[theme], /\//, `${id} must be opaque in ${theme}`);
+      assert.match(tokens[id].aliasOf[theme], /color\.reference\.(neutral|gray)\./);
+    }
+    assert.notEqual(tokens["color.action"].values[theme], tokens["color.onAction"].values[theme]);
+    assert.notEqual(
+      tokens["color.neutral"].values[theme],
+      tokens["color.neutralPressed"].values[theme],
+    );
+  }
 });
 
 test("automatically adapts typed layout dimensions and stacking layers", () => {
@@ -154,6 +162,10 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
     "type-caption2",
     "type-large-title",
     "duration-control",
+    "duration-fast-enter",
+    "duration-moderate-exit",
+    "h-size-compact-control",
+    "text-scale-default-body",
     "translate-x-motion-short",
     "blur-motion-subtle",
     "scale-motion-pressed",
@@ -178,11 +190,35 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
   assert.match(css, /\.p-container-inline\s*{[^}]*padding: var\(--space-container-inline\)/s);
   assert.match(css, /\.rounded-container\s*{[^}]*border-radius: var\(--radius-container\)/s);
   assert.match(css, /\.ease-control\s*{[^}]*transition-timing-function: var\(--easing-control\)/s);
+  assert.match(
+    css,
+    /\.h-size-compact-control\s*{[^}]*height: var\(--layout-size-compact-control\)/s,
+  );
+  assert.match(
+    css,
+    /\.text-scale-default-body\s*{[^}]*font-size: var\(--type-scale-default-body\)/s,
+  );
+  assert.match(
+    css,
+    /\.duration-fast-enter\s*{[^}]*transition-duration: var\(--duration-fast-enter\)/s,
+  );
+  assert.match(
+    css,
+    /\.duration-moderate-exit\s*{[^}]*transition-duration: var\(--duration-moderate-exit\)/s,
+  );
   assert.match(css, /\.stack\s*{[^}]*gap: var\(--space-stack\)/s);
   assert.match(css, /\.surface-raised\s*{[^}]*background-color: var\(--color-surface-raised\)/s);
   assert.match(
     css,
     /\.material-thin\s*{[^}]*--color-text: var\(--mash-material-label-primary\).*?background-color: var\(--color-surface-raised\).*?@supports.*?background-color: var\(--mash-material-background, var\(--color-background-material-thin\)\).*?backdrop-filter: var\(--mash-material-backdrop, blur\(var\(--blur-background-material-thin\)\) saturate\(var\(--mash-material-backdrop-saturation, var\(--effect-material-backdrop-saturation-standard\)\)\)\)/s,
+  );
+  assert.match(
+    css,
+    /\.material-thin\s*{.*?@supports.*?background-image: linear-gradient\(\s*to bottom,\s*var\(--mash-material-background-highlight, transparent\),\s*transparent 62%\s*\)/s,
+  );
+  assert.match(
+    css,
+    /\.material-thin\s*{.*?@supports \(dynamic-range-limit: constrained\)\s*{[^}]*dynamic-range-limit: var\(--mash-material-dynamic-range-limit, standard\)/s,
   );
   assert.match(
     css,
@@ -210,9 +246,19 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
     /\.material-ultra-thick\s*{.*?var\(--color-background-material-ultra-thick\).*?var\(--blur-background-material-ultra-thick\)/s,
   );
   assert.match(css, /@property --mash-material-backdrop-saturation/);
+  assert.match(css, /@property --mash-material-luminance/);
+  assert.match(css, /@property --mash-material-highlight-alpha/);
   assert.match(
     css,
     /\[data-vibrancy="vibrant"\][^{]*{[^}]*var\(--effect-material-backdrop-saturation-enhanced\)/s,
+  );
+  assert.match(
+    css,
+    /@media \(color-gamut: p3\)\s*{[^}]*--mash-material-luminance: var\(--effect-material-luminance-wide-gamut\)[^}]*--mash-material-background-highlight: color\(display-p3 1 1 1 \/ var\(--mash-material-highlight-alpha\)\)[^}]*--mash-material-selection-background: var\(--color-menu-selection\)/s,
+  );
+  assert.match(
+    css,
+    /@media \(dynamic-range: high\)\s*{[^}]*--mash-material-luminance: var\(--effect-material-luminance-high-dynamic-range\)[^}]*--mash-material-dynamic-range-limit: constrained/s,
   );
   assert.match(css, /\[data-vibrancy="reduced"\][^{]*{[^}]*--mash-material-backdrop: none/s);
   assert.match(

@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIField };
+
+export * from "./field.js";

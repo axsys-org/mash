@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UITab };
+
+export * from "./tab.js";

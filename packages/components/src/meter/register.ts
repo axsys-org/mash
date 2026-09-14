@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIMeter };
+
+export * from "./meter.js";

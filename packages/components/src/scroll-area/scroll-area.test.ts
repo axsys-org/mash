@@ -1,17 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { fixture, inShadow, settled } from "../test-support/fixture.js";
-import "../catalogue/mash.css";
 import { UIScrollArea } from "./scroll-area.js";
 import "./register.js";
 
-beforeEach(() => {
-  document.documentElement.dataset.mashCatalogue = "mash";
-});
-
 afterEach(() => {
   vi.useRealTimers();
-  delete document.documentElement.dataset.mashCatalogue;
 });
 
 describe("ui-scroll-area", () => {
@@ -40,6 +34,41 @@ describe("ui-scroll-area", () => {
     expect(area.matches(":state(scrollable-block)")).toBe(true);
   });
 
+  it("keeps native viewport behavior without a catalogue stylesheet", async () => {
+    const area = await fixture<UIScrollArea>(`
+      <ui-scroll-area style="inline-size: 160px; block-size: 90px">
+        <div style="inline-size: 420px; block-size: 260px">Standalone content</div>
+      </ui-scroll-area>
+    `);
+    const viewport = inShadow<HTMLElement>(area, '[part="viewport"]');
+    await settled(area.parentElement!);
+
+    expect(getComputedStyle(viewport).overflow).toBe("auto");
+    expect(viewport.clientWidth).toBeLessThanOrEqual(160);
+    expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
+    expect(viewport.clientHeight).toBeLessThanOrEqual(90);
+    expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight);
+  });
+
+  it("constrains axes and updates scrollbar controls when orientation changes", async () => {
+    const area = await fixture<UIScrollArea>(`
+      <ui-scroll-area orientation="horizontal" snap="proximity" style="inline-size: 160px; block-size: 100px">
+        <div style="inline-size: 480px; block-size: 400px">Large surface</div>
+      </ui-scroll-area>
+    `);
+    const viewport = area.viewportElement;
+    await settled(area.parentElement!);
+    expect(getComputedStyle(viewport).overflowY).toBe("hidden");
+    expect(getComputedStyle(viewport).scrollSnapType).toBe("x");
+    expect(inShadow<HTMLElement>(area, '[part="block-scrollbar"]').hidden).toBe(true);
+    expect(inShadow<HTMLElement>(area, '[part="inline-scrollbar"]').hidden).toBe(false);
+    area.orientation = "vertical";
+    await settled(area.parentElement!);
+    expect(getComputedStyle(viewport).overflowX).toBe("hidden");
+    expect(inShadow<HTMLElement>(area, '[part="block-scrollbar"]').hidden).toBe(false);
+    expect(inShadow<HTMLElement>(area, '[part="inline-scrollbar"]').hidden).toBe(true);
+  });
+
   it("reports logical scroll coordinates", async () => {
     const area = await fixture<UIScrollArea>(`
       <ui-scroll-area style="block-size: 100px">
@@ -55,6 +84,29 @@ describe("ui-scroll-area", () => {
 
     expect(listener).toHaveBeenCalledOnce();
     expect((listener.mock.calls[0]![0] as CustomEvent).detail).toMatchObject({ block: 24 });
+  });
+
+  it("reconnects scroll bookkeeping without duplicating listeners", async () => {
+    const area = await fixture<UIScrollArea>(`
+      <ui-scroll-area style="block-size: 100px">
+        <div style="block-size: 80px">Short content</div>
+      </ui-scroll-area>
+    `);
+    const container = area.parentElement!;
+    const viewport = inShadow<HTMLElement>(area, '[part="viewport"]');
+    const listener = vi.fn();
+    area.addEventListener("ui-scroll-area-scroll", listener);
+
+    expect(area.matches(":state(scrollable-block)")).toBe(false);
+    area.remove();
+    area.innerHTML = `<div style="block-size: 320px">Long content</div>`;
+    container.append(area);
+    await settled(container);
+
+    expect(area.matches(":state(scrollable-block)")).toBe(true);
+    viewport.scrollTop = 16;
+    viewport.dispatchEvent(new Event("scroll"));
+    expect(listener).toHaveBeenCalledOnce();
   });
 
   it("exposes logical scrollbar anatomy and keeps it synchronized with the native viewport", async () => {
@@ -202,5 +254,22 @@ describe("ui-scroll-area", () => {
     await vi.advanceTimersByTimeAsync(area.idleDelay + 1);
     expect(area.matches(":state(active)")).toBe(false);
     expect(area.matches(":state(idle)")).toBe(true);
+  });
+
+  it("falls back to the default idle delay when an authored value is invalid", async () => {
+    const area = await fixture<UIScrollArea>(`
+      <ui-scroll-area style="block-size: 100px" idle-delay="nope">
+        <div style="block-size: 400px">Long content</div>
+      </ui-scroll-area>
+    `);
+    const viewport = inShadow<HTMLElement>(area, '[part="viewport"]');
+    await settled(area.parentElement!);
+
+    expect(Number.isNaN(area.idleDelay)).toBe(true);
+    vi.useFakeTimers();
+    viewport.dispatchEvent(new Event("scroll"));
+    expect(area.matches(":state(active)")).toBe(true);
+    await vi.advanceTimersByTimeAsync(2001);
+    expect(area.matches(":state(active)")).toBe(false);
   });
 });

@@ -37,6 +37,12 @@ describe("ui-input-group", () => {
     expect(group.matches(":state(has-control)")).toBe(true);
     expect(group.matches(":state(has-suffix)")).toBe(false);
     expect(shadow(group).querySelector<HTMLElement>('[part="prefix"]')?.hidden).toBe(true);
+    expect(shadow(group).querySelector<HTMLElement>('[part="prefix-separator"]')?.hidden).toBe(
+      true,
+    );
+    expect(shadow(group).querySelector<HTMLElement>('[part="suffix-separator"]')?.hidden).toBe(
+      true,
+    );
     expect(shadow(group).querySelector<HTMLElement>('[part="suffix"]')?.hidden).toBe(true);
   });
 });

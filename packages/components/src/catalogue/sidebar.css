@@ -1,0 +1,471 @@
+/** Sidebar owns layout; slotted Mash components keep their own semantics and behavior. */
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) ui-sidebar {
+    --_mash-sidebar-resolved: clamp(
+      var(--_mash-sidebar-min, 160px),
+      var(--mash-sidebar-width, var(--_mash-sidebar-width, 16rem)),
+      var(--_mash-sidebar-max, 360px)
+    );
+    --_mash-sidebar-reserved: 0px;
+    --_mash-sidebar-travel: -100%;
+    display: block;
+    min-inline-size: 0;
+    block-size: 100%;
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:state(expanded) {
+    --_mash-sidebar-reserved: var(--_mash-sidebar-resolved);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar[side="right"] {
+    --_mash-sidebar-travel: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(root) {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: var(--_mash-sidebar-reserved) minmax(0, 1fr);
+    grid-template-areas: "rail inset";
+    block-size: 100%;
+    min-block-size: 0;
+    min-inline-size: 0;
+    transition: grid-template-columns var(--duration-moderate-exit) var(--easing-settle);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:state(expanded)::part(root) {
+    transition-duration: var(--duration-moderate-enter);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar[side="right"]::part(root),
+  :where([data-mash-catalogue="mash"]) ui-sidebar:dir(rtl):not([side="right"])::part(root) {
+    grid-template-columns: minmax(0, 1fr) var(--_mash-sidebar-reserved);
+    grid-template-areas: "inset rail";
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:dir(rtl)[side="right"]::part(root) {
+    grid-template-columns: var(--_mash-sidebar-reserved) minmax(0, 1fr);
+    grid-template-areas: "rail inset";
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(rail-viewport) {
+    grid-area: rail;
+    min-inline-size: 0;
+    position: relative;
+    overflow: clip;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(panel) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    inline-size: var(--_mash-sidebar-resolved);
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+    border-right: var(--border-hairline) solid var(--_mash-component-boundary);
+    background: color-mix(in srgb, var(--_mash-component-surface) 96%, var(--color-text) 4%);
+    transform: translateX(var(--_mash-sidebar-travel));
+    transition: transform var(--duration-moderate-exit) var(--easing-settle);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar[side="right"]::part(panel) {
+    left: auto;
+    right: 0;
+    border-right: 0;
+    border-left: var(--border-hairline) solid var(--_mash-component-boundary);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar[bordered="false"]::part(panel) {
+    border: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:not(:state(expanded))::part(rail-viewport) {
+    overflow: visible;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-sidebar:not(:state(expanded)):not(:state(peeking))::part(panel) {
+    visibility: hidden;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-sidebar:is(:state(expanded), :state(peeking))::part(panel) {
+    transform: none;
+    transition-duration: var(--duration-moderate-enter);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(header),
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(footer) {
+    display: grid;
+    flex: none;
+    gap: var(--space-control-gap);
+    padding: var(--space-control-inline);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(navigation) {
+    flex: 1 1 0;
+    min-block-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(viewport) {
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+    mask-image: linear-gradient(
+      to bottom,
+      var(--_mash-sidebar-fade-start, black),
+      black var(--space-control-inline),
+      black calc(100% - var(--space-control-inline)),
+      var(--_mash-sidebar-fade-end, black)
+    );
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(navigation):state(scrollable-block) {
+    --_mash-sidebar-fade-start: transparent;
+    --_mash-sidebar-fade-end: transparent;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(navigation):state(at-block-start) {
+    --_mash-sidebar-fade-start: black;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(navigation):state(at-block-end) {
+    --_mash-sidebar-fade-end: black;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(scroll-content) {
+    padding: var(--space-control-block) var(--space-control-inline-small);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(scrollbar) {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    inline-size: var(--scrollbar-track-compact);
+    z-index: 1;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(scroll-track) {
+    display: block;
+    position: relative;
+    block-size: 100%;
+    inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(scroll-thumb) {
+    position: absolute;
+    display: block;
+    inline-size: 100%;
+    min-block-size: var(--space-container-inline);
+    border-radius: var(--radius-pill);
+    background: var(--_mash-component-boundary-strong);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(inset) {
+    grid-area: inset;
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    min-block-size: 0;
+    background: var(--_mash-component-surface);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(toolbar) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-control-gap);
+    flex: none;
+    min-block-size: var(--layout-dimension-input-large);
+    padding: var(--space-control-block) var(--space-control-inline);
+    border-block-end: var(--border-hairline) solid var(--_mash-component-boundary);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(content-header) {
+    display: contents;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(content) {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-container-inline);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(trigger),
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(close) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    border: 0;
+    border-radius: var(--radius-control);
+    color: var(--color-text-muted);
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(trigger) {
+    min-inline-size: var(--layout-size-compact-control);
+    min-block-size: var(--layout-size-compact-control);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(trigger):hover,
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(close):hover {
+    color: var(--color-text);
+    background: var(--color-surface-hover);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(trigger):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(close):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(edge):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(trigger-icon) {
+    inline-size: var(--layout-size-default-icon);
+    block-size: var(--layout-size-default-icon);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(trigger-glyph),
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(trigger-source) {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(rail) {
+    position: absolute;
+    z-index: var(--layer-raised);
+    top: 0;
+    bottom: 0;
+    right: 0;
+    inline-size: var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar[side="right"]::part(rail) {
+    left: 0;
+    right: auto;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(resize) {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    block-size: 100%;
+    cursor: col-resize;
+    touch-action: none;
+    user-select: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(resize-grip) {
+    inline-size: var(--border-strong);
+    block-size: 100%;
+    background: transparent;
+    transition: background var(--duration-fast-enter) var(--easing-settle);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(resize):hover,
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(resize):focus-visible {
+    background: var(--color-selection);
+    outline: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(edge) {
+    position: absolute;
+    left: 0;
+    top: var(--space-control-gap);
+    bottom: var(--space-control-gap);
+    inline-size: var(--space-control-gap);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--_mash-component-boundary);
+    cursor: pointer;
+    z-index: var(--layer-raised);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar[side="right"]::part(edge) {
+    right: 0;
+    left: auto;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:state(peeking)::part(rail-viewport) {
+    overflow: visible;
+    z-index: var(--layer-overlay);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:state(peeking)::part(panel) {
+    top: var(--space-control-gap);
+    bottom: var(--space-control-gap);
+    border: var(--border-hairline) solid var(--_mash-component-boundary-strong);
+    border-radius: var(--radius-container);
+    box-shadow: 0 8px 28px var(--_mash-component-shadow);
+    background: var(--_mash-component-surface-raised);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:state(peeking)::part(edge) {
+    opacity: 0;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-sidebar:is([variant="floating"], [variant="inset"])::part(root) {
+    padding: var(--space-control-gap);
+    gap: var(--space-control-gap);
+    background: color-mix(in srgb, var(--_mash-component-surface) 96%, var(--color-text) 4%);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar[variant="floating"]::part(panel),
+  :where([data-mash-catalogue="mash"]) ui-sidebar[variant="inset"]::part(inset) {
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    background: var(--_mash-component-surface);
+    box-shadow: 0 1px 3px var(--_mash-component-shadow);
+    overflow: clip;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar[variant="inset"]::part(panel) {
+    border: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:state(mobile)::part(root) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "inset";
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(drawer) {
+    display: contents;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(drawer-backdrop) {
+    position: fixed;
+    inset: 0;
+    z-index: var(--layer-overlay);
+    background: var(--color-overlay);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(drawer-positioner) {
+    display: flex;
+    inline-size: 100%;
+    block-size: 100%;
+    justify-content: flex-start;
+    direction: ltr;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar[side="right"]::part(drawer-positioner) {
+    justify-content: flex-end;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(drawer-popup) {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    inline-size: min(
+      var(--mash-sidebar-width-mobile, var(--_mash-sidebar-width-mobile, 18rem)),
+      calc(100% - var(--space-container-inline))
+    );
+    block-size: 100%;
+    background: var(--_mash-component-surface-raised);
+    box-shadow: 0 0 24px var(--_mash-component-shadow);
+    padding-block-start: var(--layout-size-default-control);
+    opacity: 0;
+    transform: translateX(var(--_mash-sidebar-travel));
+    transition:
+      transform var(--duration-slow-exit) var(--easing-settle),
+      opacity var(--duration-fast-exit) var(--easing-settle);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:dir(rtl)::part(drawer-popup) {
+    direction: rtl;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:state(mobile-open)::part(drawer-popup) {
+    opacity: 1;
+    transform: none;
+    transition-duration: var(--duration-slow-enter);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(drawer-title) {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(drawer-content) {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-block-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar::part(close) {
+    position: absolute;
+    top: var(--space-control-block);
+    right: var(--space-control-inline);
+    padding: var(--space-control-block) var(--space-control-inline);
+  }
+  :where([data-mash-catalogue="mash"]) ui-sidebar:state(resizing)::part(root),
+  :where([data-mash-catalogue="mash"]) ui-sidebar:state(resizing)::part(panel) {
+    transition: none;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    .mash-sidebar-nav
+    ui-tree-item:is([selected], [current])::part(control):hover:not(:disabled) {
+    background: transparent;
+  }
+  :where([data-mash-catalogue="mash"])
+    .mash-sidebar-nav
+    ui-tree-item:is([selected], [current])::part(root):hover {
+    background: var(--color-selection-hover);
+  }
+  /* One visual row spans its selectable control and independently focusable actions. */
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree::part(root) {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    gap: var(--space-control-block-small);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item::part(root) {
+    position: relative;
+    border-radius: var(--radius-control);
+    transition: background var(--duration-fast-enter) var(--easing-settle);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item::part(root):hover {
+    background: var(--color-surface-hover);
+  }
+  :where([data-mash-catalogue="mash"])
+    .mash-sidebar-nav
+    ui-tree-item:is([selected], [current])::part(root) {
+    background: var(--color-selection);
+    color: var(--color-on-selection);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item::part(control) {
+    min-block-size: var(--mash-size-control, var(--layout-size-default-control));
+    border: 0;
+    border-radius: inherit;
+    padding: var(--space-control-block-small) var(--space-control-inline-small);
+    font-size: var(--mash-size-body, var(--type-body-font-size));
+    font-weight: var(--type-body-font-weight);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item::part(control):hover,
+  :where([data-mash-catalogue="mash"])
+    .mash-sidebar-nav
+    ui-tree-item:is([selected], [current])::part(control) {
+    background: transparent;
+  }
+  :where([data-mash-catalogue="mash"])
+    .mash-sidebar-nav
+    ui-tree-item:has(> [slot="actions"])::part(control) {
+    padding-inline-end: var(--layout-size-compact-control);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item::part(icon) {
+    inline-size: var(--layout-size-default-icon);
+    margin-inline-end: var(--space-control-gap);
+    color: inherit;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item > ui-icon {
+    font-size: var(--layout-size-default-icon);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item::part(actions) {
+    position: absolute;
+    inset-inline-end: var(--space-control-block-small);
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+    gap: var(--space-control-block-small);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item:focus-within::part(actions),
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item:hover::part(actions),
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item[selected]::part(actions) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item::part(meta) {
+    font: inherit;
+    font-size: var(--mash-size-caption, var(--type-label-small-font-size));
+    color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item::part(children) {
+    margin-inline-start: var(--space-control-inline);
+    padding-inline-start: var(--space-control-gap);
+    border: 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item::part(disclosure) {
+    inline-size: var(--space-control-inline);
+    z-index: 1;
+  }
+  @media (hover: none) {
+    :where([data-mash-catalogue="mash"]) .mash-sidebar-nav ui-tree-item::part(actions) {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+  @media (pointer: coarse) {
+    :where([data-mash-catalogue="mash"]) ui-sidebar::part(viewport) {
+      scrollbar-width: auto;
+    }
+    :where([data-mash-catalogue="mash"]) ui-sidebar::part(scrollbar) {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) ui-sidebar::part(root),
+    :where([data-mash-catalogue="mash"]) ui-sidebar::part(panel),
+    :where([data-mash-catalogue="mash"]) ui-sidebar::part(drawer-popup) {
+      transition: none;
+    }
+  }
+}

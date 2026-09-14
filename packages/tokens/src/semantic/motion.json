@@ -13,6 +13,18 @@
     "surface": {
       "$value": "{duration.reference.normal}",
       "$description": "Surfaces entering or leaving: popovers, dialogs, disclosure."
+    },
+    "fast": {
+      "enter": { "$value": "{duration.reference.microEnter}" },
+      "exit": { "$value": "{duration.reference.microExit}" }
+    },
+    "moderate": {
+      "enter": { "$value": "{duration.reference.compactEnter}" },
+      "exit": { "$value": "{duration.reference.fast}" }
+    },
+    "slow": {
+      "enter": { "$value": "{duration.reference.surfaceEnter}" },
+      "exit": { "$value": "{duration.reference.compactEnter}" }
     }
   },
 
@@ -28,6 +40,14 @@
     "springSnappy": {
       "$value": "{easing.reference.standard}",
       "$description": "A short spring-like response for controls and small indicators."
+    },
+    "settle": {
+      "$value": "{easing.reference.settle}",
+      "$description": "Fast settling without spatial overshoot."
+    },
+    "springSurface": {
+      "$value": "{easing.reference.spring}",
+      "$description": "Restrained spatial overshoot for large entering surfaces; never for exit."
     }
   },
 

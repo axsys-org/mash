@@ -9,3 +9,5 @@ declare global {
 }
 
 export { UIMenuItem };
+
+export * from "./menu-item.js";

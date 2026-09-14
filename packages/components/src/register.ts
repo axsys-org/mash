@@ -12,12 +12,14 @@ import "./accordion-item/register.js";
 import "./alert-dialog/register.js";
 import "./autocomplete/register.js";
 import "./badge/register.js";
+import "./bubble/register.js";
 import "./button/register.js";
 import "./calendar/register.js";
 import "./card/register.js";
 import "./checkbox/register.js";
 import "./checkbox-group/register.js";
 import "./chip/register.js";
+import "./clipboard/register.js";
 import "./collapsible/register.js";
 import "./color-picker/register.js";
 import "./combobox/register.js";
@@ -28,6 +30,7 @@ import "./date-picker/register.js";
 import "./data-table/register.js";
 import "./editor/register.js";
 import "./field/register.js";
+import "./file-upload/register.js";
 import "./fieldset/register.js";
 import "./form/register.js";
 import "./gesture-binding/register.js";
@@ -36,6 +39,7 @@ import "./input-group/register.js";
 import "./icon/register.js";
 import "./image/register.js";
 import "./intl-formatter/register.js";
+import "./label/register.js";
 import "./link/register.js";
 import "./kbd/register.js";
 import "./meter/register.js";
@@ -60,6 +64,8 @@ import "./resizable/register.js";
 import "./scroll-area/register.js";
 import "./select/register.js";
 import "./separator/register.js";
+import "./skeleton/register.js";
+import "./shimmer/register.js";
 import "./slider/register.js";
 import "./spinner/register.js";
 import "./switch/register.js";
@@ -80,3 +86,26 @@ import "./virtual-list/register.js";
 import "./draggable/register.js";
 import "./typeset/register.js";
 import "./menu-label/register.js";
+import "./stagger/register.js";
+import "./reveal/register.js";
+
+import "./chart/register.js";
+
+import "./message/register.js";
+
+import "./attachment/register.js";
+
+import "./marker/register.js";
+
+import "./alert/register.js";
+
+import "./rating/register.js";
+
+import "./message-scroller/register.js";
+
+import "./command-palette/register.js";
+
+import "./stepper/register.js";
+import "./dock/register.js";
+import "./dock-panel/register.js";
+import "./sidebar/register.js";

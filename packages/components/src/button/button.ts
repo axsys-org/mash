@@ -1,15 +1,37 @@
-import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
 /** How much visual weight the button carries. Orthogonal to {@link ButtonTone}. */
-export type ButtonVariant = "primary" | "secondary" | "quiet";
+export type ButtonVariant =
+  | "default"
+  | "primary"
+  | "secondary"
+  | "danger"
+  | "warning"
+  | "success"
+  | "info"
+  | "quiet"
+  | "ghost"
+  | "link"
+  | "text";
 
-/** The button's physical scale. */
-export type ButtonSize = "small" | "medium" | "large";
+/** The button's physical scale. Inherit uses the surrounding data-mash-size context. */
+export type ButtonSize =
+  | "inherit"
+  | "default"
+  | "compact"
+  | "xs"
+  | "xsmall"
+  | "sm"
+  | "small"
+  | "md"
+  | "medium"
+  | "lg"
+  | "large";
 
 /** What the button's action *means*. Orthogonal to {@link ButtonVariant}. */
-export type ButtonTone = "accent" | "neutral" | "positive" | "warning" | "critical";
+export type ButtonTone = "accent" | "neutral" | "info" | "positive" | "warning" | "critical";
 
 /** How the button behaves inside a form. Mirrors the native `<button type>` attribute. */
 export type ButtonType = "button" | "submit" | "reset";
@@ -19,8 +41,13 @@ export type ButtonType = "button" | "submit" | "reset";
  *
  * Two independent axes describe every button in the system. `variant` controls
  * emphasis — how loudly it asks to be pressed. `tone` controls meaning — what
- * kind of thing happens when it is. They compose freely: a `quiet` `critical`
+ * kind of thing happens when it is. They compose freely: a `ghost` `critical`
  * button is a low-emphasis destructive action, and needs no special casing.
+ *
+ * Status variants map directly onto semantic tones: `danger`, `warning`,
+ * `success`, and `info` are accepted as aliases for Mash meaning roles;
+ * `primary`, `secondary`, `ghost`, `link`, and `text` are emphasis variants.
+ * The older Mash name `quiet` remains as an alias for `ghost`.
  *
  * The element is form-associated, so a `submit` button submits its containing
  * form even though the real `<button>` lives inside a shadow root.
@@ -33,69 +60,25 @@ export type ButtonType = "button" | "submit" | "reset";
  * @tag ui-button
  * @summary Triggers an action. The primary interactive control of the system.
  *
- * @example Foundation matrix
- * <div class="demo button-showcase">
- *   <div class="button-showcase-heading">
- *     <strong>Emphasis × meaning</strong>
- *     <span>Every tone composes with every variant.</span>
- *   </div>
- *   <div class="button-showcase-grid">
- *     <span class="button-showcase-label">accent</span>
- *     <ui-button size="small">Primary</ui-button>
- *     <ui-button variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button variant="quiet" size="small">Quiet</ui-button>
- *     <span class="button-showcase-label">neutral</span>
- *     <ui-button tone="neutral" size="small">Primary</ui-button>
- *     <ui-button tone="neutral" variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button tone="neutral" variant="quiet" size="small">Quiet</ui-button>
- *     <span class="button-showcase-label">positive</span>
- *     <ui-button tone="positive" size="small">Primary</ui-button>
- *     <ui-button tone="positive" variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button tone="positive" variant="quiet" size="small">Quiet</ui-button>
- *     <span class="button-showcase-label">warning</span>
- *     <ui-button tone="warning" size="small">Primary</ui-button>
- *     <ui-button tone="warning" variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button tone="warning" variant="quiet" size="small">Quiet</ui-button>
- *     <span class="button-showcase-label">critical</span>
- *     <ui-button tone="critical" size="small">Primary</ui-button>
- *     <ui-button tone="critical" variant="secondary" size="small">Secondary</ui-button>
- *     <ui-button tone="critical" variant="quiet" size="small">Quiet</ui-button>
- *   </div>
- *   <div class="button-showcase-rule"></div>
- *   <div class="button-showcase-heading">
- *     <strong>Size</strong>
- *     <span>Use the same action at three physical scales.</span>
- *   </div>
- *   <div class="button-showcase-row">
- *     <ui-button size="small">Small</ui-button>
- *     <ui-button>Medium</ui-button>
- *     <ui-button size="large">Large</ui-button>
- *   </div>
+ * @example Variants
+ * <div data-mash-catalogue="mash" class="mash-row mash-wrap" data-mash-size="small">
+ *   <ui-button>Default</ui-button>
+ *   <ui-button variant="primary">Primary</ui-button>
+ *   <ui-button variant="secondary">Secondary</ui-button>
+ *   <ui-button variant="ghost">Ghost</ui-button>
+ *   <ui-button variant="link">Link</ui-button>
  * </div>
  *
- * @example Content variants
- * <div class="demo button-showcase button-showcase-compact">
- *   <div class="button-showcase-heading">
- *     <strong>Content is a slot</strong>
- *     <span>Prefix and suffix content keeps the action legible.</span>
- *   </div>
- *   <div class="button-showcase-row">
- *     <ui-button><span slot="prefix" aria-hidden="true">+</span>Create</ui-button>
- *     <ui-button variant="secondary"><span slot="prefix" aria-hidden="true">□</span>Save draft</ui-button>
- *     <ui-button variant="quiet"><span slot="suffix" aria-hidden="true">→</span>View details</ui-button>
- *   </div>
- *   <div class="button-showcase-rule"></div>
- *   <div class="button-showcase-heading">
- *     <strong>States</strong>
- *     <span>Inert states preserve the same geometry and hierarchy.</span>
- *   </div>
- *   <div class="button-showcase-row">
- *     <ui-button disabled>Disabled</ui-button>
- *     <ui-button loading>Loading</ui-button>
- *     <ui-button tone="critical" variant="secondary">Delete</ui-button>
- *   </div>
+ * @example Meaning
+ * <div data-mash-catalogue="mash" class="mash-row mash-wrap" data-mash-size="small">
+ *   <ui-button tone="positive">Success</ui-button>
+ *   <ui-button tone="warning">Warning</ui-button>
+ *   <ui-button tone="critical">Danger</ui-button>
+ *   <ui-button tone="info">Information</ui-button>
  * </div>
  *
+ * @attr {string} aria-expanded - Disclosure state passed to the native control. Omit for ordinary buttons.
+ * @attr {string} aria-label - Accessible name passed to the native control, required for icon-only buttons.
  * @slot - The button's label.
  * @slot prefix - Content placed before the label, typically an icon. Hidden while loading.
  * @slot suffix - Content placed after the label, typically a chevron or badge.
@@ -104,6 +87,7 @@ export type ButtonType = "button" | "submit" | "reset";
  * @csspart prefix - The wrapper around the `prefix` slot.
  * @csspart label - The wrapper around the default slot.
  * @csspart suffix - The wrapper around the `suffix` slot.
+ * @csspart caret - The dropdown caret, present only while `dropdown-caret` is set.
  * @csspart spinner - The loading indicator, present only while `loading` is set.
  *
  * @cssstate loading - Matches `:state(loading)` while an async action is in flight.
@@ -119,10 +103,15 @@ export type ButtonType = "button" | "submit" | "reset";
  * @mashnode prefix prefix control
  * @mashnode label label control
  * @mashnode suffix suffix control
+ * @mashnode caret caret suffix
  * @mashnode spinner spinner control
  * @mashnode variant variant control
  * @mashnode size size control
+ * @mashaxis size control-size
  * @mashnode tone tone control
+ * @mashnode compact compact control
+ * @mashnode outline outline control
+ * @mashnode dropdownCaret dropdown-caret suffix
  * @mashnode disabled disabled control
  * @mashnode loading loading control
  * @mashnode selected selected control
@@ -147,12 +136,17 @@ export class UIButton extends LitElement {
   };
 
   static override properties = {
+    ariaLabel: { type: String, attribute: "aria-label", reflect: true },
+    ariaExpanded: { type: String, attribute: "aria-expanded", reflect: true },
     variant: { type: String, reflect: true },
     size: { type: String, reflect: true },
     tone: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
     loading: { type: Boolean, reflect: true },
     selected: { type: Boolean, reflect: true },
+    compact: { type: Boolean, reflect: true },
+    outline: { type: Boolean, reflect: true },
+    dropdownCaret: { type: Boolean, attribute: "dropdown-caret", reflect: true },
     type: { type: String, reflect: true },
     name: { type: String, reflect: true },
     value: { type: String, reflect: true },
@@ -162,7 +156,7 @@ export class UIButton extends LitElement {
 
   /** Visual emphasis. */
   declare variant: ButtonVariant;
-  /** Physical scale. */
+  /** Physical scale; inherit follows the nearest data-mash-size context. */
   declare size: ButtonSize;
   /** Semantic meaning of the action. */
   declare tone: ButtonTone;
@@ -172,6 +166,12 @@ export class UIButton extends LitElement {
   declare loading: boolean;
   /** Parent-controlled presentation state for persistent triggers such as an open popover. */
   declare selected: boolean;
+  /** Reduces the inline padding while preserving the current size tier. */
+  declare compact: boolean;
+  /** Draws an outlined treatment that can combine with any tone. */
+  declare outline: boolean;
+  /** Adds the built-in dropdown caret after any authored suffix content. */
+  declare dropdownCaret: boolean;
   /** Form behaviour, mirroring native `<button type>`. */
   declare type: ButtonType;
   /** Form control name, submitted with the form. */
@@ -182,15 +182,19 @@ export class UIButton extends LitElement {
   declare private _hasSuffix: boolean;
 
   readonly #internals: ElementInternals;
+  #formDisabled = false;
 
   constructor() {
     super();
-    this.variant = "primary";
-    this.size = "medium";
+    this.variant = "default";
+    this.size = "inherit";
     this.tone = "accent";
     this.disabled = false;
     this.loading = false;
     this.selected = false;
+    this.compact = false;
+    this.outline = false;
+    this.dropdownCaret = false;
     this.type = "button";
     this.name = "";
     this.value = "";
@@ -217,7 +221,17 @@ export class UIButton extends LitElement {
 
   /** True when the button cannot currently be activated. */
   get #inert(): boolean {
-    return this.disabled || this.loading;
+    return this.disabled || this.#formDisabled || this.loading;
+  }
+
+  /** Mirrors native fieldset disabled inheritance without changing authored disabled. */
+  formDisabledCallback(disabled: boolean): void {
+    this.#formDisabled = disabled;
+    this.requestUpdate();
+  }
+
+  override focus(options?: FocusOptions): void {
+    if (!this.#inert) super.focus(options);
   }
 
   #onHostClick = (event: MouseEvent): void => {
@@ -252,32 +266,38 @@ export class UIButton extends LitElement {
   };
 
   protected override updated(changed: PropertyValues<this>): void {
+    // Attribute reflection can invoke formDisabledCallback after render() has
+    // read the old native state. Reconcile the final callback value here too.
+    const control = this.renderRoot.querySelector<HTMLButtonElement>("button");
+    if (control) control.disabled = this.#inert;
     if (changed.has("loading")) {
       if (this.loading) this.#internals.states.add("loading");
       else this.#internals.states.delete("loading");
     }
-    if (changed.has("disabled")) {
-      if (this.disabled) this.#internals.states.add("disabled");
-      else this.#internals.states.delete("disabled");
-    }
+    if (this.disabled || this.#formDisabled) this.#internals.states.add("disabled");
+    else this.#internals.states.delete("disabled");
     if (changed.has("selected")) {
       if (this.selected) this.#internals.states.add("selected");
       else this.#internals.states.delete("selected");
     }
 
     // A button that goes inert mid-press must not stay stuck in :state(pressed).
-    if ((changed.has("disabled") || changed.has("loading")) && this.#inert) {
+    if (this.#inert) {
       this.#internals.states.delete("pressed");
     }
   }
 
   protected override render(): TemplateResult {
+    const hasSuffix = this._hasSuffix || this.dropdownCaret;
+
     return html`
       <button
         part="control"
         class="control"
         type="button"
         ?disabled=${this.#inert}
+        aria-label=${this.ariaLabel || nothing}
+        aria-expanded=${this.ariaExpanded ?? nothing}
         aria-busy=${this.loading ? "true" : "false"}
         @pointerdown=${() => this.#setPressed(true)}
         @pointerup=${() => this.#setPressed(false)}
@@ -299,8 +319,13 @@ export class UIButton extends LitElement {
 
         <span part="label" class="label"><slot></slot></span>
 
-        <span part="suffix" class="suffix" ?hidden=${!this._hasSuffix}>
+        <span part="suffix" class="suffix" ?hidden=${!hasSuffix}>
           <slot name="suffix" @slotchange=${this.#onSlotChange}></slot>
+          ${
+            this.dropdownCaret
+              ? html`<span part="caret" class="caret" aria-hidden="true"></span>`
+              : nothing
+          }
         </span>
       </button>
     `;

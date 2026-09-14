@@ -1,110 +1,81 @@
-/**
- * Catalog entry point.
- *
- * Note what is imported: the real workspace packages, exactly as an application
- * would consume them. There is no parallel copy of the components here, and no
- * build step that treats the catalog specially — if an import in this file
- * breaks, a consumer's would too.
- */
-
-import "./system.css";
+import "@mash/tokens/tokens.css";
 import "@mash/ui/catalogue/mash.css";
-import "@mash/shrine/catalogue/mash.css";
-import "@mash/ui/register";
-import "@mash/shrine/register";
-
-import { initialState, render, type AppCallbacks, type State } from "./app.js";
-import { components } from "./schema.js";
-import { stateFromUrl, urlForState } from "./url-state.js";
-
-const root = document.querySelector<HTMLElement>("#app");
-if (!root) throw new Error("#app not found");
-
-// The catalog demonstrates the default Mash recipe explicitly. Components
-// remain behaviour-only without this opt-in, so another product can load a
-// different catalogue without changing the component module.
+import "./showcase.css";
+type CatalogueModule = typeof import("./showcase.js");
+const root = document.querySelector<HTMLElement>("#app")!;
 document.documentElement.dataset.mashCatalogue = "mash";
-
-const first = components[0];
-if (!first) throw new Error("custom-elements.json contains no custom elements");
-
-let state: State = stateFromUrl(new URL(globalThis.location.href), first);
-
-// Canonicalise the entry URL, so "/" and a link carrying stale parameters both
-// become the address that actually describes what is on screen.
-history.replaceState(null, "", urlForState(state));
-
-const callbacks: AppCallbacks = {
-  select(tagName) {
-    const component = components.find((entry) => entry.tagName === tagName);
-    if (!component) return;
-    // Each component gets a fresh state seeded from its own documented
-    // defaults, rather than inheriting attributes that may not apply.
-    state = {
-      ...initialState(component),
-      theme: state.theme,
-      vibrancy: state.vibrancy,
-    };
-    update("push");
-  },
-
-  update(patch) {
-    state = { ...state, ...patch };
-    update();
-  },
-
-  setAttr(attribute, value) {
-    state = { ...state, attrs: { ...state.attrs, [attribute]: value } };
-    update();
-  },
-};
-
-/**
- * Render, and keep the address bar in step.
- *
- * Choosing a different component is a navigation and gets a history entry;
- * nudging a control is not, and replaces the current one. Otherwise a designer
- * who tried four variants would need four Backs to leave the page, and the
- * back button would be useless for the thing it is actually wanted for.
- */
-function update(mode: "push" | "replace" = "replace"): void {
-  const next = urlForState(state);
-  if (next !== location.pathname + location.search) {
-    if (mode === "push") history.pushState(null, "", next);
-    else history.replaceState(null, "", next);
+let disposeStory: (() => void) | undefined;
+let navigationVersion = 0;
+let catalogue: CatalogueModule | undefined;
+let catalogueRequest: Promise<CatalogueModule> | undefined;
+const loadCatalogue = () =>
+  (catalogueRequest ??= import("./showcase.js")
+    .then((module) => (catalogue = module))
+    .catch((error: unknown) => {
+      catalogueRequest = undefined;
+      throw error;
+    }));
+const navigate = () => {
+  const version = ++navigationVersion;
+  disposeStory?.();
+  disposeStory = undefined;
+  catalogue?.leaveCatalogue();
+  root.removeAttribute("aria-busy");
+  if (location.pathname === "/stories" || location.pathname.startsWith("/stories/")) {
+    root.innerHTML = '<main class="story-loading" role="status">Opening Stories…</main>';
+    void import("./stories.js")
+      .then(async ({ mount }) => {
+        if (version !== navigationVersion) return;
+        const dispose = await mount(root);
+        if (version !== navigationVersion) dispose();
+        else disposeStory = dispose;
+      })
+      .catch(() => {
+        if (version !== navigationVersion) return;
+        root.innerHTML =
+          '<main class="story-loading" role="alert"><p>Stories could not load.</p><button type="button">Try again</button></main>';
+        root.querySelector("button")!.addEventListener("click", navigate, { once: true });
+      });
+    return;
   }
-  render(root!, state, callbacks);
-}
-
-// Back/forward: the URL is the source of truth, so re-read it and render. No
-// history write here — the browser has already moved the entry.
-globalThis.addEventListener("popstate", () => {
-  state = stateFromUrl(new URL(globalThis.location.href), first);
-  render(root!, state, callbacks);
-});
-
-globalThis.addEventListener("message", (event) => {
-  if (event.origin !== location.origin || event.source === window) return;
-  const data: unknown = event.data;
+  void loadCatalogue()
+    .then(async (module) => {
+      if (version !== navigationVersion) return;
+      await module.showCatalogue(root);
+      if (version !== navigationVersion) return;
+      if (!location.hash && !new URL(location.href).searchParams.has("example"))
+        window.scrollTo({ top: 0 });
+    })
+    .catch(() => {
+      if (version !== navigationVersion) return;
+      root.removeAttribute("aria-busy");
+      root.innerHTML =
+        '<main class="story-loading" role="alert"><p>The catalogue could not load.</p><button type="button">Try again</button></main>';
+      root.querySelector("button")!.addEventListener("click", navigate, { once: true });
+    });
+};
+navigate();
+window.addEventListener("popstate", navigate);
+document.addEventListener("click", (event) => {
   if (
-    typeof data !== "object" ||
-    data === null ||
-    !("type" in data) ||
-    data.type !== "mash-catalog-example-state" ||
-    !("key" in data) ||
-    typeof data.key !== "string" ||
-    !/^[a-z][a-z0-9-]{0,31}$/.test(data.key) ||
-    !("value" in data) ||
-    typeof data.value !== "string" ||
-    data.value.length > 4096
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
   )
     return;
-  state = {
-    ...state,
-    exampleState: { ...state.exampleState, [data.key]: data.value },
-  };
-  const next = urlForState(state);
-  if (next !== location.pathname + location.search) history.replaceState(null, "", next);
+  const link = (event.target as Element).closest<HTMLAnchorElement>("a[href]");
+  if (!link || link.target || link.hasAttribute("download")) return;
+  const url = new URL(link.href);
+  if (
+    url.origin !== location.origin ||
+    !/^\/(components(?:\/|$)|stories(?:\/|$))/.test(url.pathname)
+  )
+    return;
+  if (url.pathname === location.pathname && url.search === location.search) return;
+  event.preventDefault();
+  history.pushState(null, "", url);
+  navigate();
 });
-
-update();

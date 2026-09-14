@@ -1,0 +1,1173 @@
+.community-app {
+  position: relative;
+  --community-sidebar: color-mix(in srgb, var(--color-surface-sunken) 88%, var(--color-surface));
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  min-block-size: 0;
+  min-inline-size: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--type-body-font-family);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.community-app *,
+.community-app *::before,
+.community-app *::after {
+  box-sizing: border-box;
+}
+.community-app [hidden] {
+  display: none !important;
+}
+.community-app button,
+.community-app input,
+.community-app textarea {
+  font: inherit;
+}
+.community-app button {
+  color: inherit;
+}
+.community-app button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+.community-app ui-button {
+  font-size: 13px;
+}
+.community-app ui-button::part(control) {
+  font-size: inherit;
+}
+.community-app h2,
+.community-app h3,
+.community-app p {
+  margin: 0;
+}
+.community-app small {
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+.community-app .community-flex {
+  flex: 1;
+  min-inline-size: 0;
+}
+.community-app .community-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-block-size: 50px;
+  padding: 8px 16px;
+  border-block-end: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  backdrop-filter: blur(16px);
+  z-index: 3;
+}
+.community-app .community-workspace-mark {
+  display: grid;
+  place-items: center;
+  inline-size: 24px;
+  block-size: 26px;
+  border-radius: 7px;
+  color: var(--color-on-surface-inverse);
+  background: var(--color-surface-inverse);
+  font-family: Georgia, serif;
+  font-size: 22px;
+  font-style: italic;
+  line-height: 1;
+}
+.community-app .community-topbar-divider,
+.community-app .community-topbar-context {
+  color: var(--color-text-muted);
+}
+.community-app .community-search-button {
+  min-inline-size: 220px;
+}
+.community-app .community-search-button::part(control) {
+  inline-size: 100%;
+  justify-content: space-between;
+  gap: 32px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+.community-app kbd {
+  border: 0;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.community-app .community-panels {
+  flex: 1;
+  display: block;
+  min-block-size: 0;
+  inline-size: 100%;
+}
+.community-app .community-panels::part(root) {
+  block-size: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
+}
+.community-app .community-panels::part(children) {
+  display: contents;
+}
+.community-app ui-resizable-panel {
+  min-block-size: 0;
+  overflow: hidden;
+}
+.community-app ui-resizable-panel::part(root) {
+  block-size: 100%;
+  min-block-size: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.community-app ui-resizable-panel::part(content) {
+  display: contents;
+}
+.community-app .community-main-panel {
+  flex: 1 1 0;
+}
+.community-app ui-resizable-handle {
+  flex: 0 0 1px;
+  min-inline-size: 1px;
+  z-index: 2;
+}
+.community-app ui-resizable-handle::part(control) {
+  inline-size: 1px;
+  block-size: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-border);
+  position: relative;
+  overflow: visible;
+}
+.community-app ui-resizable-handle::part(control):hover,
+.community-app ui-resizable-handle::part(control):focus-visible {
+  background: var(--color-focus-ring);
+}
+.community-app ui-resizable-handle::part(grip) {
+  display: none;
+}
+.community-app .community-sidebar {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  background: var(--community-sidebar);
+  padding: 18px 10px 0;
+}
+.community-app .community-sidebar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 10px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  font-weight: 600;
+}
+.community-app .community-sidebar-scroll {
+  flex: 1;
+  overflow: auto;
+  min-block-size: 0;
+  padding-block: 10px 18px;
+  scrollbar-width: thin;
+}
+.community-app .community-sidebar section {
+  padding-block: 8px;
+}
+.community-app .community-sidebar h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+.community-app .community-channel-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-inline-size: 0;
+  border-radius: 7px;
+  margin-block: 2px;
+}
+.community-app .community-channel-row > ui-button {
+  flex: 1;
+  min-inline-size: 0;
+}
+.community-app .community-channel-row > ui-button::part(control) {
+  justify-content: start;
+  inline-size: 100%;
+  gap: 9px;
+  padding: 7px 10px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+.community-app .community-channel-row > ui-button[aria-current="page"]::part(control) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  font-weight: 600;
+}
+.community-app .community-channel-symbol {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 20px;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-size: 20px;
+  font-weight: 400;
+}
+.community-app .community-channel-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: start;
+}
+.community-app .community-channel-row > ui-menu {
+  opacity: 0;
+  flex: none;
+}
+.community-app .community-channel-row:hover > ui-menu,
+.community-app .community-channel-row:focus-within > ui-menu {
+  opacity: 1;
+}
+.community-app .community-unread {
+  padding: 0 5px;
+  border-radius: 4px;
+  min-inline-size: 17px;
+  background: var(--color-surface-inverse);
+  color: var(--color-on-surface-inverse);
+  font-size: 10px;
+  font-weight: 600;
+}
+.community-app .community-archive-link {
+  display: block;
+  margin: 16px 8px 0;
+}
+.community-app .community-archive-link::part(control) {
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+.community-app .community-sidebar footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 12px 0;
+  border-block-start: 1px solid var(--color-border);
+}
+.community-app .community-sidebar footer > ui-button:first-child {
+  min-inline-size: 0;
+}
+.community-app .community-sidebar footer span,
+.community-app .community-member > span {
+  display: grid;
+  text-align: start;
+  min-inline-size: 0;
+}
+.community-app .community-sidebar footer strong {
+  font-size: 12px;
+}
+.community-app .community-channel-row[data-drop-target],
+.community-app section[data-drop-target] {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+.community-app .community-main {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  min-block-size: 0;
+}
+.community-app .community-channel-header {
+  display: flex;
+  align-items: center;
+  min-block-size: 66px;
+  gap: 10px;
+  padding: 10px 20px;
+  border-block-end: 1px solid var(--color-border);
+}
+.community-app .community-channel-icon {
+  color: var(--color-text-muted);
+  font-size: 23px;
+}
+.community-app .community-channel-title {
+  min-inline-size: 0;
+}
+.community-app .community-channel-title::part(control) {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 0;
+  padding: 0;
+  background: none;
+  min-inline-size: 0;
+  text-align: start;
+}
+.community-app .community-channel-title strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.community-app .community-channel-title small {
+  display: block;
+  max-inline-size: 25vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+.community-app .community-conversation {
+  flex: 1;
+  min-block-size: 0;
+  min-inline-size: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.community-app .community-timeline {
+  display: block;
+  block-size: 100%;
+  flex: 1;
+  min-block-size: 0;
+}
+.community-app .community-timeline::part(root),
+.community-app .community-thread-scroller::part(root) {
+  block-size: 100%;
+  min-block-size: 0;
+}
+.community-app .community-timeline::part(viewport),
+.community-app .community-thread-scroller::part(viewport) {
+  block-size: 100%;
+  max-block-size: none;
+  border: 0;
+  background: transparent;
+  padding: 0 16px;
+  scrollbar-width: thin;
+}
+.community-app .community-timeline::part(content),
+.community-app .community-thread-scroller::part(content) {
+  padding: 0;
+  gap: 0;
+}
+.community-app ui-message {
+  display: block;
+  padding: 12px 8px;
+  border-radius: 8px;
+  position: relative;
+}
+.community-app ui-message:hover {
+  background: color-mix(in srgb, var(--color-surface-hover) 48%, transparent);
+}
+.community-app ui-message::part(root) {
+  inline-size: 100%;
+  max-inline-size: none;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 2px 10px;
+}
+.community-app ui-message::part(content) {
+  min-inline-size: 0;
+  gap: 7px;
+}
+.community-app ui-message::part(header),
+.community-app ui-message::part(footer) {
+  padding: 0;
+}
+.community-app ui-message::part(avatar) {
+  padding: 2px 0 0;
+  inline-size: 32px;
+}
+.community-app ui-message > ui-button[slot="avatar"]::part(control) {
+  padding: 0;
+  border: 0;
+  min-block-size: 0;
+}
+.community-app ui-bubble {
+  max-inline-size: 100%;
+}
+.community-app ui-bubble::part(root) {
+  padding: 0;
+  margin: 0;
+  max-inline-size: 100%;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.community-app .community-message-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text);
+}
+.community-app .community-message-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-inline-size: 0;
+}
+.community-app .community-message-meta > ui-button::part(control) {
+  padding: 0;
+  min-block-size: 0;
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+}
+.community-app .community-message-meta time,
+.community-app .community-message-meta > span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.community-app .community-message-actions {
+  display: flex;
+  position: absolute;
+  inset-inline-end: 8px;
+  inset-block-start: 4px;
+  opacity: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 2px;
+  z-index: 1;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-text) 6%, transparent);
+}
+.community-app ui-message:hover .community-message-actions,
+.community-app ui-message:focus-within .community-message-actions {
+  opacity: 1;
+}
+.community-app .community-message-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding-block-start: 4px;
+}
+.community-app .community-message-footer:empty {
+  display: none;
+}
+.community-app .community-message-footer ui-button::part(control) {
+  min-block-size: 23px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 1px 7px;
+}
+.community-app .community-message-footer ui-button[aria-pressed="true"]::part(control) {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+  border-color: var(--color-border);
+}
+.community-app .community-forwarded {
+  color: var(--color-text-muted);
+}
+.community-app .community-quote-link {
+  display: block;
+  inline-size: 100%;
+  border: 0;
+  border-inline-start: 2px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  padding: 5px 9px;
+  color: var(--color-text-muted);
+  text-align: start;
+  font-size: 11px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.community-app .community-main-composer {
+  padding: 10px 22px 18px;
+  flex: none;
+}
+.community-app .community-composer {
+  border: 1px solid var(--color-border);
+  border-radius: 13px;
+  padding: 9px 11px;
+  background: var(--color-surface-sunken);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--color-text) 3%, transparent);
+  display: grid;
+  gap: 6px;
+}
+.community-app .community-composer ui-textarea::part(control) {
+  min-block-size: 42px;
+  max-block-size: 180px;
+  font-size: 13px;
+  padding: 2px 3px;
+  border: 0;
+  outline: 0;
+  background: none;
+  resize: none;
+  box-shadow: none;
+  field-sizing: content;
+}
+.community-app .community-composer[data-expanded] ui-textarea::part(control) {
+  min-block-size: 140px;
+}
+.community-app .mash-composer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.community-app .mash-composer-spacer {
+  flex: 1;
+}
+.community-app .community-composer-hint {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+.community-app .community-composer [data-send]::part(control) {
+  border-radius: 8px;
+  min-inline-size: 29px;
+  min-block-size: 28px;
+  padding: 2px 8px;
+  font-size: 18px;
+}
+.community-app .mash-composer-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.community-app .mash-composer-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-inline-size: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 2px 5px 2px 8px;
+  font-size: 11px;
+}
+.community-app .mash-composer-file > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.community-app .community-quote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-inline-start: 2px solid var(--color-border);
+  padding: 3px 7px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.community-app .community-quote > span {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.community-app .community-inspector {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  block-size: 100%;
+  background: var(--color-surface);
+}
+.community-app .community-inspector > header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 17px 18px;
+  min-block-size: 66px;
+  border-block-end: 1px solid var(--color-border);
+  font-size: 12px;
+}
+.community-app .community-inspector > header strong {
+  flex: 1;
+}
+.community-app .community-thread-count {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+.community-app .community-inspector-scroll {
+  overflow: auto;
+  flex: 1;
+  min-block-size: 0;
+  padding: 18px 14px;
+  scrollbar-width: thin;
+}
+.community-app .community-room-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  padding: 0 6px 24px;
+  gap: 10px;
+  border-block-end: 1px solid var(--color-border);
+}
+.community-app .community-room-mark {
+  display: grid;
+  place-items: center;
+  inline-size: 46px;
+  block-size: 46px;
+  border-radius: 12px;
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: 26px;
+}
+.community-app .community-room-summary h2 {
+  font-size: 17px;
+  font-weight: 600;
+}
+.community-app .community-room-summary p {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--color-text-muted);
+}
+.community-app .community-room-summary ui-button::part(control) {
+  padding: 0;
+  font-size: 11px;
+}
+.community-app .community-members-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 6px 10px;
+}
+.community-app .community-members-heading h3 {
+  font-size: 11px;
+  font-weight: 500;
+}
+.community-app .community-members-heading span {
+  color: var(--color-text-muted);
+  margin-inline-start: 6px;
+}
+.community-app .community-member {
+  display: block;
+  inline-size: 100%;
+}
+.community-app .community-member::part(control) {
+  display: flex;
+  inline-size: 100%;
+  justify-content: start;
+  padding: 9px 6px;
+  gap: 10px;
+}
+.community-app .community-member > span {
+  flex: 1;
+  gap: 2px;
+}
+.community-app .community-member strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.community-app .community-local-note {
+  padding: 18px 7px;
+  margin-block-start: 18px;
+  border-block-start: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.community-app .community-local-note strong {
+  font-size: 11px;
+  font-weight: 500;
+}
+.community-app .community-local-note p {
+  margin-block-start: 5px;
+}
+.community-app .community-thread-context {
+  flex: none;
+  max-block-size: 28%;
+  overflow: auto;
+  border-block-end: 1px solid var(--color-border);
+  padding: 8px;
+}
+.community-app .community-thread-context .community-message-actions {
+  display: none;
+}
+.community-app .community-thread-scroller {
+  flex: 1;
+  min-block-size: 0;
+  display: block;
+}
+.community-app .community-thread-scroller::part(viewport) {
+  padding: 8px;
+}
+.community-app .community-thread-composer {
+  padding: 10px 12px 16px;
+}
+.community-app .community-thread-composer .community-composer-hint {
+  display: none;
+}
+.community-app .community-thread-composer .community-composer {
+  padding: 8px;
+}
+.community-app .community-thread-scroller ui-message::part(root),
+.community-app .community-thread-context ui-message::part(root) {
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: 2px 7px;
+}
+.community-app .community-thread-scroller ui-avatar,
+.community-app .community-thread-context ui-avatar {
+  inline-size: 24px;
+  block-size: 24px;
+}
+.community-app .community-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 36px 22px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.community-app .community-empty strong {
+  color: var(--color-text);
+  font-weight: 500;
+}
+.community-app .community-channel-feed {
+  overflow: auto;
+  min-block-size: 0;
+  padding: 0 22px 24px;
+  scrollbar-width: thin;
+}
+.community-app .community-feed-heading {
+  padding: 24px 24px 18px;
+  display: grid;
+  gap: 6px;
+}
+.community-app .community-feed-heading > span {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.community-app .community-feed-heading > strong {
+  font-size: 13px;
+  font-weight: 400;
+}
+.community-app .community-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  align-content: start;
+  gap: 16px;
+}
+.community-app .community-gallery-card,
+.community-app .community-note-card {
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+.community-app .community-gallery-card > ui-message {
+  padding: 12px;
+}
+.community-app .community-gallery-card > ui-message::part(root) {
+  grid-template-columns: 0 minmax(0, 1fr) auto;
+  gap: 2px 0;
+}
+.community-app .community-gallery-card > ui-message::part(avatar) {
+  display: none;
+}
+.community-app .community-gallery-card .community-file {
+  border: 0;
+  border-radius: 0;
+}
+.community-app .community-notebook {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.community-app .community-note-card {
+  padding: 14px;
+}
+.community-app .community-note-card .community-message-text::first-line {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 2.1;
+}
+.community-app .community-file {
+  max-inline-size: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.community-app ui-attachment::part(root) {
+  padding: 9px 10px;
+  background: var(--color-surface-sunken);
+  border: 0;
+  border-radius: 0;
+  max-inline-size: 100%;
+}
+.community-app ui-attachment [slot="title"] {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.community-app ui-attachment [slot="description"] {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+.community-app .community-image-button {
+  display: block;
+  border: 0;
+  background: var(--color-surface-sunken);
+  inline-size: 100%;
+  padding: 0;
+  cursor: zoom-in;
+}
+.community-app .community-image-button img {
+  display: block;
+  inline-size: 100%;
+  max-block-size: 280px;
+  object-fit: cover;
+}
+.community-app .community-dialog::part(popup) {
+  inline-size: min(560px, calc(100vw - 32px));
+  max-block-size: calc(100dvh - 90px);
+  overflow: auto;
+  border-radius: 15px;
+  padding: 24px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 20px 80px color-mix(in srgb, var(--color-text) 14%, transparent);
+}
+.community-app .community-dialog::part(title) {
+  font-size: 18px;
+  margin-block-end: 16px;
+}
+.community-app .community-dialog::part(content) {
+  display: block;
+  min-inline-size: 0;
+}
+.community-app .community-dialog::part(close) {
+  display: block;
+  margin-block-start: 15px;
+}
+.community-app .community-form {
+  display: grid;
+  gap: 16px;
+}
+.community-app .community-form > label,
+.community-app .community-form-grid label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.community-app .community-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.community-app .community-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.community-app .community-result {
+  display: grid;
+  inline-size: 100%;
+  gap: 6px;
+  padding: 12px;
+  border: 0;
+  border-block-end: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: none;
+  text-align: start;
+  cursor: pointer;
+}
+.community-app .community-result:hover {
+  background: var(--color-surface-hover);
+}
+.community-app .community-result > span:not(.community-result-meta) {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12px;
+}
+.community-app .community-result-meta,
+.community-app .community-result > small {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+.community-app .community-result > strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.community-app .community-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px 25px;
+  text-align: center;
+}
+.community-app .community-profile > strong {
+  font-size: 19px;
+}
+.community-app .community-profile > span,
+.community-app .community-profile p {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.community-app .community-profile p {
+  padding-block-start: 8px;
+  line-height: 1.7;
+}
+.community-app .community-shared-rooms {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-block: 10px;
+}
+.community-app .community-shared-rooms > ui-button::part(control) {
+  justify-content: start;
+}
+.community-app .community-archive-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px;
+}
+.community-app .community-file-preview {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: 55dvh;
+  margin-inline: auto;
+  border-radius: 9px;
+}
+.community-app .community-text-preview {
+  max-block-size: 50dvh;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  font: 12px/1.7 var(--type-code-font-family);
+}
+.community-app .community-preview-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-start: 16px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+.community-app .community-toast {
+  position: absolute;
+  inset-block-end: 20px;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  max-inline-size: calc(100% - 32px);
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  padding: 10px 15px;
+  background: var(--color-surface-inverse);
+  color: var(--color-on-surface-inverse);
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--color-text) 15%, transparent);
+  font-size: 12px;
+}
+.community-app[data-compact] ui-message {
+  padding-block: 5px;
+}
+.community-app[data-no-avatars] ui-message::part(avatar) {
+  display: none;
+}
+.community-app[data-no-avatars] ui-message::part(root) {
+  grid-template-columns: 0 minmax(0, 1fr) auto;
+  gap: 2px 0;
+}
+@media (max-width: 1050px) {
+  .community-app .community-inspector-panel {
+    position: absolute;
+    inset-block: 50px 0;
+    inset-inline-end: 0;
+    z-index: 8;
+    inline-size: 302px !important;
+    box-shadow: -8px 0 32px color-mix(in srgb, var(--color-text) 8%, transparent);
+    border-inline-start: 1px solid var(--color-border);
+  }
+  .community-app .community-inspector-handle {
+    display: none !important;
+  }
+  .community-app .community-channel-title small {
+    max-inline-size: 38vw;
+  }
+}
+@media (max-width: 680px) {
+  .community-app .community-topbar {
+    padding-inline: 10px;
+    gap: 9px;
+  }
+  .community-app .community-topbar-context,
+  .community-app .community-topbar-divider {
+    display: none;
+  }
+  .community-app .community-search-button {
+    min-inline-size: 0;
+  }
+  .community-app .community-search-button::part(control) {
+    gap: 10px;
+    border: 0;
+    background: none;
+  }
+  .community-app .community-search-button span {
+    font-size: 0;
+  }
+  .community-app .community-search-button span::before {
+    content: "Search";
+    font-size: 12px;
+  }
+  .community-app .community-search-button kbd {
+    display: none;
+  }
+  .community-app .community-sidebar-panel {
+    position: absolute;
+    inset-block: 50px 0;
+    inset-inline-start: 0;
+    z-index: 9;
+    inline-size: min(280px, 85vw) !important;
+    max-inline-size: 85vw !important;
+    border-inline-end: 1px solid var(--color-border);
+    box-shadow: 8px 0 30px color-mix(in srgb, var(--color-text) 10%, transparent);
+  }
+  .community-app .community-sidebar-handle {
+    display: none !important;
+  }
+  .community-app .community-main-panel {
+    min-inline-size: 0 !important;
+  }
+  .community-app .community-channel-header {
+    padding: 10px 12px;
+    gap: 7px;
+  }
+  .community-app .community-channel-title small {
+    display: none;
+  }
+  .community-app .community-channel-header > ui-button[data-action="pins"] {
+    display: none;
+  }
+  .community-app .community-main-composer {
+    padding: 8px 12px 12px;
+  }
+  .community-app .community-timeline::part(viewport) {
+    padding: 0 8px;
+  }
+  .community-app .community-inspector-panel {
+    inline-size: 100% !important;
+    max-inline-size: 100% !important;
+    min-inline-size: 0 !important;
+  }
+  .community-app .community-message-actions {
+    opacity: 1;
+    position: static;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .community-app ui-message::part(root) {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 2px 7px;
+  }
+
+  .community-app .community-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .community-app .community-gallery {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .community-app .community-channel-row,
+  .community-app .community-result,
+  .community-app ui-message {
+    transition: background 120ms ease;
+  }
+  .community-app .community-message-actions {
+    transition: opacity 100ms ease;
+  }
+}
+
+.community-app .community-channel-title::part(label) {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 1px;
+}
+.community-app .community-channel-row > ui-button::part(label),
+.community-app .community-member::part(label),
+.community-app .community-search-button::part(label) {
+  display: flex;
+  flex: 1;
+  inline-size: 100%;
+  gap: 9px;
+}
+.community-app .community-search-button::part(label) {
+  justify-content: space-between;
+}
+.community-app ui-message::part(avatar) {
+  grid-row: 1 / span 3;
+  align-self: start;
+}
+.community-app .community-timeline > [slot="history"] > [data-message-id],
+.community-app .community-thread-scroller > [slot="history"] > [data-message-id] {
+  padding-block: 2px;
+}
+.community-app ui-message {
+  padding-block: 9px;
+}
+.community-app .community-timeline::part(latest),
+.community-app .community-thread-scroller::part(latest) {
+  font-size: 11px;
+  padding: 6px 12px;
+  box-shadow: 0 3px 14px color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+
+.community-app ui-button:has(> ui-icon:only-child)::part(control) {
+  inline-size: 32px;
+  min-inline-size: 32px;
+  min-block-size: 32px;
+  padding: 5px;
+}
+.community-app .community-channel-row > ui-button::part(control) {
+  min-block-size: 36px;
+}
+.community-app .community-room-mark {
+  display: inline-grid;
+  place-items: center;
+}
+.community-app .community-room-mark ui-icon {
+  font-size: 24px;
+}
+
+.community-app .community-search-dialog::part(popup) {
+  gap: 0;
+  padding: 0;
+}
+.community-app .community-search-dialog::part(actions),
+.community-app .community-search-dialog::part(title),
+.community-app .community-search-dialog::part(close) {
+  display: none;
+}
+.community-app .community-search-dialog ui-command::part(root) {
+  border: 0;
+  border-radius: 15px;
+}
+.community-app .community-search-dialog ui-command::part(list) {
+  max-block-size: min(460px, 60dvh);
+}
+.community-app .community-search-dialog ui-command-item::part(label) {
+  white-space: normal;
+  line-height: 1.5;
+}
+.community-app .community-search-dialog ui-command-item::part(description) {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}

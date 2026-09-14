@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIOtpField };
+
+export * from "./otp-field.js";

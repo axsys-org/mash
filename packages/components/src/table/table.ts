@@ -1,5 +1,7 @@
 import { LitElement, html, nothing, type TemplateResult } from "lit";
 
+import { html as staticHtml, literal } from "lit/static-html.js";
+
 import { baseStyles } from "../internal/base-styles.js";
 
 export type TableSortDirection = "none" | "ascending" | "descending";
@@ -233,6 +235,8 @@ export class UITableRow extends LitElement {
 
 abstract class UITableCellBase extends LitElement {
   static override properties = {
+    columnSpan: { type: Number, attribute: "colspan", reflect: true },
+    rowSpan: { type: Number, attribute: "rowspan", reflect: true },
     columnIndex: { type: Number, attribute: "column-index", reflect: true },
     interactive: { type: Boolean, reflect: true },
     selected: { type: Boolean, reflect: true },
@@ -241,6 +245,10 @@ abstract class UITableCellBase extends LitElement {
     sort: { type: String, reflect: true },
   };
 
+  /** Number of logical columns occupied by this cell. */
+  declare columnSpan: number;
+  /** Number of logical rows occupied by this cell. */
+  declare rowSpan: number;
   /** One-based accessibility index in the complete logical table. */
   declare columnIndex: number;
   /** Uses gridcell semantics when an owning data-table supplies navigation. */
@@ -260,6 +268,8 @@ abstract class UITableCellBase extends LitElement {
   constructor() {
     super();
     this.columnIndex = 0;
+    this.columnSpan = 1;
+    this.rowSpan = 1;
     this.interactive = false;
     this.selected = false;
     this.active = false;
@@ -274,10 +284,17 @@ abstract class UITableCellBase extends LitElement {
   }
 
   protected override render(): TemplateResult {
-    return html`
-      <div
+    const tag = this.cellRole === "cell" ? literal`td` : literal`th`;
+    const columns = Math.max(1, Math.trunc(this.columnSpan) || 1);
+    const rows = Math.max(1, Math.trunc(this.rowSpan) || 1);
+    return staticHtml`
+      <${tag}
         part=${`root ${this.cellParts}`}
         role=${this.interactive && this.cellRole === "cell" ? "gridcell" : this.cellRole}
+        colspan=${columns}
+        rowspan=${rows}
+        aria-colspan=${columns > 1 ? columns : nothing}
+        aria-rowspan=${rows > 1 ? rows : nothing}
         tabindex="-1"
         aria-colindex=${this.columnIndex > 0 ? this.columnIndex : nothing}
         aria-selected=${this.selected ? "true" : nothing}
@@ -285,7 +302,7 @@ abstract class UITableCellBase extends LitElement {
         aria-sort=${this.cellRole === "columnheader" && this.sort !== "none" ? this.sort : nothing}
       >
         <slot part="content"></slot>
-      </div>
+      </${tag}>
     `;
   }
 }

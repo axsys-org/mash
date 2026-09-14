@@ -163,6 +163,127 @@ function createCaptureExamples() {
   };
 }
 
+const mashBindingKinds = new Set(["attribute", "event", "part", "slot", "state"]);
+const mashAxisKinds = new Set([
+  "control-size",
+  "density",
+  "glyph-size",
+  "identity-size",
+  "indicator-size",
+  "layout-size",
+  "scrollbar-size",
+  "type-preset",
+]);
+
+function jsDocTagText(tag) {
+  return String(
+    Array.isArray(tag.comment)
+      ? tag.comment.map((part) => part.text ?? "").join("")
+      : (tag.comment ?? ""),
+  ).trim();
+}
+
+/**
+ * Preserve Mash's renderer-neutral anatomy in the Custom Elements Manifest.
+ *
+ * The analyzer intentionally ignores unknown JSDoc tags, so without this
+ * plugin `@mashnode` and `@mashrole` look documented in source while vanishing
+ * from the package contract. The extension lives under `declaration.mash` so
+ * ordinary CEM consumers can ignore it and Mash-aware tools can validate or
+ * project the same semantic topology into another renderer.
+ *
+ *   @mashnode <id> <role> [parent]
+ *   @mashrole <kind> <web-name> <role> <node-id>
+ *   @mashaxis <node-id> <axis-kind>
+ */
+function createCaptureMashSemantics() {
+  return {
+    name: "mash/capture-semantics",
+
+    analyzePhase({ ts, node, moduleDoc }) {
+      if (!ts.isClassDeclaration(node) || !node.name) return;
+      const declaration = moduleDoc.declarations?.find((entry) => entry.name === node.name.text);
+      if (!declaration) return;
+
+      const nodes = [];
+      const bindings = [];
+      const axes = [];
+      for (const tag of ts.getJSDocTags(node)) {
+        const value = jsDocTagText(tag);
+        if (tag.tagName.text === "mashnode") {
+          const [id, role, parent] = value.split(/\s+/);
+          if (id && role) nodes.push({ id, role, ...(parent ? { parent } : {}) });
+        }
+        if (tag.tagName.text === "mashrole") {
+          const [kind, name, role, target] = value.split(/\s+/);
+          if (kind && name && role && target) bindings.push({ kind, name, role, node: target });
+        }
+        if (tag.tagName.text === "mashaxis") {
+          const [target, kind] = value.split(/\s+/);
+          if (target && kind) axes.push({ node: target, kind });
+        }
+      }
+
+      if (nodes.length || bindings.length || axes.length) {
+        declaration.mash = { schemaVersion: 1, nodes, bindings, axes };
+      }
+    },
+
+    packageLinkPhase({ customElementsManifest }) {
+      const problems = [];
+      for (const mod of customElementsManifest.modules ?? []) {
+        for (const declaration of mod.declarations ?? []) {
+          if (!declaration.customElement) continue;
+          const where = `${mod.path} :: ${declaration.name}`;
+          const contract = declaration.mash;
+          if (!contract?.nodes?.length) {
+            problems.push(`${where} has no semantic nodes; add an \`@mashnode\` topology.`);
+            continue;
+          }
+
+          const ids = new Set();
+          for (const node of contract.nodes) {
+            if (ids.has(node.id)) problems.push(`${where} repeats semantic node \`${node.id}\`.`);
+            ids.add(node.id);
+          }
+          for (const node of contract.nodes) {
+            if (node.parent && !ids.has(node.parent)) {
+              problems.push(
+                `${where} node \`${node.id}\` references missing parent \`${node.parent}\`.`,
+              );
+            }
+          }
+          for (const binding of contract.bindings) {
+            if (!mashBindingKinds.has(binding.kind)) {
+              problems.push(`${where} uses unknown Mash binding kind \`${binding.kind}\`.`);
+            }
+            if (!ids.has(binding.node)) {
+              problems.push(
+                `${where} ${binding.kind} \`${binding.name}\` references missing node \`${binding.node}\`.`,
+              );
+            }
+          }
+          for (const axis of contract.axes ?? []) {
+            if (!mashAxisKinds.has(axis.kind)) {
+              problems.push(`${where} uses unknown sizing axis \`${axis.kind}\`.`);
+            }
+            if (!ids.has(axis.node)) {
+              problems.push(`${where} sizing axis references missing node \`${axis.node}\`.`);
+            }
+          }
+        }
+      }
+
+      if (problems.length) {
+        console.error("\nMash semantic topology is invalid:\n");
+        for (const problem of problems) console.error(`  ${problem}`);
+        console.error("");
+        process.exit(1);
+      }
+    },
+  };
+}
+
 const isInternal = (member) => member.name?.startsWith("_");
 
 /**
@@ -294,6 +415,7 @@ export function mashManifestConfig({ tagPrefix }) {
       distPaths,
       createExpandUnionTypes(),
       createCaptureExamples(),
+      createCaptureMashSemantics(),
       hideInternalMembers,
       createRequireElementMetadata(tagPrefix),
       sortManifestModules,

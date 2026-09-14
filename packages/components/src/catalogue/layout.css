@@ -1,0 +1,125 @@
+/** Public authored layout. Parents own spacing; children own their control frame. */
+@layer mash.catalogue {
+  /* Layout recipes must not override an owner's native visibility boundary. */
+  :where([data-mash-catalogue="mash"]):is(.mash-row, .mash-stack, .mash-grid)[hidden],
+  :where([data-mash-catalogue="mash"]) :is(.mash-row, .mash-stack, .mash-grid)[hidden] {
+    display: none !important;
+  }
+
+  :where([data-mash-catalogue="mash"]).mash-row,
+  :where([data-mash-catalogue="mash"]) .mash-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-group-related);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]).mash-stack,
+  :where([data-mash-catalogue="mash"]) .mash-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-group-block);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]).mash-grid,
+  :where([data-mash-catalogue="mash"]) .mash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--layout-dimension-panel)), 1fr));
+    gap: var(--space-group-block);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]).mash-wrap,
+  :where([data-mash-catalogue="mash"]) .mash-wrap {
+    flex-wrap: wrap;
+  }
+  :where([data-mash-catalogue="mash"]).mash-fill,
+  :where([data-mash-catalogue="mash"]) .mash-fill {
+    flex: 1 1 0;
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]).mash-panel,
+  :where([data-mash-catalogue="mash"]) .mash-panel {
+    padding: var(--space-container-block) var(--space-container-inline);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) .mash-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: start;
+    font-size: var(--type-label-small-font-size);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-data-table :is(th, td) {
+    padding: var(--space-control-gap) var(--space-control-inline);
+    border-block-end: var(--border-hairline) solid var(--_mash-component-boundary);
+    text-align: start;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-data-table caption {
+    color: var(--color-text-muted);
+    text-align: start;
+    padding-block: var(--space-control-gap);
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) .mash-description-list {
+    display: grid;
+    grid-template-columns: minmax(6rem, 1fr) minmax(0, 3fr);
+    gap: 0;
+    margin: 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-description-list :is(dt, dd) {
+    margin: 0;
+    padding: var(--space-container-block) 0;
+    border-block-end: var(--border-hairline) solid var(--_mash-component-boundary);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-description-list dt {
+    color: var(--color-text-muted);
+    padding-inline-end: var(--space-container-inline);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-description-list :is(dt, dd):nth-last-child(-n + 2) {
+    border: 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-avatar-group {
+    display: flex;
+    align-items: center;
+    padding-inline-start: var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-avatar-group > ui-avatar {
+    margin-inline-start: calc(-1 * var(--space-control-gap));
+    border-radius: var(--radius-pill);
+    outline: var(--border-strong) solid var(--_mash-component-surface);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-list > li {
+    min-inline-size: 0;
+    padding: var(--space-control-gap) 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-settings {
+    display: grid;
+    gap: var(--space-group-block);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar {
+    display: grid;
+    gap: var(--space-container-gap);
+    width: min(100%, 16rem);
+    padding: var(--space-container-inline);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-container);
+    background: var(--_mash-component-surface-sunken);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-sidebar[data-collapsed] {
+    width: max-content;
+  }
+}

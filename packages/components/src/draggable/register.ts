@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIDraggable };
+
+export * from "./draggable.js";

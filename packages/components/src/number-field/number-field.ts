@@ -1,9 +1,12 @@
-import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, css, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { hideEmptySlot } from "../internal/slot-visibility.js";
 
 /**
  * A form-associated numeric field with explicit decrement and increment parts.
+ * An empty edit uses `NaN` as its numeric value and submits an empty string;
+ * required, range, and step constraints follow the native input validity.
  *
  * Its native number input keeps browser editing, numeric keyboard semantics,
  * and mobile input-mode affordances. The step controls are semantic buttons,
@@ -16,6 +19,11 @@ import { baseStyles } from "../internal/base-styles.js";
  * @example Seats
  * <ui-number-field name="seats" value="3" min="1" max="20" label="Seats"></ui-number-field>
  *
+ * @slot prefix - Optional leading currency or unit decoration.
+ * @slot suffix - Optional trailing unit decoration.
+ * @csspart group - The shared input and step-control surface.
+ * @csspart prefix - The leading decoration lane.
+ * @csspart suffix - The trailing decoration lane.
  * @slot label - Authored field label; the `label` attribute is the compatibility fallback.
  *
  * @csspart root - The labelled field wrapper.
@@ -67,10 +75,13 @@ export class UINumberField extends LitElement {
     label: { type: String, reflect: true },
     required: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
+    readonly: { type: Boolean, reflect: true },
+    placeholder: { type: String, reflect: true },
     _authoredLabel: { type: String, state: true },
+    _nativeInvalid: { state: true },
   };
 
-  /** Current numeric value. */
+  /** Current numeric value. NaN represents an empty native field. */
   declare value: number;
   /** Inclusive lower bound. */
   declare min: number;
@@ -86,14 +97,20 @@ export class UINumberField extends LitElement {
   declare required: boolean;
   /** Prevents editing and form participation. */
   declare disabled: boolean;
+  /** Keeps the value selectable and submitted while preventing edits. */
+  declare readonly: boolean;
+  /** Hint shown when the value is empty. */
+  declare placeholder: string;
 
   declare private _authoredLabel: string;
+  protected _nativeInvalid = false;
 
   readonly #internals: ElementInternals;
   #formDisabled = false;
   #defaultValue: number | undefined;
   #fieldDescription = "";
   #fieldInvalid = false;
+  #draftValue: number | undefined;
 
   constructor() {
     super();
@@ -105,11 +122,26 @@ export class UINumberField extends LitElement {
     this.label = "Number";
     this.required = false;
     this.disabled = false;
+    this.readonly = false;
+    this.placeholder = "";
     this._authoredLabel = "";
     this.#internals = this.attachInternals();
   }
 
-  static override styles = baseStyles;
+  static override styles = [
+    baseStyles,
+    css`
+      /* One authored step interface; retain the native numeric editor underneath. */
+      input {
+        appearance: textfield;
+      }
+      input::-webkit-inner-spin-button,
+      input::-webkit-outer-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+    `,
+  ];
 
   get #isDisabled(): boolean {
     return this.disabled || this.#formDisabled;
@@ -130,23 +162,40 @@ export class UINumberField extends LitElement {
   #normalizedValue(value = this.value): number {
     const minimum = Number.isFinite(this.min) ? this.min : Number.NEGATIVE_INFINITY;
     const maximum = Number.isFinite(this.max) ? this.max : Number.POSITIVE_INFINITY;
-    const raw = Number.isFinite(value) ? value : 0;
-    return Math.min(Math.max(raw, minimum), maximum);
+    if (!Number.isFinite(value)) return Number.NaN;
+    return Math.min(Math.max(value, minimum), maximum);
   }
 
   #syncForm(): void {
     const input = this.renderRoot.querySelector<HTMLInputElement>("input");
-    const value = this.#normalizedValue();
-    this.#internals.setFormValue(!this.#isDisabled && this.name ? String(value) : null);
-    if (this.required && !this.#isDisabled && !Number.isFinite(this.value)) {
+    const value = this.value;
+    this.#internals.setFormValue(
+      !this.#isDisabled && this.name ? (Number.isFinite(value) ? String(value) : "") : null,
+    );
+    if (this.#isDisabled || this.readonly) {
+      this.#internals.setValidity({});
+    } else if (input) {
+      const validity = input.validity;
       this.#internals.setValidity(
-        { valueMissing: true },
-        "Enter a number to continue.",
-        input ?? undefined,
+        {
+          valueMissing: validity.valueMissing,
+          badInput: validity.badInput,
+          rangeUnderflow: validity.rangeUnderflow,
+          rangeOverflow: validity.rangeOverflow,
+          stepMismatch: validity.stepMismatch,
+        },
+        input.validationMessage,
+        input,
       );
+    } else if (this.required && !Number.isFinite(value)) {
+      this.#internals.setValidity({ valueMissing: true }, "Enter a number to continue.");
     } else {
       this.#internals.setValidity({});
     }
+    this._nativeInvalid = !this.#internals.validity.valid;
+    if (!this.#isDisabled && (this.#fieldInvalid || this._nativeInvalid))
+      this.#internals.states.add("invalid");
+    else this.#internals.states.delete("invalid");
     if (this.#isDisabled) this.#internals.states.add("disabled");
     else this.#internals.states.delete("disabled");
     if (this.required) this.#internals.states.add("required");
@@ -158,19 +207,17 @@ export class UINumberField extends LitElement {
     this.#defaultValue ??= this.value;
   }
 
-  protected override updated(changed: PropertyValues<this>): void {
-    if (
-      changed.has("value") ||
-      changed.has("name") ||
-      changed.has("disabled") ||
-      changed.has("required") ||
-      changed.has("min") ||
-      changed.has("max")
-    ) {
+  protected override updated(_changed: PropertyValues<this>): void {
+    // A native draft may be "-", "1.", or "1e". Never write it back on render.
+    // Owner assignments and committed edits still normalize to the configured range.
+    const drafting = this.#draftValue !== undefined && Object.is(this.#draftValue, this.value);
+    if (!drafting) {
       const value = this.#normalizedValue();
-      if (value !== this.value) this.value = value;
-      this.#syncForm();
+      if (!Object.is(value, this.value)) this.value = value;
+      const input = this.renderRoot.querySelector<HTMLInputElement>("input");
+      if (input) input.value = Number.isFinite(value) ? String(value) : "";
     }
+    this.#syncForm();
   }
 
   formDisabledCallback(disabled: boolean): void {
@@ -179,11 +226,12 @@ export class UINumberField extends LitElement {
   }
 
   formResetCallback(): void {
-    this.value = this.#defaultValue ?? 0;
+    this.#setValue(this.#defaultValue ?? 0);
   }
 
   formStateRestoreCallback(state: string | File | FormData | null): void {
-    if (typeof state === "string" && Number.isFinite(Number(state))) this.value = Number(state);
+    if (typeof state === "string" && (state === "" || Number.isFinite(Number(state))))
+      this.#setValue(state === "" ? Number.NaN : Number(state));
   }
 
   /** @internal Cooperative field context without introducing visual anatomy. */
@@ -196,7 +244,12 @@ export class UINumberField extends LitElement {
   }
 
   #setValue(value: number): void {
+    this.#draftValue = undefined;
     this.value = this.#normalizedValue(value);
+    const input = this.renderRoot.querySelector<HTMLInputElement>("input");
+    if (input) input.value = Number.isFinite(this.value) ? String(this.value) : "";
+    this.#syncForm();
+    this.requestUpdate();
   }
 
   #emitInput(): void {
@@ -220,22 +273,49 @@ export class UINumberField extends LitElement {
   }
 
   #onInput = (event: Event): void => {
+    if (this.#isDisabled || this.readonly) return;
     const input = event.currentTarget as HTMLInputElement;
-    if (input.value !== "") this.#setValue(Number(input.value));
+    this.#draftValue = input.valueAsNumber;
+    this.value = this.#draftValue;
+    this.#syncForm();
     this.#emitInput();
   };
 
   #onChange = (event: Event): void => {
+    if (this.#isDisabled || this.readonly) return;
     const input = event.currentTarget as HTMLInputElement;
-    if (input.value !== "") this.#setValue(Number(input.value));
+    if (!input.validity.badInput) {
+      const previous = this.value;
+      this.#setValue(input.valueAsNumber);
+      if (!Object.is(previous, this.value)) this.#emitInput();
+    }
+    this.#syncForm();
     this.#emitChange();
   };
 
+  #stepValue(delta: number): number {
+    // Native stepping supplies decimal precision, grid alignment and range handling.
+    const input = this.ownerDocument.createElement("input");
+    input.type = "number";
+    if (Number.isFinite(this.min)) input.min = String(this.min);
+    if (Number.isFinite(this.max)) input.max = String(this.max);
+    input.step = String(Number.isFinite(this.step) && this.step > 0 ? this.step : 1);
+    input.value = Number.isFinite(this.value) ? String(this.value) : "";
+    input.stepUp(delta);
+    return input.valueAsNumber;
+  }
+
+  #onKeyDown = (event: KeyboardEvent): void => {
+    if (event.altKey || event.ctrlKey || event.metaKey || this.#isDisabled || this.readonly) return;
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    event.preventDefault();
+    this.#stepBy((event.key === "ArrowUp" ? 1 : -1) * (event.shiftKey ? 10 : 1));
+  };
+
   #stepBy(delta: number): void {
-    if (this.#isDisabled) return;
-    const value = this.#normalizedValue(
-      this.value + delta * (Number.isFinite(this.step) && this.step > 0 ? this.step : 1),
-    );
+    if (this.#isDisabled || this.readonly) return;
+    const value = this.#stepValue(delta);
+    if (!Number.isFinite(value) || Object.is(value, this.value)) return;
     const request = new CustomEvent<{ direction: "decrement" | "increment"; value: number }>(
       "ui-number-field-step",
       {
@@ -252,49 +332,54 @@ export class UINumberField extends LitElement {
   }
 
   protected override render(): TemplateResult {
-    const value = this.#normalizedValue();
     const label = this.#effectiveLabel;
     return html`
-      <label part="root">
-        <span part="label" ?hidden=${!label}
-          ><slot name="label" @slotchange=${this.#onLabelChange}>${this.label}</slot></span
+      <div part="root">
+        <label part="label" for="number" ?hidden=${!label}
+          ><slot name="label" @slotchange=${this.#onLabelChange}>${this.label}</slot></label
         >
-        <span>
+        <div part="group">
           <button
             part="decrement"
             type="button"
             aria-label=${`Decrease ${label}`}
-            ?disabled=${this.#isDisabled}
+            ?disabled=${this.#isDisabled || this.readonly || Object.is(this.#stepValue(-1), this.value)}
             @click=${() => this.#stepBy(-1)}
           >
             −
           </button>
+          <span part="prefix"><slot name="prefix" @slotchange=${hideEmptySlot}></slot></span>
           <input
+            id="number"
             part="control"
             type="number"
-            .value=${String(value)}
-            min=${Number.isFinite(this.min) ? this.min : undefined}
-            max=${Number.isFinite(this.max) ? this.max : undefined}
-            step=${this.step}
+            min=${Number.isFinite(this.min) ? this.min : nothing}
+            max=${Number.isFinite(this.max) ? this.max : nothing}
+            step=${Number.isFinite(this.step) && this.step > 0 ? this.step : 1}
+            inputmode="decimal"
+            placeholder=${this.placeholder || nothing}
+            ?readonly=${this.readonly}
             aria-label=${label}
             aria-description=${this.#fieldDescription || nothing}
-            aria-invalid=${this.#fieldInvalid ? "true" : nothing}
+            aria-invalid=${this.#fieldInvalid || this._nativeInvalid ? "true" : nothing}
             ?required=${this.required}
             ?disabled=${this.#isDisabled}
             @input=${this.#onInput}
             @change=${this.#onChange}
+            @keydown=${this.#onKeyDown}
           />
+          <span part="suffix"><slot name="suffix" @slotchange=${hideEmptySlot}></slot></span>
           <button
             part="increment"
             type="button"
             aria-label=${`Increase ${label}`}
-            ?disabled=${this.#isDisabled}
+            ?disabled=${this.#isDisabled || this.readonly || Object.is(this.#stepValue(1), this.value)}
             @click=${() => this.#stepBy(1)}
           >
             +
           </button>
-        </span>
-      </label>
+        </div>
+      </div>
     `;
   }
 }

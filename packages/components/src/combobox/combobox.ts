@@ -7,14 +7,32 @@ import {
 } from "../internal/anchored-position.js";
 import { baseStyles } from "../internal/base-styles.js";
 import type { OverlayChangeReason, OverlayOpenChangeDetail } from "../internal/overlay.js";
+import {
+  PresenceLifecycleController,
+  type PresenceLifecycleContext,
+  type PresenceLifecycleEventDetail,
+  type PresenceState,
+} from "../internal/presence-lifecycle.js";
 import { stringArrayConverter } from "../internal/string-array.js";
+import {
+  ComboboxCollection,
+  type ComboboxItem,
+  type ComboboxItemRenderer,
+  itemRecord,
+} from "./collection.js";
+import { ReorderMotionController } from "../internal/reorder-motion.js";
+export type { ComboboxItem, ComboboxItemRenderer } from "./collection.js";
+
 import type { UIOption } from "../option/option.js";
 
 let comboboxListId = 0;
 
-export type ComboboxFilter = "contains" | "none" | "starts-with";
+export type ComboboxFilter =
+  "contains" | "none" | "starts-with" | ((item: ComboboxItem, query: string) => boolean);
+export type ComboboxSize = "inherit" | "default" | "compact" | "small" | "medium" | "large";
 
 function optionLabel(option: UIOption): string {
+  if (option.hasAttribute("aria-label")) return option.getAttribute("aria-label")!;
   return [...option.childNodes]
     .filter((node) => !(node instanceof HTMLElement && node.slot))
     .map((node) => node.textContent ?? "")
@@ -30,12 +48,12 @@ function optionLabel(option: UIOption): string {
  * listbox relationships, keyboard opening, selection, and form state.
  *
  * @tag ui-combobox
- * @summary Edits or selects one value from filterable slotted options.
+ * @summary Search, select, and create with data-backed or authored options.
  *
- * @example Assign owner
- * <ui-combobox name="owner" label="Owner">
- *   <ui-option value="maya">Maya</ui-option>
- *   <ui-option value="sam">Sam</ui-option>
+ * @example Framework selector
+ * <ui-combobox name="framework" label="Framework" placeholder="Search frameworks">
+ *   <ui-option value="Next.js">Next.js</ui-option>
+ *   <ui-option value="SvelteKit">SvelteKit</ui-option>
  * </ui-combobox>
  *
  * @slot - `ui-option` suggestions or `ui-option-row` grid rows.
@@ -49,7 +67,18 @@ function optionLabel(option: UIOption): string {
  * @slot arrow - Optional connector between the popup and its anchor.
  * @slot loading - Content shown while externally sourced suggestions are pending.
  * @slot empty - Content shown when filtering leaves no suggestions.
+ * @slot footer - Persistent action content shown below the suggestion list.
  *
+ * @csspart trigger-control - Default disclosure button; replace with the trigger slot.
+ * @csspart clear-control - Default clear button; replace with the clear slot.
+ * @csspart highlight - Moving pointer and keyboard highlight behind option rows.
+ * @csspart error - Visible validation message.
+ * @mashrole part trigger-control trigger trigger
+ * @mashrole part clear-control clear clear
+ * @mashrole part highlight indicator highlight
+ * @mashnode highlight indicator viewport
+ * @mashnode error error root
+ * @mashnode variant variant root
  * @csspart root - The complete combobox realization.
  * @csspart label - The optional visible label.
  * @csspart input-group - The input, value, and adjacent actions.
@@ -66,11 +95,18 @@ function optionLabel(option: UIOption): string {
  * @csspart status - The live result-count announcement.
  * @csspart loading - The authored pending-results content.
  * @csspart empty - The authored empty-result content.
+ * @csspart viewport - The natively scrollable suggestion viewport.
  * @csspart listbox - The semantic listbox of suggestions.
  * @csspart list - Alias for the semantic suggestion list.
  * @csspart children - The authored suggestion collection.
+ * @csspart footer - The authored action area below suggestions.
  *
  * @cssstate open - Matches `:state(open)` while suggestions are visible.
+ * @cssstate present - Matches while the popup is rendered, including exit motion.
+ * @cssstate entering - Matches while the popup is entering.
+ * @cssstate active - Matches after enter motion settles.
+ * @cssstate exiting - Matches while the popup is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
  * @cssstate readonly - Matches `:state(readonly)` while selection cannot change.
  * @cssstate multiple - Matches `:state(multiple)` while multiple values are selected.
@@ -81,7 +117,10 @@ function optionLabel(option: UIOption): string {
  *
  * @fires {CustomEvent<{ value: string }>} ui-combobox-input - Emitted as the editable text changes.
  * @fires {CustomEvent<{ value: string; values: string[] }>} ui-combobox-change - Emitted after selection changes.
+ * @fires {CustomEvent<{ value: string; values: string[] }>} ui-combobox-confirm - Emitted when the open suggestion surface closes with the current values.
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-combobox-open-change - Emitted after interaction changes suggestion visibility, including a portable reason.
+ * @fires {CustomEvent<PresenceLifecycleEventDetail>} mash-presence-start - Announces combobox popup enter or exit presence.
+ * @fires {CustomEvent<PresenceLifecycleEventDetail>} mash-presence-end - Announces completion or interruption of combobox popup presence.
  *
  * @mashrole part input-group group input-group
  * @mashrole slot arrow pointer arrow
@@ -89,12 +128,14 @@ function optionLabel(option: UIOption): string {
  * @mashrole part list listbox listbox
  * @mashrole attribute values value values
  * @mashrole attribute grid grid-mode grid-mode
+ * @mashrole slot footer footer footer
  * @mashrole state grid grid-mode grid-mode
  * @mashnode root root
  * @mashnode label label root
  * @mashnode input-group group root
  * @mashnode chips chips input-group
  * @mashnode control control input-group
+ * @mashnode input input control
  * @mashnode value value input-group
  * @mashnode trigger trigger input-group
  * @mashnode icon icon input-group
@@ -109,12 +150,24 @@ function optionLabel(option: UIOption): string {
  * @mashnode arrow pointer popup
  * @mashnode status status popup
  * @mashnode empty empty popup
- * @mashnode listbox listbox popup
+ * @mashnode viewport viewport popup
+ * @mashnode listbox listbox viewport
  * @mashnode children children listbox
+ * @mashnode footer footer popup
  * @mashnode values value root
+ * @mashnode size size root
+ * @mashaxis size control-size
  * @mashnode grid-mode grid-mode root
  * @mashnode open open root
+ * @mashnode present present popup
+ * @mashnode entering entering popup
+ * @mashnode active active popup
+ * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
  * @mashnode invalid invalid control
+ * @mashrole event ui-combobox-input input input
+ * @mashrole event ui-combobox-change change values
+ * @mashrole event ui-combobox-confirm confirm values
  * @mashrole event ui-combobox-open-change open open
  * @mashrole slot default children children
  */
@@ -125,27 +178,53 @@ export class UICombobox extends LitElement {
     delegatesFocus: true,
   };
   static override properties = {
+    items: { attribute: false },
+    renderItem: { attribute: false },
+    onCreate: { attribute: false },
+    query: { type: String },
+    hideSelected: { type: Boolean, attribute: "hide-selected", reflect: true },
+    clearable: { type: Boolean, reflect: true },
+    variant: { type: String, reflect: true },
+    error: { type: String },
     value: { type: String, reflect: true },
     values: { converter: stringArrayConverter, reflect: true },
     multiple: { type: Boolean, reflect: true },
     grid: { type: Boolean, reflect: true },
+    size: { type: String, reflect: true },
     name: { type: String, reflect: true },
     label: { type: String, reflect: true },
     placeholder: { type: String, reflect: true },
     open: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
     readonly: { type: Boolean, reflect: true },
-    filter: { type: String, reflect: true },
+    filter: { attribute: "filter" },
     loading: { type: Boolean, reflect: true },
     loadingLabel: { type: String, attribute: "loading-label", reflect: true },
     placement: { type: String, reflect: true },
     align: { type: String, reflect: true },
     offset: { type: Number, reflect: true },
     collisionPadding: { type: Number, attribute: "collision-padding", reflect: true },
+    popupPresent: { state: true },
     _resultCount: { type: Number, state: true },
     _activeOptionId: { type: String, state: true },
   };
 
+  /** Data-backed options. Omit to author ui-option children; assignment preserves stable values. */
+  declare items: readonly ComboboxItem[] | undefined;
+  /** Render the content of data-backed options as a node or text, without replacing option semantics. */
+  declare renderItem: ComboboxItemRenderer | undefined;
+  /** Return a new item to append and select it, or undefined to decline creation. */
+  declare onCreate: ((query: string) => ComboboxItem | void) | undefined;
+  /** Current search text. With items, typing never changes the selected form value. */
+  declare query: string;
+  /** Remove selected options from a multiple-selection list. */
+  declare hideSelected: boolean;
+  /** Provide a clear action without requiring an authored slot. */
+  declare clearable: boolean;
+  /** Resting field boundary; both variants retain focus and error feedback. */
+  declare variant: "bordered" | "borderless";
+  /** Visible error, also exposed to assistive technology. */
+  declare error: string;
   /** Current editable or selected value. */
   declare value: string;
   /** Selected values while `multiple` is active. */
@@ -154,6 +233,8 @@ export class UICombobox extends LitElement {
   declare multiple: boolean;
   /** Uses grid roles and two-dimensional option-row navigation. */
   declare grid: boolean;
+  /** Physical scale of the editable control; inherit follows data-mash-size. */
+  declare size: ComboboxSize;
   /** Form key used for submission. */
   declare name: string;
   /** Accessible name for the editable input. */
@@ -180,9 +261,15 @@ export class UICombobox extends LitElement {
   declare offset: number;
   /** Minimum viewport-edge clearance in CSS pixels. */
   declare collisionPadding: number;
+  /** Internal render-presence; public state remains the `open` contract. */
+  declare protected popupPresent: boolean;
   declare private _resultCount: number;
   declare private _activeOptionId: string;
 
+  readonly #collection = new ComboboxCollection(this);
+  readonly #hoverMotion = new ReorderMotionController(this);
+  #editing = false;
+  #createOption: UIOption | undefined;
   readonly #internals: ElementInternals;
   readonly #listboxId = `ui-combobox-listbox-${++comboboxListId}`;
   #formDisabled = false;
@@ -200,13 +287,21 @@ export class UICombobox extends LitElement {
     positioner: () => this.renderRoot.querySelector<HTMLElement>("[part~='positioner']"),
     config: () => this,
   });
+  readonly #presence: PresenceLifecycleController<"entering" | "exiting">;
 
   constructor() {
     super();
+    this.items = undefined;
+    this.query = "";
+    this.hideSelected = false;
+    this.clearable = false;
+    this.variant = "bordered";
+    this.error = "";
     this.value = "";
     this.values = [];
     this.multiple = false;
     this.grid = false;
+    this.size = "inherit";
     this.name = "";
     this.label = "Search options";
     this.placeholder = "";
@@ -220,12 +315,48 @@ export class UICombobox extends LitElement {
     this.align = "start";
     this.offset = 4;
     this.collisionPadding = 4;
+    this.popupPresent = false;
     this._resultCount = 0;
     this._activeOptionId = "";
     this.#internals = this.attachInternals();
+    this.#presence = new PresenceLifecycleController(this, {
+      target: () => this.renderRoot.querySelector<HTMLElement>("[part~='popup']"),
+      present: () => this.popupPresent,
+      setPresent: (present) => {
+        this.popupPresent = present;
+      },
+      setState: (state, present) => this.#setPresenceState(state, present),
+      onStart: (context) => this.#emitPresenceEvent("mash-presence-start", context),
+      onFinish: (context) => this.#emitPresenceEvent("mash-presence-end", context),
+      onSettle: (phase) => {
+        if (phase === "absent") this.#positioner.stop();
+        else this.#positioner.queue();
+      },
+    });
     this.addEventListener("ui-option-select", this.#onOptionSelect);
     this.addEventListener("ui-chip-remove", this.#onChipRemove);
+    this.addEventListener("keydown", this.#onChipKeydown);
     this.addEventListener("click", this.#onComposedClick);
+    this.addEventListener("pointermove", (event) => {
+      if (!this.open || event.pointerType === "touch") return;
+      const option = event
+        .composedPath()
+        .find((node) => node instanceof HTMLElement && node.localName === "ui-option") as
+        UIOption | undefined;
+      if (
+        option &&
+        option.closest("ui-combobox, ui-autocomplete") === this &&
+        !option.disabled &&
+        !option.hidden &&
+        option.id !== this._activeOptionId
+      )
+        this.#setActive(option, false);
+    });
+    this.addEventListener("focusout", () =>
+      queueMicrotask(() => {
+        if (!this.matches(":focus-within")) this.#setOpen(false, "outside");
+      }),
+    );
   }
 
   static override styles = [
@@ -241,7 +372,8 @@ export class UICombobox extends LitElement {
       [part~="clear"],
       [part~="arrow"],
       [part~="loading"],
-      [part~="empty"] {
+      [part~="empty"],
+      [part~="footer"] {
         display: contents;
       }
 
@@ -259,7 +391,19 @@ export class UICombobox extends LitElement {
     return this.disabled || this.#formDisabled;
   }
   #options(): UIOption[] {
-    return [...this.querySelectorAll<UIOption>("ui-option")];
+    return [...this.querySelectorAll<UIOption>("ui-option")].filter(
+      (option) => option.closest("ui-combobox, ui-autocomplete") === this,
+    );
+  }
+
+  #chips(): Array<HTMLElement & { disabled?: boolean; value?: string }> {
+    return [
+      ...this.querySelectorAll<HTMLElement & { disabled?: boolean; value?: string }>("ui-chip"),
+    ].filter((chip) => {
+      const owner = chip.closest("ui-combobox, ui-autocomplete");
+      const chipSlot = chip.slot === "chips" ? chip : chip.closest<HTMLElement>('[slot="chips"]');
+      return owner === this && chipSlot?.parentElement === this;
+    });
   }
 
   override connectedCallback(): void {
@@ -275,25 +419,62 @@ export class UICombobox extends LitElement {
 
   override disconnectedCallback(): void {
     this.#collectionObserver.disconnect();
+    this.#presence.destroy();
+    this.#hoverMotion.destroy();
     this.#positioner.stop();
     this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
     super.disconnectedCallback();
   }
 
   #sync(): void {
-    const needle = this.value.trim().toLocaleLowerCase();
     const options = this.#options();
+    const selected = options.find(
+      (option) => option.value === this.value && option !== this.#createOption,
+    );
+    const search = this.#editing
+      ? this.query
+      : selected
+        ? ""
+        : this.items
+          ? this.query
+          : this.value;
+    const needle = search.trim().toLocaleLowerCase();
     for (const option of options) {
+      if (option === this.#createOption) continue;
       const label = optionLabel(option).toLocaleLowerCase();
-      option.hidden =
-        Boolean(needle) &&
-        this.filter !== "none" &&
-        (this.filter === "starts-with" ? !label.startsWith(needle) : !label.includes(needle));
       option.selected = this.multiple
         ? this.values.includes(option.value)
         : option.value === this.value;
+      const item = this.#collection.sources.get(option) ?? {
+        value: option.value,
+        label: optionLabel(option),
+      };
+      const matches =
+        typeof this.filter === "function"
+          ? this.filter(item, search)
+          : !needle ||
+            this.filter === "none" ||
+            (this.filter === "starts-with" ? label.startsWith(needle) : label.includes(needle));
+      option.hidden = !matches || (this.multiple && this.hideSelected && option.selected);
     }
-    for (const row of this.querySelectorAll<HTMLElement>("ui-option-row")) {
+    if (this.#createOption) {
+      const text = search.trim();
+      this.#createOption.hidden =
+        !text ||
+        options.some(
+          (option) =>
+            option !== this.#createOption && optionLabel(option).toLocaleLowerCase() === needle,
+        );
+      const label = `Create “${text}”`;
+      if (this.#createOption.textContent !== label) this.#createOption.textContent = label;
+    }
+    this.#collection.chips(
+      this.multiple ? this.values : [],
+      options,
+      this.#isDisabled,
+      this.readonly,
+    );
+    for (const row of this.querySelectorAll<HTMLElement>("ui-option-row, ui-option-group")) {
       row.hidden = [...row.querySelectorAll<UIOption>("ui-option")].every(
         (option) => option.hidden,
       );
@@ -314,6 +495,8 @@ export class UICombobox extends LitElement {
     } else {
       this.#internals.setFormValue(this.value);
     }
+    if (this.error || this.#fieldInvalid) this.#internals.states.add("invalid");
+    else this.#internals.states.delete("invalid");
     if (this.open) this.#internals.states.add("open");
     else this.#internals.states.delete("open");
     if (this.#isDisabled) this.#internals.states.add("disabled");
@@ -325,30 +508,79 @@ export class UICombobox extends LitElement {
   }
 
   protected override willUpdate(changed: PropertyValues<this>): void {
+    if (changed.has("open") && this.open) this.popupPresent = true;
+    if (changed.has("items") || changed.has("renderItem"))
+      this.#collection.render(this.items, this.renderItem);
+    if (changed.has("items") && this.#createOption) this.append(this.#createOption);
+    if (changed.has("onCreate")) {
+      this.#createOption?.remove();
+      this.#createOption = undefined;
+      if (this.onCreate) {
+        this.#createOption = this.ownerDocument.createElement("ui-option");
+        this.append(this.#createOption);
+      }
+    }
+    if (changed.has("value") && (this.items || this.value !== this.query)) this.#editing = false;
+    if (changed.has("value") && !this.#editing) this.query = "";
+    if (this.#isDisabled || this.readonly) this.open = false;
     if (
-      changed.has("value") ||
-      changed.has("values") ||
-      changed.has("multiple") ||
-      changed.has("grid") ||
-      changed.has("name") ||
-      changed.has("open") ||
-      changed.has("disabled") ||
-      changed.has("readonly") ||
-      changed.has("filter") ||
-      changed.has("loading")
+      changed.size === 0 ||
+      [...changed.keys()].some(
+        (key) => !["_activeOptionId", "_resultCount", "popupPresent"].includes(String(key)),
+      )
     )
       this.#sync();
   }
 
-  protected override updated(): void {
-    if (this.open) {
-      this.#positioner.start();
+  protected override updated(changed: PropertyValues<this>): void {
+    const input = this.renderRoot.querySelector<HTMLInputElement>("input");
+    if (input)
+      input.ariaActiveDescendantElement =
+        this.#options().find((option) => option.id === this._activeOptionId) ?? null;
+    this.#paintHighlight();
+    if (changed.has("open")) {
+      if (this.open) {
+        this.#positioner.start();
+        this.#positioner.queue();
+        this.ownerDocument.addEventListener("pointerdown", this.#onDocumentPointerDown, true);
+        this.#presence.enter("entering");
+      } else {
+        this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
+        this.#presence.exit("exiting", changed.get("open") === true);
+      }
+    } else if (this.open || this.popupPresent) {
       this.#positioner.queue();
-      this.ownerDocument.addEventListener("pointerdown", this.#onDocumentPointerDown, true);
-    } else {
-      this.#positioner.stop();
-      this.ownerDocument.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
     }
+  }
+
+  #setPresenceState(state: PresenceState, present: boolean): void {
+    if (present) this.#internals.states.add(state);
+    else this.#internals.states.delete(state);
+  }
+
+  #emitPresenceEvent(
+    type: "mash-presence-start" | "mash-presence-end",
+    context: PresenceLifecycleContext<"entering" | "exiting">,
+  ): void {
+    const eventInit: CustomEventInit<PresenceLifecycleEventDetail> = {
+      bubbles: true,
+      composed: true,
+      detail: {
+        open: context.open,
+        phase: context.phase,
+        reducedMotion: context.reducedMotion,
+        interrupted: context.interrupted,
+      },
+    };
+    if (type === "mash-presence-start") {
+      this.dispatchEvent(
+        new CustomEvent<PresenceLifecycleEventDetail>("mash-presence-start", eventInit),
+      );
+      return;
+    }
+    this.dispatchEvent(
+      new CustomEvent<PresenceLifecycleEventDetail>("mash-presence-end", eventInit),
+    );
   }
 
   formDisabledCallback(disabled: boolean): void {
@@ -358,6 +590,8 @@ export class UICombobox extends LitElement {
   formResetCallback(): void {
     this.value = this.#defaultValue ?? "";
     this.values = [...(this.#defaultValues ?? [])];
+    this.query = "";
+    this.#editing = false;
     this.open = false;
   }
   formStateRestoreCallback(state: string | File | FormData | null): void {
@@ -369,10 +603,19 @@ export class UICombobox extends LitElement {
     }
   }
 
+  #selectedValues(): string[] {
+    if (this.multiple) return [...this.values];
+    return this.value ? [this.value] : [];
+  }
+
   #setOpen(open: boolean, reason: OverlayChangeReason): void {
     if (this.#isDisabled || (this.readonly && open) || this.open === open) return;
     this.open = open;
-    if (!open) this.#setActive(null);
+    if (!open) {
+      this.#setActive(null);
+      this.#editing = false;
+      this.query = "";
+    } else this.#sync();
     this.dispatchEvent(
       new CustomEvent<OverlayOpenChangeDetail>("ui-combobox-open-change", {
         bubbles: true,
@@ -380,6 +623,15 @@ export class UICombobox extends LitElement {
         detail: { open, reason },
       }),
     );
+    if (!open) {
+      this.dispatchEvent(
+        new CustomEvent<{ value: string; values: string[] }>("ui-combobox-confirm", {
+          bubbles: true,
+          composed: true,
+          detail: { value: this.value, values: this.#selectedValues() },
+        }),
+      );
+    }
   }
 
   #onDocumentPointerDown = (event: PointerEvent): void => {
@@ -396,27 +648,54 @@ export class UICombobox extends LitElement {
   }
 
   #onInput = (event: Event): void => {
-    if (this.readonly) return;
-    this.value = (event.currentTarget as HTMLInputElement).value;
+    if (this.readonly || this.#isDisabled) return;
+    this.#editing = true;
+    this.query = (event.currentTarget as HTMLInputElement).value;
+    if (!this.items) this.value = this.query;
     this.#setActive(null);
     this.#setOpen(true, "input");
     this.dispatchEvent(
       new CustomEvent<{ value: string }>("ui-combobox-input", {
         bubbles: true,
         composed: true,
-        detail: { value: this.value },
+        detail: { value: this.query },
       }),
     );
+    this.#sync();
+    this.#setActive(this.#visibleOptions()[0] ?? null, false);
   };
 
   #onOptionSelect = (event: Event): void => {
     if (this.readonly) return;
-    const target = event.target;
-    if (!(target instanceof HTMLElement) || target.localName !== "ui-option") return;
+    const target = event.composedPath().find((node) => this.#options().includes(node as UIOption));
+    if (!target) return;
     this.#commitOption(target as UIOption);
   };
 
   #commitOption(option: UIOption): void {
+    if (this.#isDisabled || this.readonly || this.loading || option.disabled || option.hidden)
+      return;
+    if (option === this.#createOption) {
+      const created = this.onCreate?.(this.query.trim());
+      if (created === undefined) return;
+      const record = itemRecord(created);
+      if (!record.value || record.disabled) return;
+      if (this.items) {
+        if (!this.items.some((item) => itemRecord(item).value === record.value))
+          this.items = [...this.items, created];
+        this.#collection.render(this.items, this.renderItem);
+      } else if (!this.#options().some((item) => item.value === record.value)) {
+        const added = this.ownerDocument.createElement("ui-option");
+        added.value = record.value;
+        added.textContent = record.label;
+        this.insertBefore(added, this.#createOption!);
+      }
+      option = this.#options().find(
+        (item) => item !== this.#createOption && item.value === record.value,
+      )!;
+    }
+    this.#editing = false;
+    this.query = "";
     const selectedValue = option.value || optionLabel(option);
     if (this.multiple) {
       this.values = this.values.includes(selectedValue)
@@ -426,7 +705,6 @@ export class UICombobox extends LitElement {
       this.#setOpen(true, "select");
     } else {
       this.value = selectedValue;
-      this.#setOpen(false, "select");
     }
     this.dispatchEvent(
       new CustomEvent<{ value: string; values: string[] }>("ui-combobox-change", {
@@ -435,6 +713,10 @@ export class UICombobox extends LitElement {
         detail: { value: this.value, values: this.multiple ? [...this.values] : [this.value] },
       }),
     );
+    if (!this.multiple) this.#setOpen(false, "select");
+    this.#sync();
+    this.#setActive(null);
+    this.renderRoot.querySelector<HTMLInputElement>("input")?.focus();
   }
 
   #visibleOptions(): UIOption[] {
@@ -452,9 +734,38 @@ export class UICombobox extends LitElement {
       .filter((row) => row.length > 0);
   }
 
-  #setActive(option: UIOption | null): void {
+  #setActive(option: UIOption | null, scroll = true): void {
     for (const candidate of this.#options()) candidate.active = candidate === option;
     this._activeOptionId = option?.id ?? "";
+    const viewport = this.renderRoot.querySelector<HTMLElement>('[part="viewport"]');
+    if (scroll && option && viewport) {
+      const rect = option.getBoundingClientRect(),
+        view = viewport.getBoundingClientRect();
+      if (rect.top < view.top) viewport.scrollTop -= view.top - rect.top;
+      else if (rect.bottom > view.bottom) viewport.scrollTop += rect.bottom - view.bottom;
+    }
+    this.#paintHighlight();
+  }
+
+  #paintHighlight(): void {
+    const highlight = this.renderRoot.querySelector<HTMLElement>('[part="highlight"]');
+    const viewport = this.renderRoot.querySelector<HTMLElement>('[part="viewport"]');
+    const option = this.#options().find((candidate) => candidate.id === this._activeOptionId);
+    if (!highlight || !viewport) return;
+    const fresh = Boolean(highlight.hidden);
+    highlight.hidden = !option || !this.open || this.loading;
+    if (!option || highlight.hidden) return;
+    const rect = option.getBoundingClientRect(),
+      outer = viewport.getBoundingClientRect();
+    const scale = outer.width / viewport.offsetWidth || 1;
+    highlight.style.width = `${rect.width / scale}px`;
+    highlight.style.height = `${rect.height / scale}px`;
+    this.#hoverMotion.move(
+      highlight,
+      (rect.left - outer.left) / scale + viewport.scrollLeft,
+      (rect.top - outer.top) / scale + viewport.scrollTop,
+      fresh,
+    );
   }
 
   #moveActive(direction: 1 | -1): void {
@@ -502,8 +813,14 @@ export class UICombobox extends LitElement {
 
   #onChipRemove = (event: Event): void => {
     if (!this.multiple || this.#isDisabled || this.readonly) return;
+    const chip = event
+      .composedPath()
+      .find(
+        (node): node is HTMLElement => node instanceof HTMLElement && node.localName === "ui-chip",
+      );
+    const chipIndex = chip ? this.#chips().indexOf(chip) : -1;
     const value = (event as CustomEvent<{ value: string }>).detail.value;
-    if (!this.values.includes(value)) return;
+    if (chipIndex < 0 || !this.values.includes(value)) return;
     this.values = this.values.filter((selected) => selected !== value);
     this.dispatchEvent(
       new CustomEvent<{ value: string; values: string[] }>("ui-combobox-change", {
@@ -512,7 +829,49 @@ export class UICombobox extends LitElement {
         detail: { value: this.value, values: [...this.values] },
       }),
     );
-    queueMicrotask(() => this.renderRoot.querySelector<HTMLInputElement>("input")?.focus());
+    queueMicrotask(() => {
+      const chips = this.#chips().filter((candidate) => !candidate.disabled);
+      const target = chipIndex < 0 ? undefined : chips[Math.min(chipIndex, chips.length - 1)];
+      (target ?? this.renderRoot.querySelector<HTMLInputElement>("input"))?.focus();
+    });
+  };
+
+  #focusChip(chip: HTMLElement): void {
+    this.#setOpen(false, "keyboard");
+    chip.focus();
+  }
+
+  #onChipKeydown = (event: KeyboardEvent): void => {
+    const chip = event
+      .composedPath()
+      .find(
+        (node): node is HTMLElement => node instanceof HTMLElement && node.localName === "ui-chip",
+      );
+    if (!chip || this.#isDisabled) return;
+    const chips = this.#chips().filter((candidate) => !candidate.disabled);
+    const index = chips.indexOf(chip);
+    const input = this.renderRoot.querySelector<HTMLInputElement>("input");
+    if (index < 0 || !input) return;
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      input.focus();
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      input.focus();
+      this.#setOpen(true, "keyboard");
+      this.#moveActive(event.key === "ArrowDown" ? 1 : -1);
+      return;
+    }
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    const rtl = getComputedStyle(this).direction === "rtl";
+    const direction = (event.key === "ArrowRight" ? 1 : -1) * (rtl ? -1 : 1);
+    const target = chips[index + direction];
+    if (target) this.#focusChip(target);
+    else input.focus();
   };
 
   #eventIsWithinSlot(event: Event, name: string): boolean {
@@ -527,16 +886,36 @@ export class UICombobox extends LitElement {
       this.renderRoot.querySelector<HTMLInputElement>("input")?.focus();
       return;
     }
-    if (this.#eventIsWithinSlot(event, "trigger")) {
+    if (
+      this.#eventIsWithinSlot(event, "trigger") ||
+      event
+        .composedPath()
+        .some(
+          (node) => node instanceof HTMLElement && node.getAttribute("part") === "trigger-control",
+        )
+    ) {
       event.preventDefault();
       this.#setOpen(!this.open, "trigger");
+      this.renderRoot.querySelector<HTMLInputElement>("input")?.focus();
       return;
     }
-    if (!this.#eventIsWithinSlot(event, "clear") || this.#isDisabled || this.readonly) return;
+    if (
+      (!this.#eventIsWithinSlot(event, "clear") &&
+        !event
+          .composedPath()
+          .some(
+            (node) => node instanceof HTMLElement && node.getAttribute("part") === "clear-control",
+          )) ||
+      this.#isDisabled ||
+      this.readonly
+    )
+      return;
     event.preventDefault();
-    if (!this.value && this.values.length === 0) return;
+    if (!this.value && !this.query && this.values.length === 0) return;
     this.value = "";
     this.values = [];
+    this.query = "";
+    this.#editing = false;
     this.#setOpen(true, "clear");
     this.dispatchEvent(
       new CustomEvent<{ value: string }>("ui-combobox-input", {
@@ -556,7 +935,36 @@ export class UICombobox extends LitElement {
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
-    if (this.readonly && event.key !== "Escape") return;
+    if (event.isComposing || this.#isDisabled || (this.readonly && event.key !== "Escape")) return;
+    if (event.key === "Tab") {
+      this.#setOpen(false, "keyboard");
+      return;
+    }
+    const input = event.currentTarget as HTMLInputElement;
+    const atStart = input.selectionStart === 0 && input.selectionEnd === 0;
+    const rtl = getComputedStyle(this).direction === "rtl";
+    const towardChips = rtl ? "ArrowRight" : "ArrowLeft";
+    if (
+      this.multiple &&
+      !this.value &&
+      ((event.key === "Backspace" && atStart) ||
+        (event.key === towardChips && atStart && !event.shiftKey))
+    ) {
+      const last = this.#chips()
+        .filter((chip) => !chip.disabled)
+        .at(-1);
+      if (last) {
+        event.preventDefault();
+        this.#focusChip(last);
+        return;
+      }
+    }
+    if (this.open && (event.key === "Home" || event.key === "End") && !event.shiftKey) {
+      event.preventDefault();
+      const options = this.#visibleOptions();
+      this.#setActive((event.key === "Home" ? options[0] : options.at(-1)) ?? null);
+      return;
+    }
     if (event.key === "Escape") {
       if (this.open) event.preventDefault();
       this.#setOpen(false, "escape");
@@ -605,21 +1013,38 @@ export class UICombobox extends LitElement {
   }
 
   protected override render(): TemplateResult {
+    const selected = this.#options().find(
+      (option) => option !== this.#createOption && option.value === this.value,
+    );
+    const text = this.#editing
+      ? this.query
+      : this.multiple
+        ? ""
+        : selected
+          ? optionLabel(selected)
+          : this.value;
     return html`
       <span part="root">
         <span part="label"><slot name="label"></slot></span>
         <span part="input-group">
-          <span part="chips" role="list"><slot name="chips"></slot></span>
+          <span
+            part="chips"
+            role=${this.multiple && this.values.length > 0 ? "toolbar" : nothing}
+            aria-label=${
+              this.multiple && this.values.length > 0 ? `${this.label} selected values` : nothing
+            }
+            ><slot name="chips"></slot
+          ></span>
           <span part="value"><slot name="value"></slot></span>
           <input
             part="control"
             type="text"
             role="combobox"
-            .value=${this.value}
+            .value=${text}
             placeholder=${this.placeholder}
             aria-label=${this.label}
-            aria-description=${this.#fieldDescription || nothing}
-            aria-invalid=${this.#fieldInvalid ? "true" : nothing}
+            aria-description=${this.error || this.#fieldDescription || nothing}
+            aria-invalid=${this.error || this.#fieldInvalid ? "true" : nothing}
             aria-controls=${this.open ? this.#listboxId : nothing}
             aria-expanded=${this.open ? "true" : "false"}
             aria-activedescendant=${this._activeOptionId || nothing}
@@ -628,15 +1053,65 @@ export class UICombobox extends LitElement {
             aria-busy=${this.loading ? "true" : nothing}
             ?disabled=${this.#isDisabled}
             ?readonly=${this.readonly}
+            @click=${() => this.#setOpen(true, "trigger")}
             @input=${this.#onInput}
             @keydown=${this.#onKeydown}
           />
           <span part="icon"><slot name="icon"></slot></span>
-          <span part="trigger"><slot name="trigger"></slot></span>
-          <span part="clear"><slot name="clear"></slot></span>
+          <span part="trigger"
+            ><slot name="trigger"
+              ><button
+                part="trigger-control"
+                type="button"
+                tabindex="-1"
+                aria-label=${this.open ? "Close suggestions" : "Open suggestions"}
+                ?disabled=${this.#isDisabled || this.readonly}
+              >
+                <svg viewBox="0 0 20 20" width="20" height="20" fill="none" aria-hidden="true">
+                  <path
+                    d="m6 8 4 4 4-4"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg></button></slot
+          ></span>
+          <span part="clear"
+            ><slot name="clear"
+              >${
+                this.clearable
+                  ? html`<button
+                      part="clear-control"
+                      type="button"
+                      aria-label="Clear selection"
+                      ?disabled=${this.#isDisabled || this.readonly || (!this.value && !this.query && !this.values.length)}
+                    >
+                      <svg
+                        viewBox="0 0 20 20"
+                        width="20"
+                        height="20"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="m6 6 8 8m0-8-8 8"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                        />
+                      </svg>
+                    </button>`
+                  : nothing
+              }</slot
+            ></span
+          >
         </span>
-        <span part="backdrop" ?hidden=${!this.open}><slot name="backdrop"></slot></span>
-        <div part="positioner" ?hidden=${!this.open}>
+        <span part="error" ?hidden=${!this.error}>${this.error}</span>
+        <span part="backdrop" ?hidden=${!this.popupPresent} .inert=${!this.open}
+          ><slot name="backdrop"></slot
+        ></span>
+        <div part="positioner" ?hidden=${!this.popupPresent} .inert=${!this.open}>
           <div part="popup">
             <span part="arrow"><slot name="arrow"></slot></span>
             <span part="status" role="status" aria-live="polite">
@@ -650,18 +1125,24 @@ export class UICombobox extends LitElement {
               <slot name="loading">${this.loadingLabel}</slot>
             </span>
             <span part="empty" ?hidden=${this.loading || this._resultCount !== 0}>
-              <slot name="empty"></slot>
+              <slot name="empty"
+                >${this.multiple && this.hideSelected && this.values.length > 0 && !this.query ? "All options selected" : "No matches found"}</slot
+              >
             </span>
-            <div
-              part="listbox list"
-              id=${this.#listboxId}
-              role=${this.grid ? "grid" : "listbox"}
-              aria-label=${this.label}
-              aria-multiselectable=${this.multiple ? "true" : nothing}
-              ?hidden=${this.loading}
-            >
-              <slot part="children" @slotchange=${() => this.#sync()}></slot>
+            <div part="viewport" @scroll=${() => this.#paintHighlight()}>
+              <span part="highlight" aria-hidden="true" hidden></span>
+              <div
+                part="listbox list"
+                id=${this.#listboxId}
+                role=${this.grid ? "grid" : "listbox"}
+                aria-label=${this.label}
+                aria-multiselectable=${this.multiple ? "true" : nothing}
+                ?hidden=${this.loading}
+              >
+                <slot part="children" @slotchange=${() => this.#sync()}></slot>
+              </div>
             </div>
+            <span part="footer"><slot name="footer"></slot></span>
           </div>
         </div>
       </span>

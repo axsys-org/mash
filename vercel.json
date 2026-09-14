@@ -4,5 +4,8 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm -w run build:vercel",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/components/:path*", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/components/:path*", "destination": "/index.html" },
+    { "source": "/stories/:path*", "destination": "/index.html" }
+  ]
 }

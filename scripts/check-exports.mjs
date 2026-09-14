@@ -201,12 +201,22 @@ async function checkPackage(relativeDir) {
       }
     }
     for (const file of registrationModules) {
-      if (!file.endsWith("register.js")) {
+      if (!file.endsWith("register.js") && file !== "dist/index.js") {
         fail(
           name,
-          `${file} registers a custom element but is not a register module — importing a ` +
-            `definition must never register an element, or bundlers cannot drop unused components`,
+          `${file} registers a custom element outside a public entry or registration module`,
         );
+      }
+    }
+
+    // Normal public component imports must produce usable elements without a
+    // second registration step. Headless helpers have no sibling registration.
+    for (const [subpath, entry] of Object.entries(pkg.exports)) {
+      if (!entry || typeof entry !== "object" || !entry.import?.endsWith(".js")) continue;
+      const file = path.join(dir, entry.import);
+      const sibling = path.join(path.dirname(file), "register.js");
+      if ((subpath === "." || sideEffectful.has(sibling)) && !sideEffectful.has(file)) {
+        fail(name, `${subpath} requires a separate registration import`);
       }
     }
 

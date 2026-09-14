@@ -1,6 +1,6 @@
-import { html, type TemplateResult } from "lit";
+import { html, type PropertyValues, type TemplateResult } from "lit";
 
-import type { CalendarChangeDetail } from "../calendar/calendar.js";
+import type { CalendarChangeDetail, UICalendar } from "../calendar/calendar.js";
 import {
   type OverlayChangeReason,
   type OverlayOpenChangeDetail,
@@ -12,7 +12,7 @@ import {
  *
  * The picker reuses Mash's shared overlay behavior and composes an authored
  * calendar through its default semantic slot. It owns open/dismiss behavior,
- * propagates the selected ISO value, and leaves the trigger, calendar recipe,
+ * projects its ISO value into owned calendars, keeps partial ranges open, and leaves the trigger, calendar recipe,
  * placement, and application formatting entirely replaceable.
  *
  * @tag ui-date-picker
@@ -37,6 +37,11 @@ import {
  * @csspart close - The explicit dismiss binding.
  *
  * @cssstate open - Matches `:state(open)` while the calendar popup is visible.
+ * @cssstate present - Matches while the popup is rendered, including exit motion.
+ * @cssstate entering - Matches while the popup is entering.
+ * @cssstate active - Matches after enter motion settles.
+ * @cssstate exiting - Matches while the popup is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while the trigger is unavailable.
  *
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-date-picker-open-change - Reports a requested open-state change and why it occurred.
@@ -56,6 +61,11 @@ import {
  * @mashnode value value root
  * @mashnode label label root
  * @mashnode open open root
+ * @mashnode present present popup
+ * @mashnode entering entering popup
+ * @mashnode active active popup
+ * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
  * @mashnode disabled disabled root
  * @mashnode change change root
  * @mashrole part root control root
@@ -69,16 +79,57 @@ export class UIDatePicker extends UIAnchoredOverlay {
     value: { type: String, reflect: true },
   };
 
-  /** Selected ISO date or slash-delimited ISO date range. */
+  /** Selected ISO date or slash-delimited ISO range, projected into owned calendars. */
   declare value: string;
 
   protected readonly overlayRole = "dialog" as const;
   protected override readonly rendersClose = true;
+  #calendars = new MutationObserver(() => this.#syncCalendars());
 
   constructor() {
     super();
     this.value = "";
     this.addEventListener("ui-calendar-change", this.#onCalendarChange as EventListener);
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this.#calendars.observe(this, { childList: true, subtree: true });
+    this.#syncCalendars();
+    // A parent may upgrade before its already-parsed calendar descendants.
+    // Revisit after their definitions and the current upgrade turn complete.
+    void customElements.whenDefined("ui-calendar").then(() => {
+      if (this.isConnected) this.#syncCalendars();
+    });
+  }
+
+  override disconnectedCallback(): void {
+    this.#calendars.disconnect();
+    super.disconnectedCallback();
+  }
+
+  #syncCalendars(): void {
+    for (const calendar of this.querySelectorAll<UICalendar>("ui-calendar")) {
+      if (calendar.closest("ui-date-picker") !== this || !calendar.matches(":defined")) continue;
+      calendar.value = this.value;
+      const selectedMonth = this.value.slice(0, 7);
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(selectedMonth)) continue;
+      const [year, month] = calendar.month.split("-").map(Number);
+      const lastMonth =
+        year && month
+          ? new Date(Date.UTC(year, month - 1 + Math.max(1, calendar.months || 1) - 1, 1))
+              .toISOString()
+              .slice(0, 7)
+          : "";
+      if (!calendar.month || selectedMonth < calendar.month || selectedMonth > lastMonth) {
+        calendar.month = selectedMonth;
+      }
+    }
+  }
+
+  protected override updated(changed: PropertyValues<this>): void {
+    super.updated(changed);
+    if (changed.has("value") || changed.has("open")) this.#syncCalendars();
   }
 
   protected emitOpenChange(open: boolean, reason: OverlayChangeReason): void {
@@ -92,6 +143,13 @@ export class UIDatePicker extends UIAnchoredOverlay {
   }
 
   #onCalendarChange = (event: CustomEvent<CalendarChangeDetail>): void => {
+    const calendar = event
+      .composedPath()
+      .find(
+        (node): node is UICalendar =>
+          node instanceof HTMLElement && node.localName === "ui-calendar",
+      );
+    if (!calendar || calendar.closest("ui-date-picker") !== this || this.disabled) return;
     this.value = event.detail.value;
     this.dispatchEvent(
       new CustomEvent<CalendarChangeDetail>("ui-date-picker-change", {
@@ -100,7 +158,9 @@ export class UIDatePicker extends UIAnchoredOverlay {
         composed: true,
       }),
     );
-    this.requestOpenChange(false, "select");
+    // A range start is an intermediate value, not a completed selection.
+    if (calendar.mode !== "range" || this.value.split("/")[1])
+      this.requestOpenChange(false, "select");
   };
 
   protected override render(): TemplateResult {

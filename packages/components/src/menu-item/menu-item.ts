@@ -1,7 +1,8 @@
-import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, nothing, type PropertyValues, type TemplateResult } from "lit";
+
+import { html, literal } from "lit/static-html.js";
 
 import { baseStyles } from "../internal/base-styles.js";
-import { InlineOverflowController } from "../internal/inline-overflow.js";
 import type { UIMenu } from "../menu/menu.js";
 
 /** Accessible action semantics exposed by a menu item. */
@@ -17,6 +18,56 @@ export interface MenuItemSelectDetail {
   value: string;
   checked: boolean;
   kind: MenuItemKind;
+}
+
+const submenuHoverIntentResampleDelay = 48;
+const submenuHoverIntentSampleLimit = 3;
+const submenuHoverIntentTolerance = 10;
+const submenuHoverRestTolerance = 2;
+
+interface PointerSample {
+  x: number;
+  y: number;
+}
+
+interface SubmenuHoverIntent {
+  delayedX?: number;
+  delayedY?: number;
+  restX?: number;
+  restY?: number;
+}
+
+const submenuPointerSamples = new WeakMap<HTMLElement, PointerSample[]>();
+
+function pointerSlope(point: PointerSample, corner: PointerSample): number {
+  const dx = corner.x - point.x;
+  if (dx === 0) return corner.y > point.y ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+  return (corner.y - point.y) / dx;
+}
+
+function pointerAimsAtSubmenu(
+  previous: PointerSample,
+  current: PointerSample,
+  rect: DOMRect,
+  side: "left" | "right",
+): boolean {
+  if (rect.width <= 0 || rect.height <= 0) return false;
+  if (previous.x === current.x && previous.y === current.y) return false;
+
+  const edgeX =
+    side === "left"
+      ? rect.right + submenuHoverIntentTolerance
+      : rect.left - submenuHoverIntentTolerance;
+  const upper = { x: edgeX, y: rect.top - submenuHoverIntentTolerance };
+  const lower = { x: edgeX, y: rect.bottom + submenuHoverIntentTolerance };
+  const decreasingCorner = side === "left" ? lower : upper;
+  const increasingCorner = side === "left" ? upper : lower;
+  const decreasingSlope = pointerSlope(current, decreasingCorner);
+  const increasingSlope = pointerSlope(current, increasingCorner);
+  const previousDecreasingSlope = pointerSlope(previous, decreasingCorner);
+  const previousIncreasingSlope = pointerSlope(previous, increasingCorner);
+
+  return decreasingSlope < previousDecreasingSlope && increasingSlope > previousIncreasingSlope;
 }
 
 /**
@@ -69,9 +120,7 @@ export interface MenuItemSelectDetail {
  * @cssstate has-shortcut - Matches when a shortcut is authored.
  * @cssstate has-submenu - Matches when a nested menu is authored.
  * @cssstate submenu-open - Matches while the nested menu is visible.
- * @cssstate overflowing - Matches while the label exceeds its viewport.
- * @cssstate overflow-start - Matches when label content continues before the viewport.
- * @cssstate overflow-end - Matches when label content continues after the viewport.
+ * @cssstate hover-suppressed - Matches while sibling submenu aim suppresses incidental pointer hover.
  *
  * @fires {CustomEvent<MenuItemSelectDetail>} ui-menu-item-select - Emitted when a leaf command is activated, after checkbox/radio state is updated.
  * @fires {CustomEvent<MenuItemSubmenuChangeDetail>} ui-menu-item-submenu-change - Emitted when a submenu branch opens or closes.
@@ -104,6 +153,8 @@ export class UIMenuItem extends LitElement {
   };
 
   static override properties = {
+    href: { type: String, reflect: true },
+    target: { type: String, reflect: true },
     value: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
     checked: { type: Boolean, reflect: true },
@@ -115,6 +166,10 @@ export class UIMenuItem extends LitElement {
     _hasSubmenu: { type: Boolean, state: true },
   };
 
+  /** Navigation destination; action items render a native anchor when supplied. */
+  declare href: string;
+  /** Browsing context for a navigation item. */
+  declare target: string;
   /** Stable command value for the containing menu. */
   declare value: string;
   /** Prevents command activation while retaining menu focus semantics. */
@@ -131,13 +186,15 @@ export class UIMenuItem extends LitElement {
   declare _hasSubmenu: boolean;
 
   readonly #internals: ElementInternals;
-  readonly #overflow: InlineOverflowController;
   #submenu: UIMenu | null = null;
+  #hoverIntent: SubmenuHoverIntent | null = null;
   #openTimer: number | undefined;
   #closeTimer: number | undefined;
 
   constructor() {
     super();
+    this.href = "";
+    this.target = "";
     this.value = "";
     this.disabled = false;
     this.checked = false;
@@ -148,7 +205,6 @@ export class UIMenuItem extends LitElement {
     this._hasShortcut = false;
     this._hasSubmenu = false;
     this.#internals = this.attachInternals();
-    this.#overflow = new InlineOverflowController(this, this.#internals);
   }
 
   static override styles = baseStyles;
@@ -161,16 +217,15 @@ export class UIMenuItem extends LitElement {
     return Boolean(this.#submenu?.open);
   }
 
-  override disconnectedCallback(): void {
-    this.#clearTimers();
-    this.#overflow.disconnect();
-    this.#setSubmenu(null);
-    super.disconnectedCallback();
+  /** Normalized authored label used by menu typeahead. */
+  get textValue(): string {
+    return this.#authoredLabel();
   }
 
-  protected override firstUpdated(): void {
-    const viewport = this.renderRoot.querySelector<HTMLElement>("[part~='label-viewport']");
-    if (viewport) this.#overflow.connect(viewport);
+  override disconnectedCallback(): void {
+    this.#clearTimers();
+    this.#setSubmenu(null);
+    super.disconnectedCallback();
   }
 
   protected override updated(changed: PropertyValues<this>): void {
@@ -182,13 +237,13 @@ export class UIMenuItem extends LitElement {
     if (changed.has("_hasPrefix")) this.#setState("has-prefix", this._hasPrefix);
     if (changed.has("_hasShortcut")) this.#setState("has-shortcut", this._hasShortcut);
     if (changed.has("_hasSubmenu")) this.#setState("has-submenu", this._hasSubmenu);
-    this.#overflow.queue("start");
   }
 
   /** Opens an authored submenu through its public overlay contract. */
   showSubmenu(focusFirst = false): void {
     if (this.disabled || !this.#submenu) return;
     this.#clearTimers();
+    this.setHoverSuppressed(false);
     this.#submenu.show(focusFirst ? "keyboard" : "hover");
     if (focusFirst) {
       void this.#submenu.updateComplete.then(() => {
@@ -205,40 +260,163 @@ export class UIMenuItem extends LitElement {
     if (restoreFocus) this.focus();
   }
 
+  /** Internal pointer-aim hook used by menu composites during submenu handoff. */
+  setHoverSuppressed(active: boolean): void {
+    this.#setState("hover-suppressed", active);
+  }
+
   #setState(name: string, active: boolean): void {
     if (active) this.#internals.states.add(name);
     else this.#internals.states.delete(name);
   }
 
   #clearTimers(): void {
-    if (this.#openTimer !== undefined) window.clearTimeout(this.#openTimer);
+    this.#clearOpenTimer();
     if (this.#closeTimer !== undefined) window.clearTimeout(this.#closeTimer);
-    this.#openTimer = undefined;
     this.#closeTimer = undefined;
   }
 
-  #scheduleOpen(): void {
+  #clearOpenTimer(): void {
+    this.#clearOpenTimerHandle();
+    this.#hoverIntent = null;
+  }
+
+  #clearOpenTimerHandle(): void {
+    if (this.#openTimer !== undefined) window.clearTimeout(this.#openTimer);
+    this.#openTimer = undefined;
+  }
+
+  #collectionParent(): HTMLElement | null {
+    const parent = this.parentElement;
+    return parent?.localName === "ui-menu" || parent?.localName === "ui-context-menu"
+      ? parent
+      : null;
+  }
+
+  #recordPointerSample(event: PointerEvent): void {
+    if (event.pointerType === "touch" || !matchMedia("(hover: hover) and (pointer: fine)").matches)
+      return;
+    const parent = this.#collectionParent();
+    if (!parent) return;
+    const samples = submenuPointerSamples.get(parent) ?? [];
+    const next = { x: event.clientX, y: event.clientY };
+    const previous = samples.at(-1);
+    if (!previous || previous.x !== next.x || previous.y !== next.y) {
+      samples.push(next);
+      while (samples.length > submenuHoverIntentSampleLimit) samples.shift();
+    }
+    submenuPointerSamples.set(parent, samples);
+  }
+
+  #pointerSamples(): [PointerSample, PointerSample] | null {
+    const parent = this.#collectionParent();
+    const samples = parent ? submenuPointerSamples.get(parent) : undefined;
+    const previous = samples?.at(-2);
+    const current = samples?.at(-1);
+    return previous && current ? [previous, current] : null;
+  }
+
+  #activeSiblingSubmenu(): UIMenu | null {
+    const parent = this.#collectionParent();
+    if (!parent) return null;
+    for (const sibling of parent.querySelectorAll<UIMenuItem>(":scope > ui-menu-item")) {
+      if (sibling === this || !sibling.#submenu?.open) continue;
+      return sibling.#submenu;
+    }
+    return null;
+  }
+
+  #pointerAimsAtActiveSiblingSubmenu(): boolean {
+    const submenu = this.#activeSiblingSubmenu();
+    const snapshot = submenu?.positionSnapshot;
+    const samples = this.#pointerSamples();
+    if (!snapshot || !samples) return false;
+    const [previous, current] = samples;
+    const side = snapshot.placement === "left" ? "left" : "right";
+    return pointerAimsAtSubmenu(previous, current, snapshot.popup, side);
+  }
+
+  #hoverIntentDelay(): number {
+    if (!this.#pointerAimsAtActiveSiblingSubmenu()) return 0;
+    const current = this.#pointerSamples()?.[1];
+    if (!current) return 0;
+    if (this.#hoverIntent?.delayedX === current.x && this.#hoverIntent.delayedY === current.y) {
+      return 0;
+    }
+    this.#hoverIntent = { ...this.#hoverIntent, delayedX: current.x, delayedY: current.y };
+    return submenuHoverIntentResampleDelay;
+  }
+
+  #queueHoverIntentOpen(delay: number): void {
+    this.#openTimer = window.setTimeout(() => {
+      this.#openTimer = undefined;
+      const nextDelay = this.#hoverIntentDelay();
+      if (nextDelay > 0) {
+        this.#queueHoverIntentOpen(nextDelay);
+        return;
+      }
+      this.showSubmenu();
+    }, delay);
+  }
+
+  #scheduleOpen(event: PointerEvent): void {
     if (!this.#submenu || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     if (this.#closeTimer !== undefined) window.clearTimeout(this.#closeTimer);
     this.#closeTimer = undefined;
     if (this.#submenu.open || this.#openTimer !== undefined) return;
-    this.#openTimer = window.setTimeout(
-      () => {
-        this.#openTimer = undefined;
-        this.showSubmenu();
-      },
-      Math.max(0, this.#submenu.submenuOpenDelay),
-    );
+    const delay = Math.max(0, this.#submenu.submenuOpenDelay);
+    this.#hoverIntent = { restX: event.clientX, restY: event.clientY };
+    const intentDelay = this.#hoverIntentDelay();
+    if (delay === 0 && intentDelay === 0) {
+      this.showSubmenu();
+      return;
+    }
+    this.#queueHoverIntentOpen(delay === 0 ? intentDelay : delay);
+  }
+
+  #rescheduleOpenForPointerRest(event: PointerEvent): void {
+    if (
+      !this.#submenu ||
+      this.#submenu.open ||
+      this.#openTimer === undefined ||
+      !this.#hoverIntent ||
+      event.pointerType === "touch"
+    ) {
+      return;
+    }
+    const restX = this.#hoverIntent.restX;
+    const restY = this.#hoverIntent.restY;
+    if (restX === undefined || restY === undefined) {
+      this.#hoverIntent.restX = event.clientX;
+      this.#hoverIntent.restY = event.clientY;
+      return;
+    }
+    const delta = Math.hypot(event.clientX - restX, event.clientY - restY);
+    if (delta <= submenuHoverRestTolerance) return;
+    this.#hoverIntent.restX = event.clientX;
+    this.#hoverIntent.restY = event.clientY;
+    this.#clearOpenTimerHandle();
+    this.#queueHoverIntentOpen(Math.max(0, this.#submenu.submenuOpenDelay));
+  }
+
+  /** Internal row-aim hook used by menu composites for leaf hover switches. */
+  shouldPreserveSiblingSubmenuForPointer(event: PointerEvent): boolean {
+    this.#recordPointerSample(event);
+    return event.pointerType !== "touch" && this.#pointerAimsAtActiveSiblingSubmenu();
   }
 
   #scheduleClose(): void {
+    this.#clearOpenTimer();
     if (!this.#submenu?.open) return;
-    if (this.#openTimer !== undefined) window.clearTimeout(this.#openTimer);
-    this.#openTimer = undefined;
     if (this.#closeTimer !== undefined) window.clearTimeout(this.#closeTimer);
     this.#closeTimer = window.setTimeout(
       () => {
         this.#closeTimer = undefined;
+        let active = this.ownerDocument.activeElement;
+        while (active) {
+          if (this.#submenu?.contains(active)) return;
+          active = active.shadowRoot?.activeElement ?? null;
+        }
         this.#submenu?.dismiss("hover");
       },
       Math.max(0, this.#submenu.submenuCloseDelay),
@@ -269,7 +447,7 @@ export class UIMenuItem extends LitElement {
       this.#submenu.removeEventListener("pointerenter", this.#cancelClose);
       this.#submenu.removeEventListener("pointerleave", this.#onSubmenuPointerLeave);
       this.#submenu.anchorElement = null;
-      this.#submenu.removeAttribute("nested");
+      this.#submenu.nested = false;
     }
     this.#submenu = submenu;
     this._hasSubmenu = Boolean(submenu);
@@ -278,10 +456,10 @@ export class UIMenuItem extends LitElement {
       return;
     }
     submenu.anchorElement = this.renderRoot.querySelector<HTMLElement>("[part~='control']");
-    submenu.setAttribute("nested", "");
+    submenu.nested = true;
     submenu.placement = "right";
     submenu.align = "start";
-    submenu.offset = 2;
+    submenu.offset = 0;
     if (!submenu.label) submenu.label = this.#authoredLabel();
     submenu.addEventListener("ui-menu-open-change", this.#onSubmenuOpenChange);
     submenu.addEventListener("pointerenter", this.#cancelClose);
@@ -327,11 +505,19 @@ export class UIMenuItem extends LitElement {
     this.#scheduleClose();
   };
 
-  #onPointerEnter = (): void => this.#scheduleOpen();
+  #onPointerEnter = (event: PointerEvent): void => {
+    this.#recordPointerSample(event);
+    this.#scheduleOpen(event);
+  };
 
-  #onPointerLeave = (): void => this.#scheduleClose();
+  #onPointerLeave = (): void => {
+    this.setHoverSuppressed(false);
+    this.#scheduleClose();
+  };
 
   #onPointerMove = (event: PointerEvent): void => {
+    this.#recordPointerSample(event);
+    this.#rescheduleOpenForPointerRest(event);
     if (!this.#submenu?.open || event.pointerType === "touch") return;
     const snapshot = this.#submenu.positionSnapshot;
     const safe = this.renderRoot.querySelector<HTMLElement>("[part~='safe-triangle']");
@@ -351,9 +537,13 @@ export class UIMenuItem extends LitElement {
     this.dataset.submenuSide = side;
   };
 
-  #select = (): void => {
-    if (this.disabled) return;
+  #select = (event: MouseEvent): void => {
+    if (this.disabled) {
+      event.preventDefault();
+      return;
+    }
     if (this.#submenu) {
+      event.preventDefault();
       this.showSubmenu(true);
       return;
     }
@@ -397,11 +587,16 @@ export class UIMenuItem extends LitElement {
         : this.kind === "radio"
           ? "menuitemradio"
           : "menuitem";
+    const link = Boolean(this.href) && this.kind === "action" && !this._hasSubmenu;
+    const controlTag = link ? literal`a` : literal`button`;
     return html`
       <span part="root">
-        <button
+        <${controlTag}
           part="control"
-          type="button"
+          type=${link ? nothing : "button"}
+          href=${link && !this.disabled ? this.href : nothing}
+          target=${link && this.target ? this.target : nothing}
+          rel=${link && this.target === "_blank" ? "noopener noreferrer" : nothing}
           role=${role}
           tabindex="-1"
           aria-disabled=${this.disabled ? "true" : undefined}
@@ -433,7 +628,7 @@ export class UIMenuItem extends LitElement {
           <span part="chevron" ?hidden=${!this._hasSubmenu} aria-hidden="true">
             <slot name="chevron">›</slot>
           </span>
-        </button>
+        </${controlTag}>
         <span part="submenu">
           <slot name="submenu" @slotchange=${this.#onNamedSlotChange}></slot>
         </span>

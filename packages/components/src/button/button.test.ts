@@ -1,3 +1,4 @@
+import { colorChannels } from "../test-support/color.js";
 import { userEvent } from "vitest/browser";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -47,54 +48,66 @@ describe("ui-button: attribute and property reflection", () => {
   it("applies documented defaults", async () => {
     const button = await fixture<UIButton>(`<ui-button>Go</ui-button>`);
 
-    expect(button.variant).toBe("primary");
-    expect(button.size).toBe("medium");
+    expect(button.variant).toBe("default");
+    expect(button.size).toBe("inherit");
     expect(button.tone).toBe("accent");
     expect(button.disabled).toBe(false);
     expect(button.loading).toBe(false);
     expect(button.selected).toBe(false);
+    expect(button.compact).toBe(false);
+    expect(button.outline).toBe(false);
+    expect(button.dropdownCaret).toBe(false);
     expect(button.type).toBe("button");
   });
 
   it("reflects properties back to attributes", async () => {
     const button = await fixture<UIButton>(`<ui-button>Go</ui-button>`);
 
-    button.variant = "secondary";
-    button.size = "large";
-    button.tone = "critical";
+    button.variant = "ghost";
+    button.size = "xs";
+    button.tone = "info";
     button.disabled = true;
     button.selected = true;
+    button.compact = true;
+    button.outline = true;
+    button.dropdownCaret = true;
     await settled(button.parentElement!);
 
-    expect(button.getAttribute("variant")).toBe("secondary");
-    expect(button.getAttribute("size")).toBe("large");
-    expect(button.getAttribute("tone")).toBe("critical");
+    expect(button.getAttribute("variant")).toBe("ghost");
+    expect(button.getAttribute("size")).toBe("xs");
+    expect(button.getAttribute("tone")).toBe("info");
     expect(button.hasAttribute("disabled")).toBe(true);
     expect(button.hasAttribute("selected")).toBe(true);
+    expect(button.hasAttribute("compact")).toBe(true);
+    expect(button.hasAttribute("outline")).toBe(true);
+    expect(button.hasAttribute("dropdown-caret")).toBe(true);
     expect(button.matches(":state(selected)")).toBe(true);
   });
 
   it("reads attributes set in markup into properties", async () => {
     const button = await fixture<UIButton>(
-      `<ui-button variant="quiet" size="small" tone="positive" loading>Go</ui-button>`,
+      `<ui-button variant="link" size="lg" tone="positive" compact outline dropdown-caret loading>Go</ui-button>`,
     );
 
-    expect(button.variant).toBe("quiet");
-    expect(button.size).toBe("small");
+    expect(button.variant).toBe("link");
+    expect(button.size).toBe("lg");
     expect(button.tone).toBe("positive");
+    expect(button.compact).toBe(true);
+    expect(button.outline).toBe(true);
+    expect(button.dropdownCaret).toBe(true);
     expect(button.loading).toBe(true);
   });
 });
 
 describe("ui-button: shadow DOM and parts", () => {
   it("exposes every documented part", async () => {
-    const button = await fixture<UIButton>(`<ui-button loading>Go</ui-button>`);
+    const button = await fixture<UIButton>(`<ui-button loading dropdown-caret>Go</ui-button>`);
     const parts = [...shadow(button).querySelectorAll("[part]")].flatMap((el) =>
       (el.getAttribute("part") ?? "").split(/\s+/),
     );
 
     expect(parts).toEqual(
-      expect.arrayContaining(["control", "prefix", "label", "suffix", "spinner"]),
+      expect.arrayContaining(["control", "prefix", "label", "suffix", "caret", "spinner"]),
     );
   });
 
@@ -147,6 +160,19 @@ describe("ui-button: slots", () => {
     ]);
 
     expect(bare.getBoundingClientRect().width).toBeLessThan(prefixed.getBoundingClientRect().width);
+  });
+
+  it("renders the built-in dropdown caret without authored suffix content", async () => {
+    const button = await fixture<UIButton>(`<ui-button dropdown-caret>Options</ui-button>`);
+
+    expect(shadow(button).querySelector(".caret")).not.toBeNull();
+    expect(shadow(button).querySelector<HTMLElement>(".suffix")!.hidden).toBe(false);
+
+    button.dropdownCaret = false;
+    await settled(button.parentElement!);
+
+    expect(shadow(button).querySelector(".caret")).toBeNull();
+    expect(shadow(button).querySelector<HTMLElement>(".suffix")!.hidden).toBe(true);
   });
 });
 
@@ -323,6 +349,82 @@ describe("ui-button: accessibility", () => {
 });
 
 describe("ui-button: form association", () => {
+  it("inherits a disabled fieldset for actions and focus without changing authored state", async () => {
+    const form = await fixture<HTMLFormElement>(`
+      <form><input value="initial"><fieldset disabled>
+        <ui-button type="submit">Save</ui-button>
+        <ui-button type="reset">Reset</ui-button>
+        <ui-button variant="link">Inline action</ui-button>
+        <ui-button disabled>Unavailable</ui-button>
+      </fieldset></form>
+    `);
+    const fieldset = form.querySelector("fieldset")!;
+    const buttons = [...form.querySelectorAll<UIButton>("ui-button")];
+    const input = form.querySelector("input")!;
+    let submissions = 0;
+    let clicks = 0;
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submissions++;
+    });
+    for (const button of buttons) button.addEventListener("click", () => clicks++);
+    input.value = "edited";
+    input.focus();
+    for (const button of buttons) {
+      expect(control(button).disabled).toBe(true);
+      expect(button.matches(":state(disabled)")).toBe(true);
+      button.focus();
+      expect(document.activeElement).toBe(input);
+      button.click();
+      control(button).click();
+    }
+    expect(clicks).toBe(0);
+    expect(submissions).toBe(0);
+    expect(input.value).toBe("edited");
+    expect(buttons.map((button) => button.disabled)).toEqual([false, false, false, true]);
+    expect(buttons.slice(0, 3).every((button) => !button.hasAttribute("disabled"))).toBe(true);
+
+    fieldset.disabled = false;
+    await settled(form);
+    expect(buttons.map((button) => control(button).disabled)).toEqual([false, false, false, true]);
+    buttons[0]!.click();
+    expect(submissions).toBe(1);
+    buttons[1]!.click();
+    expect(input.value).toBe("initial");
+    buttons[2]!.focus();
+    expect(shadow(buttons[2]!).activeElement).toBe(control(buttons[2]!));
+    buttons[2]!.click();
+    expect(clicks).toBe(3);
+    expect(buttons[2]!.variant).toBe("link");
+  });
+
+  it("respects the first legend exception and clears an active press on inherited disable", async () => {
+    const fieldset = await fixture<HTMLFieldSetElement>(`
+      <fieldset><legend><ui-button>Legend action</ui-button></legend>
+        <ui-button>Body action</ui-button>
+      </fieldset>
+    `);
+    const [legend, body] = [...fieldset.querySelectorAll<UIButton>("ui-button")];
+    control(body!).dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, composed: true }),
+    );
+    expect(body!.matches(":state(pressed)")).toBe(true);
+    fieldset.disabled = true;
+    await settled(fieldset);
+    expect(control(legend!).disabled).toBe(false);
+    expect(control(body!).disabled).toBe(true);
+    expect(body!.matches(":state(pressed)")).toBe(false);
+
+    body!.disabled = true;
+    await settled(fieldset);
+    fieldset.disabled = false;
+    await settled(fieldset);
+    expect(control(body!).disabled).toBe(true);
+    body!.disabled = false;
+    await settled(fieldset);
+    expect(control(body!).disabled).toBe(false);
+    expect(body!.matches(":state(disabled)")).toBe(false);
+  });
   it("submits its form from inside the shadow root", async () => {
     const form = await fixture<HTMLFormElement>(`
       <form><ui-button type="submit">Save</ui-button></form>
@@ -389,7 +491,7 @@ describe("ui-button: Mash recipe", () => {
 
   it("paints its background from --color-action, not from a hardcoded value", async () => {
     const button = await fixture<UIButton>(
-      `<ui-button style="--color-action: rgb(1 2 3); --color-action-hover: rgb(1 2 3); --color-action-pressed: rgb(1 2 3); --duration-control: 0ms">Go</ui-button>`,
+      `<ui-button variant="primary" style="--color-action: rgb(1 2 3); --color-action-hover: rgb(1 2 3); --color-action-pressed: rgb(1 2 3); --duration-control: 0ms">Go</ui-button>`,
     );
     const probe = await fixture<HTMLElement>(`<div style="background-color: rgb(1 2 3)"></div>`);
 
@@ -406,6 +508,27 @@ describe("ui-button: Mash recipe", () => {
     const critical = await fixture<UIButton>(`<ui-button tone="critical">Go</ui-button>`);
 
     expect(background(accent)).not.toBe(background(critical));
+  });
+
+  it("maps status variants onto Mash tone tokens", async () => {
+    const [danger, critical, warningVariant, warningTone, success, positive, info, infoTone] =
+      await Promise.all([
+        fixture<UIButton>(`<ui-button variant="danger">Danger</ui-button>`),
+        fixture<UIButton>(`<ui-button tone="critical">Critical</ui-button>`),
+        fixture<UIButton>(`<ui-button variant="warning">Warning</ui-button>`),
+        fixture<UIButton>(`<ui-button tone="warning">Warning</ui-button>`),
+        fixture<UIButton>(`<ui-button variant="success">Success</ui-button>`),
+        fixture<UIButton>(`<ui-button tone="positive">Positive</ui-button>`),
+        fixture<UIButton>(`<ui-button variant="info">Info</ui-button>`),
+        fixture<UIButton>(`<ui-button tone="info">Info</ui-button>`),
+      ]);
+
+    expect(colorChannels(background(danger))).toEqual(colorChannels(background(critical)));
+    expect(colorChannels(background(warningVariant))).toEqual(
+      colorChannels(background(warningTone)),
+    );
+    expect(colorChannels(background(success))).toEqual(colorChannels(background(positive)));
+    expect(colorChannels(background(info))).toEqual(colorChannels(background(infoTone)));
   });
 
   it("inherits the theme from an ancestor, and nests", async () => {
@@ -425,10 +548,69 @@ describe("ui-button: Mash recipe", () => {
   });
 
   it("scales padding with the size axis", async () => {
-    const small = await fixture<UIButton>(`<ui-button size="small">Go</ui-button>`);
-    const large = await fixture<UIButton>(`<ui-button size="large">Go</ui-button>`);
+    const small = await fixture<UIButton>(`<ui-button size="sm">Go</ui-button>`);
+    const large = await fixture<UIButton>(`<ui-button size="lg">Go</ui-button>`);
 
     const padding = (b: Element) => parseFloat(getComputedStyle(control(b)).paddingInlineStart);
     expect(padding(small)).toBeLessThan(padding(large));
   });
+
+  it("maps size aliases to the expected control heights", async () => {
+    const [xsmall, small, medium, large] = await Promise.all([
+      fixture<UIButton>(`<ui-button size="xs">Go</ui-button>`),
+      fixture<UIButton>(`<ui-button size="sm">Go</ui-button>`),
+      fixture<UIButton>(`<ui-button size="md">Go</ui-button>`),
+      fixture<UIButton>(`<ui-button size="lg">Go</ui-button>`),
+    ]);
+
+    const height = (b: Element) => control(b).getBoundingClientRect().height;
+    expect(height(xsmall)).toBeCloseTo(20, 0);
+    expect(height(small)).toBeCloseTo(24, 0);
+    expect(height(medium)).toBeCloseTo(32, 0);
+    expect(height(large)).toBeCloseTo(32, 0);
+  });
+
+  it("reduces inline padding in compact mode", async () => {
+    const [regular, compact] = await Promise.all([
+      fixture<UIButton>(`<ui-button size="md">Go</ui-button>`),
+      fixture<UIButton>(`<ui-button size="md" compact>Go</ui-button>`),
+    ]);
+
+    const padding = (b: Element) => parseFloat(getComputedStyle(control(b)).paddingInlineStart);
+    expect(padding(compact)).toBeLessThan(padding(regular));
+  });
+
+  it("makes link and text variants no-padding inline controls", async () => {
+    const [link, text] = await Promise.all([
+      fixture<UIButton>(`<ui-button variant="link" size="sm">Open</ui-button>`),
+      fixture<UIButton>(`<ui-button variant="text" size="lg">Open</ui-button>`),
+    ]);
+
+    const padding = (b: Element) => parseFloat(getComputedStyle(control(b)).paddingInlineStart);
+    expect(padding(link)).toBe(0);
+    expect(padding(text)).toBe(0);
+    expect(getComputedStyle(control(link)).cursor).toBe("pointer");
+    expect(getComputedStyle(control(text)).cursor).toBe("pointer");
+  });
+});
+
+it("forwards icon-only accessible names to the native button and updates them", async () => {
+  const button = await fixture<UIButton>(
+    '<ui-button aria-label="Add document"><span aria-hidden="true">+</span></ui-button>',
+  );
+  expect(control(button).getAttribute("aria-label")).toBe("Add document");
+  button.setAttribute("aria-label", "Add another document");
+  await settled(button);
+  expect(control(button).getAttribute("aria-label")).toBe("Add another document");
+});
+
+it("forwards disclosure state changes and removes the state for ordinary buttons", async () => {
+  const button = await fixture<UIButton>('<ui-button aria-expanded="false">Details</ui-button>');
+  expect(control(button).getAttribute("aria-expanded")).toBe("false");
+  button.ariaExpanded = "true";
+  await settled(button);
+  expect(control(button).getAttribute("aria-expanded")).toBe("true");
+  button.removeAttribute("aria-expanded");
+  await settled(button);
+  expect(control(button).hasAttribute("aria-expanded")).toBe(false);
 });

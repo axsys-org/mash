@@ -18,7 +18,7 @@ describe("ui-resizable", () => {
     expect(inShadow<HTMLSlotElement>(group, "slot").assignedElements()).toHaveLength(3);
     expect(handle.orientation).toBe("vertical");
     expect(inShadow(handle, `[role="separator"]`).getAttribute("aria-orientation")).toBe(
-      "vertical",
+      "horizontal",
     );
     expect(inShadow(handle, `[role="separator"]`).getAttribute("aria-controls")).toBe(
       group.querySelector("ui-resizable-panel")?.id,

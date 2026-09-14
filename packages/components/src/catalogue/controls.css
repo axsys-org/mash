@@ -1,0 +1,401 @@
+/** Shared control geometry and action recipes. Imported by the default catalogue. */
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) {
+    --_mash-control-height: var(--layout-dimension-control-medium);
+    --_mash-control-input-height: var(--layout-dimension-control-medium);
+    --_mash-control-inline: var(--space-button-inline-medium);
+    --_mash-control-gap: var(--space-control-gap);
+    --_mash-control-text: var(--type-label-font-size);
+    --_mash-control-button-text: var(--type-label-large-font-size);
+  }
+  :where([data-mash-catalogue="mash"])[data-mash-size="xsmall"],
+  :where([data-mash-catalogue="mash"])
+    :is(
+      [data-mash-size="xsmall"],
+      ui-button[size="xs"],
+      ui-button[size="xsmall"],
+      ui-tabs[size="xsmall"],
+      ui-stepper[size="xsmall"]
+    ) {
+    --_mash-control-height: var(--layout-dimension-control-xsmall);
+    --_mash-control-input-height: var(--layout-dimension-control-xsmall);
+    --_mash-control-inline: var(--space-button-inline-xsmall);
+    --_mash-control-gap: var(--space-control-block);
+    --_mash-control-text: var(--type-label-small-font-size);
+    --_mash-control-button-text: var(--type-label-small-font-size);
+  }
+  :where([data-mash-catalogue="mash"])[data-mash-size="small"],
+  :where([data-mash-catalogue="mash"])
+    :is(
+      [data-mash-size="small"],
+      ui-button[size="sm"],
+      ui-button[size="small"],
+      ui-input[size="small"],
+      ui-select[size="small"],
+      ui-combobox[size="small"],
+      ui-tabs[size="small"],
+      ui-stepper[size="small"]
+    ) {
+    --_mash-control-height: var(--layout-dimension-control-small);
+    --_mash-control-input-height: var(--layout-dimension-control-small);
+    --_mash-control-inline: var(--space-button-inline-small);
+    --_mash-control-gap: var(--space-control-block);
+    --_mash-control-text: var(--type-label-font-size);
+    --_mash-control-button-text: var(--type-label-font-size);
+  }
+  :where([data-mash-catalogue="mash"])[data-mash-size="medium"],
+  :where([data-mash-catalogue="mash"])
+    :is(
+      [data-mash-size="medium"],
+      ui-button[size="md"],
+      ui-button[size="medium"],
+      ui-input[size="medium"],
+      ui-select[size="medium"],
+      ui-combobox[size="medium"],
+      ui-tabs[size="medium"],
+      ui-stepper[size="medium"]
+    ) {
+    --_mash-control-height: var(--layout-dimension-control-medium);
+    --_mash-control-input-height: var(--layout-dimension-control-medium);
+    --_mash-control-inline: var(--space-button-inline-medium);
+    --_mash-control-gap: var(--space-control-gap);
+    --_mash-control-text: var(--type-label-font-size);
+    --_mash-control-button-text: var(--type-label-large-font-size);
+  }
+  :where([data-mash-catalogue="mash"])[data-mash-size="large"],
+  :where([data-mash-catalogue="mash"])
+    :is(
+      [data-mash-size="large"],
+      ui-button[size="lg"],
+      ui-button[size="large"],
+      ui-input[size="large"],
+      ui-select[size="large"],
+      ui-combobox[size="large"],
+      ui-tabs[size="large"],
+      ui-stepper[size="large"]
+    ) {
+    --_mash-control-height: var(--layout-dimension-control-large);
+    --_mash-control-input-height: var(--layout-dimension-input-large);
+    --_mash-control-inline: var(--space-button-inline-large);
+    --_mash-control-gap: var(--space-control-gap);
+    --_mash-control-text: var(--type-label-large-font-size);
+    --_mash-control-button-text: var(--type-label-large-font-size);
+  }
+  :where([data-mash-catalogue="mash"]) :is(ui-button, ui-toggle, ui-toggle-group, ui-toolbar) {
+    display: inline-flex;
+    vertical-align: middle;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-button {
+    --_mash-button-color: var(--color-action);
+    --_mash-button-background: var(--_mash-component-surface);
+    --_mash-button-foreground: var(--color-text);
+    --_mash-button-border: var(--_mash-component-boundary);
+    --_mash-button-hover: var(--color-surface-hover);
+    --_mash-button-active: var(--color-surface-pressed);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button[variant="primary"] {
+    --_mash-button-background: var(--color-action);
+    --_mash-button-foreground: var(--color-on-action);
+    --_mash-button-border: transparent;
+    --_mash-button-hover: var(--color-action-hover);
+    --_mash-button-active: var(--color-action-pressed);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button[variant="secondary"] {
+    --_mash-button-background: var(--color-neutral);
+    --_mash-button-foreground: var(--color-on-neutral);
+    --_mash-button-border: transparent;
+    --_mash-button-hover: var(--color-neutral-hover);
+    --_mash-button-active: var(--color-neutral-pressed);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button:is([tone="critical"], [variant="danger"]) {
+    --_mash-button-color: var(--color-critical-text);
+    --_mash-button-fill: var(--color-critical);
+    --_mash-button-on-fill: var(--color-on-critical);
+    --_mash-button-fill-hover: var(--color-critical-hover);
+    --_mash-button-fill-pressed: var(--color-critical-pressed);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button:is([tone="positive"], [variant="success"]) {
+    --_mash-button-color: var(--color-positive-text);
+    --_mash-button-fill: var(--color-positive);
+    --_mash-button-on-fill: var(--color-on-positive);
+    --_mash-button-fill-hover: var(--color-positive-hover);
+    --_mash-button-fill-pressed: var(--color-positive-pressed);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button:is([tone="warning"], [variant="warning"]) {
+    --_mash-button-color: var(--color-warning-text);
+    --_mash-button-fill: var(--color-warning);
+    --_mash-button-on-fill: var(--color-on-warning);
+    --_mash-button-fill-hover: var(--color-warning-hover);
+    --_mash-button-fill-pressed: var(--color-warning-pressed);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button:is([tone="info"], [variant="info"]) {
+    --_mash-button-color: var(--color-info-text);
+    --_mash-button-fill: var(--color-info);
+    --_mash-button-on-fill: var(--color-on-info);
+    --_mash-button-fill-hover: var(--color-info-hover);
+    --_mash-button-fill-pressed: var(--color-info-pressed);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-button:is(
+      [tone="critical"],
+      [tone="positive"],
+      [tone="warning"],
+      [tone="info"],
+      [variant="danger"],
+      [variant="success"],
+      [variant="warning"],
+      [variant="info"]
+    ) {
+    --_mash-button-background: color-mix(in srgb, var(--_mash-button-color) 10%, transparent);
+    --_mash-button-foreground: var(--_mash-button-color);
+    --_mash-button-border: transparent;
+    --_mash-button-hover: color-mix(in srgb, var(--_mash-button-color) 15%, transparent);
+    --_mash-button-active: color-mix(in srgb, var(--_mash-button-color) 20%, transparent);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-button:is([variant="ghost"], [variant="quiet"], [variant="link"], [variant="text"]) {
+    --_mash-button-background: transparent;
+    --_mash-button-foreground: var(--_mash-button-color);
+    --_mash-button-border: transparent;
+    --_mash-button-hover: var(--color-surface-hover);
+    --_mash-button-active: var(--color-surface-pressed);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-button[variant="primary"]:is(
+      [tone="positive"],
+      [tone="warning"],
+      [tone="critical"],
+      [tone="info"]
+    ) {
+    --_mash-button-background: var(--_mash-button-fill);
+    --_mash-button-foreground: var(--_mash-button-on-fill);
+    --_mash-button-hover: var(--_mash-button-fill-hover);
+    --_mash-button-active: var(--_mash-button-fill-pressed);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button[outline] {
+    --_mash-button-background: color-mix(in srgb, var(--_mash-button-color) 10%, transparent);
+    --_mash-button-foreground: var(--_mash-button-color);
+    --_mash-button-border: var(--_mash-button-color);
+    --_mash-button-hover: color-mix(in srgb, var(--_mash-button-color) 20%, transparent);
+    --_mash-button-active: color-mix(in srgb, var(--_mash-button-color) 20%, transparent);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button::part(control),
+  :where([data-mash-catalogue="mash"]) ui-toggle::part(control) {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--_mash-control-height);
+    min-block-size: var(--_mash-control-height);
+    max-inline-size: 100%;
+    margin: 0;
+    border: var(--border-hairline) solid var(--_mash-button-border, transparent);
+    border-radius: var(--radius-control);
+    padding: 0 var(--_mash-control-inline);
+    gap: var(--_mash-control-gap);
+    background: var(--_mash-button-background, transparent);
+    color: var(--_mash-button-foreground, var(--color-text));
+    font: var(--type-body-font-weight) var(--_mash-control-button-text) / 1
+      var(--type-body-font-family);
+    white-space: nowrap;
+    cursor: default;
+    transition:
+      background-color var(--duration-control) var(--easing-control),
+      color var(--duration-control) var(--easing-control);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button[compact]::part(control) {
+    padding-inline: calc(var(--_mash-control-inline) * 0.75);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-button:not([disabled]):not([loading]):hover::part(control) {
+    background: var(--_mash-button-hover);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-button:not([disabled]):not([loading]):is(:active, [selected])::part(control) {
+    background: var(--_mash-button-active);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-button:is([variant="link"], [variant="text"])::part(control) {
+    min-inline-size: 0;
+    padding-inline: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) ui-button[variant="link"]::part(control) {
+    text-decoration: underline;
+    text-underline-offset: var(--border-strong);
+    cursor: pointer;
+  }
+  :where([data-mash-catalogue="mash"]) ui-button[disabled]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-toggle:is([disabled], :state(disabled))::part(control) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-toggle:not([disabled], :state(disabled)):hover::part(control) {
+    background: var(--color-surface-hover);
+  }
+  :where([data-mash-catalogue="mash"]) ui-toggle[pressed]::part(control) {
+    background: var(--color-selection);
+    color: var(--color-on-selection);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-toggle[pressed]:not([disabled], :state(disabled)):hover::part(control) {
+    background: var(--color-selection-hover);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-toggle::part(control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-button::part(suffix),
+  :where([data-mash-catalogue="mash"]) ui-button::part(label) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--_mash-control-gap);
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-button::part(label) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :where([data-mash-catalogue="mash"]) ui-button::part(caret) {
+    inline-size: calc(var(--layout-dimension-glyph) * 0.375);
+    block-size: calc(var(--layout-dimension-glyph) * 0.375);
+    border-inline-end: var(--border-hairline) solid currentColor;
+    border-block-end: var(--border-hairline) solid currentColor;
+    transform: translateY(-25%) rotate(45deg);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button::part(spinner) {
+    inline-size: var(--layout-dimension-glyph);
+    block-size: var(--layout-dimension-glyph);
+    border: var(--border-strong) solid currentColor;
+    border-block-start-color: transparent;
+    border-radius: var(--radius-pill);
+    animation: mash-button-spin 700ms linear infinite;
+  }
+  :where([data-mash-catalogue="mash"]) ui-toolbar::part(root),
+  :where([data-mash-catalogue="mash"]) ui-toolbar::part(actions),
+  :where([data-mash-catalogue="mash"]) ui-toggle-group::part(root) {
+    display: flex;
+    align-items: center;
+    min-inline-size: 0;
+    gap: var(--_mash-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-toolbar[orientation="vertical"]::part(actions),
+  :where([data-mash-catalogue="mash"]) ui-toggle-group[orientation="vertical"]::part(root) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  :where([data-mash-catalogue="mash"]) ui-input {
+    display: inline-block;
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-input::part(control),
+  :where([data-mash-catalogue="mash"]) ui-input-group::part(root) {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-inline-size: 0;
+    min-block-size: var(--_mash-control-input-height);
+    margin: 0;
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-control);
+    padding: 0 var(--_mash-control-inline);
+    background: var(--_mash-component-surface);
+    color: var(--color-text);
+    font: var(--type-body-font-weight) var(--_mash-control-text) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+  :where([data-mash-catalogue="mash"]) ui-input::part(control)::placeholder {
+    color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-input::part(control):focus-visible,
+  :where([data-mash-catalogue="mash"]) ui-input-group:focus-within::part(root) {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+  :where([data-mash-catalogue="mash"]) ui-input:is(:state(invalid), :invalid)::part(control) {
+    border-color: var(--color-critical);
+  }
+  :where([data-mash-catalogue="mash"]) ui-input[disabled]::part(control) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  :where([data-mash-catalogue="mash"]) ui-input-group {
+    display: inline-flex;
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-input-group::part(root) {
+    display: flex;
+    align-items: center;
+    gap: var(--_mash-control-gap);
+  }
+  :where([data-mash-catalogue="mash"]) ui-input-group::part(control) {
+    flex: 1 1 0;
+    min-inline-size: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-input-group > ui-input {
+    display: block;
+    inline-size: 100%;
+  }
+  :where([data-mash-catalogue="mash"]) ui-input-group > ui-input::part(control),
+  :where([data-mash-catalogue="mash"]) ui-input-group > ui-input::part(control):focus-visible {
+    min-block-size: calc(var(--_mash-control-input-height) - var(--border-hairline) * 2);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    outline: none;
+    box-shadow: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-input-group::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-input-group::part(suffix) {
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-text-muted);
+  }
+  :where([data-mash-catalogue="mash"]) ui-input-group::part(prefix-separator),
+  :where([data-mash-catalogue="mash"]) ui-input-group::part(suffix-separator) {
+    align-self: stretch;
+    inline-size: var(--border-hairline);
+    margin-block: var(--space-control-block);
+    background: var(--_mash-component-boundary);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) ui-button::part(control),
+    :where([data-mash-catalogue="mash"]) ui-toggle::part(control) {
+      transition: none;
+    }
+    :where([data-mash-catalogue="mash"]) ui-button::part(spinner) {
+      animation: none;
+    }
+  }
+}
+
+@layer mash.catalogue {
+  :where([data-mash-catalogue="mash"]) .mash-button-group {
+    display: inline-flex;
+    align-items: stretch;
+    inline-size: fit-content;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-button-group > ui-button::part(control) {
+    border-radius: 0;
+  }
+  :where([data-mash-catalogue="mash"]) .mash-button-group > ui-button + ui-button {
+    margin-inline-start: calc(0px - var(--border-hairline));
+  }
+  :where([data-mash-catalogue="mash"]) .mash-button-group > ui-button:first-child::part(control) {
+    border-start-start-radius: var(--radius-control);
+    border-end-start-radius: var(--radius-control);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-button-group > ui-button:last-child::part(control) {
+    border-start-end-radius: var(--radius-control);
+    border-end-end-radius: var(--radius-control);
+  }
+  :where([data-mash-catalogue="mash"]) .mash-button-group > ui-button:focus-within {
+    z-index: 1;
+  }
+}

@@ -37,6 +37,7 @@ export type RadioGroupOrientation = "horizontal" | "vertical";
  * @mashrole slot default children children
  */
 export class UIRadioGroup extends LitElement {
+  static formAssociated = true;
   static override shadowRootOptions: ShadowRootInit = {
     ...LitElement.shadowRootOptions,
     delegatesFocus: true,
@@ -61,6 +62,8 @@ export class UIRadioGroup extends LitElement {
   /** Prevents selection changes throughout the group. */
   declare disabled: boolean;
 
+  #defaultValue: string | undefined;
+  readonly #groupChildren = new Set<UIRadio>();
   readonly #internals: ElementInternals;
 
   constructor() {
@@ -75,18 +78,36 @@ export class UIRadioGroup extends LitElement {
 
   static override styles = baseStyles;
 
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this.#defaultValue ??= this.value;
+  }
+
+  /** Restores the initial group choice after native child reset callbacks finish. */
+  formResetCallback(): void {
+    this.value = this.#defaultValue ?? "";
+    queueMicrotask(() => this.#syncOptions());
+  }
+
   #radios(): UIRadio[] {
     return [...this.querySelectorAll<UIRadio>(":scope > ui-radio")];
   }
 
   #syncOptions(): void {
     const radios = this.#radios();
+    for (const child of this.#groupChildren) {
+      if (!radios.includes(child)) {
+        child._setGroupDisabled(false);
+        this.#groupChildren.delete(child);
+      }
+    }
     for (const [index, radio] of radios.entries()) {
+      this.#groupChildren.add(radio);
+      radio._setGroupDisabled(this.disabled);
       if (this.name) radio.name = this.name;
       radio.checked = radio.value === this.value;
       radio.position = index + 1;
       radio.setSize = radios.length;
-      radio.setAttribute("aria-disabled", this.disabled ? "true" : "false");
     }
   }
 
@@ -103,7 +124,7 @@ export class UIRadioGroup extends LitElement {
   #onSlotChange = (): void => this.#syncOptions();
 
   #select(radio: UIRadio): void {
-    if (this.disabled || radio.disabled || !radio.value) return;
+    if (this.disabled || radio.disabled || !radio.value || !this.#radios().includes(radio)) return;
     const changed = this.value !== radio.value;
     this.value = radio.value;
     this.#syncOptions();
@@ -126,6 +147,7 @@ export class UIRadioGroup extends LitElement {
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
+    if (this.disabled) return;
     const rtl = getComputedStyle(this).direction === "rtl";
     const previous =
       this.orientation === "horizontal" ? (rtl ? "ArrowRight" : "ArrowLeft") : "ArrowUp";

@@ -1,4 +1,4 @@
-import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, css, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -20,6 +20,12 @@ import { baseStyles } from "../internal/base-styles.js";
  *
  * @slot - Visible tab label.
  *
+ * @cssprop --mash-tab-max-inline-size - Maximum tab width before the label truncates.
+ * @csspart root - The tab and its optional close action.
+ * @csspart close - The optional close button.
+ * @mashnode root root
+ * @mashnode close control root
+ * @fires {CustomEvent<{ value: string }>} ui-tab-close - Requests that the owner remove this tab and its panel.
  * @csspart control - The native button carrying the tab role.
  * @csspart label - The authored tab label.
  *
@@ -41,6 +47,8 @@ export class UITab extends LitElement {
   };
 
   static override properties = {
+    label: { type: String, reflect: true },
+    closable: { type: Boolean, reflect: true },
     value: { type: String, reflect: true },
     selected: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
@@ -49,6 +57,15 @@ export class UITab extends LitElement {
     setSize: { type: Number, attribute: "set-size", reflect: true },
   };
 
+  /** Full accessible label, required when the visible label contains only an icon. */
+  declare label: string;
+  /** Full name shared by the control, tooltip, close action, and overflow chooser. */
+  get accessibleLabel(): string {
+    return this.label || this.textContent?.trim() || this.value;
+  }
+
+  /** Show a close action; listen to ui-tab-close to remove the authored tab and panel. */
+  declare closable: boolean;
   /** Stable value matched to a panel in the containing tabs. */
   declare value: string;
   /** Whether this tab is currently selected. */
@@ -66,6 +83,8 @@ export class UITab extends LitElement {
 
   constructor() {
     super();
+    this.label = "";
+    this.closable = false;
     this.value = "";
     this.selected = false;
     this.disabled = false;
@@ -75,7 +94,48 @@ export class UITab extends LitElement {
     this.#internals = this.attachInternals();
   }
 
-  static override styles = baseStyles;
+  static override styles = [
+    baseStyles,
+    css`
+      [part="root"] {
+        display: inline-flex;
+        position: relative;
+        max-inline-size: 100%;
+      }
+      [part="label"] {
+        display: block;
+        min-inline-size: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    `,
+  ];
+
+  /** Request closure without taking ownership of the authored collection. */
+  requestClose(): void {
+    if (!this.closable || this.disabled) return;
+    this.dispatchEvent(
+      new CustomEvent("ui-tab-close", {
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+        detail: { value: this.value },
+      }),
+    );
+  }
+
+  #close = (event: Event): void => {
+    event.stopPropagation();
+    this.requestClose();
+  };
+
+  #keydown = (event: KeyboardEvent): void => {
+    if (event.key !== "Delete" || !this.closable || this.disabled) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.requestClose();
+  };
 
   protected override updated(changed: PropertyValues<this>): void {
     if (!changed.has("selected") && !changed.has("disabled")) return;
@@ -98,20 +158,46 @@ export class UITab extends LitElement {
 
   protected override render(): TemplateResult {
     return html`
-      <button
-        part="control"
-        type="button"
-        role="tab"
-        aria-selected=${this.selected ? "true" : "false"}
-        aria-controls=${this.controls || undefined}
-        aria-posinset=${this.position || undefined}
-        aria-setsize=${this.setSize || undefined}
-        tabindex=${this.selected ? "0" : "-1"}
-        ?disabled=${this.disabled}
-        @click=${this.#select}
-      >
-        <slot part="label"></slot>
-      </button>
+      <span part="root"
+        ><button
+          part="control"
+          type="button"
+          role="tab"
+          aria-label=${this.accessibleLabel}
+          title=${this.accessibleLabel}
+          aria-selected=${this.selected ? "true" : "false"}
+          aria-controls=${this.controls || undefined}
+          aria-posinset=${this.position || undefined}
+          aria-setsize=${this.setSize || undefined}
+          tabindex=${this.selected ? "0" : "-1"}
+          ?disabled=${this.disabled}
+          @keydown=${this.#keydown}
+          @click=${this.#select}
+        >
+          <slot part="label" @slotchange=${() => this.requestUpdate()}></slot>
+        </button>
+        ${
+          this.closable
+            ? html`<button
+                part="close"
+                type="button"
+                tabindex="-1"
+                aria-label=${`Close ${this.accessibleLabel}`}
+                ?disabled=${this.disabled}
+                @click=${this.#close}
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <path
+                    d="m3.5 3.5 5 5m0-5-5 5"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>`
+            : nothing
+        }
+      </span>
     `;
   }
 }

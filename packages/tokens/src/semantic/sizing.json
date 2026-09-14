@@ -1,0 +1,102 @@
+{
+  "layout": {
+    "size": {
+      "$type": "dimension",
+      "$description": "Two coordinated control-size steps. Dimensions scale with the root font size.",
+      "default": {
+        "control": {
+          "$value": "{space.reference.9}"
+        },
+        "segmentItem": {
+          "$value": "{space.reference.7}"
+        },
+        "icon": {
+          "$value": "{space.reference.4}"
+        }
+      },
+      "compact": {
+        "control": {
+          "$value": "{space.reference.7}"
+        },
+        "segmentItem": {
+          "$value": "{space.reference.6}"
+        },
+        "icon": {
+          "$value": "{space.reference.3p5}"
+        }
+      }
+    }
+  },
+  "space": {
+    "size": {
+      "$type": "dimension",
+      "default": {
+        "segmentPad": {
+          "$value": "{space.reference.1}"
+        },
+        "inline": {
+          "$value": "{space.reference.3}"
+        },
+        "itemInline": {
+          "$value": "{space.reference.2}"
+        },
+        "gap": {
+          "$value": "{space.reference.2}"
+        }
+      },
+      "compact": {
+        "segmentPad": {
+          "$value": "{space.reference.0p5}"
+        },
+        "inline": {
+          "$value": "{space.reference.2p5}"
+        },
+        "itemInline": {
+          "$value": "{space.reference.1p5}"
+        },
+        "gap": {
+          "$value": "{space.reference.1}"
+        }
+      }
+    }
+  },
+  "type": {
+    "scale": {
+      "$type": "dimension",
+      "default": {
+        "display": {
+          "$value": "{fontSize.reference.600}"
+        },
+        "title": {
+          "$value": "{fontSize.reference.300}"
+        },
+        "subtitle": {
+          "$value": "{fontSize.reference.200}"
+        },
+        "body": {
+          "$value": "{fontSize.reference.150}"
+        },
+        "caption": {
+          "$value": "{fontSize.reference.100}"
+        }
+      },
+      "compact": {
+        "display": {
+          "$value": "{space.reference.6}"
+        },
+        "title": {
+          "$value": "{fontSize.reference.250}"
+        },
+        "subtitle": {
+          "$value": "{fontSize.reference.150}"
+        },
+        "body": {
+          "$value": "{fontSize.reference.100}"
+        },
+        "caption": {
+          "$value": "{fontSize.reference.75}"
+        }
+      }
+    }
+  }
+}

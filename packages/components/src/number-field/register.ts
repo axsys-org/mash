@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UINumberField };
+
+export * from "./number-field.js";

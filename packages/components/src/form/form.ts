@@ -1,4 +1,4 @@
-import { LitElement, html, type TemplateResult } from "lit";
+import { LitElement, css, html, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -8,6 +8,11 @@ import { baseStyles } from "../internal/base-styles.js";
  * The component leaves normal browser submission intact. It adds a cancellable
  * `ui-form-submit` event so an application can take over submission without
  * duplicating validation or `FormData` collection mechanics.
+ *
+ * Controls are placed inside a native light-DOM form, preserving platform form
+ * ownership across their own shadow roots. An authored direct-child form is
+ * reused; otherwise the component creates one and moves its authored nodes into
+ * it without cloning them. Append new controls to either this host or its form.
  *
  * @tag ui-form
  * @summary Hosts form-associated controls and exposes a cancellable submit event.
@@ -20,7 +25,7 @@ import { baseStyles } from "../internal/base-styles.js";
  *
  * @slot - Form-associated controls and submit controls.
  *
- * @csspart root - The native form element.
+ * @csspart root - Layout wrapper around the native form.
  * @csspart children - The authored form-control collection.
  *
  * @fires {CustomEvent<{ formData: FormData }>} ui-form-submit - Cancellable event emitted after native validation and before browser submission.
@@ -31,9 +36,9 @@ import { baseStyles } from "../internal/base-styles.js";
  */
 export class UIForm extends LitElement {
   static override properties = {
-    action: { type: String, reflect: true },
-    method: { type: String, reflect: true },
-    novalidate: { type: Boolean, reflect: true },
+    action: { type: String, reflect: true, useDefault: true },
+    method: { type: String, reflect: true, useDefault: true },
+    novalidate: { type: Boolean, reflect: true, useDefault: true },
   };
 
   /** Submission destination. Empty keeps browser-default navigation. */
@@ -50,7 +55,82 @@ export class UIForm extends LitElement {
     this.novalidate = false;
   }
 
-  static override styles = baseStyles;
+  static override styles = [
+    baseStyles,
+    css`
+      slot {
+        display: contents;
+      }
+      ::slotted(form[data-mash-form]) {
+        display: contents;
+      }
+    `,
+  ];
+
+  #form: HTMLFormElement | null = null;
+  #owned: HTMLFormElement | null = null;
+  #observer = new MutationObserver(() => this.#syncForm());
+
+  /** The native form that owns the authored controls. */
+  get form(): HTMLFormElement | null {
+    return this.#form;
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this.#observer.observe(this, { childList: true });
+    queueMicrotask(() => {
+      if (this.isConnected) this.#syncForm();
+    });
+  }
+
+  override disconnectedCallback(): void {
+    this.#observer.disconnect();
+    super.disconnectedCallback();
+  }
+
+  #syncForm(): void {
+    let form = this.querySelector<HTMLFormElement>(":scope > form");
+    if (!form) {
+      form = document.createElement("form");
+      form.dataset.mashForm = "";
+      this.#owned = form;
+      this.append(form);
+    }
+    if (form !== this.#form) {
+      this.#form?.removeEventListener("submit", this.#onSubmit);
+      this.#form = form;
+      form.addEventListener("submit", this.#onSubmit);
+    }
+    if (form === this.#owned) {
+      const children = [...this.childNodes].filter((node) => node !== form);
+      for (const child of children) form.append(child);
+    }
+    this.#syncOptions();
+  }
+
+  #syncOptions(): void {
+    if (!this.#form) return;
+    if (this.#form === this.#owned || this.hasAttribute("action"))
+      this.#form.setAttribute("action", this.action);
+    if (this.#form === this.#owned || this.hasAttribute("method")) this.#form.method = this.method;
+    if (this.#form === this.#owned || this.hasAttribute("novalidate"))
+      this.#form.noValidate = this.novalidate;
+  }
+
+  protected override updated(_changed: PropertyValues<this>): void {
+    this.#syncOptions();
+  }
+
+  /** Runs platform validation and submits through ui-form-submit. */
+  requestSubmit(): void {
+    this.#form?.requestSubmit();
+  }
+
+  /** Restores the native and form-associated controls' default values. */
+  reset(): void {
+    this.#form?.reset();
+  }
 
   #onSubmit = (event: SubmitEvent): void => {
     const form = event.currentTarget as HTMLFormElement;
@@ -66,14 +146,6 @@ export class UIForm extends LitElement {
   };
 
   protected override render(): TemplateResult {
-    return html`<form
-      part="root"
-      action=${this.action}
-      method=${this.method}
-      ?novalidate=${this.novalidate}
-      @submit=${this.#onSubmit}
-    >
-      <slot part="children"></slot>
-    </form>`;
+    return html`<div part="root"><slot part="children"></slot></div>`;
   }
 }

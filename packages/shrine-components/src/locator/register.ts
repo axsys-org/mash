@@ -16,3 +16,5 @@ declare global {
 }
 
 export { ShrineLocator };
+
+export * from "./locator.js";

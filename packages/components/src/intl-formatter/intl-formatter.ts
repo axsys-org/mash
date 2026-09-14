@@ -46,6 +46,23 @@ interface FormatResult {
  * @cssstate invalid - Matches `:state(invalid)` when formatting fails.
  *
  * @fires {CustomEvent<IntlFormatterErrorDetail>} ui-intl-formatter-error - Reports an invalid value or formatter option.
+ * @mashnode root value
+ * @mashnode prefix prefix root
+ * @mashnode output output root
+ * @mashnode suffix suffix root
+ * @mashnode fallback fallback root
+ * @mashnode invalid invalid root
+ * @mashnode error error root
+ * @mashrole slot prefix prefix prefix
+ * @mashrole slot suffix suffix suffix
+ * @mashrole slot fallback fallback fallback
+ * @mashrole part root value root
+ * @mashrole part prefix prefix prefix
+ * @mashrole part output output output
+ * @mashrole part suffix suffix suffix
+ * @mashrole part fallback fallback fallback
+ * @mashrole state invalid invalid invalid
+ * @mashrole event ui-intl-formatter-error error error
  *
  */
 export class UIIntlFormatter extends LitElement {

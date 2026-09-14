@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIInputGroup };
+
+export * from "./input-group.js";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fixture, inShadow } from "../test-support/fixture.js";
+import { fixture, inShadow, settled } from "../test-support/fixture.js";
 import {
   UITable,
   UITableBody,
@@ -134,4 +134,38 @@ describe("ui-table", () => {
     expect(inShadow(column!, '[part~="column-header"]')).toBeTruthy();
     expect(corner!.scope).toBe("none");
   });
+});
+
+it("uses native span geometry and announces spanned indices", async () => {
+  const table = await fixture<UITable>(
+    `<ui-table><ui-table-body><ui-table-row><ui-table-cell colspan="2" rowspan="2">Combined</ui-table-cell><ui-table-cell>Third</ui-table-cell></ui-table-row><ui-table-row><ui-table-cell>Third below</ui-table-cell></ui-table-row><ui-table-row><ui-table-cell>A</ui-table-cell><ui-table-cell>B</ui-table-cell><ui-table-cell>C</ui-table-cell></ui-table-row></ui-table-body></ui-table>`,
+  );
+  inShadow<HTMLElement>(table, '[part~="table"]').style.cssText =
+    "display:table;width:300px;table-layout:fixed";
+  for (const group of table.querySelectorAll("ui-table-body")) {
+    (group as HTMLElement).style.display = "contents";
+    inShadow<HTMLElement>(group as UITableBody, '[part~="rowgroup"]').style.display =
+      "table-row-group";
+    inShadow<HTMLElement>(group as UITableBody, "slot").style.display = "contents";
+  }
+  for (const row of table.querySelectorAll("ui-table-row")) {
+    row.style.display = "contents";
+    inShadow<HTMLElement>(row, '[part~="row"]').style.display = "table-row";
+    inShadow<HTMLElement>(row, "slot").style.display = "contents";
+  }
+  for (const cell of table.querySelectorAll("ui-table-cell")) {
+    cell.style.display = "contents";
+    inShadow<HTMLElement>(cell, '[part~="cell"]').style.cssText = "display:table-cell;height:30px";
+  }
+  const first = table.querySelector<UITableCell>("ui-table-cell")!;
+  const native = inShadow<HTMLTableCellElement>(first, "td");
+  expect(native.colSpan).toBe(2);
+  expect(native.rowSpan).toBe(2);
+  expect(native.getAttribute("aria-colspan")).toBe("2");
+  expect(native.getBoundingClientRect().width).toBeGreaterThan(180);
+  expect(native.getBoundingClientRect().height).toBeGreaterThan(50);
+  first.columnSpan = 1;
+  await settled(first);
+  expect(native.colSpan).toBe(1);
+  expect(native.hasAttribute("aria-colspan")).toBe(false);
 });

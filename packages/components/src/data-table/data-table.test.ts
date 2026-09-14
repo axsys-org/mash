@@ -445,4 +445,22 @@ describe("ui-data-table", () => {
     expect(inShadow<HTMLElement>(dataTable, '[part="loading"]').hidden).toBe(false);
     expect(inShadow<HTMLElement>(dataTable, '[part="empty"]').hidden).toBe(false);
   });
+
+  it("excludes hidden rows from keyboard navigation after filtering", async () => {
+    const element = await fixture<UIDataTable>(
+      `<ui-data-table selection="row" selected="2">${authoredTable}</ui-data-table>`,
+    );
+    const body = element.querySelector("ui-table-body")!;
+    const extra = body.lastElementChild!.cloneNode(true) as HTMLElement;
+    extra.setAttribute("row-index", "4");
+    body.append(extra);
+    (body.children[1] as HTMLElement).hidden = true;
+    await settled(element);
+    const selection = vi.fn();
+    element.addEventListener("ui-data-table-select", selection);
+    body.firstElementChild!.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
+    );
+    expect(selection.mock.calls[0]![0].detail.rowIndex).toBe(4);
+  });
 });

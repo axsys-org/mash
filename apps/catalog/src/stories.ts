@@ -1,0 +1,171 @@
+import { siteHeader } from "./site-header.js";
+import {
+  connectDesktopStory,
+  flushDesktopFrames,
+  isDesktopEmbedded,
+} from "./stories/desktop-bridge.js";
+import "./stories.css";
+
+type Story = {
+  id: string;
+  title: string;
+  description: string;
+  symbol: string;
+  load: () => Promise<{ mount(root: HTMLElement): Promise<() => void> }>;
+};
+
+const stories: Story[] = [
+  {
+    id: "desktop",
+    title: "Desktop",
+    description: "A tiling workspace for documents, projects, study, and everything in between.",
+    symbol: "▦",
+    load: () => import("./stories/desktop.js"),
+  },
+  {
+    id: "study",
+    title: "Recall",
+    description: "A study workspace with spaced repetition, connected notes, and room to think.",
+    symbol: "▱",
+    load: () => import("./stories/study.js"),
+  },
+  {
+    id: "characters",
+    title: "Characters",
+    description: "Emoji and symbols, from a compact picker to an expanded character browser.",
+    symbol: "☀",
+    load: () => import("./stories/characters.js"),
+  },
+  {
+    id: "studio",
+    title: "Studio",
+    description: "A coding workspace with files, search, changes, and live previews.",
+    symbol: "⌘",
+    load: () => import("./stories/studio.js"),
+  },
+  {
+    id: "command-center",
+    title: "Command Center",
+    description: "Search, calculate, collect, and act without leaving the keyboard.",
+    symbol: "↗",
+    load: () => import("./stories/launcher.js"),
+  },
+  {
+    id: "documents",
+    title: "Documents",
+    description: "Write in blocks. Arrange the same work on an open canvas.",
+    symbol: "▤",
+    load: () => import("./stories/documents.js"),
+  },
+  {
+    id: "projects",
+    title: "Projects",
+    description: "Plan a release through issues, projects, boards, and cycles.",
+    symbol: "◒",
+    load: () => import("./stories/issues.js"),
+  },
+  {
+    id: "commons",
+    title: "Commons",
+    description: "Conversations, shared notebooks, and a place for your community.",
+    symbol: "⌁",
+    load: () => import("./stories/community.js"),
+  },
+];
+
+export async function mount(root: HTMLElement): Promise<() => void> {
+  const controller = new AbortController();
+  let destroyApp: (() => void) | undefined;
+  let loadVersion = 0;
+  let openPending: Promise<void> | undefined;
+  const id = location.pathname.split("/")[2];
+  const desktop = id === "desktop";
+  const embedded = !desktop && isDesktopEmbedded();
+  const immersive = embedded || desktop;
+  const bridge = embedded
+    ? connectDesktopStory(async () => {
+        dispose();
+        await openPending;
+      })
+    : undefined;
+  const theme =
+    new URL(location.href).searchParams.get("theme") ??
+    localStorage.getItem("mash-theme") ??
+    (desktop ? "dark" : "light");
+  document.documentElement.dataset.theme = theme;
+  root.innerHTML = immersive ? "" : siteHeader("stories", theme);
+  if (embedded) root.dataset.storyEmbedded = "desktop";
+  if (immersive) root.dataset.storyImmersive = "";
+  root.querySelector(".theme-toggle")?.addEventListener(
+    "click",
+    () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem("mash-theme", next);
+      root.querySelector(".theme-toggle")!.textContent = next === "dark" ? "☀" : "☾";
+      const url = new URL(location.href);
+      url.searchParams.set("theme", next);
+      history.replaceState(null, "", url);
+    },
+    { signal: controller.signal },
+  );
+  const story = stories.find((item) => item.id === id);
+  if (!id) {
+    const main = document.createElement("main");
+    main.className = "stories-index";
+    main.innerHTML = `<header><h1>Stories</h1><p>Working applications to explore, adapt, and make your own.</p></header><div class="stories-grid">${stories.map((item) => `<a class="story-card" href="/stories/${item.id}"><div class="story-card-preview" data-story="${item.id}" aria-hidden="true"><div class="story-card-rail"><i></i><i></i><i></i><i></i></div><div class="story-card-content"><span>${item.symbol}</span><i></i><i></i><i></i></div></div><div class="story-card-label"><h2>${item.title}</h2><span aria-hidden="true">↗</span><p>${item.description}</p></div></a>`).join("")}</div>`;
+    root.append(main);
+  } else if (!story) {
+    const main = document.createElement("main");
+    main.className = "stories-index";
+    main.innerHTML = '<h1>Story not found</h1><a href="/stories">Browse all stories →</a>';
+    root.append(main);
+  } else {
+    const target = document.createElement("main");
+    target.className = "story-mount";
+    target.setAttribute("aria-label", story.title);
+    root.append(target);
+    const open = async () => {
+      const version = ++loadVersion;
+      target.setAttribute("aria-busy", "true");
+      target.innerHTML = `<div class="story-loading" role="status">Opening ${story.title}…</div>`;
+      try {
+        const module = await story.load();
+        if (controller.signal.aborted || version !== loadVersion) return;
+        target.replaceChildren();
+        const cleanup = await module.mount(target);
+        if (controller.signal.aborted || version !== loadVersion) cleanup();
+        else {
+          destroyApp = cleanup;
+          bridge?.ready();
+        }
+      } catch {
+        if (controller.signal.aborted || version !== loadVersion) return;
+        target.innerHTML =
+          '<div class="story-loading" role="alert"><p>This workspace could not open.</p><button type="button">Try again</button></div>';
+        target.querySelector("button")!.addEventListener(
+          "click",
+          () => {
+            openPending = open();
+          },
+          { once: true, signal: controller.signal },
+        );
+        bridge?.ready();
+      } finally {
+        if (version === loadVersion) target.removeAttribute("aria-busy");
+      }
+    };
+    openPending = open();
+  }
+  function dispose() {
+    if (controller.signal.aborted) return;
+    if (desktop) flushDesktopFrames(root);
+    controller.abort();
+    bridge?.disconnect();
+    ++loadVersion;
+    destroyApp?.();
+    delete root.dataset.storyEmbedded;
+    delete root.dataset.storyImmersive;
+  }
+  return dispose;
+}

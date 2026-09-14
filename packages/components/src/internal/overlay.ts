@@ -8,7 +8,12 @@ import {
   type AnchoredPositionSnapshot,
 } from "./anchored-position.js";
 import { baseStyles } from "./base-styles.js";
-import { MotionLifecycleController } from "./motion-lifecycle.js";
+import {
+  PresenceLifecycleController,
+  type PresenceLifecycleContext,
+  type PresenceLifecycleEventDetail,
+  type PresenceState,
+} from "./presence-lifecycle.js";
 
 /** The user interaction that opens a portable overlay. */
 export type OverlayTriggerAction = "click" | "contextmenu" | "hover" | "manual";
@@ -38,6 +43,8 @@ export interface OverlayOpenChangeDetail {
   open: boolean;
   reason: OverlayChangeReason;
 }
+
+export type OverlayPresenceEventDetail = PresenceLifecycleEventDetail;
 
 type OverlayInitialFocus = "first" | "popup" | "none";
 
@@ -101,15 +108,17 @@ export abstract class UIOverlay extends LitElement {
   #openReason: OverlayChangeReason | null = null;
   #initialFocus: OverlayInitialFocus | null = null;
   #movedFocusForOpen = false;
+  #returnFocusForOpen = false;
   #contextPoint: { x: number; y: number } | null = null;
   #interactionTimer: number | undefined;
-  readonly #motion: MotionLifecycleController<"entering" | "exiting">;
+  readonly #presence: PresenceLifecycleController<"entering" | "exiting">;
   readonly #positioner = new AnchoredPositionController(this, {
     anchor: () => this.positionAnchor(),
     popup: () => this.renderRoot.querySelector<HTMLElement>("[part='popup']"),
     positioner: () => this.renderRoot.querySelector<HTMLElement>("[part='positioner']"),
     config: () => this.positioningConfig(),
     point: () => this.#contextPoint,
+    anchorRect: () => this.positionAnchorRect(),
   });
 
   constructor() {
@@ -121,22 +130,24 @@ export abstract class UIOverlay extends LitElement {
     this.closeOnOutside = true;
     this.overlayPresent = false;
     this.overlayInternals = this.attachInternals();
-    this.#motion = new MotionLifecycleController(this, {
+    this.#presence = new PresenceLifecycleController(this, {
       target: () => this.renderRoot.querySelector<HTMLElement>("[part='popup']"),
-      onFinish: ({ value, interrupted }) => {
-        if (interrupted) return;
-        this.overlayInternals.states.delete(value);
-        if (value === "entering") {
-          this.overlayInternals.states.add("active");
-          return;
-        }
-        this.overlayInternals.states.delete("active");
-        this.overlayInternals.states.delete("present");
-        this.overlayPresent = false;
-        this.#positioner.stop();
+      present: () => this.overlayPresent,
+      setPresent: (present) => {
+        this.overlayPresent = present;
+      },
+      setState: (state, present) => this.#setPresenceState(state, present),
+      onStart: (context) => this.#emitPresenceEvent("mash-presence-start", context),
+      onFinish: (context) => this.#emitPresenceEvent("mash-presence-end", context),
+      onSettle: (phase) => {
+        if (phase === "absent") this.#positioner.stop();
+        // Entry scaling changes the measured popup bounds without a resize event.
+        // Resolve the final geometry before the next pointer move can reposition it.
+        else this.#positioner.sync();
       },
     });
     this.addEventListener("click", this.#onHostClick);
+    this.addEventListener("keydown", this.#onContextTriggerKeydown);
     this.addEventListener("pointerover", this.#onPointerOver);
     this.addEventListener("pointerout", this.#onPointerOut);
     this.addEventListener("focusin", this.#onFocusIn);
@@ -155,12 +166,18 @@ export abstract class UIOverlay extends LitElement {
       [part="content"],
       [part="actions"],
       [part="description"],
+      [part="header"],
+      [part="footer"],
       [part="title"],
       [part="positioner"],
       [part="cancel"],
       [part="confirm"],
       [part="close"] {
         display: contents;
+      }
+
+      [part="popup"] {
+        outline: none;
       }
     `,
   ];
@@ -183,6 +200,11 @@ export abstract class UIOverlay extends LitElement {
     return this.#triggerElements()[0] ?? null;
   }
 
+  /** Optional virtual bounds resolved by the shared anchored positioning controller. */
+  protected positionAnchorRect(): DOMRect | null {
+    return null;
+  }
+
   /** Re-measures an open anchored overlay after its external anchor changes. */
   protected queuePosition(): void {
     this.#positioner.queue();
@@ -190,6 +212,13 @@ export abstract class UIOverlay extends LitElement {
 
   protected overlayPositionSnapshot(): AnchoredPositionSnapshot | null {
     return this.#positioner.snapshot;
+  }
+
+  /** Allows non-modal composites to close while native Tab navigation continues. */
+  protected releaseFocusReturn(): void {
+    this.#movedFocusForOpen = false;
+    this.#returnFocusForOpen = false;
+    this.#returnFocus = null;
   }
 
   /** Lets concrete overlays handle semantic action slots before generic dismissal. */
@@ -212,11 +241,13 @@ export abstract class UIOverlay extends LitElement {
     open: boolean,
     reason: OverlayChangeReason = "imperative",
     initialFocus: OverlayInitialFocus | null = null,
+    returnFocus = true,
   ): void {
     if ((this.disabled && open) || this.open === open) return;
     if (open) {
       this.#openReason = reason;
       this.#initialFocus = initialFocus;
+      this.#returnFocusForOpen = returnFocus;
     }
     this.open = open;
     this.emitOpenChange(open, reason);
@@ -250,6 +281,11 @@ export abstract class UIOverlay extends LitElement {
     }, delay);
   }
 
+  /** Cancels delayed hover/focus work when an owner changes interaction policy. */
+  protected cancelPendingInteraction(): void {
+    this.#cancelInteractionChange();
+  }
+
   #cancelInteractionChange(): void {
     if (this.#interactionTimer === undefined) return;
     window.clearTimeout(this.#interactionTimer);
@@ -258,7 +294,7 @@ export abstract class UIOverlay extends LitElement {
 
   override disconnectedCallback(): void {
     this.#cancelInteractionChange();
-    this.#motion.destroy();
+    this.#presence.destroy();
     this.#positioner.stop();
     super.disconnectedCallback();
   }
@@ -274,7 +310,7 @@ export abstract class UIOverlay extends LitElement {
     const nativeFocusable =
       "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
     const mashFocusable =
-      "ui-button:not([disabled]):not([loading]), ui-input:not([disabled]), ui-number-field:not([disabled]), ui-otp-field:not([disabled]), ui-select:not([disabled]), ui-combobox:not([disabled]), ui-autocomplete:not([disabled]), ui-slider:not([disabled]), ui-switch:not([disabled]), ui-checkbox:not([disabled]), ui-radio:not([disabled]), ui-toggle:not([disabled]), ui-menu-item:not([disabled])";
+      "ui-button:not([disabled]):not([loading]), ui-input:not([disabled]), ui-textarea:not([disabled]), ui-command, ui-number-field:not([disabled]), ui-otp-field:not([disabled]), ui-select:not([disabled]), ui-combobox:not([disabled]), ui-autocomplete:not([disabled]), ui-slider:not([disabled]), ui-switch:not([disabled]), ui-checkbox:not([disabled]), ui-radio:not([disabled]), ui-toggle:not([disabled]), ui-menu-item:not([disabled])";
     const selector = `${nativeFocusable}, ${mashFocusable}`;
     const slots = [
       ...popup.querySelectorAll<HTMLSlotElement>(
@@ -283,15 +319,25 @@ export abstract class UIOverlay extends LitElement {
     ];
     const seen = new Set<HTMLElement>();
 
-    for (const slot of slots) {
-      for (const assigned of slot.assignedElements({ flatten: true })) {
-        if (assigned instanceof HTMLElement && assigned.matches(selector)) seen.add(assigned);
-        for (const candidate of assigned.querySelectorAll<HTMLElement>(selector))
-          seen.add(candidate);
+    // Walk the rendered slot graph, including reprojected navigation and scroll
+    // regions. A focus-delegating Mash control is one stop, not its host plus input.
+    const visit = (element: Element): void => {
+      if (element instanceof HTMLSlotElement) {
+        const assigned = element.assignedElements({ flatten: true });
+        for (const child of assigned.length ? assigned : element.children) visit(child);
+      } else {
+        if (element instanceof HTMLElement && element.matches(selector)) seen.add(element);
+        if (element.matches(mashFocusable)) return;
+        for (const child of element.shadowRoot?.children ?? element.children) visit(child);
       }
+    };
+    for (const slot of slots) {
+      for (const assigned of slot.assignedElements({ flatten: true })) visit(assigned);
     }
 
-    return [...seen];
+    // Follow rendered visibility through slots as well as DOM ancestors. A hidden
+    // empty-state action must not create an unreachable end of the modal tab loop.
+    return [...seen].filter((item) => item.checkVisibility({ visibilityProperty: true }));
   }
 
   /** Lets menus and listboxes extend the baseline Escape and focus contract. */
@@ -350,6 +396,18 @@ export abstract class UIOverlay extends LitElement {
     this.renderRoot.querySelector<HTMLElement>("[part='popup']")?.focus();
   }
 
+  #clearPointerCloseFocus(): void {
+    const active = document.activeElement;
+    if (!(active instanceof HTMLElement)) return;
+    const triggers = this.#triggerElements();
+    const shouldBlur =
+      active === this || triggers.some((trigger) => active === trigger || trigger.contains(active));
+    if (!shouldBlur) return;
+    const delegated = active.shadowRoot?.activeElement;
+    if (delegated instanceof HTMLElement) delegated.blur();
+    active.blur();
+  }
+
   protected override willUpdate(changed: PropertyValues<this>): void {
     if (changed.has("open") && this.open) this.overlayPresent = true;
   }
@@ -357,11 +415,6 @@ export abstract class UIOverlay extends LitElement {
   protected override updated(changed: PropertyValues<this>): void {
     if (changed.has("open")) {
       if (this.open) {
-        this.overlayInternals.states.add("present");
-        this.overlayInternals.states.add("open");
-        this.overlayInternals.states.delete("active");
-        this.overlayInternals.states.delete("exiting");
-        this.overlayInternals.states.add("entering");
         this.#positioner.start();
         const initialFocus =
           this.#initialFocus ?? (this.#openReason === "hover" ? "none" : "first");
@@ -369,7 +422,8 @@ export abstract class UIOverlay extends LitElement {
           this.movesFocus && this.#openReason !== null && initialFocus !== "none";
         this.#movedFocusForOpen = shouldMoveFocus;
         if (shouldMoveFocus) {
-          this.#rememberFocus();
+          if (this.#returnFocusForOpen) this.#rememberFocus();
+          else this.#returnFocus = null;
           queueMicrotask(() => {
             if (initialFocus === "popup") this.#focusPopup();
             else this.#focusFirst();
@@ -379,23 +433,18 @@ export abstract class UIOverlay extends LitElement {
         }
         this.#openReason = null;
         this.#initialFocus = null;
-        this.#motion.play("entering");
+        this.#presence.enter("entering");
       } else {
-        this.overlayInternals.states.delete("open");
-        this.overlayInternals.states.delete("active");
         const previous = changed.get("open");
-        if (this.#movedFocusForOpen && previous === true)
+        if (this.#movedFocusForOpen && this.#returnFocusForOpen && previous === true)
           queueMicrotask(() => this.#returnFocus?.focus());
-        this.#movedFocusForOpen = false;
-        if (previous === true && this.overlayPresent) {
-          this.overlayInternals.states.delete("entering");
-          this.overlayInternals.states.add("exiting");
-          this.#motion.play("exiting");
-        } else {
-          this.overlayInternals.states.delete("present");
-          this.overlayPresent = false;
-          this.#positioner.stop();
+        else if (this.#movedFocusForOpen && !this.#returnFocusForOpen && previous === true) {
+          queueMicrotask(() => this.#clearPointerCloseFocus());
+          requestAnimationFrame(() => this.#clearPointerCloseFocus());
         }
+        this.#movedFocusForOpen = false;
+        this.#returnFocusForOpen = false;
+        this.#presence.exit("exiting", previous === true);
       }
     }
     if (changed.has("disabled")) {
@@ -407,6 +456,34 @@ export abstract class UIOverlay extends LitElement {
     }
   }
 
+  #setPresenceState(state: PresenceState, present: boolean): void {
+    if (present) this.overlayInternals.states.add(state);
+    else this.overlayInternals.states.delete(state);
+  }
+
+  #emitPresenceEvent(
+    type: "mash-presence-start" | "mash-presence-end",
+    context: PresenceLifecycleContext<"entering" | "exiting">,
+  ): void {
+    const eventInit: CustomEventInit<OverlayPresenceEventDetail> = {
+      bubbles: true,
+      composed: true,
+      detail: {
+        open: context.open,
+        phase: context.phase,
+        reducedMotion: context.reducedMotion,
+        interrupted: context.interrupted,
+      },
+    };
+    if (type === "mash-presence-start") {
+      this.dispatchEvent(
+        new CustomEvent<OverlayPresenceEventDetail>("mash-presence-start", eventInit),
+      );
+      return;
+    }
+    this.dispatchEvent(new CustomEvent<OverlayPresenceEventDetail>("mash-presence-end", eventInit));
+  }
+
   #onHostClick = (event: MouseEvent): void => {
     if (this.handleOverlayClick(event)) return;
     if (this.#eventIsWithinClose(event)) {
@@ -416,10 +493,12 @@ export abstract class UIOverlay extends LitElement {
     }
     if (this.interactionTriggerAction() === "click" && this.#eventIsWithinTrigger(event)) {
       event.preventDefault();
+      const isPointerActivation = event.detail > 0;
       this.requestOpenChange(
         !this.open,
         "trigger",
-        event.detail > 0 ? this.pointerOpenFocus : "first",
+        isPointerActivation ? this.pointerOpenFocus : "first",
+        this.modal || !isPointerActivation,
       );
     }
   };
@@ -449,12 +528,25 @@ export abstract class UIOverlay extends LitElement {
     this.#scheduleInteractionChange(false, "focus");
   };
 
+  #onContextTriggerKeydown = (event: KeyboardEvent): void => {
+    if (
+      this.interactionTriggerAction() !== "contextmenu" ||
+      !this.#eventIsWithinTrigger(event) ||
+      !(event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))
+    )
+      return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.#contextPoint = null;
+    this.requestOpenChange(true, "keyboard", "first");
+  };
+
   #onContextMenu = (event: MouseEvent): void => {
     if (this.interactionTriggerAction() !== "contextmenu" || !this.#eventIsWithinTrigger(event))
       return;
     event.preventDefault();
     this.#contextPoint = { x: event.clientX, y: event.clientY };
-    this.requestOpenChange(true, "contextmenu");
+    this.requestOpenChange(true, "contextmenu", null, false);
   };
 
   #onBackdropPointerDown = (event: PointerEvent): void => {
@@ -551,6 +643,13 @@ export abstract class UIOverlay extends LitElement {
   }
 }
 
+declare global {
+  interface HTMLElementEventMap {
+    "mash-presence-start": CustomEvent<OverlayPresenceEventDetail>;
+    "mash-presence-end": CustomEvent<OverlayPresenceEventDetail>;
+  }
+}
+
 /**
  * Shared unstyled side-positioning contract for trigger-relative overlays.
  *
@@ -588,7 +687,12 @@ export abstract class UIAnchoredOverlay extends UIOverlay {
   }
 
   protected override positioningConfig(): AnchoredPositionConfig {
-    return this;
+    return {
+      placement: this.placement,
+      align: this.align,
+      offset: this.offset,
+      collisionPadding: this.collisionPadding,
+    };
   }
 
   /**

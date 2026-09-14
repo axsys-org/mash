@@ -1,4 +1,4 @@
-import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -17,6 +17,7 @@ import { baseStyles } from "../internal/base-styles.js";
  *   <ui-toggle pressed>Bold</ui-toggle>
  * </div>
  *
+ * @attr {string} aria-label - Accessible name passed to the native control for icon-only toggles.
  * @slot - Toggle label or icon content.
  *
  * @csspart control - The native button that owns keyboard interaction.
@@ -38,9 +39,11 @@ export class UIToggle extends LitElement {
   };
 
   static override properties = {
+    ariaLabel: { type: String, attribute: "aria-label", reflect: true },
     pressed: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
     value: { type: String, reflect: true },
+    _groupDisabled: { state: true },
   };
 
   static override styles = baseStyles;
@@ -52,6 +55,7 @@ export class UIToggle extends LitElement {
   /** Optional application-level value, used by a parent toggle group. */
   declare value: string;
 
+  protected _groupDisabled = false;
   readonly #internals: ElementInternals;
 
   constructor() {
@@ -62,18 +66,27 @@ export class UIToggle extends LitElement {
     this.#internals = this.attachInternals();
   }
 
-  protected override updated(changed: PropertyValues<this>): void {
-    if (changed.has("pressed") || changed.has("disabled")) {
+  /** @internal Parent group policy remains separate from authored disabled state. */
+  _setGroupDisabled(disabled: boolean): void {
+    this._groupDisabled = disabled;
+  }
+
+  get #isDisabled(): boolean {
+    return this.disabled || this._groupDisabled;
+  }
+
+  protected override updated(changed: PropertyValues): void {
+    if (changed.has("pressed") || changed.has("disabled") || changed.has("_groupDisabled")) {
       const states = this.#internals.states;
       if (this.pressed) states.add("pressed");
       else states.delete("pressed");
-      if (this.disabled) states.add("disabled");
+      if (this.#isDisabled) states.add("disabled");
       else states.delete("disabled");
     }
   }
 
   #onClick = (): void => {
-    if (this.disabled) return;
+    if (this.#isDisabled) return;
     this.pressed = !this.pressed;
     this.dispatchEvent(
       new CustomEvent<{ pressed: boolean }>("ui-toggle-change", {
@@ -89,8 +102,9 @@ export class UIToggle extends LitElement {
       <button
         part="control"
         type="button"
+        aria-label=${this.ariaLabel || nothing}
         aria-pressed=${this.pressed ? "true" : "false"}
-        ?disabled=${this.disabled}
+        ?disabled=${this.#isDisabled}
         @click=${this.#onClick}
       >
         <slot part="label"></slot>

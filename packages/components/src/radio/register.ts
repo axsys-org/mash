@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIRadio };
+
+export * from "./radio.js";

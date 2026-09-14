@@ -17,3 +17,5 @@ declare global {
 }
 
 export { ShrineMyth };
+
+export * from "./myth.js";

@@ -12,3 +12,8 @@ declare global {
 }
 
 export { UIInput };
+
+export * from "./input.js";
+
+export { formatInputMask, parseInputMask } from "./mask.js";
+export type { MaskedInputValue } from "./mask.js";

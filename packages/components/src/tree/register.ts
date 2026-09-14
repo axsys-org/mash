@@ -1,3 +1,4 @@
+import "../tree-item/register.js";
 import { UITree } from "./tree.js";
 
 // If this component composes elements from another package, import their
@@ -16,3 +17,5 @@ declare global {
 }
 
 export { UITree };
+
+export * from "./tree.js";

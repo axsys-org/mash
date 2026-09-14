@@ -1,13 +1,11 @@
+import "../slider/register.js";
+import "../select/register.js";
+import "../input/register.js";
+import "../button/register.js";
 import { UIColorPicker, UIColorSwatch } from "./color-picker.js";
 
-const definitions = [
-  ["ui-color-picker", UIColorPicker],
-  ["ui-color-swatch", UIColorSwatch],
-] as const;
-
-for (const [tag, definition] of definitions) {
-  if (!customElements.get(tag)) customElements.define(tag, definition);
-}
+if (!customElements.get("ui-color-picker")) customElements.define("ui-color-picker", UIColorPicker);
+if (!customElements.get("ui-color-swatch")) customElements.define("ui-color-swatch", UIColorSwatch);
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -17,3 +15,5 @@ declare global {
 }
 
 export { UIColorPicker, UIColorSwatch };
+
+export * from "./color-picker.js";

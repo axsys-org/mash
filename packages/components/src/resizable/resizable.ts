@@ -229,6 +229,7 @@ export class UIResizable extends LitElement {
  * @mashnode root panel
  * @mashnode content content root
  * @mashnode size size root
+ * @mashaxis size layout-size
  * @mashnode min min root
  * @mashnode max max root
  * @mashnode visible visible root
@@ -473,7 +474,7 @@ export class UIResizableHandle extends LitElement {
         role="separator"
         tabindex="0"
         aria-label=${this.label}
-        aria-orientation=${this.orientation}
+        aria-orientation=${this.orientation === "horizontal" ? "vertical" : "horizontal"}
         aria-valuemin=${Math.round(this.#valueMin)}
         aria-valuemax=${Math.round(this.#valueMax)}
         aria-valuenow=${Math.round(this.#valueNow)}

@@ -20,6 +20,11 @@ export type SpinnerSize = "small" | "medium" | "large";
  *
  * @csspart root - The accessible loading indicator.
  * @csspart indicator - The rotating visual ring.
+ *
+ * @mashnode root indicator
+ * @mashnode indicator indicator root
+ * @mashnode size size root
+ * @mashaxis size indicator-size
  */
 export class UISpinner extends LitElement {
   static override properties = {

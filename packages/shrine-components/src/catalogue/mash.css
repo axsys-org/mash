@@ -16,7 +16,7 @@
     --_mash-component-surface: var(--color-surface);
     --_mash-component-surface-raised: var(--color-surface-raised);
     --_mash-component-surface-sunken: var(--color-surface-sunken);
-    --_mash-component-inverse-label: var(--color-surface);
+    --_mash-component-inverse-label: var(--color-on-surface-inverse);
     --_mash-component-boundary: var(--color-border);
     --_mash-component-boundary-strong: var(--color-border-strong);
     --_mash-component-divider: var(--color-separator-opaque);
@@ -116,15 +116,15 @@
   }
 
   :where([data-mash-catalogue="mash"]) sh-tree::part(lane-1) {
-    --sh-tree-lane-color: var(--color-positive);
+    --sh-tree-lane-color: var(--color-positive-text);
   }
 
   :where([data-mash-catalogue="mash"]) sh-tree::part(lane-2) {
-    --sh-tree-lane-color: var(--color-warning);
+    --sh-tree-lane-color: var(--color-warning-text);
   }
 
   :where([data-mash-catalogue="mash"]) sh-tree::part(lane-3) {
-    --sh-tree-lane-color: var(--color-critical);
+    --sh-tree-lane-color: var(--color-critical-text);
   }
 
   :where([data-mash-catalogue="mash"]) sh-tree::part(lane-4) {

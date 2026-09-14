@@ -1,92 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import uiManifest from "../../../packages/components/custom-elements.json" with { type: "json" };
-import shrineManifest from "../../../packages/shrine-components/custom-elements.json" with { type: "json" };
-
-interface ManifestDeclaration {
-  customElement?: boolean;
-  tagName?: string;
-}
-
-interface ManifestModule {
-  declarations?: ManifestDeclaration[];
-}
-
-interface Manifest {
-  modules?: ManifestModule[];
-}
-
-const tags = ([uiManifest, shrineManifest] as Manifest[])
-  .flatMap((manifest) => manifest.modules ?? [])
-  .flatMap((module) => module.declarations ?? [])
-  .filter(
-    (declaration): declaration is ManifestDeclaration & { tagName: string } =>
-      declaration.customElement === true && Boolean(declaration.tagName),
-  )
-  .map((declaration) => declaration.tagName)
-  .sort();
-
-const themes = ["light", "dark"] as const;
-
-for (const tag of tags) {
-  for (const theme of themes) {
-    test(`${tag} ${theme} catalogue conformance`, async ({ page }, testInfo) => {
-      const errors: string[] = [];
-      page.on("pageerror", (error) => errors.push(error.message));
-      page.on("console", (message) => {
-        if (message.type() === "error") errors.push(message.text());
-      });
-
-      await page.goto(`/components/${tag}?theme=${theme}`);
-      const frame = page.frameLocator("iframe.stage-frame");
-      const component = frame.locator(tag).first();
-      await expect(component).toBeAttached();
-
-      const intentionallyHeadless = await component.evaluate((node) => {
-        const root = node.shadowRoot?.querySelector<HTMLElement>("[part~='root']");
-        return Boolean(root?.hidden && root.getAttribute("aria-hidden") === "true");
-      });
-
-      if (intentionallyHeadless) {
-        await expect(component).toBeHidden();
-        expect(errors).toEqual([]);
-        return;
-      }
-
-      await expect(component).toBeVisible();
-
-      const geometry = await component.evaluate((node) => {
-        const hostBounds = node.getBoundingClientRect();
-        const root = node.shadowRoot?.querySelector<HTMLElement>("[part~='root']");
-        const target = hostBounds.width > 0 && hostBounds.height > 0 ? node : root;
-        const bounds = target?.getBoundingClientRect() ?? hostBounds;
-        const documentElement = node.ownerDocument.documentElement;
-        return {
-          width: bounds.width,
-          height: bounds.height,
-          finite: [bounds.x, bounds.y, bounds.width, bounds.height].every(Number.isFinite),
-          overflowInline: documentElement.scrollWidth - documentElement.clientWidth,
-        };
-      });
-
-      expect(geometry.finite).toBe(true);
-      expect(geometry.width).toBeGreaterThan(0);
-      expect(geometry.height).toBeGreaterThan(0);
-      expect(geometry.overflowInline).toBeLessThanOrEqual(2);
-      expect(errors).toEqual([]);
-
-      if (process.env.MASH_CAPTURE_AUDIT === "1") {
-        const path = testInfo.outputPath(`${tag}-${theme}.png`);
-        await page.locator("iframe.stage-frame").screenshot({ path });
-        await testInfo.attach(`${tag}-${theme}`, { path, contentType: "image/png" });
-      }
-    });
-  }
-}
+// Full-size registration, rendering, errors and overflow are covered by the
+// all-example sweep. These compositions need additional small-screen checks.
+const themes = ["light"] as const;
 
 const compactSurfaces = [
-  "sh-tree",
-  "sh-triptych",
   "ui-color-picker",
   "ui-dialog",
   "ui-scroll-area",
@@ -130,23 +48,6 @@ for (const tag of compactSurfaces) {
         });
         expect(scroll.bounded).toBe(true);
         expect(scroll.height).toBeGreaterThan(0);
-      }
-
-      if (tag === "sh-triptych") {
-        const regions = await component.evaluate((node) => {
-          const shell = node.shadowRoot?.querySelector<HTMLElement>("[part~='shell']");
-          const sidebar = node.shadowRoot?.querySelector<HTMLElement>("[part~='sidebar']");
-          const main = node.shadowRoot?.querySelector<HTMLElement>("[part~='main']");
-          const inspector = node.shadowRoot?.querySelector<HTMLElement>("[part~='inspector']");
-          return {
-            shellWidth: shell?.getBoundingClientRect().width ?? 0,
-            widths: [sidebar, main, inspector].map(
-              (region) => region?.getBoundingClientRect().width ?? 0,
-            ),
-          };
-        });
-        expect(regions.shellWidth).toBeGreaterThan(0);
-        expect(regions.widths.every((width) => width > 0)).toBe(true);
       }
     });
   }

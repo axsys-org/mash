@@ -1,6 +1,7 @@
-import { LitElement, html, type PropertyValues, type TemplateResult } from "lit";
+import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { hideEmptySlot } from "../internal/slot-visibility.js";
 
 let accordionItemId = 0;
 
@@ -32,6 +33,9 @@ let accordionItemId = 0;
  * @csspart suffix - The wrapper around the trailing content.
  * @csspart disclosure - The disclosure glyph.
  * @csspart content - The labelled disclosure region.
+ * @csspart reveal-root - The forwarded reveal render-presence boundary.
+ * @csspart reveal-content - The forwarded clipped disclosure region.
+ * @csspart reveal-measure - The forwarded natural-size measurement wrapper.
  *
  * @cssstate open - Matches `:state(open)` while the item is expanded.
  * @cssstate disabled - Matches `:state(disabled)` while unavailable.
@@ -46,12 +50,17 @@ let accordionItemId = 0;
  * @mashnode suffix suffix trigger
  * @mashnode disclosure disclosure trigger
  * @mashnode content content root
+ * @mashnode reveal-root root content
+ * @mashnode reveal-content content reveal-root
+ * @mashnode reveal-measure measure reveal-content
  * @mashnode level level header
  * @mashnode value value root
  * @mashnode open open root
  * @mashnode disabled disabled root
  * @mashnode change change root
  * @mashrole attribute heading-level level level
+ * @mashrole slot default content content
+ * @mashrole part reveal-content content content
  * @mashfallback slot disclosure literal "▸"
  */
 export class UIAccordionItem extends LitElement {
@@ -128,21 +137,23 @@ export class UIAccordionItem extends LitElement {
           ?disabled=${this.disabled}
           @click=${this.#onClick}
         >
-          <span part="prefix"><slot name="prefix"></slot></span>
+          <span part="prefix"><slot name="prefix" @slotchange=${hideEmptySlot}></slot></span>
           <span part="title"><slot name="title">${this.title}</slot></span>
-          <span part="suffix"><slot name="suffix"></slot></span>
+          <span part="suffix"><slot name="suffix" @slotchange=${hideEmptySlot}></slot></span>
           <span part="disclosure" aria-hidden="true"><slot name="disclosure">▸</slot></span>
         </button>
       </div>
-      <div
+      <ui-reveal
         part="content"
+        exportparts="root:reveal-root, content:reveal-content, measure:reveal-measure"
         id=${this.#contentId}
         role="region"
         aria-labelledby=${this.#triggerId}
-        ?hidden=${!this.open}
+        aria-hidden=${this.open ? nothing : "true"}
+        .open=${this.open}
       >
         <slot></slot>
-      </div>
+      </ui-reveal>
     `;
   }
 }

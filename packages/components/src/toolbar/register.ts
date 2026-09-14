@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIToolbar };
+
+export * from "./toolbar.js";

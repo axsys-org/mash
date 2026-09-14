@@ -1,6 +1,10 @@
 # Visual regression
 
-Six canonical component states, photographed through the catalog's production build.
+`pnpm test:catalogue` checks every named example in both themes, plus focused interaction and layout regressions. One all-example sweep owns registration, rendered content, errors, and overflow; compact-screen cases cover layouts that need extra checks.
+
+`pnpm test:visual` only photographs the six canonical component states. It does not rerun the catalogue and story suites. `pnpm test:stories` runs the application stories separately.
+
+Set `MASH_CAPTURE_AUDIT=1` when running `example-variants.spec.ts` to capture each example for a visual audit. Routine runs do not write these images.
 
 ```bash
 pnpm build && pnpm build:catalog   # the suite serves apps/catalog/dist
@@ -41,8 +45,7 @@ To finish the job:
 3. Remove `snapshots/` from the repository `.gitignore`.
 4. Drop `continue-on-error: true` from the `visual` job in `.github/workflows/ci.yml`.
 
-Until then the suite proves that the deep links resolve and the components render, which is worth
-having on its own.
+The separate `pnpm test:catalogue` gate is blocking. It checks every named example in both themes, portable imports, component geometry, navigation, and focused keyboard/interaction behavior. Screenshot comparisons remain a separate acceptance layer.
 
 ## Why these six
 

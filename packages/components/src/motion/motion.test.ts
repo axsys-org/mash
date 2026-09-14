@@ -1,10 +1,40 @@
+import { motionTiming, exitFallbackMs } from "./timing.js";
 import { describe, expect, it } from "vitest";
 
 import { fixture, inShadow, settled } from "../test-support/fixture.js";
 import { UIMotion, type MotionEventDetail } from "./motion.js";
 import "./register.js";
 
+const nextPaint = (): Promise<void> =>
+  new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
 describe("ui-motion", () => {
+  it("tracks enabled hover items and removes state when the scene disconnects", async () => {
+    const scene = await fixture<UIMotion>(
+      `<ui-motion style="display:block;position:relative;width:240px"><span slot="underlay"></span><button data-hover-item style="display:block;width:200px;height:40px">First</button><button data-hover-item disabled style="display:block;width:200px;height:40px">Disabled</button><button data-hover-item style="display:block;width:200px;height:40px">Last</button></ui-motion>`,
+    );
+    const highlight = scene.querySelector<HTMLElement>("span")!;
+    scene.trackHover({ highlight });
+    const last = scene.querySelectorAll<HTMLElement>("button")[2]!;
+    last.focus();
+    await nextPaint();
+    expect(last.hasAttribute("data-hover-active")).toBe(true);
+    expect(scene.getAttribute("data-hover-index")).toBe("2");
+    const rect = last.getBoundingClientRect();
+    scene.dispatchEvent(
+      new PointerEvent("pointermove", {
+        clientX: rect.x + 10,
+        clientY: rect.y + 10,
+        pointerType: "mouse",
+      }),
+    );
+    await nextPaint();
+    expect(highlight.style.translate).not.toBe("");
+    scene.remove();
+    expect(last.hasAttribute("data-hover-active")).toBe(false);
+    expect(highlight.hasAttribute("data-hover-visible")).toBe(false);
+  });
+
   it("projects arbitrary content through stable scene lanes", async () => {
     const motion = await fixture<UIMotion>(`
       <ui-motion target="overlay">
@@ -89,4 +119,81 @@ describe("ui-motion", () => {
 
     expect(endings.some((detail) => detail.state === "loading" && detail.interrupted)).toBe(true);
   });
+
+  it("only asks for compositor preparation during an active lifecycle", async () => {
+    const motion = await fixture<UIMotion>(`
+      <ui-motion
+        motion="scale"
+        style="--duration-control: 120ms; --easing-spring-snappy: linear; --motion-scale-pressed: .92"
+      ><span>Prepare briefly</span></ui-motion>
+    `);
+    const target = inShadow<HTMLElement>(motion, '[part="content"]');
+
+    expect(getComputedStyle(target).willChange).toBe("auto");
+
+    motion.state = "active";
+    await settled(motion);
+
+    expect(getComputedStyle(target).willChange).toContain("scale");
+
+    await new Promise((resolve) => setTimeout(resolve, 160));
+
+    expect(getComputedStyle(target).willChange).toBe("auto");
+  });
+
+  it("replays the current keyframe state through a painted idle reset", async () => {
+    const motion = await fixture<UIMotion>(`
+      <ui-motion
+        motion="slide-block"
+        state="entering"
+        style="--duration-surface: 240ms; --easing-spring-gentle: linear"
+      ><span>Replay me</span></ui-motion>
+    `);
+    const target = inShadow<HTMLElement>(motion, '[part="content"]');
+    await new Promise((resolve) => setTimeout(resolve, 280));
+
+    const starts: MotionEventDetail[] = [];
+    motion.addEventListener("mash-motion-start", (event) => starts.push(event.detail));
+
+    await motion.play("entering");
+    await nextPaint();
+
+    expect(starts.map((detail) => detail.state)).toEqual(["entering"]);
+    expect(target.getAnimations().some((animation) => animation.playState === "running")).toBe(
+      true,
+    );
+  });
+
+  it("replays the current transition state through a painted idle reset", async () => {
+    const motion = await fixture<UIMotion>(`
+      <ui-motion
+        motion="scale"
+        state="active"
+        style="--duration-control: 240ms; --easing-spring-snappy: linear; --motion-scale-pressed: .92"
+      ><span>Replay me</span></ui-motion>
+    `);
+    const target = inShadow<HTMLElement>(motion, '[part="content"]');
+    await new Promise((resolve) => setTimeout(resolve, 280));
+
+    const starts: MotionEventDetail[] = [];
+    motion.addEventListener("mash-motion-start", (event) => starts.push(event.detail));
+
+    await motion.play("active");
+    await nextPaint();
+
+    expect(starts.map((detail) => detail.state)).toEqual(["active"]);
+    expect(target.getAnimations().some((animation) => animation.playState === "running")).toBe(
+      true,
+    );
+  });
+});
+
+it("resolves shared entry and faster exit timing, including authored overrides", async () => {
+  const scene = await fixture<HTMLElement>(
+    '<div style="--duration-moderate-exit: 90ms; --easing-settle: linear"></div>',
+  );
+  expect(motionTiming("fast").duration).toBe(80);
+  expect(motionTiming("slow", "exit").duration).toBe(160);
+  expect(motionTiming("moderate", "exit", scene)).toMatchObject({ duration: 90, easing: "linear" });
+  expect(exitFallbackMs("moderate", scene)).toBe(190);
 });

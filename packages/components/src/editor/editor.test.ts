@@ -5,6 +5,32 @@ import { UIEditor } from "./editor.js";
 import "./register.js";
 
 describe("ui-editor", () => {
+  it("forwards one committed change across its shadow boundary", async () => {
+    const editor = await fixture<UIEditor>("<ui-editor></ui-editor>");
+    const control = inShadow<HTMLTextAreaElement>(editor, "textarea");
+    const hostChanges = vi.fn();
+    const parentChanges = vi.fn();
+    editor.addEventListener("change", hostChanges);
+    editor.parentElement!.addEventListener("change", parentChanges);
+    control.value = "edited";
+    control.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+    expect(hostChanges).not.toHaveBeenCalled();
+    control.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(hostChanges).toHaveBeenCalledTimes(1);
+    expect(parentChanges).toHaveBeenCalledTimes(1);
+    expect(hostChanges.mock.calls[0]![0].target).toBe(editor);
+    expect(editor.value).toBe("edited");
+    await settled(editor);
+  });
+  it("colors source as text without interpreting authored markup", async () => {
+    const editor = await fixture<UIEditor>("<ui-editor></ui-editor>");
+    editor.value = 'const value = "<img src=x onerror=alert(1)>"; // text';
+    await settled(editor);
+    expect(editor.shadowRoot?.querySelector("img")).toBeNull();
+    expect(inShadow(editor, '[part="syntax"]').textContent?.trim()).toBe(editor.value);
+    expect(inShadow(editor, '[part="keyword"]').textContent).toBe("const");
+    expect(inShadow(editor, '[part="syntax"]').getAttribute("aria-hidden")).toBe("true");
+  });
   it("projects source state and generated line anatomy", async () => {
     const editor = await fixture<UIEditor>(
       `<ui-editor language="typescript" value="const a = 1;\nconst b = 2;"></ui-editor>`,
@@ -161,4 +187,102 @@ describe("ui-editor", () => {
     expect(inShadow<HTMLElement>(editor, '[part="search"]').hidden).toBe(false);
     expect(inShadow<HTMLElement>(editor, '[part="completion"]').hidden).toBe(false);
   });
+});
+
+it("maps decoration ranges through native input at an ambiguous repeated-text boundary", async () => {
+  const editor = await fixture<UIEditor>('<ui-editor value="aaaa"></ui-editor>');
+  editor.decorations = [
+    { id: "range", start: 1, end: 3, kind: "warning", message: "Check this range" },
+  ];
+  await settled(editor);
+  const control = editor.control!;
+  control.setSelectionRange(0, 0);
+  control.dispatchEvent(
+    new InputEvent("beforeinput", {
+      inputType: "insertText",
+      data: "a",
+      bubbles: true,
+      composed: true,
+    }),
+  );
+  control.setRangeText("a", 0, 0, "end");
+  control.dispatchEvent(
+    new InputEvent("input", { inputType: "insertText", data: "a", bubbles: true, composed: true }),
+  );
+  await settled(editor);
+  expect(editor.decorations[0]).toMatchObject({ start: 2, end: 4 });
+  expect(inShadow(editor, '[part~="range-warning"]').textContent).toBe("aa");
+  editor.setSelectionRange(2, 4);
+  editor.replaceSelection("updated");
+  await settled(editor);
+  expect(editor.decorations).toEqual([]);
+});
+
+it("preserves marked words through multiline hard-tab indent and outdent", async () => {
+  const editor = await fixture<UIEditor>(
+    '<ui-editor value="alpha&#10;beta" hard-tabs></ui-editor>',
+  );
+  editor.decorations = [{ id: "word", start: 6, end: 10, kind: "highlight" }];
+  await settled(editor);
+  const control = editor.control!;
+  control.setSelectionRange(0, editor.value.length);
+  control.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Tab", bubbles: true, composed: true }),
+  );
+  await settled(editor);
+  expect(editor.value).toBe("\talpha\n\tbeta");
+  expect(editor.decorations[0]).toMatchObject({ start: 8, end: 12 });
+  control.setSelectionRange(0, editor.value.length);
+  control.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Tab", shiftKey: true, bubbles: true, composed: true }),
+  );
+  await settled(editor);
+  expect(editor.value).toBe("alpha\nbeta");
+  expect(editor.decorations[0]).toMatchObject({ start: 6, end: 10 });
+});
+
+it("does not indent a line excluded by a selection ending at its start", async () => {
+  const editor = await fixture<UIEditor>(
+    '<ui-editor value="alpha&#10;beta" hard-tabs></ui-editor>',
+  );
+  const control = editor.control!;
+  control.setSelectionRange(0, 6);
+  control.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Tab", bubbles: true, composed: true }),
+  );
+  await settled(editor);
+  expect(editor.value).toBe("\talpha\nbeta");
+});
+
+it("renders whitespace and overlapping diagnostics without altering source or exposing decorative text", async () => {
+  const editor = await fixture<UIEditor>("<ui-editor show-whitespace></ui-editor>");
+  editor.value = "const\tname = 'A B';";
+  editor.decorations = [
+    { id: "whole", start: 0, end: 10, kind: "highlight" },
+    { id: "name", start: 6, end: 10, kind: "error" },
+  ];
+  await settled(editor);
+  const syntax = inShadow(editor, '[part="syntax"]');
+  expect(syntax.textContent).toBe(editor.value + "\n");
+  expect(syntax.getAttribute("aria-hidden")).toBe("true");
+  expect(
+    editor.shadowRoot?.querySelector('[part~="range-highlight"][part~="range-error"]')?.textContent,
+  ).toBe("name");
+  expect(editor.shadowRoot?.querySelector('[data-whitespace="→"]')?.textContent).toBe("\t");
+  editor.highlight = false;
+  await settled(editor);
+  expect(editor.control?.value).toBe("const\tname = 'A B';");
+  expect(editor.shadowRoot?.querySelector('[part~="range-error"]')).not.toBeNull();
+});
+
+it("maps unaffected diagnostics through each replace-all edit", async () => {
+  const editor = await fixture<UIEditor>(
+    '<ui-editor value="one keep one" search-query="one"></ui-editor>',
+  );
+  editor.decorations = [{ id: "keep", start: 4, end: 8, kind: "info" }];
+  await settled(editor);
+  expect(editor.replaceAllMatches("three")).toBe(2);
+  await settled(editor);
+  expect(editor.value).toBe("three keep three");
+  expect(editor.decorations[0]).toMatchObject({ start: 6, end: 10 });
 });

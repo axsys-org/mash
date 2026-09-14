@@ -5,6 +5,7 @@ import {
   type OverlayOpenChangeDetail,
   UIAnchoredOverlay,
 } from "../internal/overlay.js";
+import type { AnchoredPositionConfig } from "../internal/anchored-position.js";
 import { MenuCollectionController } from "../internal/menu-collection.js";
 import type { UIMenuItem } from "../menu-item/menu-item.js";
 
@@ -30,7 +31,9 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * </ui-menu>
  *
  * @slot trigger - Control that opens or closes the menu.
+ * @slot header - Persistent non-command content shown before the scrollable command viewport.
  * @slot - `ui-menu-item` commands.
+ * @slot footer - Persistent non-command content shown after the scrollable command viewport.
  * @slot close - Optional control that dismisses the menu.
  *
  * @csspart trigger - The authored trigger realization.
@@ -38,7 +41,10 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * @csspart positioner - The renderer-owned anchor-relative placement boundary.
  * @csspart popup - The semantic menu surface.
  * @csspart material - The isolated visual material layer behind menu content.
+ * @csspart header - The authored persistent content before the command viewport.
+ * @csspart viewport - The natively scrollable command viewport.
  * @csspart actions - The authored menu commands.
+ * @csspart footer - The authored persistent content after the command viewport.
  * @csspart close - The authored close action realization.
  *
  * @cssstate open - Matches `:state(open)` while visible.
@@ -46,8 +52,11 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * @cssstate entering - Matches while the popup is entering.
  * @cssstate active - Matches after enter motion settles.
  * @cssstate exiting - Matches while the popup is exiting.
+ * @cssstate reduced-motion - Matches `:state(reduced-motion)` when the environment suppresses motion.
  * @cssstate disabled - Matches `:state(disabled)` while the trigger is unavailable.
  * @cssstate nested - Matches when a menu item owns this menu as a submenu.
+ * @cssstate has-header - Matches when persistent header chrome is authored.
+ * @cssstate has-footer - Matches when persistent footer chrome is authored.
  *
  * @fires {CustomEvent<OverlayOpenChangeDetail>} ui-menu-open-change - Emitted after user interaction requests a new open state and reports why.
  * @fires {CustomEvent<{ value: string }>} ui-menu-select - Emitted when a menu item is selected.
@@ -61,7 +70,10 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * @mashnode collision-padding collision-padding positioner
  * @mashnode popup popup positioner
  * @mashnode material material popup
- * @mashnode actions actions popup
+ * @mashnode header header popup
+ * @mashnode viewport viewport popup
+ * @mashnode actions actions viewport
+ * @mashnode footer footer popup
  * @mashnode close close popup
  * @mashnode density density popup
  * @mashnode sizing sizing popup
@@ -70,7 +82,10 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * @mashnode entering entering popup
  * @mashnode active active popup
  * @mashnode exiting exiting popup
+ * @mashnode reduced-motion reduced-motion popup
+ * @mashrole slot header header header
  * @mashrole slot default actions actions
+ * @mashrole slot footer footer footer
  */
 export class UIMenu extends UIAnchoredOverlay {
   static override properties = {
@@ -88,7 +103,7 @@ export class UIMenu extends UIAnchoredOverlay {
   declare sizing: MenuSizing;
   /** Whether a parent menu item owns this menu as a submenu. */
   declare nested: boolean;
-  /** Fine-pointer delay before a hovered submenu opens. */
+  /** Fine-pointer hover dwell before a branch submenu opens. */
   declare submenuOpenDelay: number;
   /** Pointer-corridor grace period before a submenu closes. */
   declare submenuCloseDelay: number;
@@ -104,11 +119,24 @@ export class UIMenu extends UIAnchoredOverlay {
     this.density = "regular";
     this.sizing = "content";
     this.nested = false;
-    this.submenuOpenDelay = 80;
+    this.submenuOpenDelay = 175;
     this.submenuCloseDelay = 280;
     this.addEventListener("ui-menu-item-select", this.#onItemSelect);
     this.addEventListener("ui-menu-item-submenu-change", this.#onSubmenuChange);
     this.addEventListener("pointerover", this.#onPointerOver);
+    this.addEventListener("pointermove", this.#onPointerMove);
+    this.addEventListener("pointerout", this.#onPointerOut);
+    this.addEventListener("keydown", this.#onTriggerKeydown);
+  }
+
+  override disconnectedCallback(): void {
+    this.#collection.destroy();
+    super.disconnectedCallback();
+  }
+
+  protected override firstUpdated(changed: PropertyValues<this>): void {
+    super.firstUpdated(changed);
+    this.#syncChromeSlots();
   }
 
   protected override emitOpenChange(open: boolean, reason: OverlayChangeReason): void {
@@ -122,12 +150,58 @@ export class UIMenu extends UIAnchoredOverlay {
   }
 
   protected override renderAuthoredContent(): TemplateResult {
-    return html`<div part="actions"><slot></slot></div>`;
+    return html`
+      <div part="header" role="presentation">
+        <slot name="header" @slotchange=${this.#onChromeSlotChange}></slot>
+      </div>
+      <div part="viewport">
+        <div part="actions"><slot></slot></div>
+      </div>
+      <div part="footer" role="presentation">
+        <slot name="footer" @slotchange=${this.#onChromeSlotChange}></slot>
+      </div>
+    `;
   }
 
   protected override renderPopupMaterial(): TemplateResult {
     return html`<span part="material" aria-hidden="true"></span>`;
   }
+
+  protected override positioningConfig(): AnchoredPositionConfig {
+    const config = super.positioningConfig();
+    const nested = this.nested || this.hasAttribute("nested");
+    if (!nested || (this.placement !== "left" && this.placement !== "right")) return config;
+    const popup = this.renderRoot.querySelector<HTMLElement>("[part='popup']");
+    const shell = Number.parseFloat(
+      popup
+        ? getComputedStyle(popup).paddingBlockStart
+        : getComputedStyle(this).getPropertyValue("--space-menu-shell"),
+    );
+    return Number.isFinite(shell) ? { ...config, crossAxisOffset: -shell } : config;
+  }
+
+  #setChromeState(name: "header" | "footer", active: boolean): void {
+    const state = `has-${name}`;
+    if (active) this.overlayInternals.states.add(state);
+    else this.overlayInternals.states.delete(state);
+  }
+
+  #hasAssignedChrome(name: "header" | "footer"): boolean {
+    const slot = this.renderRoot.querySelector<HTMLSlotElement>(`slot[name="${name}"]`);
+    return (
+      slot?.assignedNodes({ flatten: true }).some((node) => {
+        if (node.nodeType === Node.TEXT_NODE) return Boolean(node.textContent?.trim());
+        return true;
+      }) ?? false
+    );
+  }
+
+  #syncChromeSlots(): void {
+    this.#setChromeState("header", this.#hasAssignedChrome("header"));
+    this.#setChromeState("footer", this.#hasAssignedChrome("footer"));
+  }
+
+  #onChromeSlotChange = (): void => this.#syncChromeSlots();
 
   #parentItem(): UIMenuItem | null {
     return this.parentElement?.localName === "ui-menu-item"
@@ -141,18 +215,33 @@ export class UIMenu extends UIAnchoredOverlay {
     for (const trigger of this.querySelectorAll<HTMLElement>(":scope > [slot='trigger']")) {
       trigger.setAttribute("aria-haspopup", "menu");
       trigger.setAttribute("aria-expanded", String(this.open));
-      if ("selected" in trigger)
-        (trigger as HTMLElement & { selected: boolean }).selected = this.open;
     }
   }
 
   protected override handleOverlayKeydown(event: KeyboardEvent): boolean {
+    if (event.key === "Tab") {
+      this.releaseFocusReturn();
+      this.requestOpenChange(false, "keyboard");
+      return true;
+    }
     return this.#collection.handleKeydown(event, {
       nested: this.nested,
       parentItem: () => this.#parentItem(),
       dismissNested: () => this.requestOpenChange(false, "keyboard"),
     });
   }
+
+  #onTriggerKeydown = (event: KeyboardEvent): void => {
+    if (!this.eventIsWithinSlot(event, "trigger")) return;
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.requestOpenChange(true, "keyboard", "first");
+    void this.updateComplete.then(() => {
+      const items = this.#collection.items();
+      items[event.key === "ArrowDown" ? 0 : items.length - 1]?.focus();
+    });
+  };
 
   #onItemSelect = (event: Event): void => {
     const item = event.target as UIMenuItem;
@@ -174,13 +263,27 @@ export class UIMenu extends UIAnchoredOverlay {
     const item = event.target as UIMenuItem;
     const { open } = (event as CustomEvent<{ open: boolean }>).detail;
     if (!open || item.parentElement !== this) return;
+    this.#collection.suppressHoverSelection();
     this.#collection.dismissSiblingSubmenus(item);
   };
 
-  #onPointerOver = (event: PointerEvent): void => {
+  #updatePointerHover = (event: PointerEvent): void => {
     const item = this.#collection.itemFromEvent(event) as UIMenuItem | undefined;
-    if (!item || item.parentElement !== this || item.hasSubmenu) return;
+    if (!item || item.parentElement !== this) return;
+    const preservesSiblingSubmenu = item.shouldPreserveSiblingSubmenuForPointer(event);
+    this.#collection.suppressHoverSelection(preservesSiblingSubmenu ? item : null);
+    if (preservesSiblingSubmenu || item.hasSubmenu) return;
     this.#collection.dismissSiblingSubmenus(item);
+  };
+
+  #onPointerOver = (event: PointerEvent): void => this.#updatePointerHover(event);
+
+  #onPointerMove = (event: PointerEvent): void => this.#updatePointerHover(event);
+
+  #onPointerOut = (event: PointerEvent): void => {
+    const related = event.relatedTarget;
+    if (related instanceof Node && this.contains(related)) return;
+    this.#collection.suppressHoverSelection();
   };
 
   protected override render(): TemplateResult {

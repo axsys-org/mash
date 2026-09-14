@@ -12,7 +12,7 @@
       "5": { "$value": { "value": 12, "unit": "px" } },
       "menu": {
         "$value": { "value": 13, "unit": "px" },
-        "$description": "Outer menu radius from the Apple reference."
+        "$description": "Compact desktop popup-menu shell radius."
       },
       "6": { "$value": { "value": 16, "unit": "px" } },
       "full": {

@@ -7,6 +7,7 @@ allowBuilds:
   # Carbon ships its generated SVG assets in the package. Its postinstall only
   # reports optional IBM telemetry and is not required to generate Mash icons.
   "@carbon/icons": false
+  esbuild: true
   rs-module-lexer: true
 
 # pnpm 10 does not run dependency lifecycle scripts unless they are listed here.
@@ -17,3 +18,6 @@ onlyBuiltDependencies:
   - esbuild
   - playwright
   - rs-module-lexer
+
+patchedDependencies:
+  echarts@6.0.0: patches/echarts@6.0.0.patch

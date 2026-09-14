@@ -66,6 +66,33 @@ interface AuthoredSource {
  *
  * @fires {CustomEvent<ImageLoadDetail>} ui-image-load - Reports the source and intrinsic dimensions after loading.
  * @fires {CustomEvent<ImageErrorDetail>} ui-image-error - Reports a failed source and whether fallback recovery will continue.
+ * @mashnode root image
+ * @mashnode picture picture root
+ * @mashnode sources sources picture
+ * @mashnode source source sources
+ * @mashnode image image picture
+ * @mashnode placeholder placeholder root
+ * @mashnode error error root
+ * @mashnode loading loading root
+ * @mashnode loaded loaded root
+ * @mashnode fallback fallback root
+ * @mashnode load load root
+ * @mashnode fail error root
+ * @mashrole slot source source source
+ * @mashrole slot placeholder placeholder placeholder
+ * @mashrole slot error error error
+ * @mashrole part root image root
+ * @mashrole part picture picture picture
+ * @mashrole part sources sources sources
+ * @mashrole part source source source
+ * @mashrole part image image image
+ * @mashrole part placeholder placeholder placeholder
+ * @mashrole part error error error
+ * @mashrole state loading loading loading
+ * @mashrole state loaded loaded loaded
+ * @mashrole state fallback fallback fallback
+ * @mashrole event ui-image-load load load
+ * @mashrole event ui-image-error error fail
  *
  */
 export class UIImage extends LitElement {
@@ -178,11 +205,28 @@ export class UIImage extends LitElement {
     }));
   };
 
+  #reusedLoadedSource = false;
+
   protected override willUpdate(changed: PropertyValues<this>): void {
-    if (!changed.has("src") && !changed.has("fallbackSrc")) return;
-    this._activeSrc = this.src;
-    this._usingFallback = false;
-    this._status = this.src ? "loading" : "empty";
+    if (changed.has("src")) {
+      this.#reusedLoadedSource =
+        this._status === "loaded" &&
+        this._activeSrc === this.src &&
+        !this.srcset &&
+        this._sources.length === 0;
+      this._activeSrc = this.src;
+      this._usingFallback = false;
+      this._status = this.#reusedLoadedSource ? "loaded" : this.src ? "loading" : "empty";
+      return;
+    }
+    if (!changed.has("fallbackSrc")) return;
+    // A new recovery source must initiate its own request after a terminal
+    // failure. Reassigning the unchanged failed primary URL emits no event.
+    if (this._usingFallback || (this._status === "error" && this.fallbackSrc)) {
+      this._usingFallback = Boolean(this.fallbackSrc);
+      this._activeSrc = this.fallbackSrc || this.src;
+      this._status = this._activeSrc ? "loading" : "empty";
+    }
   }
 
   protected override updated(): void {
@@ -192,10 +236,19 @@ export class UIImage extends LitElement {
     }
     if (this._usingFallback) this.#internals.states.add("fallback");
     else this.#internals.states.delete("fallback");
+    if (this.#reusedLoadedSource) {
+      this.#reusedLoadedSource = false;
+      const image = this.renderRoot.querySelector<HTMLImageElement>("img");
+      if (image) this.#reportLoad(image);
+    }
   }
 
   #onLoad = (event: Event): void => {
-    const image = event.currentTarget as HTMLImageElement;
+    if (this._status === "error") return;
+    this.#reportLoad(event.currentTarget as HTMLImageElement);
+  };
+
+  #reportLoad(image: HTMLImageElement): void {
     this._status = "loaded";
     this.dispatchEvent(
       new CustomEvent<ImageLoadDetail>("ui-image-load", {
@@ -210,7 +263,7 @@ export class UIImage extends LitElement {
         },
       }),
     );
-  };
+  }
 
   #onError = (): void => {
     const failedSrc = this._activeSrc;

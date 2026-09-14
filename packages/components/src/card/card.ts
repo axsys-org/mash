@@ -8,12 +8,13 @@ export type CardElevation = "flat" | "raised";
 /**
  * A surface that groups related content.
  *
- * `elevation` is the only axis, and it means different things per theme by
+ * `elevation` means different things per theme by
  * design: the light theme reads elevation as a shadow, while the dark theme
  * steps the surface lighter, because a soft shadow is invisible on a dark
  * canvas. Both are driven from theme tokens, so the component itself does not
  * know which theme it is in.
  *
+ * @mashaxis size control-size
  * @tag ui-card
  * @summary Groups related content on a surface.
  *
@@ -61,6 +62,7 @@ export type CardElevation = "flat" | "raised";
  * @mashnode content content root
  * @mashnode footer footer root
  * @mashnode elevation elevation root
+ * @mashnode size size root
  * @mashrole slot default content content
  * @mashrole slot content content content
  * @mashrole slot header header header
@@ -75,17 +77,22 @@ export type CardElevation = "flat" | "raised";
 export class UICard extends LitElement {
   static override properties = {
     elevation: { type: String, reflect: true },
+    size: { type: String, reflect: true },
     _filledSlots: { state: true },
   };
 
   /** Whether the card sits flat against the canvas or lifts off it. */
   declare elevation: CardElevation;
 
+  /** Coordinated control, spacing and type step; inherit follows the surrounding size context. */
+  declare size: "inherit" | "default" | "compact";
+
   declare private _filledSlots: ReadonlySet<string>;
 
   constructor() {
     super();
     this.elevation = "flat";
+    this.size = "inherit";
     this._filledSlots = new Set();
   }
 

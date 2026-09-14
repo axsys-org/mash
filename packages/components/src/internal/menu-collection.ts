@@ -1,8 +1,10 @@
 export interface MenuCollectionItem extends HTMLElement {
   readonly hasSubmenu: boolean;
   readonly submenuOpen: boolean;
+  readonly textValue: string;
   showSubmenu(focusFirst?: boolean): void;
   dismissSubmenu(restoreFocus?: boolean): void;
+  setHoverSuppressed(active: boolean): void;
 }
 
 export interface MenuKeyboardOptions {
@@ -14,13 +16,17 @@ export interface MenuKeyboardOptions {
 /** Shared collection interaction for menu and context-menu realizations. */
 export class MenuCollectionController {
   readonly #host: HTMLElement;
+  #typeahead = "";
+  #typeaheadTimer: number | undefined;
 
   constructor(host: HTMLElement) {
     this.#host = host;
   }
 
   items(): MenuCollectionItem[] {
-    return [...this.#host.querySelectorAll<MenuCollectionItem>(":scope > ui-menu-item")];
+    return [
+      ...this.#host.querySelectorAll<MenuCollectionItem>(":scope > ui-menu-item:not([hidden])"),
+    ];
   }
 
   itemFromEvent(event: Event): MenuCollectionItem | undefined {
@@ -32,8 +38,44 @@ export class MenuCollectionController {
       );
   }
 
+  destroy(): void {
+    if (this.#typeaheadTimer !== undefined) window.clearTimeout(this.#typeaheadTimer);
+  }
+
+  #matchTypeahead(event: KeyboardEvent, source?: MenuCollectionItem): boolean {
+    if (
+      event.key.length !== 1 ||
+      event.key === " " ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey
+    )
+      return false;
+    const key = event.key.toLocaleLowerCase();
+    const repeated =
+      this.#typeahead.length > 0 && [...this.#typeahead].every((part) => part === key);
+    this.#typeahead = repeated ? key : `${this.#typeahead}${key}`;
+    if (this.#typeaheadTimer !== undefined) window.clearTimeout(this.#typeaheadTimer);
+    this.#typeaheadTimer = window.setTimeout(() => {
+      this.#typeahead = "";
+      this.#typeaheadTimer = undefined;
+    }, 500);
+
+    const items = this.items();
+    const start = Math.max(0, items.indexOf(source as MenuCollectionItem) + 1);
+    const ordered = [...items.slice(start), ...items.slice(0, start)];
+    const target = ordered.find((item) =>
+      item.textValue.toLocaleLowerCase().startsWith(this.#typeahead),
+    );
+    if (!target) return false;
+    event.preventDefault();
+    target.focus();
+    return true;
+  }
+
   handleKeydown(event: KeyboardEvent, options: MenuKeyboardOptions = {}): boolean {
     const source = this.itemFromEvent(event);
+    if (this.#matchTypeahead(event, source)) return true;
     if (event.key === "ArrowLeft" && options.nested) {
       event.preventDefault();
       event.stopPropagation();
@@ -70,5 +112,9 @@ export class MenuCollectionController {
     for (const sibling of this.items()) {
       if (sibling !== active && sibling.submenuOpen) sibling.dismissSubmenu();
     }
+  }
+
+  suppressHoverSelection(active?: MenuCollectionItem | null): void {
+    for (const item of this.items()) item.setHoverSuppressed(item === active);
   }
 }

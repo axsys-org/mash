@@ -15,6 +15,12 @@ import { baseStyles } from "../internal/base-styles.js";
  * @slot label - Optional rich label content. Overrides the `title` fallback.
  * @csspart root - The visible field label.
  * @csspart label - The authored rich label slot.
+ * @mashnode root label
+ * @mashnode content content root
+ * @mashrole slot default content content
+ * @mashrole slot label content content
+ * @mashrole part root label root
+ * @mashrole part label content content
  */
 export class ShrineSlot extends LitElement {
   static override properties = {

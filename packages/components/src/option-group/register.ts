@@ -11,3 +11,5 @@ declare global {
 }
 
 export { UIOptionGroup };
+
+export * from "./option-group.js";

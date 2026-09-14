@@ -18,6 +18,39 @@
             "$value": 1.5,
             "$description": "Explicitly stronger backdrop chroma for decorative material contexts with verified contrast."
           }
+        },
+        "luminance": {
+          "standard": {
+            "$value": 1,
+            "$description": "No material-brightness lift beyond the authored SDR tint."
+          },
+          "wideGamut": {
+            "$value": 1.02,
+            "$description": "Subtle optical lift for displays that can render P3 color without changing SDR fallback contrast."
+          },
+          "highDynamicRange": {
+            "$value": 1.05,
+            "$description": "Reserved headroom lift for HDR-capable displays; renderers keep this modest because HDR activation cannot be inferred from CSS alone."
+          }
+        },
+        "highlightAlpha": {
+          "standard": {
+            "$value": 0.13,
+            "$description": "Default material highlight contribution."
+          },
+          "wideGamut": {
+            "$value": 0.16,
+            "$description": "Wide-gamut highlight contribution for brighter material edges on P3-capable displays."
+          },
+          "highDynamicRange": {
+            "$value": 0.18,
+            "$description": "HDR-capability highlight contribution, still constrained so SDR content and controls remain comfortable together."
+          }
+        }
+      },
+      "opacity": {
+        "disabled": {
+          "$value": 0.5
         }
       }
     }
