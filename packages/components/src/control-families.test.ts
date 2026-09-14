@@ -1474,7 +1474,7 @@ describe("Control families", () => {
     await settled(combobox.parentElement!);
 
     expect(combobox.shadowRoot!.activeElement).toBe(input);
-    expect(input.getAttribute("aria-activedescendant")).toBe(maya.id);
+    expect(input.ariaActiveDescendantElement).toBe(maya);
     expect(maya.active).toBe(true);
     expect(sam.active).toBe(false);
 
@@ -1488,7 +1488,7 @@ describe("Control families", () => {
 
     expect(combobox.value).toBe("sam");
     expect(combobox.open).toBe(false);
-    expect(input.hasAttribute("aria-activedescendant")).toBe(false);
+    expect(input.ariaActiveDescendantElement).toBeNull();
 
     combobox.readonly = true;
     combobox.open = true;
@@ -1588,6 +1588,6 @@ describe("Control families", () => {
     expect(sam!.active).toBe(false);
     expect(alex!.active).toBe(false);
     expect(jo!.active).toBe(true);
-    expect(input.getAttribute("aria-activedescendant")).toBe(jo!.id);
+    expect(input.ariaActiveDescendantElement).toBe(jo);
   });
 });

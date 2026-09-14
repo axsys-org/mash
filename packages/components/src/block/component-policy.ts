@@ -90,6 +90,7 @@ export const componentBlockIntegration = Object.freeze({
   "ui-select": "overlay",
   "ui-separator": "content",
   "ui-shimmer": "behavior",
+  "ui-sidebar": "container",
   "ui-skeleton": "content",
   "ui-slider": "content",
   "ui-spinner": "inline",

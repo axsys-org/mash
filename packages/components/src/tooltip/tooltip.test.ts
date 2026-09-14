@@ -130,3 +130,29 @@ it("tracks one cursor axis and falls back to the control anchor on keyboard focu
   await new Promise(requestAnimationFrame);
   expect(tip.positionSnapshot!.left).not.toBe(second.left);
 });
+
+it("settles scaled entry geometry without waiting for another pointer move", async () => {
+  const host = await fixture<HTMLElement>(`
+    <div>
+      <style>
+        @keyframes tooltip-test-entry { from { scale: 0.5; } }
+        #settling-tooltip::part(popup) { display: block; width: 100px; height: 30px; }
+        #settling-tooltip:state(entering)::part(popup) {
+          animation: tooltip-test-entry 100ms linear both;
+        }
+      </style>
+      <ui-tooltip id="settling-tooltip" trigger="manual" placement="left" offset="8" label="Details">
+        <button slot="trigger" style="width:100px;height:30px;margin:150px">Details</button>
+      </ui-tooltip>
+    </div>
+  `);
+  const tip = host.querySelector<UITooltip>("ui-tooltip")!;
+  const trigger = tip.querySelector("button")!;
+  tip.show();
+  await expect.poll(() => tip.matches(":state(active)")).toBe(true);
+  const popup = inShadow<HTMLElement>(tip, '[part="popup"]');
+  expect(popup.getBoundingClientRect().right).toBeCloseTo(
+    trigger.getBoundingClientRect().left - 8,
+    0,
+  );
+});

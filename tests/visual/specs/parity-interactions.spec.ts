@@ -80,8 +80,10 @@ test("dock moves panel content without losing edits and restores saved geometry"
 });
 
 test("color selector changes through the plane and native hex control", async ({ page }) => {
-  await page.goto("/components/ui-color-picker");
-  const frame = page.frameLocator("iframe.stage-frame");
+  await page.goto("/components/ui-color-picker?example=Color%20selector");
+  const host = page.locator('iframe[data-variant="Color selector"]');
+  await host.scrollIntoViewIfNeeded();
+  const frame = host.contentFrame();
   const hex = frame.getByRole("textbox", { name: "Hex color" });
   await hex.fill("#12AB34");
   await hex.press("Tab");

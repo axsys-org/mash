@@ -38,6 +38,14 @@ function tailwindThemeName(token) {
     return `--spacing-${suffix(id, 2)}`;
   }
 
+  if (id.startsWith("layout.size.")) {
+    return `--spacing-size-${suffix(id, 2)}`;
+  }
+
+  if (id.startsWith("type.scale.")) {
+    return `--text-scale-${suffix(id, 2)}`;
+  }
+
   // Component-specific layout roles remain semantic spacing values. Keeping
   // the family name avoids collisions with generic dimensions while allowing
   // utilities such as w-menu-inline-compact and h-menu-row-mini.
@@ -126,6 +134,7 @@ function renderTokenUtilities(
   value = (cssVar) => `var(${cssVar})`,
 ) {
   return tokenEntries(graph)
+    .filter((token) => token.layer !== "reference")
     .map((token) => [token, pattern.exec(token.id)])
     .filter(([, match]) => match)
     .map(([token, match]) => {
@@ -445,8 +454,8 @@ ${fills}
 function renderUtilities(graph) {
   const duration = renderTokenUtilities(
     graph,
-    /^duration\.([^.]+)$/,
-    (name) => `duration-${kebab(name)}`,
+    /^duration\.(.+)$/,
+    (name) => `duration-${name.split(".").map(kebab).join("-")}`,
     "transition-duration",
   );
   const border = renderTokenUtilities(

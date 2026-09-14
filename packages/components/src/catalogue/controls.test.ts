@@ -107,6 +107,7 @@ describe("coordinated size contexts", () => {
     document.documentElement.dataset.mashCatalogue = "mash";
     const host = await fixture(`<div class="mash-row" data-mash-size="default">
       <ui-button>Save</ui-button><ui-input label="Title" value="Keep this draft"></ui-input>
+      <ui-combobox label="Find" value="draft"><ui-option value="draft">Draft</ui-option></ui-combobox>
       <ui-select label="Status" value="draft"><ui-option value="draft">Draft</ui-option></ui-select><ui-checkbox>Selected</ui-checkbox>
     </div>`);
     const input = inShadow<HTMLInputElement>(host.querySelector("ui-input")!, "input");
@@ -121,6 +122,7 @@ describe("coordinated size contexts", () => {
         ["ui-button", "control"],
         ["ui-input", "control"],
         ["ui-select", "trigger"],
+        ["ui-combobox", "input-group"],
         ["ui-option", "control"],
       ]) {
         const frame = inShadow<HTMLElement>(host.querySelector(tag!)!, `[part="${part}"]`);

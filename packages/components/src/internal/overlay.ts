@@ -141,6 +141,9 @@ export abstract class UIOverlay extends LitElement {
       onFinish: (context) => this.#emitPresenceEvent("mash-presence-end", context),
       onSettle: (phase) => {
         if (phase === "absent") this.#positioner.stop();
+        // Entry scaling changes the measured popup bounds without a resize event.
+        // Resolve the final geometry before the next pointer move can reposition it.
+        else this.#positioner.sync();
       },
     });
     this.addEventListener("click", this.#onHostClick);

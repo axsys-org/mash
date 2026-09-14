@@ -9,6 +9,10 @@ import {
   isLauncherState,
 } from "../../../../apps/catalog/src/stories/launcher-model.js";
 import { initialState, isIssueState } from "../../../../apps/catalog/src/stories/issues-model.js";
+import {
+  notebookStorageKey,
+  readNotebook,
+} from "../../../../apps/catalog/src/stories/documents-store.js";
 import { fixture, settled } from "../test-support/fixture.js";
 
 let destroy: (() => void) | undefined;
@@ -17,6 +21,7 @@ afterEach(() => {
   destroy = undefined;
   localStorage.removeItem("mash-story-projects-v1");
   localStorage.removeItem("mash-story-command-center-v1");
+  localStorage.removeItem(notebookStorageKey);
 });
 async function start(mount: typeof mountProjects) {
   const root = await fixture<HTMLElement>(
@@ -66,13 +71,14 @@ it("creates, edits, archives and undoes a real issue while retaining comment dra
   expect(root.querySelector<HTMLElementTagNameMap["ui-textarea"]>("#issue-comment")!.value).toBe(
     "A retained comment draft",
   );
-  const title = root.querySelector<HTMLElementTagNameMap["ui-input"]>('[data-field="title"]')!;
+  await expect.poll(() => root.querySelector("#documents-title")).not.toBeNull();
+  const title = root.querySelector<HTMLInputElement>("#documents-title")!;
   title.value = "Verified workspace";
-  title.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+  title.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
   await settled(root);
-  expect(root.querySelector('[data-row="125"] .issue-title')!.textContent).toBe(
-    "Verified workspace",
-  );
+  await expect
+    .poll(() => root.querySelector('[data-row="125"] .issue-title')!.textContent)
+    .toBe("Verified workspace");
   root.dispatchEvent(
     new CustomEvent("ui-menu-select", { detail: { value: "archive" }, bubbles: true }),
   );
@@ -101,7 +107,7 @@ it("searches and filters local records, then performs a reversible bulk change",
   await settled(root);
   expect(root.querySelector(".issue-list-group > header")!.textContent).toContain("Todo");
 });
-it("saves a note, finds its body, and supports deletion and undo", async () => {
+it("saves a document, finds its body, and reversibly removes its saved shortcut without deleting the source", async () => {
   const root = await start(mountLauncher);
   click(root, '[data-action="new"]');
   await settled(root);
@@ -119,6 +125,13 @@ it("saves a note, finds its body, and supports deletion and undo", async () => {
   await settled(root);
   expect(root.querySelectorAll("ui-command-item")).toHaveLength(1);
   expect(root.querySelector("#launcher-detail")!.textContent).toContain("amethyst milestone");
+  const source = readNotebook().documents.find((doc) => doc.title === "A useful note")!;
+  expect(source).toBeDefined();
+  click(root, '[data-category="saved"]');
+  command.query = "amethyst";
+  command.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
+  await settled(root);
+  expect(root.querySelectorAll("ui-command-item")).toHaveLength(1);
   root
     .querySelector("#launcher-actions")!
     .dispatchEvent(
@@ -126,7 +139,13 @@ it("saves a note, finds its body, and supports deletion and undo", async () => {
     );
   await settled(root);
   expect(root.querySelectorAll("ui-command-item")).toHaveLength(0);
+  expect(readNotebook().documents.find((doc) => doc.id === source.id)).toEqual(source);
   click(root, '[data-action="undo"]');
+  await settled(root);
+  expect(root.querySelectorAll("ui-command-item")).toHaveLength(1);
+  click(root, '[data-category="document"]');
+  command.query = "amethyst";
+  command.dispatchEvent(new InputEvent("input", { bubbles: true, composed: true }));
   await settled(root);
   expect(root.querySelectorAll("ui-command-item")).toHaveLength(1);
 });

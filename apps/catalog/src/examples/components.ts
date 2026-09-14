@@ -378,6 +378,7 @@ componentExamples["ui-combobox"] = controlExamples["ui-combobox"]!;
 componentExamples["ui-command"] = [
   ...commandMenuExamples,
   ...commandExamples,
+  ...(patternExamples["ui-command"] ?? []),
   ...(workflowExamples["ui-command"] ?? []),
 ];
 

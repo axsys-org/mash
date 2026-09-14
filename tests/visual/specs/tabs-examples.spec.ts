@@ -139,9 +139,9 @@ test("overflow fades follow scrolling and its Mash menu reaches every file", asy
     frame.getByRole("textbox", { name: "Document 12 title", exact: true }),
   ).toBeVisible();
   await expect.poll(async () => list.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
-  expect(await list.evaluate((element) => getComputedStyle(element).maskImage)).not.toBe(
-    initialMask,
-  );
+  await expect
+    .poll(() => list.evaluate((element) => getComputedStyle(element).maskImage))
+    .not.toBe(initialMask);
   expect(await frame.locator("select").count()).toBe(0);
   await expect(
     frame.getByRole("tab", { name: "Document 12 with a longer name", exact: true }),

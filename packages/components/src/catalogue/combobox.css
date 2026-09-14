@@ -23,8 +23,8 @@
     min-inline-size: 0;
   }
   :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(input-group) {
-    min-block-size: var(--mash-size-control, var(--layout-size-default-control));
-    padding-block: 3px;
+    min-block-size: var(--_mash-control-input-height);
+    padding-block: 0;
     transition:
       background var(--duration-fast-enter) var(--easing-control),
       border-color var(--duration-fast-enter) var(--easing-control);
@@ -36,7 +36,7 @@
   :where([data-mash-catalogue="mash"]) :is(ui-combobox, ui-autocomplete)::part(control) {
     flex: 1 1 7rem;
     inline-size: 7rem;
-    min-block-size: calc(var(--mash-size-control, var(--layout-size-default-control)) - 8px);
+    min-block-size: calc(var(--_mash-control-input-height) - 2px);
   }
   :where([data-mash-catalogue="mash"])
     :is(ui-combobox, ui-autocomplete):not(:has(> [slot="trigger"]))::part(trigger) {
@@ -52,8 +52,8 @@
     flex: none;
     align-items: center;
     justify-content: center;
-    inline-size: calc(var(--mash-size-control, var(--layout-size-default-control)) - 8px);
-    block-size: calc(var(--mash-size-control, var(--layout-size-default-control)) - 8px);
+    inline-size: calc(var(--_mash-control-input-height) - 8px);
+    block-size: calc(var(--_mash-control-input-height) - 8px);
     padding: 0;
     border: 0;
     border-radius: var(--radius-control);

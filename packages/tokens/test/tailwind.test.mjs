@@ -162,6 +162,10 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
     "type-caption2",
     "type-large-title",
     "duration-control",
+    "duration-fast-enter",
+    "duration-moderate-exit",
+    "h-size-compact-control",
+    "text-scale-default-body",
     "translate-x-motion-short",
     "blur-motion-subtle",
     "scale-motion-pressed",
@@ -186,6 +190,22 @@ test("compiles layout, surface, typography, focus, and motion utilities with Tai
   assert.match(css, /\.p-container-inline\s*{[^}]*padding: var\(--space-container-inline\)/s);
   assert.match(css, /\.rounded-container\s*{[^}]*border-radius: var\(--radius-container\)/s);
   assert.match(css, /\.ease-control\s*{[^}]*transition-timing-function: var\(--easing-control\)/s);
+  assert.match(
+    css,
+    /\.h-size-compact-control\s*{[^}]*height: var\(--layout-size-compact-control\)/s,
+  );
+  assert.match(
+    css,
+    /\.text-scale-default-body\s*{[^}]*font-size: var\(--type-scale-default-body\)/s,
+  );
+  assert.match(
+    css,
+    /\.duration-fast-enter\s*{[^}]*transition-duration: var\(--duration-fast-enter\)/s,
+  );
+  assert.match(
+    css,
+    /\.duration-moderate-exit\s*{[^}]*transition-duration: var\(--duration-moderate-exit\)/s,
+  );
   assert.match(css, /\.stack\s*{[^}]*gap: var\(--space-stack\)/s);
   assert.match(css, /\.surface-raised\s*{[^}]*background-color: var\(--color-surface-raised\)/s);
   assert.match(

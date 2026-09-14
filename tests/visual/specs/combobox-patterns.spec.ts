@@ -91,16 +91,20 @@ test("compact sizing coordinates the field and popup, and long lists scroll loca
   await frame.getByRole("switch", { name: "Compact context" }).click();
   const inherited = frame.getByRole("combobox", { name: "Inherited size", exact: true });
   await inherited.click();
-  const geometry = await frame
-    .locator('ui-combobox[label="Inherited size"]')
-    .evaluate((element) => {
-      const root = element.shadowRoot!;
-      const field = root.querySelector('[part="input-group"]')!.getBoundingClientRect();
-      const popup = root.querySelector('[part="popup"]')!.getBoundingClientRect();
-      return { fieldHeight: field.height, fieldWidth: field.width, popupWidth: popup.width };
-    });
-  expect(geometry.fieldHeight).toBe(28);
-  expect(Math.abs(geometry.fieldWidth - geometry.popupWidth)).toBeLessThan(2);
+  // Placement is queued on the next frame and the popup animates from a smaller scale.
+  await expect
+    .poll(() =>
+      frame.locator('ui-combobox[label="Inherited size"]').evaluate((element) => {
+        const root = element.shadowRoot!;
+        const field = root.querySelector('[part="input-group"]')!.getBoundingClientRect();
+        const popup = root.querySelector('[part="popup"]')!.getBoundingClientRect();
+        return {
+          height: field.height,
+          matchesWidth: Math.abs(field.width - popup.width) < 2,
+        };
+      }),
+    )
+    .toEqual({ height: 28, matchesWidth: true });
   frame = await example(page, "Long list");
   const zone = frame.getByRole("combobox", { name: "Time zone", exact: true });
   await zone.click();

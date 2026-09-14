@@ -1,4 +1,3 @@
-import type { UISelect } from "@mash/ui/select";
 import {
   filteredRows,
   identifier,
@@ -256,7 +255,7 @@ export function renderCollection(
       const tr = element("tr");
       for (const key of ["done", "title", "status", "owner", "due", "estimate"] as const) {
         const cell = element("td");
-        let input: HTMLInputElement | UISelect;
+        let input: HTMLInputElement | HTMLElementTagNameMap["ui-select"];
         if (key === "status") {
           input = element("ui-select");
           input.label = "status for " + row.title;
