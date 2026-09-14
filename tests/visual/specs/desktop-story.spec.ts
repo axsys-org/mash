@@ -3,6 +3,13 @@ import type { Notebook } from "../../../apps/catalog/src/stories/documents-model
 
 const pane = (page: Page, app: string) => page.locator(`.desktop-window[data-app="${app}"]`).last();
 
+async function openApp(page: Page, name: string): Promise<void> {
+  await page.getByRole("button", { name: "Open application launcher", exact: true }).click();
+  const search = page.locator(".desktop-launcher").getByRole("combobox");
+  await search.fill(name);
+  await search.press("Enter");
+}
+
 async function openDesktop(page: Page): Promise<void> {
   await page.setViewportSize({ width: 1600, height: 1000 });
   await page.goto("/stories/desktop?theme=dark");
@@ -37,7 +44,7 @@ test("desktop keeps an unsent app draft through workspace moves, floating resize
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await openDesktop(page);
-  await page.getByRole("button", { name: "Open Projects", exact: true }).click();
+  await openApp(page, "Projects");
   const projects = pane(page, "projects");
   const app = projects.frameLocator("iframe");
   await expect(app.locator("#issue-count")).toHaveText("24 issues");
@@ -63,6 +70,9 @@ test("desktop keeps an unsent app draft through workspace moves, floating resize
   await projects.getByRole("button", { name: "Float Projects", exact: true }).click();
   const resize = projects.locator('.desktop-resize-x [part="control"]').first();
   await expect(resize).toBeVisible();
+  await projects.evaluate((element) =>
+    Promise.all(element.getAnimations().map((animation) => animation.finished)),
+  );
   const before = await projects.boundingBox();
   const grip = await resize.boundingBox();
   expect(before).not.toBeNull();
@@ -98,7 +108,7 @@ test("an issue opens its exact document in another desktop pane and receives liv
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await openDesktop(page);
-  await page.getByRole("button", { name: "Open Projects", exact: true }).click();
+  await openApp(page, "Projects");
   const app = pane(page, "projects").frameLocator("iframe");
   await expect(app.locator("#issue-count")).toHaveText("24 issues");
   await app.getByRole("searchbox", { name: "Filter issues", exact: true }).fill("discoverable");
@@ -228,7 +238,7 @@ test("tile dragging and keyboard resizing keep a document live through pin, mini
   await expect(title).toHaveValue("A document that follows its workspace");
   await documents.getByRole("button", { name: "Minimize Documents", exact: true }).click();
   await expect(documents).toBeHidden();
-  await page.getByRole("button", { name: "Open Documents", exact: true }).click();
+  await openApp(page, "Documents");
   await expect(title).toHaveValue("A document that follows its workspace");
   expect(
     await documents.evaluate(
@@ -238,7 +248,7 @@ test("tile dragging and keyboard resizing keep a document live through pin, mini
   ).toBe(true);
   await documents.getByRole("button", { name: "Close Documents", exact: true }).click();
   await expect(documents).toHaveCount(0);
-  await page.getByRole("button", { name: "Open Documents", exact: true }).click();
+  await openApp(page, "Documents");
   await expect(title).toHaveValue("A document that follows its workspace");
   await attachDesktop(page, info, "desktop-pinned-document");
   expect(errors).toEqual([]);

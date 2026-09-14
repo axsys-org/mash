@@ -33,6 +33,7 @@ import {
 import { escape } from "./shared.js";
 import { readNotebook } from "./documents-store.js";
 import "./desktop.css";
+import { mountDesktopPet } from "./desktop-pet.js";
 
 const icon = (name: string) => `<ui-icon name="${name}" aria-hidden="true"></ui-icon>`;
 const labels = { dwindle: "Dwindle", master: "Master", columns: "Columns" };
@@ -89,7 +90,6 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       .slice(0, 4)
       .map((app) => `<button data-open="${app.id}">${icon(app.icon)}${app.title}</button>`)
       .join("")}</div></div><div class="desktop-drop-marker" aria-hidden="true"></div></div>
-    <footer class="desktop-shelf"><div class="desktop-shelf-context"><span class="desktop-live-dot"></span><span>Local workspace</span></div><nav class="desktop-dock" aria-label="Applications">${desktopApps.map((app) => `<button data-open="${app.id}" aria-label="Open ${app.title}" title="${app.title}">${icon(app.icon)}<span class="desktop-dock-tooltip">${app.title}</span><i></i></button>`).join("")}<span class="desktop-divider"></span><button data-action="desktop" aria-label="Show desktop" title="Show desktop">${icon("object.table")}</button></nav><button class="desktop-shortcuts" data-action="help" aria-label="Keyboard shortcuts">${icon("object.keyboard")}<span>Shortcuts</span></button></footer>
     <div class="desktop-notice" role="status" aria-live="polite" hidden></div>
     <ui-dialog class="desktop-launcher" label="Applications and commands"><ui-command label="Applications and commands" placeholder="Open an app or run a command…"><span slot="search-prefix">${icon("action.search")}</span><ui-kbd slot="search-suffix">Esc</ui-kbd><div slot="footer" class="desktop-command-footer"><span><ui-kbd>↑</ui-kbd><ui-kbd>↓</ui-kbd> navigate</span><span><ui-kbd>↵</ui-kbd> open</span></div></ui-command></ui-dialog>
     <ui-dialog class="desktop-settings" label="Desktop settings"><div class="desktop-setting"><div><h3>Appearance</h3><p>Applied to every open app.</p></div><div class="desktop-segments"><button data-theme-choice="light">Light</button><button data-theme-choice="dark">Dark</button></div></div><div class="desktop-setting"><h3>Wallpaper</h3><div class="desktop-wallpaper-options">${["dune", "alpine", "ink"].map((name) => `<button data-wallpaper-choice="${name}" aria-label="${name[0]!.toUpperCase() + name.slice(1)} wallpaper"><i data-wallpaper="${name}"></i><span>${name[0]!.toUpperCase() + name.slice(1)}</span></button>`).join("")}</div></div><div class="desktop-setting"><h3>Window spacing <output class="desktop-gap-value"></output></h3><ui-slider class="desktop-gap" label="Window spacing" min="4" max="24" step="2"></ui-slider></div><div class="desktop-setting"><h3>Workspace layout</h3><div class="desktop-segments">${Object.entries(
@@ -124,6 +124,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   </div>`;
   const shell = root.querySelector<HTMLElement>(".desktop")!;
   const stage = root.querySelector<HTMLElement>(".desktop-stage")!;
+  const disposePet = mountDesktopPet(shell, stage);
   const find = <T extends HTMLElement = HTMLElement>(selector: string) =>
     root.querySelector<T>(selector)!;
   const dialog = (name: string) => find<UIDialog>(`.desktop-${name}`);
@@ -594,15 +595,6 @@ export async function mount(root: HTMLElement): Promise<() => void> {
       button.setAttribute("aria-pressed", String(state.workspace === id));
       button.dataset.occupied = String(state.windows.some((pane) => pane.workspace === id));
     }
-    for (const button of root.querySelectorAll<HTMLElement>(".desktop-dock [data-open]")) {
-      button.dataset.running = String(
-        state.windows.some((pane) => pane.app === button.dataset.open),
-      );
-      button.setAttribute(
-        "aria-pressed",
-        String(active()?.app === button.dataset.open && !showDesktop),
-      );
-    }
   }
 
   function openLauncher() {
@@ -929,6 +921,7 @@ export async function mount(root: HTMLElement): Promise<() => void> {
   render();
   persist();
   return () => {
+    disposePet();
     controller.abort();
     observer.disconnect();
     cancelAnimationFrame(renderFrame);
