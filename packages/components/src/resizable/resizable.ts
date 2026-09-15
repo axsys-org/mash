@@ -155,16 +155,24 @@ export class UIResizable extends LitElement {
       const previousSize = previous.measuredSize(this.orientation);
       const nextSize = next.measuredSize(this.orientation);
       const totalSize = previousSize + nextSize;
-      const minimum = Math.max(previous.min, totalSize - next.max);
-      const maximum = Math.min(previous.max, totalSize - next.min);
-      if (!previous.id) previous.id = `mash-resizable-panel-${++generatedPanelId}`;
-      handle.setRange(previousSize, minimum, maximum, previous.id);
+      const target = handle.primaryPanel === "next" ? next : previous;
+      const neighbor = target === next ? previous : next;
+      const targetSize = target === next ? nextSize : previousSize;
+      const minimum = Math.max(target.min, totalSize - neighbor.max);
+      const maximum = Math.min(target.max, totalSize - neighbor.min);
+      if (!target.id) target.id = `mash-resizable-panel-${++generatedPanelId}`;
+      handle.setRange(targetSize, minimum, maximum, target.id);
     }
   }
 
   /** @internal Resynchronizes adjacency after one direct panel changes its constraints. */
   syncPanelState(panel: UIResizablePanel): void {
     if (panel.parentElement === this) this.#syncHandles();
+  }
+
+  /** @internal Resynchronizes the accessible target of one direct handle. */
+  syncHandleState(handle: UIResizableHandle): void {
+    if (handle.parentElement === this) this.#syncHandles();
   }
 
   /** Resizes one visible panel and redistributes the delta to its neighbor. */
@@ -190,7 +198,9 @@ export class UIResizable extends LitElement {
     this.#syncHandles();
     this.dispatchEvent(
       new CustomEvent<{ sizes: number[] }>("ui-resizable-change", {
-        detail: { sizes: this.#panels.map((panel) => panel.measuredSize(this.orientation)) },
+        detail: {
+          sizes: this.#panels.map((panel) => panel.measuredSize(this.orientation)),
+        },
         bubbles: true,
         composed: true,
       }),
@@ -371,6 +381,7 @@ export class UIResizableHandle extends LitElement {
   static override properties = {
     orientation: { type: String, reflect: true },
     label: { type: String, reflect: true },
+    primaryPanel: { type: String, reflect: true, attribute: "primary-panel" },
     step: { type: Number, reflect: true },
     resizing: { type: Boolean, reflect: true },
   };
@@ -379,6 +390,8 @@ export class UIResizableHandle extends LitElement {
   declare orientation: ResizableOrientation;
   /** Accessible name for the resize separator. */
   declare label: string;
+  /** Panel announced by the separator's accessible range; pointer and arrow direction stay spatial. */
+  declare primaryPanel: "previous" | "next";
   /** Keyboard resize increment in CSS pixels. */
   declare step: number;
   /** True during an active pointer resize. */
@@ -396,6 +409,7 @@ export class UIResizableHandle extends LitElement {
     super();
     this.orientation = "horizontal";
     this.label = "Resize panels";
+    this.primaryPanel = "previous";
     this.step = 10;
     this.resizing = false;
     this.#internals = this.attachInternals();
@@ -460,6 +474,12 @@ export class UIResizableHandle extends LitElement {
     this.#emit(event.key === negative ? -this.step : this.step, "move");
     this.#emit(0, "end");
   };
+
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    if (changed.has("primaryPanel") && this.parentElement instanceof UIResizable) {
+      this.parentElement.syncHandleState(this);
+    }
+  }
 
   protected override updated(changed: PropertyValues<this>): void {
     if (!changed.has("resizing")) return;

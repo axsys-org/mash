@@ -884,7 +884,8 @@
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-    scrollbar-gutter: stable;
+    /* Match command menus: do not reserve an empty lane beside short lists. */
+    scrollbar-gutter: auto;
   }
 
   :where([data-mash-catalogue="mash"]) ui-select::part(search) {

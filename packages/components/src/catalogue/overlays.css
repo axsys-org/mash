@@ -68,19 +68,27 @@
 
   :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(popup),
   :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(popup) {
-    animation: mash-menu-presence-closeout var(--duration-transient) var(--easing-control) both;
+    /* Fade the painted shell with its content, not just the projected rows.
+       The popup owns an opaque surface, border and shadow even without a
+       material layer; a presence-only animation leaves an empty rectangle. */
+    animation: mash-menu-closeout var(--duration-transient) var(--easing-control) both;
     pointer-events: none;
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(material),
-  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(material),
+  :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(material) {
+    animation: mash-menu-closeout var(--duration-transient) var(--easing-control) both;
+  }
+
   :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(header),
   :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(header),
   :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(viewport),
   :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(viewport),
   :where([data-mash-catalogue="mash"]) ui-menu:not([nested]):state(exiting)::part(footer),
   :where([data-mash-catalogue="mash"]) ui-context-menu:state(exiting)::part(footer) {
-    animation: mash-menu-closeout var(--duration-transient) var(--easing-control) both;
+    /* Explicitly reset older bundled recipes: independently fading children
+       would square their opacity and make text disappear before the shell. */
+    animation: none;
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu[nested]:state(exiting)::part(popup) {
@@ -602,7 +610,8 @@
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-    scrollbar-gutter: stable;
+    /* Short menus keep symmetric shell insets; only overflow needs a scrollbar. */
+    scrollbar-gutter: auto;
   }
 
   :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu) {
@@ -632,9 +641,14 @@
     );
     --_mash-menu-density-inline-size: var(--layout-menu-inline-regular);
     --_mash-menu-inline-size: max-content;
-    --_mash-menu-min-inline-size: var(--layout-menu-inline-mini);
-    --_mash-menu-max-inline-size: var(--_mash-menu-density-inline-size);
-    --_mash-menu-row-size: var(--mash-size-control, var(--layout-menu-row-regular));
+    /* Content sizing hugs the longest command, not a density-sized floor.
+       Fixed/stretch remain explicit choices below; overflow stays bounded. */
+    --_mash-menu-min-inline-size: var(--layout-dimension-zero);
+    --_mash-menu-max-inline-size: calc(100vw - var(--space-container-inline));
+    --_mash-menu-row-size: max(
+      var(--mash-size-control, var(--layout-menu-row-regular)),
+      var(--_mash-menu-target-min-size, var(--layout-dimension-zero))
+    );
     --_mash-menu-selection-lane: var(--layout-dimension-zero);
     --_mash-menu-prefix-lane: var(--layout-dimension-zero);
   }
@@ -715,13 +729,18 @@
 
   :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[density="compact"] {
     --_mash-menu-density-inline-size: var(--layout-menu-inline-compact);
-    --_mash-menu-row-size: var(--layout-menu-row-compact);
+    --_mash-menu-row-size: max(
+      var(--layout-menu-row-compact),
+      var(--_mash-menu-target-min-size, var(--layout-dimension-zero))
+    );
   }
 
   :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[density="mini"] {
     --_mash-menu-density-inline-size: var(--layout-menu-inline-mini);
-    --_mash-menu-min-inline-size: var(--layout-menu-inline-mini);
-    --_mash-menu-row-size: var(--layout-menu-row-mini);
+    --_mash-menu-row-size: max(
+      var(--layout-menu-row-mini),
+      var(--_mash-menu-target-min-size, var(--layout-dimension-zero))
+    );
   }
 
   :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu)[sizing="fixed"] {
@@ -964,6 +983,25 @@
 
   :where([data-mash-catalogue="mash"]) ui-menu-item.mash-menu-rich::part(label-viewport) {
     white-space: normal;
+  }
+
+  @media (pointer: coarse) {
+    :where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu) {
+      /* The ten-row viewport uses the same effective measure as the targets. */
+      --_mash-menu-target-min-size: var(--layout-dimension-control-touch);
+    }
+
+    :where([data-mash-catalogue="mash"]) ui-menu-item::part(control),
+    :where([data-mash-catalogue="mash"]) ui-menu-item.mash-menu-rich::part(control) {
+      /* Reserve real, non-overlapping native targets at every menu density.
+         The explicit minimum also supersedes earlier bundled row recipes;
+         rich rows remain free to grow with their authored content. */
+      min-block-size: max(
+        var(--layout-dimension-control-touch),
+        var(--_mash-menu-row-size, var(--layout-menu-row-regular))
+      );
+      min-inline-size: var(--layout-dimension-control-touch);
+    }
   }
 
   :where([data-mash-catalogue="mash"]) ui-menu-item.mash-menu-rich > .mash-stack {

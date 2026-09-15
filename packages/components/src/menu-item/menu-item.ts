@@ -77,6 +77,14 @@ function pointerAimsAtSubmenu(
  * checkmark, leading symbol, overflowing label, shortcut, and submenu chevron
  * aligned without making any of those visual choices part of the behaviour.
  *
+ * An action leaf with `href` is a native link. Unmodified primary activation
+ * (including Enter or Space) emits selection without cancelling navigation. Modified
+ * clicks and auxiliary activation retain browser link behaviour without
+ * selecting the item or dismissing the containing menu. SPA consumers should
+ * intercept the composed native click, not navigate from selection events.
+ * Disabled navigation removes the native href and cancels primary/auxiliary
+ * activation while retaining Arrow-key discoverability in the menu.
+ *
  * @tag ui-menu-item
  * @summary A selectable menu command or submenu branch.
  *
@@ -102,7 +110,7 @@ function pointerAimsAtSubmenu(
  * @slot submenu - Optional nested `ui-menu` branch.
  *
  * @csspart root - The complete item and nested-menu boundary.
- * @csspart control - The native menuitem button.
+ * @csspart control - The native menuitem button or navigation anchor.
  * @csspart selection - The fixed selection-indicator lane.
  * @csspart prefix - The fixed leading-symbol lane.
  * @csspart label - The label region.
@@ -343,7 +351,11 @@ export class UIMenuItem extends LitElement {
     if (this.#hoverIntent?.delayedX === current.x && this.#hoverIntent.delayedY === current.y) {
       return 0;
     }
-    this.#hoverIntent = { ...this.#hoverIntent, delayedX: current.x, delayedY: current.y };
+    this.#hoverIntent = {
+      ...this.#hoverIntent,
+      delayedX: current.x,
+      delayedY: current.y,
+    };
     return submenuHoverIntentResampleDelay;
   }
 
@@ -542,6 +554,15 @@ export class UIMenuItem extends LitElement {
       event.preventDefault();
       return;
     }
+    if (event.button !== 0) return;
+    if (
+      this.href &&
+      this.kind === "action" &&
+      !this.#submenu &&
+      (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
+    ) {
+      return;
+    }
     if (this.#submenu) {
       event.preventDefault();
       this.showSubmenu(true);
@@ -568,7 +589,24 @@ export class UIMenuItem extends LitElement {
   };
 
   #onKeydown = (event: KeyboardEvent): void => {
-    if (!this.#submenu) return;
+    if (!this.#submenu) {
+      // A navigation leaf keeps native Enter activation. Space has no anchor
+      // default, but remains a menuitem activation key just like button leaves.
+      if (
+        this.href &&
+        this.kind === "action" &&
+        event.key === " " &&
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.shiftKey
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!this.disabled && !event.repeat) (event.currentTarget as HTMLElement).click();
+      }
+      return;
+    }
     if (event.key === "ArrowRight" || event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       event.stopPropagation();
@@ -604,6 +642,7 @@ export class UIMenuItem extends LitElement {
           aria-haspopup=${this._hasSubmenu ? "menu" : undefined}
           aria-expanded=${this._hasSubmenu ? String(this.submenuOpen) : undefined}
           @click=${this.#select}
+          @auxclick=${this.#select}
           @keydown=${this.#onKeydown}
           @pointerenter=${this.#onPointerEnter}
           @pointerleave=${this.#onPointerLeave}

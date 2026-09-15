@@ -15,7 +15,8 @@ interface FieldContextControl extends HTMLElement {
  *
  * Put a native input, or a Mash form-associated control such as `ui-input`,
  * in the `control` slot. The field transfers its text label to an unlabelled
- * Mash input and wires ordinary native controls with `for`/`aria-describedby`.
+ * Mash input and keeps that inherited name in sync until the control receives
+ * its own nonempty label. Ordinary native controls use `for`/`aria-describedby`.
  * Error visibility is a semantic state, not an alternate visual component.
  *
  * @tag ui-field
@@ -72,6 +73,7 @@ export class UIField extends LitElement {
   declare private _hasLabel: boolean;
 
   readonly #internals: ElementInternals;
+  readonly #providedLabels = new WeakMap<FieldContextControl, string>();
   readonly #controlId = `ui-field-control-${++fieldId}`;
   readonly #descriptionId = `ui-field-description-${fieldId}`;
   readonly #errorId = `ui-field-error-${fieldId}`;
@@ -115,10 +117,22 @@ export class UIField extends LitElement {
         typeof (candidate as Partial<FieldContextControl>)._setFieldContext === "function",
     );
     if (mashControl) {
+      const currentLabel = mashControl.label ?? mashControl.getAttribute("label") ?? "";
+      const providedLabel = this.#providedLabels.get(mashControl);
       const ownsLabel =
-        mashControl.hasAttribute("label") ||
+        // Lit may already have reflected the control's empty default. Attribute
+        // presence alone cannot distinguish that from an authored name.
+        (mashControl.hasAttribute("label") &&
+          Boolean(currentLabel.trim()) &&
+          currentLabel !== providedLabel) ||
         Boolean(mashControl.querySelector(":scope > [slot='label']"));
-      if (!ownsLabel && "label" in mashControl) mashControl.label = this.#labelText;
+      if (!ownsLabel && "label" in mashControl) {
+        const label = this.#labelText;
+        mashControl.label = label;
+        this.#providedLabels.set(mashControl, label);
+      } else {
+        this.#providedLabels.delete(mashControl);
+      }
       if ("required" in mashControl) mashControl.required = this.required;
       mashControl._setFieldContext({
         description: [this.description, this.invalid ? this.error : ""].filter(Boolean).join(" "),

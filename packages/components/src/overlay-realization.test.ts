@@ -369,8 +369,8 @@ describe("overlay authored-slot realizations", () => {
     expect(positioner.dataset.side).toBe("top");
     expect(positioner.dataset.align).toBe("start");
     expect(positioner.style.position).toBe("fixed");
-    expect(positioner.style.insetInlineStart).toBe("24px");
-    expect(positioner.style.insetBlockStart).toBe(`${window.innerHeight - 98}px`);
+    expect(positioner.style.left).toBe("24px");
+    expect(positioner.style.top).toBe(`${window.innerHeight - 98}px`);
   });
 
   it("applies cross-axis anchored offsets without changing side distance", () => {

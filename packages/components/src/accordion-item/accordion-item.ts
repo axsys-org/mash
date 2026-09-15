@@ -137,9 +137,9 @@ export class UIAccordionItem extends LitElement {
           ?disabled=${this.disabled}
           @click=${this.#onClick}
         >
-          <span part="prefix"><slot name="prefix" @slotchange=${hideEmptySlot}></slot></span>
+          <span part="prefix" hidden><slot name="prefix" @slotchange=${hideEmptySlot}></slot></span>
           <span part="title"><slot name="title">${this.title}</slot></span>
-          <span part="suffix"><slot name="suffix" @slotchange=${hideEmptySlot}></slot></span>
+          <span part="suffix" hidden><slot name="suffix" @slotchange=${hideEmptySlot}></slot></span>
           <span part="disclosure" aria-hidden="true"><slot name="disclosure">▸</slot></span>
         </button>
       </div>

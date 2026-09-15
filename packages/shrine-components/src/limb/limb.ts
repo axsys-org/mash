@@ -5,6 +5,10 @@ import { baseStyles } from "../internal/base-styles.js";
 /**
  * One labelled value in a Shrine record.
  *
+ * The Mash recipe aligns labels across a record, wraps both columns, and
+ * stacks them in a narrow record container. `sh-myth` owns the shared row
+ * rhythm; the limb does not inspect or shorten either projected value.
+ *
  * @tag sh-limb
  * @summary Aligns one Shrine field label with its value.
  *

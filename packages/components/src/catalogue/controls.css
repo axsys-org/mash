@@ -31,6 +31,8 @@
       ui-button[size="sm"],
       ui-button[size="small"],
       ui-input[size="small"],
+      ui-input-group[size="small"],
+      ui-link[size="small"],
       ui-select[size="small"],
       ui-combobox[size="small"],
       ui-tabs[size="small"],
@@ -50,6 +52,8 @@
       ui-button[size="md"],
       ui-button[size="medium"],
       ui-input[size="medium"],
+      ui-input-group[size="medium"],
+      ui-link[size="medium"],
       ui-select[size="medium"],
       ui-combobox[size="medium"],
       ui-tabs[size="medium"],
@@ -69,6 +73,8 @@
       ui-button[size="lg"],
       ui-button[size="large"],
       ui-input[size="large"],
+      ui-input-group[size="large"],
+      ui-link[size="large"],
       ui-select[size="large"],
       ui-combobox[size="large"],
       ui-tabs[size="large"],
@@ -101,6 +107,9 @@
     --_mash-button-border: transparent;
     --_mash-button-hover: var(--color-action-hover);
     --_mash-button-active: var(--color-action-pressed);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button[tone="neutral"] {
+    --_mash-button-color: var(--color-text);
   }
   :where([data-mash-catalogue="mash"]) ui-button[variant="secondary"] {
     --_mash-button-background: var(--color-neutral);
@@ -208,16 +217,52 @@
   :where([data-mash-catalogue="mash"]) ui-button[compact]::part(control) {
     padding-inline: calc(var(--_mash-control-inline) * 0.75);
   }
+  /* Deliberately opt in: existing text controls keep their original geometry.
+     Wrapping never creates an invisible hit extension over adjacent controls. */
+  :where([data-mash-catalogue="mash"]) ui-button[touch-target]:not([icon-only])::part(control) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: var(--type-body-line-height);
+  }
+  :where([data-mash-catalogue="mash"]) ui-button[touch-target]:not([icon-only])::part(label) {
+    min-inline-size: 0;
+    overflow: visible;
+    white-space: inherit;
+    overflow-wrap: inherit;
+  }
+  /* Shape is independent of size, emphasis and tone. Reserve real layout
+     space on touch devices instead of overlapping neighbouring hit areas. */
+  :where([data-mash-catalogue="mash"]) ui-button[icon-only] {
+    flex-shrink: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-button[icon-only]::part(control) {
+    inline-size: var(--_mash-control-height);
+    block-size: var(--_mash-control-height);
+    min-inline-size: var(--_mash-control-height);
+    padding: 0;
+    gap: 0;
+    flex-shrink: 0;
+  }
+  :where([data-mash-catalogue="mash"]) ui-button[icon-only]::part(prefix),
+  :where([data-mash-catalogue="mash"]) ui-button[icon-only]::part(label),
+  :where([data-mash-catalogue="mash"]) ui-button[icon-only]::part(suffix) {
+    gap: 0;
+  }
   :where([data-mash-catalogue="mash"])
-    ui-button:not([disabled]):not([loading]):hover::part(control) {
+    ui-button:not([disabled], :state(disabled)):not([loading]):hover::part(control) {
     background: var(--_mash-button-hover);
   }
   :where([data-mash-catalogue="mash"])
-    ui-button:not([disabled]):not([loading]):is(:active, [selected])::part(control) {
+    ui-button:not([disabled], :state(disabled)):not([loading]):is(
+      :active,
+      [selected],
+      [aria-pressed="true"],
+      [aria-expanded="true"]
+    )::part(control) {
     background: var(--_mash-button-active);
   }
   :where([data-mash-catalogue="mash"])
-    ui-button:is([variant="link"], [variant="text"])::part(control) {
+    ui-button:is([variant="link"], [variant="text"]):not([icon-only])::part(control) {
     min-inline-size: 0;
     padding-inline: 0;
     background: transparent;
@@ -228,7 +273,7 @@
     text-underline-offset: var(--border-strong);
     cursor: pointer;
   }
-  :where([data-mash-catalogue="mash"]) ui-button[disabled]::part(control),
+  :where([data-mash-catalogue="mash"]) ui-button:is([disabled], :state(disabled))::part(control),
   :where([data-mash-catalogue="mash"]) ui-toggle:is([disabled], :state(disabled))::part(control) {
     opacity: 0.5;
     cursor: not-allowed;
@@ -327,6 +372,7 @@
   :where([data-mash-catalogue="mash"]) ui-input-group {
     display: inline-flex;
     min-inline-size: 0;
+    max-inline-size: 100%;
   }
   :where([data-mash-catalogue="mash"]) ui-input-group::part(root) {
     display: flex;
@@ -351,10 +397,42 @@
     outline: none;
     box-shadow: none;
   }
+  :where([data-mash-catalogue="mash"]) ui-input-group > input[slot="control"] {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-inline-size: 0;
+    min-block-size: calc(var(--_mash-control-input-height) - var(--border-hairline) * 2);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    outline: none;
+    box-shadow: none;
+  }
+  :where([data-mash-catalogue="mash"]) ui-input-group[typography="code"] > ui-input::part(control),
+  :where([data-mash-catalogue="mash"]) ui-input-group[typography="code"] > input[slot="control"] {
+    font-family: var(--type-code-font-family);
+  }
+  :where([data-mash-catalogue="mash"])
+    ui-input-group:is(
+      [invalid],
+      :has(
+        > :is(ui-input, input)[slot="control"]:is(:invalid, :state(invalid), [aria-invalid="true"])
+      )
+    )::part(root) {
+    border-color: var(--color-critical);
+  }
   :where([data-mash-catalogue="mash"]) ui-input-group::part(prefix),
   :where([data-mash-catalogue="mash"]) ui-input-group::part(suffix) {
     display: inline-flex;
     align-items: center;
+    gap: var(--_mash-control-gap);
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    flex-wrap: wrap;
     color: var(--color-text-muted);
   }
   :where([data-mash-catalogue="mash"]) ui-input-group::part(prefix-separator),
@@ -363,6 +441,39 @@
     inline-size: var(--border-hairline);
     margin-block: var(--space-control-block);
     background: var(--_mash-component-boundary);
+  }
+  @media (pointer: coarse) {
+    :where([data-mash-catalogue="mash"]) ui-button[icon-only]::part(control) {
+      inline-size: max(var(--_mash-control-height), var(--layout-dimension-control-touch));
+      block-size: max(var(--_mash-control-height), var(--layout-dimension-control-touch));
+      min-inline-size: max(var(--_mash-control-height), var(--layout-dimension-control-touch));
+      min-block-size: max(var(--_mash-control-height), var(--layout-dimension-control-touch));
+    }
+    :where([data-mash-catalogue="mash"]) ui-button[touch-target]::part(control) {
+      min-inline-size: max(var(--_mash-control-height), var(--layout-dimension-control-touch));
+      min-block-size: max(var(--_mash-control-height), var(--layout-dimension-control-touch));
+    }
+    :where([data-mash-catalogue="mash"]) ui-input-group[touch-target]::part(root) {
+      flex-wrap: wrap;
+    }
+    :where([data-mash-catalogue="mash"]) ui-input[touch-target] {
+      /* Reserve the native target in layout, not an overlapping hit extension. */
+      min-inline-size: var(--layout-dimension-control-touch);
+    }
+    :where([data-mash-catalogue="mash"]) ui-input-group[touch-target]::part(control) {
+      /* Reserve the native input's minimum before distributing adornments.
+         When space runs out, a visible second row is safer than overlapping
+         adjacent 44px targets or clipping the editable control. */
+      min-inline-size: var(--layout-dimension-control-touch);
+    }
+    :where([data-mash-catalogue="mash"]) ui-input[touch-target]::part(control),
+    :where([data-mash-catalogue="mash"]) ui-input-group > ui-input[touch-target]::part(control),
+    :where([data-mash-catalogue="mash"]) ui-input-group[touch-target] > ui-input::part(control),
+    :where([data-mash-catalogue="mash"]) ui-input-group[touch-target] > input[slot="control"] {
+      min-inline-size: var(--layout-dimension-control-touch);
+      min-block-size: max(var(--_mash-control-input-height), var(--layout-dimension-control-touch));
+      font-size: max(var(--_mash-control-text), var(--type-label-large-font-size));
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     :where([data-mash-catalogue="mash"]) ui-button::part(control),

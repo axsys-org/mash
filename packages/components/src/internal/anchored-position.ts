@@ -207,8 +207,12 @@ export class AnchoredPositionController {
     );
     positioner.style.position = "fixed";
     positioner.style.display = "block";
-    positioner.style.insetInlineStart = `${Math.round(resolved.left)}px`;
-    positioner.style.insetBlockStart = `${Math.round(resolved.top)}px`;
+    // The resolver returns physical viewport coordinates. Logical inline-start
+    // reverses these in RTL and also reverses the containing-block correction.
+    positioner.style.left = `${Math.round(resolved.left)}px`;
+    positioner.style.top = `${Math.round(resolved.top)}px`;
+    positioner.style.right = "auto";
+    positioner.style.bottom = "auto";
     // A backdrop-filter or transform on an ancestor establishes a containing
     // block for fixed descendants. Nested material menus therefore need one
     // measured correction to retain viewport coordinates without portalling
@@ -217,10 +221,10 @@ export class AnchoredPositionController {
     const deltaX = resolved.left - actual.left;
     const deltaY = resolved.top - actual.top;
     if (Math.abs(deltaX) > 0.5) {
-      positioner.style.insetInlineStart = `${Math.round(resolved.left + deltaX)}px`;
+      positioner.style.left = `${Math.round(resolved.left + deltaX)}px`;
     }
     if (Math.abs(deltaY) > 0.5) {
-      positioner.style.insetBlockStart = `${Math.round(resolved.top + deltaY)}px`;
+      positioner.style.top = `${Math.round(resolved.top + deltaY)}px`;
     }
     const finalPopup = popup.getBoundingClientRect();
     positioner.dataset.side = resolved.placement;

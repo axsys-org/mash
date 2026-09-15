@@ -45,7 +45,7 @@ export interface InputFocusChangeDetail {
  * @cssstate readonly - Matches `:state(readonly)` while the value cannot be edited.
  * @cssstate required - Matches `:state(required)` while a value is required.
  * @cssstate focused - Matches `:state(focused)` while the native control owns focus.
- * @cssstate invalid - Matches `:state(invalid)` while the native control or owning field reports an error.
+ * @cssstate invalid - Matches `:state(invalid)` while the enabled control has an authored, native, or owning-field error.
  *
  * @fires {InputEvent} input - Reports an in-progress value edit.
  * @fires {Event} change - Reports a committed value edit.
@@ -58,6 +58,7 @@ export interface InputFocusChangeDetail {
  * @mashnode type type control
  * @mashnode size size control
  * @mashaxis size control-size
+ * @mashnode touchTarget touch-target control
  * @mashnode placeholder placeholder control
  * @mashnode label label control
  * @mashnode autocomplete autocomplete control
@@ -94,6 +95,7 @@ export class UIInput extends LitElement {
     name: { type: String, reflect: true },
     type: { type: String, reflect: true },
     size: { type: String, reflect: true },
+    touchTarget: { type: Boolean, attribute: "touch-target", reflect: true },
     placeholder: { type: String, reflect: true },
     label: { type: String, reflect: true },
     autocomplete: { type: String, reflect: true },
@@ -101,8 +103,13 @@ export class UIInput extends LitElement {
     pattern: { type: String, reflect: true },
     minLength: { type: Number, attribute: "minlength" },
     maxLength: { type: Number, attribute: "maxlength" },
-    cleanOnEscape: { type: Boolean, attribute: "clean-on-escape", reflect: true },
+    cleanOnEscape: {
+      type: Boolean,
+      attribute: "clean-on-escape",
+      reflect: true,
+    },
     disabled: { type: Boolean, reflect: true },
+    invalid: { type: Boolean, reflect: true },
     readonly: { type: Boolean, reflect: true },
     required: { type: Boolean, reflect: true },
   };
@@ -117,6 +124,8 @@ export class UIInput extends LitElement {
   declare type: InputType;
   /** Physical scale; inherit follows the nearest data-mash-size context. */
   declare size: InputSize;
+  /** Opts into a real minimum touch target on coarse pointers; fine-pointer sizing is unchanged. */
+  declare touchTarget: boolean;
   /** Hint shown when the field is empty. */
   declare placeholder: string;
   /** Accessible name when the input has no external label. */
@@ -135,6 +144,8 @@ export class UIInput extends LitElement {
   declare cleanOnEscape: boolean;
   /** Prevents focus and text entry. */
   declare disabled: boolean;
+  /** Authored semantic error state, combined with field/native validity; does not itself block form submission. */
+  declare invalid: boolean;
   /** Allows focus and selection but prevents edits. */
   declare readonly: boolean;
   /** Requires a value before the containing form can submit. */
@@ -155,6 +166,7 @@ export class UIInput extends LitElement {
     this.name = "";
     this.type = "text";
     this.size = "inherit";
+    this.touchTarget = false;
     this.placeholder = "";
     this.label = "";
     this.autocomplete = "";
@@ -164,6 +176,7 @@ export class UIInput extends LitElement {
     this.maxLength = -1;
     this.cleanOnEscape = false;
     this.disabled = false;
+    this.invalid = false;
     this.readonly = false;
     this.required = false;
     this.#internals = this.attachInternals();
@@ -259,7 +272,11 @@ export class UIInput extends LitElement {
     control.setSelectionRange(caret, caret);
     this.#syncFormState();
     this.dispatchEvent(
-      new InputEvent("input", { bubbles: true, composed: true, inputType: event.inputType }),
+      new InputEvent("input", {
+        bubbles: true,
+        composed: true,
+        inputType: event.inputType,
+      }),
     );
   };
 
@@ -339,9 +356,12 @@ export class UIInput extends LitElement {
   }
 
   #syncInvalidState(): void {
-    if (!this.#effectiveDisabled && (this.#fieldInvalid || this.#nativeInvalid))
-      this.#internals.states.add("invalid");
+    const invalid =
+      !this.#effectiveDisabled && (this.invalid || this.#fieldInvalid || this.#nativeInvalid);
+    if (invalid) this.#internals.states.add("invalid");
     else this.#internals.states.delete("invalid");
+    if (invalid) this.control?.setAttribute("aria-invalid", "true");
+    else this.control?.removeAttribute("aria-invalid");
   }
 
   #syncValidity(): void {
@@ -428,7 +448,7 @@ export class UIInput extends LitElement {
         maxlength=${this.maxLength >= 0 ? this.maxLength : nothing}
         aria-label=${this.label || nothing}
         aria-description=${this.#fieldDescription || nothing}
-        aria-invalid=${!this.#effectiveDisabled && this.#fieldInvalid ? "true" : nothing}
+        aria-invalid=${!this.#effectiveDisabled && (this.invalid || this.#fieldInvalid || this.#nativeInvalid) ? "true" : nothing}
         ?disabled=${this.#effectiveDisabled}
         ?readonly=${this.readonly}
         ?required=${this.required}

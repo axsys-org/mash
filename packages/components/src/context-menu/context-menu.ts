@@ -13,8 +13,9 @@ import type { MenuDensity, MenuSizing } from "../menu/menu.js";
  * A context-triggered command menu.
  *
  * The trigger opens with the platform context-menu gesture and preserves the
- * normal menu-item selection contract. A catalogue can position the popup at
- * the pointer; its semantic command and keyboard behaviour are shared.
+ * normal menu-item selection contract. `showAt(point, invoker)` supports
+ * delegated pointer gestures without moving or wrapping the authored target.
+ * `anchorElement` plus `show("keyboard")` opens at that target instead.
  *
  * @tag ui-context-menu
  * @summary Opens a command menu from a context-menu gesture.
@@ -37,7 +38,11 @@ import type { MenuDensity, MenuSizing } from "../menu/menu.js";
  * @csspart popup - The semantic context menu surface.
  * @csspart material - The isolated visual material layer behind context-menu content.
  * @csspart header - The authored persistent content before the command viewport.
- * @csspart viewport - The natively scrollable command viewport.
+ * @csspart scroll-area - The composed Mash scroll controller.
+ * @csspart viewport - The native viewport owned by that scroll controller.
+ * @csspart block-scrollbar - The activity-revealed vertical scroll control.
+ * @csspart block-track - The vertical scroll track.
+ * @csspart block-thumb - The vertical scroll indicator.
  * @csspart actions - The authored context-menu commands.
  * @csspart footer - The authored persistent content after the command viewport.
  * @csspart close - The authored close action realization.
@@ -108,6 +113,32 @@ export class UIContextMenu extends UIAnchoredOverlay {
     this.addEventListener("pointerout", this.#onPointerOut);
   }
 
+  /**
+   * Opens at viewport-relative CSS coordinates without adopting the invoker.
+   * Escape returns focus to that invoker; pointer dismissal does not steal it.
+   * Repeated calls retarget an already-open menu through shared positioning.
+   */
+  showAt(point: { x: number; y: number }, invoker: HTMLElement): void {
+    if (
+      !Number.isFinite(point?.x) ||
+      !Number.isFinite(point?.y) ||
+      !(invoker instanceof HTMLElement) ||
+      !invoker.isConnected
+    ) {
+      throw new TypeError("A context menu requires a finite point and connected invoker.");
+    }
+    if (this.disabled) return;
+    this.anchorElement = invoker;
+    this.setContextPoint({ x: point.x, y: point.y });
+    this.requestOpenChange(true, "contextmenu", null, false);
+  }
+
+  /** Opens at the authored/external anchor, clearing any earlier pointer point. */
+  override show(reason: OverlayChangeReason = "imperative"): void {
+    this.setContextPoint(null);
+    super.show(reason);
+  }
+
   override disconnectedCallback(): void {
     this.#collection.destroy();
     super.disconnectedCallback();
@@ -133,9 +164,17 @@ export class UIContextMenu extends UIAnchoredOverlay {
       <div part="header" role="presentation">
         <slot name="header" @slotchange=${this.#onChromeSlotChange}></slot>
       </div>
-      <div part="viewport">
+      <ui-scroll-area
+        part="scroll-area"
+        orientation="vertical"
+        mode="scrolling"
+        size="medium"
+        viewport-tabindex="-1"
+        viewport-role="presentation"
+        exportparts="root:scroll-root,viewport:viewport,block-scrollbar:block-scrollbar,block-track:block-track,block-thumb:block-thumb,inline-scrollbar:inline-scrollbar,corner:scroll-corner"
+      >
         <div part="actions"><slot></slot></div>
-      </div>
+      </ui-scroll-area>
       <div part="footer" role="presentation">
         <slot name="footer" @slotchange=${this.#onChromeSlotChange}></slot>
       </div>

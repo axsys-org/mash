@@ -5,6 +5,10 @@ import { baseStyles } from "../internal/base-styles.js";
 /**
  * The named label of a Shrine limb.
  *
+ * For an actionable definition, project an authored `ui-button variant="text"`
+ * into this component. The Mash recipe retains compact wrapping and the
+ * button's native focus/disabled behavior; the consumer owns the action.
+ *
  * @tag sh-slot
  * @summary Renders a concise, code-style Shrine field label.
  *

@@ -20,7 +20,10 @@ describe("ui-tooltip", () => {
     await settled(tooltip.parentElement!);
 
     expect(tooltip.open).toBe(true);
-    expect(listener.mock.calls[0]?.[0].detail).toEqual({ open: true, reason: "trigger" });
+    expect(listener.mock.calls[0]?.[0].detail).toEqual({
+      open: true,
+      reason: "trigger",
+    });
     expect(inShadow(tooltip, '[part="popup"]').getAttribute("role")).toBe("tooltip");
   });
 
@@ -97,6 +100,87 @@ it("pins visibility and cancels pending hover before returning to automatic beha
   await settled(tip);
   tip.show();
   expect(tip.open).toBe(false);
+});
+
+it("describes an external native Mash anchor in its own shadow tree without reparenting", async () => {
+  const host = await fixture<HTMLElement>(`<div>
+    <ui-button id="external-action" aria-label="Refresh">Refresh</ui-button>
+    <ui-tooltip trigger="manual"><strong>Refresh record</strong><span>Read the current namespace state.</span></ui-tooltip>
+  </div>`);
+  const tip = host.querySelector<UITooltip>("ui-tooltip")!;
+  const button = host.querySelector("ui-button")!;
+  const control = inShadow<HTMLButtonElement>(button, "button");
+  const authored = document.createElement("span");
+  authored.id = "authored-external-description";
+  authored.textContent = "Existing context";
+  button.shadowRoot!.append(authored);
+  control.setAttribute("aria-describedby", authored.id);
+  const parent = button.parentNode;
+  control.focus();
+  tip.anchorElement = control;
+  tip.show();
+  await settled(host);
+  const descriptions = control.ariaDescribedByElements!;
+  expect(descriptions).toContain(authored);
+  const supplied = descriptions.find((node) => node !== authored)!;
+  expect(supplied.textContent).toContain("Refresh record");
+  expect(supplied.textContent).toContain("Read the current namespace state.");
+  expect(supplied.getRootNode()).toBe(control.getRootNode());
+  expect(button.parentNode).toBe(parent);
+  expect(button.shadowRoot!.activeElement).toBe(control);
+  control.dispatchEvent(
+    new KeyboardEvent("keydown", {
+      key: "Escape",
+      bubbles: true,
+      composed: true,
+      cancelable: true,
+    }),
+  );
+  expect(tip.open).toBe(false);
+  expect(button.shadowRoot!.activeElement).toBe(control);
+  tip.remove();
+  expect(control.getAttribute("aria-describedby")).toBe(authored.id);
+  expect(supplied.isConnected).toBe(false);
+});
+
+it("rebinds external descriptions immediately and preserves slotted fallback and authored IDs", async () => {
+  const host = await fixture<HTMLElement>(`<div>
+    <button id="one" aria-describedby="authored-one">One</button>
+    <span id="authored-one">Authored one</span>
+    <ui-button id="two">Two</ui-button>
+    <ui-tooltip trigger="manual" label="Shared hint"><button slot="trigger">Fallback</button></ui-tooltip>
+  </div>`);
+  const tip = host.querySelector<UITooltip>("ui-tooltip")!;
+  const one = host.querySelector<HTMLButtonElement>("#one")!;
+  const two = host.querySelector<HTMLElement>("#two")!;
+  const nativeTwo = inShadow<HTMLButtonElement>(two, "button");
+  const fallback = tip.querySelector<HTMLButtonElement>("button")!;
+  tip.anchorElement = one;
+  expect(one.ariaDescribedByElements?.some((node) => node.textContent === "Shared hint")).toBe(
+    true,
+  );
+  expect(fallback.hasAttribute("aria-describedby")).toBe(false);
+  tip.anchorElement = two;
+  expect(one.getAttribute("aria-describedby")).toBe("authored-one");
+  expect(
+    nativeTwo.ariaDescribedByElements?.some((node) => node.textContent === "Shared hint"),
+  ).toBe(true);
+  tip.label = "Updated shared hint";
+  await settled(host);
+  expect(
+    nativeTwo.ariaDescribedByElements?.some((node) => node.textContent === "Updated shared hint"),
+  ).toBe(true);
+  tip.anchorElement = null;
+  expect(nativeTwo.hasAttribute("aria-describedby")).toBe(false);
+  expect(
+    fallback.ariaDescribedByElements?.some((node) => node.textContent === "Updated shared hint"),
+  ).toBe(true);
+  tip.remove();
+  host.append(tip);
+  await settled(host);
+  expect(fallback.ariaDescribedByElements).toHaveLength(1);
+  tip.anchorElement = document.createElement("button");
+  expect(fallback.hasAttribute("aria-describedby")).toBe(false);
 });
 
 it("tracks one cursor axis and falls back to the control anchor on keyboard focus", async () => {

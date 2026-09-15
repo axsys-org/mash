@@ -43,6 +43,22 @@
       "types": "./dist/triptych/register.d.ts",
       "import": "./dist/triptych/register.js"
     },
+    "./sidebar": {
+      "types": "./dist/sidebar/register.d.ts",
+      "import": "./dist/sidebar/register.js"
+    },
+    "./sidebar/register": {
+      "types": "./dist/sidebar/register.d.ts",
+      "import": "./dist/sidebar/register.js"
+    },
+    "./path-row": {
+      "types": "./dist/path-row/register.d.ts",
+      "import": "./dist/path-row/register.js"
+    },
+    "./path-row/register": {
+      "types": "./dist/path-row/register.d.ts",
+      "import": "./dist/path-row/register.js"
+    },
     "./triptych/register": {
       "types": "./dist/triptych/register.d.ts",
       "import": "./dist/triptych/register.js"

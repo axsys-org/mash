@@ -1,6 +1,7 @@
 import { LitElement, html, svg, type PropertyValues, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import { projectEdges, type GraphEdge } from "./topology.js";
 
 interface GraphItem extends HTMLElement {
   identity?: string;
@@ -24,20 +25,14 @@ interface GraphNode {
   capsuleWidth: number;
 }
 
-interface GraphEdge {
-  key: string;
-  lane: number;
-  path: string;
-}
-
 /** The visual pronunciation supplied by an opt-in Shrine recipe. */
-export type ShrineTreeVariant = "inline" | "ledger" | "lineage";
+export type ShrineTreeVariant = "inline" | "ledger" | "lineage" | "namespace";
 
 const MAX_LANES = 12;
 const DEFAULT_LANE_STEP = 16;
 
 /**
- * A Shrine revision projection composed over an authored `ui-tree`.
+ * Shrine revision or namespace presentation composed over an authored `ui-tree`.
  *
  * `sh-tree` deliberately does not duplicate tree selection, disclosure,
  * keyboard navigation, or ARIA ownership. The slotted `ui-tree` remains the
@@ -46,16 +41,23 @@ const DEFAULT_LANE_STEP = 16;
  * for their real tree rows; they never create another focus stop or selection
  * store.
  *
+ * `variant="namespace"` keeps the native nested hierarchy and its quiet guide
+ * lanes. It does not measure or render revision nodes, connections or pointer
+ * proxies. Inline data belongs in the item's `preview` slot; the same row's
+ * expansion reveals that data before its child names, including lazy folders.
+ *
  * Give each item a stable `value`, an integer `data-shrine-lane`, and an
  * optional whitespace- or comma-separated `data-shrine-parents` list. When a
  * parent list is omitted, the item connects to the next visible item in the
- * same lane. Detail rows may opt out with `data-shrine-graph="none"`. Empty
+ * same lane. An explicit empty `data-shrine-parents=""` declares a root with
+ * no outgoing connection. Use explicit parents for namespace trees: sibling
+ * order is not revision ancestry. Detail rows may opt out with `data-shrine-graph="none"`. Empty
  * namespace containers are never silently removed: author a
  * real item when the address is meaningful, or project a compact item before
  * rendering and record its source with `data-shrine-compressed-from`.
  *
  * @tag sh-tree
- * @summary Projects Shrine revision lanes over an accessible authored tree.
+ * @summary Presents Shrine namespace hierarchies or revision lanes over an accessible authored tree.
  *
  * @example Revision lineage
  * <sh-tree>
@@ -66,7 +68,7 @@ const DEFAULT_LANE_STEP = 16;
  * </sh-tree>
  *
  * @slot tree - The one authored `ui-tree` that owns hierarchy behavior.
- * @attr variant - `lineage` keeps an open graph gutter; `inline` places rows beside their own lanes; `ledger` emphasizes dense capsule topology.
+ * @attr variant - `namespace` preserves the native nested hierarchy without graph nodes; `lineage` keeps an open graph gutter; `inline` places rows beside their own lanes; `ledger` emphasizes dense capsule topology.
  * @csspart root - The Shrine revision-tree boundary.
  * @csspart graph - The decorative graph layer.
  * @csspart canvas - The SVG canvas containing graph edges and nodes.
@@ -249,7 +251,8 @@ export class ShrineTree extends LitElement {
     return Math.min(Math.max(label.length * 7 + 18, 38), 104);
   }
 
-  #parents(item: HTMLElement): string[] {
+  #parents(item: HTMLElement): string[] | undefined {
+    if (!item.hasAttribute("data-shrine-parents")) return undefined;
     return (item.dataset.shrineParents ?? "")
       .split(/[\s,]+/u)
       .map((value) => value.trim())
@@ -260,11 +263,26 @@ export class ShrineTree extends LitElement {
     const tree = this.#tree;
     if (!tree || !this.isConnected) return;
 
+    if (this.variant === "namespace") {
+      // A namespace row is already positioned by its real ui-tree ancestry.
+      // Never turn sibling order, lane metadata or an expanded preview into
+      // revision geometry, and release any offsets from a previous variant.
+      tree.querySelectorAll<HTMLElement>("ui-tree-item").forEach((item) => {
+        if (item.closest("ui-tree") !== tree) return;
+        item.style.removeProperty("--_sh-tree-item-inline-start");
+      });
+      if (this._nodes.length) this._nodes = [];
+      if (this._edges.length) this._edges = [];
+      this.style.setProperty("--sh-tree-lane-count", "1");
+      this.style.setProperty("--sh-tree-capsule-reserve", "0px");
+      return;
+    }
+
     const hostRect = this.getBoundingClientRect();
     const laneStep = this.#laneStep();
     const rightToLeft = getComputedStyle(this).direction === "rtl";
     const items = [...tree.querySelectorAll<GraphItem>("ui-tree-item")].filter(
-      (item) => item.dataset.shrineGraph !== "none",
+      (item) => item.closest("ui-tree") === tree && item.dataset.shrineGraph !== "none",
     );
     const measured = items
       .map((item, index) => {
@@ -303,30 +321,12 @@ export class ShrineTree extends LitElement {
       .filter((entry): entry is NonNullable<typeof entry> => entry !== undefined);
 
     const nodes = measured.map(({ node }) => node);
-    const nodesById = new Map(nodes.map((node) => [node.id, node]));
-    const nextInLane = new Map<string, GraphNode>();
-    for (let index = 0; index < nodes.length; index += 1) {
-      const node = nodes[index];
-      if (!node) continue;
-      const next = nodes.slice(index + 1).find((candidate) => candidate.lane === node.lane);
-      if (next) nextInLane.set(node.id, next);
-    }
-
-    const edges: GraphEdge[] = [];
-    for (const { item, node } of measured) {
-      const explicitParents = this.#parents(item);
-      const parents = explicitParents.length
-        ? explicitParents.map((identity) => nodesById.get(identity)).filter(Boolean)
-        : [nextInLane.get(node.id)].filter(Boolean);
-      for (const parent of parents as GraphNode[]) {
-        const middle = node.y + (parent.y - node.y) / 2;
-        edges.push({
-          key: `${node.id}:${parent.id}`,
-          lane: parent.lane,
-          path: `M ${node.x} ${node.y} C ${node.x} ${middle}, ${parent.x} ${middle}, ${parent.x} ${parent.y}`,
-        });
-      }
-    }
+    const edges = projectEdges(
+      measured.map(({ item, node }) => ({
+        ...node,
+        parents: this.#parents(item),
+      })),
+    );
 
     this._width = Math.max(hostRect.width, laneStep);
     this._height = Math.max(hostRect.height, 1);
@@ -350,7 +350,7 @@ export class ShrineTree extends LitElement {
   protected override render(): TemplateResult {
     return html`
       <div part="root">
-        <div part="graph" aria-hidden="true">
+        <div part="graph" aria-hidden="true" ?hidden=${this.variant === "namespace"}>
           <svg
             part="canvas"
             viewBox=${`0 0 ${this._width} ${this._height}`}
@@ -413,7 +413,9 @@ export class ShrineTree extends LitElement {
             )}
           </svg>
         </div>
-        <div part="tree"><slot name="tree" @slotchange=${this.#onTreeSlotChange}></slot></div>
+        <div part="tree">
+          <slot name="tree" @slotchange=${this.#onTreeSlotChange}></slot>
+        </div>
       </div>
     `;
   }

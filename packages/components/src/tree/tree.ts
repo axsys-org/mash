@@ -192,15 +192,15 @@ export class UITree extends LitElement {
         (node): node is UITreeItem =>
           node instanceof HTMLElement && node.localName === "ui-tree-item",
       );
-    if (item) {
+    if (item && item.closest("ui-tree") === this) {
       this.#internals.states.add("focused");
       this.#syncTabStops(item);
     }
   };
 
   #onFocusOut = (event: FocusEvent): void => {
-    const root = event.currentTarget as HTMLElement;
-    if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
+    if (event.relatedTarget instanceof Element && event.relatedTarget.closest("ui-tree") === this)
+      return;
     this.#internals.states.delete("focused");
   };
 
@@ -250,7 +250,11 @@ export class UITree extends LitElement {
   #requestSelection(
     item: UITreeItem,
     reason: TreeSelectionReason,
-    modifiers: { shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean } = {},
+    modifiers: {
+      shiftKey?: boolean;
+      ctrlKey?: boolean;
+      metaKey?: boolean;
+    } = {},
     toggle = false,
   ): void {
     if (item.disabled) return;
@@ -264,7 +268,11 @@ export class UITree extends LitElement {
             ? "toggle"
             : "replace";
       this.#select(
-        { type, value: item.identity, additive: Boolean(modifiers.ctrlKey || modifiers.metaKey) },
+        {
+          type,
+          value: item.identity,
+          additive: Boolean(modifiers.ctrlKey || modifiers.metaKey),
+        },
         reason,
       );
     }
@@ -295,7 +303,7 @@ export class UITree extends LitElement {
         (node): node is UITreeItem =>
           node instanceof HTMLElement && node.localName === "ui-tree-item",
       );
-    if (!item) return;
+    if (!item || item.closest("ui-tree") !== this) return;
     this.dispatchEvent(
       new CustomEvent<TreeToggleDetail>("ui-tree-toggle", {
         bubbles: true,
@@ -359,7 +367,7 @@ export class UITree extends LitElement {
       case "Enter":
       case " ":
         this.#requestSelection(item, "keyboard", event, multiple && event.key === " ");
-        if (item.branch && (!multiple || event.key === "Enter"))
+        if (item.activation !== "split" && item.branch && (!multiple || event.key === "Enter"))
           item.requestExpansion(!item.expanded);
         event.preventDefault();
         return;
@@ -406,9 +414,7 @@ export class UITree extends LitElement {
 
   /** Scrolls an identified item into the nearest owning viewport. */
   scrollToItem(value: string, alignment: TreeScrollAlignment = "nearest"): boolean {
-    const item = [...this.querySelectorAll<UITreeItem>("ui-tree-item")].find(
-      (candidate) => candidate.identity === value,
-    );
+    const item = this.#items().find((candidate) => candidate.identity === value);
     if (!item) return false;
     item.scrollIntoView({ block: alignment, inline: "nearest" });
     return true;
@@ -416,9 +422,7 @@ export class UITree extends LitElement {
 
   /** Requests disclosure of collapsed ancestors, then announces the reveal target. */
   revealItem(value: string, alignment: TreeScrollAlignment = "nearest"): boolean {
-    const item = [...this.querySelectorAll<UITreeItem>("ui-tree-item")].find(
-      (candidate) => candidate.identity === value,
-    );
+    const item = this.#items().find((candidate) => candidate.identity === value);
     if (!item) return false;
     const ancestors: UITreeItem[] = [];
     let parent = item.parentItem;
@@ -431,7 +435,11 @@ export class UITree extends LitElement {
       new CustomEvent<TreeRevealDetail>("ui-tree-reveal", {
         bubbles: true,
         composed: true,
-        detail: { value, ancestors: ancestors.map((ancestor) => ancestor.identity), alignment },
+        detail: {
+          value,
+          ancestors: ancestors.map((ancestor) => ancestor.identity),
+          alignment,
+        },
       }),
     );
     this.scrollToItem(value, alignment);

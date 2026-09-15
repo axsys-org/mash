@@ -84,7 +84,7 @@ async function checkDimensionTokenFamilies(problems) {
     [/^zero$/, "layout-size"],
     [/^glyph$/, "glyph-size"],
     [/^identity(?:Small|Medium|Large)$/, "identity-size"],
-    [/^(?:control(?:XSmall|Small|Medium|Large)?|inputLarge)$/, "control-size"],
+    [/^(?:control(?:XSmall|Small|Medium|Large|Touch)?|inputLarge)$/, "control-size"],
     [/^checkbox(?:Mark)?(?:XSmall|Small|Medium|Large)$/, "indicator-size"],
     [/^switch(?:Track(?:Small|Medium)(?:Inline|Block)|Thumb(?:Small|Medium))$/, "indicator-size"],
     [/^(compact|panel|dialog|content|record)$/, "layout-size"],

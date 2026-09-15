@@ -1,4 +1,5 @@
 import "@mash/ui/scroll-area/register";
+import "@mash/ui/resizable/register";
 
 import { ShrineTriptych } from "./triptych.js";
 

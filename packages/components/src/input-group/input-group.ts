@@ -1,6 +1,10 @@
 import { LitElement, html, type TemplateResult } from "lit";
 
 import { baseStyles } from "../internal/base-styles.js";
+import type { InputSize } from "../input/input.js";
+
+/** Typography of the primary input, independent of surrounding action labels. */
+export type InputGroupTypography = "body" | "code";
 
 /**
  * Groups one form control with optional leading and trailing content.
@@ -9,6 +13,10 @@ import { baseStyles } from "../internal/base-styles.js";
  * nor supplies spacing; a recipe decides how a prefix, control, and suffix
  * should look together. This keeps a bare `ui-input` genuinely native while
  * preserving a reusable structure for search icons, units, and shortcuts.
+ * `size` establishes an inherited size context. `typography="code"` changes
+ * only the primary input's font; `touch-target` reserves an actual 44px native
+ * input on coarse pointers. Give interactive adornments their own target policy.
+ * `invalid` is an authored visual signal, not a replacement for native validity.
  *
  * @tag ui-input-group
  * @summary Groups a control with optional prefix and suffix content.
@@ -20,6 +28,12 @@ import { baseStyles } from "../internal/base-styles.js";
  *   <ui-kbd slot="suffix" command="workspace.search" shortcut="Primary+K"></ui-kbd>
  * </ui-input-group>
  * <ui-gesture-binding for="project-search-group" gesture="key" shortcut="Primary+K" command="workspace.search"></ui-gesture-binding>
+ *
+ * @example Compact address editor
+ * <ui-input-group size="small" typography="code" touch-target>
+ *   <ui-input slot="control" label="Path" value="/projects/current"></ui-input>
+ *   <ui-button slot="suffix" size="small" variant="ghost" touch-target>Open</ui-button>
+ * </ui-input-group>
  *
  * @slot prefix - Optional content before the control.
  * @slot control - Exactly one native or Mash form control.
@@ -42,24 +56,46 @@ import { baseStyles } from "../internal/base-styles.js";
  * @mashnode control control root
  * @mashnode suffix-separator separator root
  * @mashnode suffix suffix root
+ * @mashnode size size root
+ * @mashaxis size control-size
+ * @mashnode typography typography control
+ * @mashnode touchTarget touch-target control
+ * @mashnode invalid invalid control
  * @mashrole slot prefix prefix prefix
  * @mashrole slot control control control
  * @mashrole slot suffix suffix suffix
  */
 export class UIInputGroup extends LitElement {
   static override properties = {
+    size: { type: String, reflect: true },
+    typography: { type: String, reflect: true },
+    touchTarget: { type: Boolean, attribute: "touch-target", reflect: true },
+    invalid: { type: Boolean, reflect: true },
     _hasPrefix: { type: Boolean, state: true },
     _hasControl: { type: Boolean, state: true },
     _hasSuffix: { type: Boolean, state: true },
   };
 
+  /** Physical scale inherited by the primary control and unsized adornments. */
+  declare size: InputSize;
+  /** Primary input typography; action labels retain their own body font. */
+  declare typography: InputGroupTypography;
+  /** Reserves a real 44px minimum primary input target on coarse pointers. */
+  declare touchTarget: boolean;
+  /** Authored visual invalid state; native/Mash child validity is also styled automatically. */
+  declare invalid: boolean;
   declare private _hasPrefix: boolean;
   declare private _hasControl: boolean;
   declare private _hasSuffix: boolean;
   readonly #internals: ElementInternals;
+  readonly #visibilityObserver = new MutationObserver(() => this.#syncSlots());
 
   constructor() {
     super();
+    this.size = "inherit";
+    this.typography = "body";
+    this.touchTarget = false;
+    this.invalid = false;
     this._hasPrefix = false;
     this._hasControl = false;
     this._hasSuffix = false;
@@ -68,11 +104,34 @@ export class UIInputGroup extends LitElement {
 
   static override styles = baseStyles;
 
-  #onSlotChange = (event: Event): void => {
-    const slot = event.target as HTMLSlotElement;
+  override connectedCallback(): void {
+    super.connectedCallback();
+    this.#visibilityObserver.observe(this, {
+      attributes: true,
+      attributeFilter: ["hidden", "slot"],
+      childList: true,
+      subtree: true,
+    });
+    void this.updateComplete.then(() => {
+      if (this.isConnected) this.#syncSlots();
+    });
+  }
+
+  override disconnectedCallback(): void {
+    this.#visibilityObserver.disconnect();
+    super.disconnectedCallback();
+  }
+
+  #syncSlots = (): void => {
+    for (const slot of this.renderRoot.querySelectorAll<HTMLSlotElement>("slot")) {
+      this.#syncSlot(slot);
+    }
+  };
+
+  #syncSlot(slot: HTMLSlotElement): void {
     const hasContent = slot.assignedNodes({ flatten: true }).some((node) => {
       if (node.nodeType === Node.TEXT_NODE) return Boolean(node.textContent?.trim());
-      return true;
+      return node instanceof Element && !node.hasAttribute("hidden");
     });
     if (slot.name === "prefix") {
       this._hasPrefix = hasContent;
@@ -87,7 +146,9 @@ export class UIInputGroup extends LitElement {
       if (hasContent) this.#internals.states.add("has-suffix");
       else this.#internals.states.delete("has-suffix");
     }
-  };
+  }
+
+  #onSlotChange = (event: Event): void => this.#syncSlot(event.target as HTMLSlotElement);
 
   protected override render(): TemplateResult {
     return html`

@@ -18,7 +18,8 @@ export const baseStyles = css`
     box-sizing: inherit;
   }
 
-  :host([hidden]) {
+  :host([hidden]),
+  [hidden] {
     display: none !important;
   }
 `;

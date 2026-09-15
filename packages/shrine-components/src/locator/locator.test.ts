@@ -5,6 +5,16 @@ import { ShrineLocator } from "./locator.js";
 import "./register.js";
 
 describe("sh-locator", () => {
+  it("projects context and actions alongside the replaceable locator", async () => {
+    const el = await fixture<ShrineLocator>(
+      `<sh-locator><span slot="context">Local namespace</span><span>/app</span><button slot="actions">Inspect</button></sh-locator>`,
+    );
+    expect(inShadow(el, '[part="context"]').hidden).toBe(false);
+    expect(inShadow(el, '[part="actions"]').hidden).toBe(false);
+    expect(inShadow<HTMLSlotElement>(el, 'slot[name="actions"]').assignedElements()[0]).toBe(
+      el.querySelector("button"),
+    );
+  });
   it("registers and upgrades", async () => {
     expect(customElements.get("sh-locator")).toBe(ShrineLocator);
 

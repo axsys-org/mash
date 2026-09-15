@@ -3,7 +3,7 @@
     "$type": "dimension",
     "$description": "Theme-independent shape semantics. Persistent controls and containers use broad roles; specialized transient surfaces keep their own optical corner roles.",
     "control": {
-      "$value": "{radius.reference.3}",
+      "$value": "{radius.reference.4}",
       "$description": "Corner radius for interactive controls: buttons, inputs, chips."
     },
     "container": {
@@ -13,6 +13,10 @@
     "bubble": {
       "$value": "{radius.reference.6}",
       "$description": "Large conversation bubble radius."
+    },
+    "tooltip": {
+      "$value": "{radius.reference.2}",
+      "$description": "4px corners for compact passive help tags."
     },
     "menu": {
       "$value": "{radius.reference.3}",

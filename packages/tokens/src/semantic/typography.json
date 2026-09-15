@@ -1,6 +1,22 @@
 {
   "type": {
     "$description": "Mash UI typography uses a 16px root with 12/14/16px control text; public roles preserve semantic meaning across themes.",
+    "tooltip": {
+      "$description": "Compact desktop help tags: 11px regular system text, independent of control density.",
+      "fontFamily": {
+        "$type": "fontFamily",
+        "$value": "{fontFamily.reference.sans}"
+      },
+      "fontSize": { "$type": "dimension", "$value": "{fontSize.reference.75}" },
+      "fontWeight": {
+        "$type": "fontWeight",
+        "$value": "{fontWeight.reference.regular}"
+      },
+      "lineHeight": {
+        "$type": "number",
+        "$value": "{lineHeight.reference.normal}"
+      }
+    },
     "caption2": {
       "$description": "UI caption2 role.",
       "fontFamily": {

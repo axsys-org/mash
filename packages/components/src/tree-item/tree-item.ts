@@ -7,6 +7,10 @@ import { InlineOverflowController } from "../internal/inline-overflow.js";
 export type TreeItemSize = "small" | "medium";
 /** The structural kind of a tree item. */
 export type TreeItemKind = "file" | "folder";
+/** Whether row activation also discloses, or disclosure is a separate pointer action. */
+export type TreeItemActivation = "combined" | "split";
+/** Whether actions occupy a lane or float over the row on hover/focus. */
+export type TreeItemActionsDisplay = "inline" | "overlay";
 
 /**
  * A selectable row inside `ui-tree` with optional nested children.
@@ -19,6 +23,8 @@ export type TreeItemKind = "file" | "folder";
  *
  * @tag ui-tree-item
  * @summary A controllable tree row with optional nested children.
+ * @attr activation - `combined` selects and expands a branch together; `split` reserves expansion for its disclosure and Left/Right keys while row activation selects only.
+ * @attr preview-open - Independently controls the inline preview when present: an empty attribute opens it and `false` closes it. Omit to follow `expanded` for compatibility.
  *
  * @example Shrine hierarchy
  * <ui-tree label="Shrine namespaces">
@@ -36,6 +42,7 @@ export type TreeItemKind = "file" | "folder";
  * @slot icon - Optional leading glyph or icon.
  * @slot meta - Optional secondary information after the label.
  * @slot actions - Optional trailing actions.
+ * @slot preview - Inline record details before the child hierarchy; follows `expanded` unless `preview-open` independently controls it.
  * @slot children - Nested `ui-tree-item` elements belonging to this branch.
  *
  * @csspart root - The item's row container.
@@ -47,13 +54,14 @@ export type TreeItemKind = "file" | "folder";
  * @csspart label-content - The authored or fallback label contents.
  * @csspart meta - The optional secondary `meta` slot.
  * @csspart actions - The wrapper around the `actions` slot.
+ * @csspart preview - The expanded inline details region, separate from the row control.
  * @csspart children - The nested child group.
  *
  * @cssstate expanded - Matches `:state(expanded)` while the child group is visible.
  * @cssstate current - Matches `:state(current)` when this is the current location.
  * @cssstate selected - Matches `:state(selected)` when parent state selects this item.
  * @cssstate disabled - Matches `:state(disabled)` while activation is unavailable.
- * @cssstate branch - Matches `:state(branch)` when the item can reveal children.
+ * @cssstate branch - Matches `:state(branch)` when the row can reveal children or an expansion-linked preview.
  * @cssstate overflowing - Matches `:state(overflowing)` when the label is clipped.
  * @cssstate overflow-start - Matches `:state(overflow-start)` when label content continues before the viewport.
  * @cssstate overflow-end - Matches `:state(overflow-end)` when label content continues after the viewport.
@@ -81,16 +89,20 @@ export type TreeItemKind = "file" | "folder";
  * @mashnode icon icon control
  * @mashnode meta meta control
  * @mashnode actions actions root
+ * @mashnode preview preview root
  * @mashnode children children root
  * @mashnode kind kind root
+ * @mashnode activation activation root
  * @mashnode size size root
  * @mashaxis size control-size
  * @mashnode expanded expanded children
+ * @mashnode preview-open expanded preview
  * @mashnode current current control
  * @mashnode selected selected control
  * @mashnode disabled disabled root
  * @mashnode select select control
  * @mashrole attribute parent-value parent parent
+ * @mashrole slot preview preview preview
  */
 export class UITreeItem extends LitElement {
   static override shadowRootOptions: ShadowRootInit = {
@@ -105,12 +117,23 @@ export class UITreeItem extends LitElement {
     path: { type: String, reflect: true },
     title: { type: String, reflect: true },
     kind: { type: String, reflect: true },
+    activation: { type: String, reflect: true },
+    actionsDisplay: { type: String, attribute: "actions-display", reflect: true },
     expanded: { type: Boolean, reflect: true },
+    previewOpen: {
+      attribute: "preview-open",
+      reflect: true,
+      converter: {
+        fromAttribute: (value: string | null) => (value === null ? null : value !== "false"),
+        toAttribute: (value: boolean | null) => (value === null ? null : value ? "" : "false"),
+      },
+    },
     current: { type: Boolean, reflect: true },
     selected: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
     size: { type: String, reflect: true },
     _hasChildren: { type: Boolean, state: true },
+    _hasPreview: { type: Boolean, state: true },
   };
 
   /** Canonical Shrine namespace path. */
@@ -125,8 +148,14 @@ export class UITreeItem extends LitElement {
   declare title: string;
   /** Structural kind, including lazy folders with no assigned children yet. */
   declare kind: TreeItemKind;
-  /** Whether the nested child group is visible. */
+  /** Combined row disclosure, or independently clickable disclosure and label. */
+  declare activation: TreeItemActivation;
+  /** Recipe-owned action placement; overlay preserves the idle label width. */
+  declare actionsDisplay: TreeItemActionsDisplay;
+  /** Whether assigned inline details and the nested child group are visible. */
   declare expanded: boolean;
+  /** Independent inline preview visibility; null preserves expansion-linked previews. */
+  declare previewOpen: boolean | null;
   /** Whether this node identifies the current location. */
   declare current: boolean;
   /** Whether the parent workflow has selected this item. */
@@ -137,6 +166,7 @@ export class UITreeItem extends LitElement {
   declare size: TreeItemSize;
 
   declare private _hasChildren: boolean;
+  declare private _hasPreview: boolean;
 
   readonly #internals: ElementInternals;
   readonly #overflow: InlineOverflowController;
@@ -149,12 +179,16 @@ export class UITreeItem extends LitElement {
     this.path = "";
     this.title = "";
     this.kind = "file";
+    this.activation = "combined";
+    this.actionsDisplay = "inline";
     this.expanded = false;
+    this.previewOpen = null;
     this.current = false;
     this.selected = false;
     this.disabled = false;
     this.size = "medium";
     this._hasChildren = false;
+    this._hasPreview = false;
     this.#internals = this.attachInternals();
     this.#overflow = new InlineOverflowController(this, this.#internals);
   }
@@ -198,9 +232,11 @@ export class UITreeItem extends LitElement {
     this.#overflow.queue("start");
   }
 
-  /** Whether this item may reveal a child group. */
+  /** Whether this row can disclose children or an expansion-linked preview. */
   get branch(): boolean {
-    return this.kind === "folder" || this._hasChildren;
+    return (
+      this.kind === "folder" || this._hasChildren || (this._hasPreview && this.previewOpen === null)
+    );
   }
 
   /** Direct nested children, in authored order. */
@@ -215,12 +251,15 @@ export class UITreeItem extends LitElement {
 
   /** The owning branch, when this item is nested. */
   get parentItem(): UITreeItem | undefined {
-    const parent = this.parentElement?.closest<UITreeItem>("ui-tree-item");
-    if (parent) return parent;
-    if (!this.parentValue) return undefined;
     const tree = this.closest("ui-tree");
+    const parent = this.parentElement?.closest<UITreeItem>("ui-tree-item");
+    if (parent && parent.closest("ui-tree") === tree) return parent;
+    if (!this.parentValue) return undefined;
     return [...(tree?.querySelectorAll<UITreeItem>("ui-tree-item") ?? [])].find(
-      (candidate) => candidate !== this && candidate.identity === this.parentValue,
+      (candidate) =>
+        candidate !== this &&
+        candidate.closest("ui-tree") === tree &&
+        candidate.identity === this.parentValue,
     );
   }
 
@@ -247,7 +286,12 @@ export class UITreeItem extends LitElement {
   get accessibleLabel(): string {
     const authored =
       this.querySelector<HTMLElement>(":scope > [slot='label']")?.textContent?.trim();
-    return authored || this.title || this.path || this.textContent?.trim() || "";
+    const fallback = [...this.childNodes]
+      .filter((node) => !(node instanceof Element) || !node.hasAttribute("slot"))
+      .map((node) => node.textContent ?? "")
+      .join("")
+      .trim();
+    return authored || this.title || this.path || fallback;
   }
 
   /** Requests the parent-controlled expansion state. */
@@ -269,28 +313,42 @@ export class UITreeItem extends LitElement {
       .some((element) => element.localName === "ui-tree-item");
   };
 
+  #onPreviewChange = (event: Event): void => {
+    const slot = event.target as HTMLSlotElement;
+    this._hasPreview = slot
+      .assignedNodes({ flatten: true })
+      .some((node) => node instanceof Element || Boolean(node.textContent?.trim()));
+  };
+
   #onActivate = (event: MouseEvent): void => {
     if (this.disabled) return;
     const multiple = this.closest("ui-tree")?.getAttribute("selection-mode") === "multiple";
+    const split = this.activation === "split";
     const disclosure = event
       .composedPath()
       .some((node) => node instanceof Element && node.getAttribute("part") === "disclosure");
-    if (!multiple || !disclosure)
+    if (!disclosure || (!split && !multiple))
       this.dispatchEvent(
         new CustomEvent("ui-tree-item-select", {
           bubbles: true,
           composed: true,
-          detail: { shiftKey: event.shiftKey, ctrlKey: event.ctrlKey, metaKey: event.metaKey },
+          detail: {
+            shiftKey: event.shiftKey,
+            ctrlKey: event.ctrlKey,
+            metaKey: event.metaKey,
+          },
         }),
       );
-    if (this.branch && (!multiple || disclosure)) this.requestExpansion(!this.expanded);
+    if (this.branch && (split ? disclosure : !multiple || disclosure))
+      this.requestExpansion(!this.expanded);
   };
 
   #siblings(): UITreeItem[] {
     const tree = this.closest("ui-tree");
     if (this.parentValue && tree) {
       return [...tree.querySelectorAll<UITreeItem>("ui-tree-item")].filter(
-        (candidate) => candidate.parentValue === this.parentValue,
+        (candidate) =>
+          candidate.closest("ui-tree") === tree && candidate.parentValue === this.parentValue,
       );
     }
     const parent = this.parentElement;
@@ -338,18 +396,21 @@ export class UITreeItem extends LitElement {
 
   protected override render(): TemplateResult {
     const childrenVisible = this.branch && this.expanded;
+    const previewVisible = this._hasPreview && (this.previewOpen ?? this.expanded);
     const siblings = this.#siblings();
     const position = siblings.indexOf(this) + 1;
 
     return html`
       <div part="root">
         <button
+          id="control"
           part="control"
           type="button"
           role="treeitem"
           tabindex=${this.#tabbable ? "0" : "-1"}
           aria-current=${this.current ? "page" : nothing}
           aria-expanded=${this.branch ? String(this.expanded) : nothing}
+          aria-controls=${this.branch ? (this._hasPreview && this.previewOpen === null ? "preview children" : "children") : nothing}
           aria-level=${this.#level()}
           aria-posinset=${position}
           aria-setsize=${siblings.length}
@@ -370,7 +431,16 @@ export class UITreeItem extends LitElement {
         </button>
         <span part="actions"><slot name="actions"></slot></span>
       </div>
-      <div part="children" role="group" ?hidden=${!childrenVisible}>
+      <div
+        id="preview"
+        part="preview"
+        role="region"
+        aria-labelledby="control"
+        ?hidden=${!previewVisible}
+      >
+        <slot name="preview" @slotchange=${this.#onPreviewChange}></slot>
+      </div>
+      <div id="children" part="children" role="group" ?hidden=${!childrenVisible}>
         <slot name="children" @slotchange=${this.#onChildrenChange}></slot>
       </div>
     `;

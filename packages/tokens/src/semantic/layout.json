@@ -23,6 +23,10 @@
         "$value": "{space.reference.6}",
         "$description": "24px small button control height."
       },
+      "controlTouch": {
+        "$value": "{space.reference.11}",
+        "$description": "44px non-overlapping coarse-pointer hit target for opt-in compact icon controls."
+      },
       "controlMedium": {
         "$value": "{space.reference.8}",
         "$description": "32px medium button control height."

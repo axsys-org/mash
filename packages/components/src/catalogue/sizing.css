@@ -7,6 +7,8 @@
       :is(
         ui-button,
         ui-input,
+        ui-input-group,
+        ui-link,
         ui-select,
         ui-combobox,
         ui-command,
@@ -64,6 +66,8 @@
       :is(
         ui-button,
         ui-input,
+        ui-input-group,
+        ui-link,
         ui-select,
         ui-combobox,
         ui-command,

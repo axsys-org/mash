@@ -43,7 +43,11 @@ export default defineConfig({
     setupFiles: ["./src/test-support/setup.ts"],
     browser: {
       enabled: true,
-      provider: playwright(),
+      // Coarse-pointer recipe regressions need real browser hit geometry,
+      // not a mocked matchMedia result. The normal browser matrix stays fine.
+      provider: playwright({
+        contextOptions: { hasTouch: process.env.POINTER === "coarse" },
+      }),
       headless: true,
       screenshotFailures: false,
       instances: browsers.filter(isSupported).map((browser) => ({ browser })),

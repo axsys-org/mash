@@ -121,6 +121,119 @@
     --_mash-disclosure-text: var(--type-label-large-font-size);
   }
 
+  /* Quiet sections reuse the disclosure semantics, not a parallel header
+     component. Content owns its layout; the recipe owns the complete trigger. */
+  :where([data-mash-catalogue="mash"]) ui-accordion[variant="quiet"]::part(root) {
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) ui-accordion[variant="quiet"] > ui-accordion-item {
+    min-inline-size: var(--layout-dimension-zero);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-accordion[variant="quiet"]
+    > ui-accordion-item::part(trigger) {
+    min-inline-size: var(--layout-dimension-zero);
+    min-block-size: var(--mash-size-control, var(--layout-dimension-control));
+    gap: var(--space-control-gap);
+    padding: var(--space-control-block);
+    border-radius: var(--radius-menu-item);
+    background: transparent;
+    box-shadow: none;
+    font-weight: var(--type-heading-font-weight);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-accordion[variant="quiet"]
+    > ui-accordion-item::part(trigger):hover:not(:disabled) {
+    background: var(--color-surface-hover);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-accordion[variant="quiet"]
+    > ui-accordion-item::part(trigger):focus-visible {
+    /* Keep the native focus outline inside clipping sidebar/scroll boundaries. */
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: calc(-1 * var(--border-focus-ring));
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-accordion[variant="quiet"]
+    > ui-accordion-item::part(prefix),
+  :where([data-mash-catalogue="mash"])
+    ui-accordion[variant="quiet"]
+    > ui-accordion-item::part(disclosure) {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-accordion[variant="quiet"]
+    > ui-accordion-item::part(disclosure) {
+    order: -1;
+    margin-inline-start: var(--layout-dimension-zero);
+    inline-size: var(--layout-size-default-icon);
+    block-size: var(--layout-size-default-icon);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-accordion[variant="quiet"]
+    > ui-accordion-item::part(title) {
+    flex: 1 1 0;
+    min-inline-size: var(--layout-dimension-zero);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-accordion[variant="quiet"]
+    > ui-accordion-item::part(suffix) {
+    flex: 0 1 auto;
+    min-inline-size: var(--layout-dimension-zero);
+    max-inline-size: 50%;
+    color: var(--color-text-muted);
+    font: var(--type-label-small-font-weight) var(--type-label-small-font-size) /
+      var(--type-label-small-line-height) var(--type-label-small-font-family);
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-accordion[variant="quiet"]
+    > ui-accordion-item::part(reveal-measure) {
+    padding: var(--layout-dimension-zero);
+  }
+
+  @media (pointer: coarse) {
+    :where([data-mash-catalogue="mash"])
+      ui-accordion[variant="quiet"]
+      > ui-accordion-item::part(trigger) {
+      min-inline-size: var(--layout-dimension-control-touch);
+      min-block-size: max(
+        var(--mash-size-control, var(--layout-dimension-control)),
+        var(--layout-dimension-control-touch)
+      );
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"])
+      ui-accordion[variant="quiet"]
+      > ui-accordion-item::part(disclosure) {
+      transition: none;
+    }
+  }
+
   :where([data-mash-catalogue="mash"]) ui-tabs::part(list) {
     display: flex;
     gap: var(--space-control-gap);
@@ -258,7 +371,19 @@
   }
 
   :where([data-mash-catalogue="mash"]) ui-link[variant="quiet"]::part(control) {
-    min-block-size: var(--layout-dimension-control);
+    /* A stretched navigation host must expose a stretched native hit target,
+       while an ordinary inline-flex host remains intrinsically sized. */
+    flex: 1 1 auto;
+    min-block-size: var(--_mash-control-height);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    ui-link:not([variant="inline"]):not([size="inherit"])[size]::part(control) {
+    min-block-size: var(--_mash-control-height);
+    /* Explicit control sizes own the vertical rhythm. Keep long labels free
+       to wrap, without adding the quiet prose padding above the target tier. */
+    padding-block: var(--layout-dimension-zero);
+    font-size: var(--_mash-control-text);
   }
 
   :where([data-mash-catalogue="mash"]) ui-link[variant="quiet"]::part(label) {
@@ -284,7 +409,9 @@
   :where([data-mash-catalogue="mash"]) ui-link[variant="quiet"][current]::part(control) {
     background: var(--color-selection);
     color: var(--color-on-selection);
-    box-shadow: inset 0 0 0 var(--border-hairline) var(--color-action-emphasis);
+    /* Flat selection is explicit so earlier bundled catalogue recipes cannot
+       leave their old emphasis ring behind during progressive enhancement. */
+    box-shadow: none;
   }
 
   :where([data-mash-catalogue="mash"])
@@ -304,6 +431,21 @@
     color: var(--color-text-disabled);
     text-decoration-line: none;
     cursor: not-allowed;
+  }
+
+  @media (pointer: coarse) {
+    /* Standalone navigation reserves its touch area in normal layout. Inline
+       prose stays text-sized; no invisible hit extensions overlap neighbours. */
+    :where([data-mash-catalogue="mash"]) ui-link:not([variant="inline"]) {
+      min-inline-size: var(--layout-dimension-control-touch);
+    }
+
+    :where([data-mash-catalogue="mash"]) ui-link:not([variant="inline"])::part(control),
+    :where([data-mash-catalogue="mash"])
+      ui-link:not([variant="inline"]):not([size="inherit"])[size]::part(control) {
+      min-inline-size: var(--layout-dimension-control-touch);
+      min-block-size: var(--layout-dimension-control-touch);
+    }
   }
 
   :where([data-mash-catalogue="mash"]) ui-pagination::part(root) {

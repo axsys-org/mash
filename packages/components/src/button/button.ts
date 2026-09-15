@@ -48,6 +48,10 @@ export type ButtonType = "button" | "submit" | "reset";
  * `success`, and `info` are accepted as aliases for Mash meaning roles;
  * `primary`, `secondary`, `ghost`, `link`, and `text` are emphasis variants.
  * The older Mash name `quiet` remains as an alias for `ghost`.
+ * `icon-only` is an independent geometry axis: provide one stock icon in the
+ * default or prefix slot and an `aria-label`. It does not change the action's
+ * tone or emphasis. The Mash recipe uses square size tiers and reserves a
+ * non-overlapping 44px control on coarse-pointer devices.
  *
  * The element is form-associated, so a `submit` button submits its containing
  * form even though the real `<button>` lives inside a shadow root.
@@ -69,6 +73,16 @@ export type ButtonType = "button" | "submit" | "reset";
  *   <ui-button variant="link">Link</ui-button>
  * </div>
  *
+ * @example Compact icon actions
+ * <ui-toolbar label="Namespace actions">
+ *   <ui-button icon-only size="compact" variant="ghost" tone="neutral" aria-label="Refresh">
+ *     <ui-icon name="action.refresh"></ui-icon>
+ *   </ui-button>
+ *   <ui-button icon-only size="small" variant="ghost" tone="neutral" aria-label="Close inspector">
+ *     <ui-icon slot="prefix" name="action.dismiss"></ui-icon>
+ *   </ui-button>
+ * </ui-toolbar>
+ *
  * @example Meaning
  * <div data-mash-catalogue="mash" class="mash-row mash-wrap" data-mash-size="small">
  *   <ui-button tone="positive">Success</ui-button>
@@ -79,6 +93,7 @@ export type ButtonType = "button" | "submit" | "reset";
  *
  * @attr {string} aria-expanded - Disclosure state passed to the native control. Omit for ordinary buttons.
  * @attr {string} aria-label - Accessible name passed to the native control, required for icon-only buttons.
+ * @attr {string} aria-pressed - Parent-controlled toggle state (true, false, or mixed) passed to the native control. Omit for ordinary buttons; independent of visual selected and transient pressed states.
  * @slot - The button's label.
  * @slot prefix - Content placed before the label, typically an icon. Hidden while loading.
  * @slot suffix - Content placed after the label, typically a chevron or badge.
@@ -110,6 +125,8 @@ export type ButtonType = "button" | "submit" | "reset";
  * @mashaxis size control-size
  * @mashnode tone tone control
  * @mashnode compact compact control
+ * @mashnode iconOnly icon-only control
+ * @mashnode touchTarget touch-target control
  * @mashnode outline outline control
  * @mashnode dropdownCaret dropdown-caret suffix
  * @mashnode disabled disabled control
@@ -138,6 +155,7 @@ export class UIButton extends LitElement {
   static override properties = {
     ariaLabel: { type: String, attribute: "aria-label", reflect: true },
     ariaExpanded: { type: String, attribute: "aria-expanded", reflect: true },
+    ariaPressed: { type: String, attribute: "aria-pressed", reflect: true },
     variant: { type: String, reflect: true },
     size: { type: String, reflect: true },
     tone: { type: String, reflect: true },
@@ -145,8 +163,14 @@ export class UIButton extends LitElement {
     loading: { type: Boolean, reflect: true },
     selected: { type: Boolean, reflect: true },
     compact: { type: Boolean, reflect: true },
+    iconOnly: { type: Boolean, attribute: "icon-only", reflect: true },
+    touchTarget: { type: Boolean, attribute: "touch-target", reflect: true },
     outline: { type: Boolean, reflect: true },
-    dropdownCaret: { type: Boolean, attribute: "dropdown-caret", reflect: true },
+    dropdownCaret: {
+      type: Boolean,
+      attribute: "dropdown-caret",
+      reflect: true,
+    },
     type: { type: String, reflect: true },
     name: { type: String, reflect: true },
     value: { type: String, reflect: true },
@@ -168,6 +192,10 @@ export class UIButton extends LitElement {
   declare selected: boolean;
   /** Reduces the inline padding while preserving the current size tier. */
   declare compact: boolean;
+  /** Square icon geometry; requires aria-label and one icon in the default or prefix slot. */
+  declare iconOnly: boolean;
+  /** Opt-in wrapping label and real 44px minimum target on coarse pointers; normal text sizes are unchanged without it. */
+  declare touchTarget: boolean;
   /** Draws an outlined treatment that can combine with any tone. */
   declare outline: boolean;
   /** Adds the built-in dropdown caret after any authored suffix content. */
@@ -193,6 +221,8 @@ export class UIButton extends LitElement {
     this.loading = false;
     this.selected = false;
     this.compact = false;
+    this.iconOnly = false;
+    this.touchTarget = false;
     this.outline = false;
     this.dropdownCaret = false;
     this.type = "button";
@@ -298,6 +328,7 @@ export class UIButton extends LitElement {
         ?disabled=${this.#inert}
         aria-label=${this.ariaLabel || nothing}
         aria-expanded=${this.ariaExpanded ?? nothing}
+        aria-pressed=${this.ariaPressed ?? nothing}
         aria-busy=${this.loading ? "true" : "false"}
         @pointerdown=${() => this.#setPressed(true)}
         @pointerup=${() => this.#setPressed(false)}
@@ -317,9 +348,11 @@ export class UIButton extends LitElement {
           }
         </span>
 
-        <span part="label" class="label"><slot></slot></span>
+        <span part="label" class="label" ?hidden=${this.iconOnly && this.loading}
+          ><slot></slot
+        ></span>
 
-        <span part="suffix" class="suffix" ?hidden=${!hasSuffix}>
+        <span part="suffix" class="suffix" ?hidden=${!hasSuffix || (this.iconOnly && this.loading)}>
           <slot name="suffix" @slotchange=${this.#onSlotChange}></slot>
           ${
             this.dropdownCaret

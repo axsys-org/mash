@@ -6,8 +6,10 @@ export class TooltipDescription {
   #targets = new Map<HTMLElement, HTMLSpanElement>();
   #roots = new Map<Node, HTMLSpanElement>();
   #observer = new MutationObserver(() => this.sync());
+  #titles = new Map<HTMLElement, string | null>();
+  #titleObserver = new MutationObserver(() => this.sync());
 
-  constructor(private readonly host: HTMLElement) {
+  constructor(private readonly host: HTMLElement & { anchorElement?: HTMLElement | null }) {
     this.#text = this.createText();
   }
 
@@ -19,7 +21,11 @@ export class TooltipDescription {
   }
 
   connect(): void {
-    this.#observer.observe(this.host, { childList: true, subtree: true, characterData: true });
+    this.#observer.observe(this.host, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
     queueMicrotask(() => this.sync());
   }
 
@@ -55,11 +61,40 @@ export class TooltipDescription {
       targets.set(node, description);
     };
     const focusable = "button, input, select, textarea, a[href], summary, [tabindex]";
-    this.host.querySelectorAll<HTMLElement>(':scope > [slot="trigger"]').forEach((trigger) => {
+    const anchor = this.host.anchorElement;
+    const triggers = anchor
+      ? anchor.isConnected && anchor.ownerDocument === this.host.ownerDocument
+        ? [anchor]
+        : []
+      : [...this.host.querySelectorAll<HTMLElement>(':scope > [slot="trigger"]')];
+    triggers.forEach((trigger) => {
       visit(trigger);
       trigger.querySelectorAll<HTMLElement>(focusable).forEach(visit);
       trigger.shadowRoot?.querySelectorAll<HTMLElement>(focusable).forEach(visit);
     });
+    // A tooltip owns its trigger's browser hint for the whole binding, not
+    // just while open. Empty titles also block inherited ancestor titles.
+    // Semantic title properties (tree-item, myth, etc.) are never mutated.
+    const titleTargets = new Set<HTMLElement>();
+    for (const target of targets.keys()) {
+      if (!target.localName.includes("-") || target.matches("ui-button, ui-link"))
+        titleTargets.add(target);
+      const root = target.getRootNode();
+      if (root instanceof ShadowRoot && root.host.matches("ui-button, ui-link"))
+        titleTargets.add(root.host as HTMLElement);
+    }
+    this.#titleObserver.disconnect();
+    for (const [target, title] of this.#titles) {
+      if (titleTargets.has(target)) continue;
+      this.restoreTitle(target, title);
+      this.#titles.delete(target);
+    }
+    for (const target of titleTargets) {
+      if (!this.#titles.has(target) || target.getAttribute("title") !== "")
+        this.#titles.set(target, target.getAttribute("title"));
+      if (target.getAttribute("title") !== "") target.setAttribute("title", "");
+      this.#titleObserver.observe(target, { attributes: true, attributeFilter: ["title"] });
+    }
     for (const [old, description] of this.#targets) {
       if (!targets.has(old)) this.remove(old, description.id);
     }
@@ -85,8 +120,17 @@ export class TooltipDescription {
     else target.removeAttribute("aria-describedby");
   }
 
+  private restoreTitle(target: HTMLElement, title: string | null): void {
+    if (target.getAttribute("title") !== "") return;
+    if (title === null) target.removeAttribute("title");
+    else target.setAttribute("title", title);
+  }
+
   disconnect(): void {
     this.#observer.disconnect();
+    this.#titleObserver.disconnect();
+    this.#titles.forEach((title, target) => this.restoreTitle(target, title));
+    this.#titles.clear();
     this.#targets.forEach((description, target) => this.remove(target, description.id));
     this.#targets.clear();
     this.#roots.forEach((description) => description.remove());

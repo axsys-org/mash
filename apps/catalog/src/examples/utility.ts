@@ -2,6 +2,7 @@ import type { CatalogExample } from "../examples.js";
 import { sample } from "./shared.js";
 import { motionExamples } from "./motion.js";
 import { scrollAreaExamples } from "./scroll-area.js";
+import { shrineTreeExamples } from "./shrine-tree.js";
 
 const pane = (text: string) => `<div class="mash-panel">${text}</div>`;
 
@@ -97,6 +98,7 @@ files.addEventListener("change", () => {
     ),
   ],
   "sh-tree": [
+    ...shrineTreeExamples,
     sample(
       "History",
       `<sh-tree><ui-tree slot="tree" label="History"><ui-tree-item value="head" title="Update components" current selected data-shrine-lane="0" data-shrine-parents="previous"></ui-tree-item><ui-tree-item value="previous" title="Review foundations" data-shrine-lane="0" data-shrine-parents="base"></ui-tree-item><ui-tree-item value="base" title="Create project" data-shrine-lane="0"></ui-tree-item></ui-tree></sh-tree>`,

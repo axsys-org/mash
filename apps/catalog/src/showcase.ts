@@ -232,7 +232,8 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
     );
     frame.title = `${nameOf(component.tagName)} — ${variant.name}`;
     frame.dataset.variant = variant.name;
-    frame.dataset.src = `/fixture.html?theme=${document.documentElement.dataset.theme}&elements=${encodeURIComponent(variant.elements.join(","))}`;
+    const usesShrine = variant.elements.some((elementTag) => elementTag.startsWith("sh-"));
+    frame.dataset.src = `/fixture.html?theme=${document.documentElement.dataset.theme}&elements=${encodeURIComponent(variant.elements.join(","))}${usesShrine ? "&shrine" : ""}`;
     section.append(frame);
     target.append(section);
     const details = node("details", "reference-code");
@@ -241,7 +242,7 @@ export async function showCatalogue(root: HTMLElement): Promise<void> {
     const scriptSource = exampleScript(variant);
     const prepareCode = () => {
       if (!code.textContent)
-        code.textContent = `import "@mash/ui";\nimport "@mash/tokens/tokens.css";\nimport "@mash/ui/catalogue/mash.css";\n\n${formatMarkup(variant.code)}${scriptSource ? `\n\n<script type="module">\n${scriptSource}\n</script>` : ""}`;
+        code.textContent = `import "@mash/ui";\nimport "@mash/tokens/tokens.css";\nimport "@mash/ui/catalogue/mash.css";\n${usesShrine ? 'import "@mash/shrine/register";\nimport "@mash/shrine/catalogue/mash.css";\n' : ""}\n${formatMarkup(variant.code)}${scriptSource ? `\n\n<script type="module">\n${scriptSource}\n</script>` : ""}`;
     };
     details.addEventListener(
       "toggle",
