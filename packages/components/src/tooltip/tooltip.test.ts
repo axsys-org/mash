@@ -61,15 +61,18 @@ it("opens immediately on keyboard focus and describes the native Mash control", 
     "Save your work",
   );
   expect(inShadow(tip, '[part="description"]').textContent).toContain("Save your work");
-  control.dispatchEvent(
-    new KeyboardEvent("keydown", {
-      key: "Escape",
-      bubbles: true,
-      composed: true,
-      cancelable: true,
-    }),
-  );
+  const escape = new KeyboardEvent("keydown", {
+    key: "Escape",
+    bubbles: true,
+    composed: true,
+    cancelable: true,
+  });
+  const ownerKeydown = vi.fn();
+  button.addEventListener("keydown", ownerKeydown);
+  control.dispatchEvent(escape);
   expect(tip.open).toBe(false);
+  expect(escape.defaultPrevented).toBe(false);
+  expect(ownerKeydown).toHaveBeenCalledOnce();
   expect(button.shadowRoot!.activeElement).toBe(control);
   const description = control.ariaDescribedByElements!.at(-1)!;
   tip.label = "Save the latest draft";

@@ -178,8 +178,8 @@ export class UITooltip extends UIAnchoredOverlay {
       this.forceOpen !== undefined
     )
       return;
-    event.preventDefault();
-    event.stopPropagation();
+    // A passive description must not consume its owner's Escape (for example,
+    // closing an inspector or cancelling an edit). It never owns focus.
     this.dismiss("escape");
   };
 
