@@ -83,6 +83,7 @@ export class UIReveal extends LitElement {
 
   readonly #internals: ElementInternals;
   readonly #presence: PresenceLifecycleController<RevealPresenceValue>;
+  #resumeOnConnect = false;
 
   constructor() {
     super();
@@ -97,6 +98,14 @@ export class UIReveal extends LitElement {
         this.revealPresent = present;
       },
       setState: (state, present) => this.#setState(state, present),
+      skipAnimations: () => {
+        const content = this.#content();
+        // A hidden or empty disclosure can measure 0 -> 0. Flush the owned
+        // size change before checking for real motion: a declared duration
+        // alone must not leave that content clipped while nothing animates.
+        content?.getBoundingClientRect();
+        return !content?.getAnimations().length;
+      },
       beforeEnter: () => {
         this.#setZeroDimension();
         this.#content()?.getBoundingClientRect();
@@ -185,14 +194,34 @@ export class UIReveal extends LitElement {
   }
 
   protected override updated(changed: PropertyValues<this>): void {
+    const reconnected = this.#resumeOnConnect;
+    this.#resumeOnConnect = false;
     if (changed.has("axis") && this.open) this.#setAutoDimension();
+    if (reconnected) {
+      // Disconnect cancels in-flight lifecycle work. A DOM move does not
+      // change `open`, so Lit otherwise leaves entering content at its old
+      // measured size (possibly zero under a hidden ancestor) indefinitely.
+      if (!this.open) {
+        this.#presence.absent();
+        return;
+      }
+      if (this.matches(":state(active)")) this.#setAutoDimension();
+      else this.#enter();
+      return;
+    }
     if (!changed.has("open")) return;
     if (this.open) this.#enter();
     else this.#exit(changed.get("open") === true);
   }
 
+  override connectedCallback(): void {
+    super.connectedCallback();
+    if (this.hasUpdated) this.requestUpdate();
+  }
+
   override disconnectedCallback(): void {
     this.#presence.destroy();
+    this.#resumeOnConnect = true;
     super.disconnectedCallback();
   }
 
@@ -281,7 +310,9 @@ export class UIReveal extends LitElement {
     return html`
       <div part="root" ?hidden=${!this.revealPresent}>
         <div part="content" aria-hidden=${this.open ? nothing : "true"}>
-          <div part="measure"><slot @slotchange=${this.#onSlotChange}></slot></div>
+          <div part="measure">
+            <slot @slotchange=${this.#onSlotChange}></slot>
+          </div>
         </div>
       </div>
     `;

@@ -12,3 +12,5 @@ import "./triptych/register.js";
 import "./locator/register.js";
 import "./myth/register.js";
 import "./tree/register.js";
+import "./sidebar/register.js";
+import "./path-row/register.js";

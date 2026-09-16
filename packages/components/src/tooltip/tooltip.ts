@@ -14,8 +14,9 @@ export type TooltipTrigger = "click" | "hover" | "manual";
  * A non-interruptive label shown on hover or focus.
  *
  * Tooltips never receive focus and should not contain actions. Put the
- * described control in `slot="trigger"`; use a popover for content that
- * needs keyboard interaction.
+ * described control in `slot="trigger"`, or use `anchorElement` with a manual
+ * tooltip without moving the existing control. Both describe native controls
+ * in their own tree scope. Use a popover for content that needs interaction.
  *
  * @tag ui-tooltip
  * @summary Shows short descriptive text on trigger hover or focus.
@@ -86,6 +87,16 @@ export class UITooltip extends UIAnchoredOverlay {
   protected _hasContent = false;
   #point: { x: number; y: number } | null = null;
   #description = new TooltipDescription(this);
+
+  /** External native or composite control described and positioned by this tooltip. */
+  override get anchorElement(): HTMLElement | null {
+    return super.anchorElement;
+  }
+
+  override set anchorElement(value: HTMLElement | null) {
+    super.anchorElement = value;
+    this.#description.sync();
+  }
 
   protected readonly overlayRole = "tooltip";
   protected override readonly triggerAction = "hover";
@@ -167,8 +178,8 @@ export class UITooltip extends UIAnchoredOverlay {
       this.forceOpen !== undefined
     )
       return;
-    event.preventDefault();
-    event.stopPropagation();
+    // A passive description must not consume its owner's Escape (for example,
+    // closing an inspector or cancelling an edit). It never owns focus.
     this.dismiss("escape");
   };
 

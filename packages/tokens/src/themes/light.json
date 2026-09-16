@@ -10,6 +10,10 @@
       "$value": "{color.reference.neutral.0}",
       "$description": "Mash background; light theme."
     },
+    "tooltipSurface": {
+      "$value": "{color.reference.neutral.50}",
+      "$description": "Quiet light help-tag surface, never inverted against the page."
+    },
     "surfaceRaised": {
       "$value": "{color.reference.neutral.0}",
       "$description": "Mash popover.background; light theme."

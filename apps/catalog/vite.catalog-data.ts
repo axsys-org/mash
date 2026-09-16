@@ -20,7 +20,7 @@ export function catalogData(): Plugin {
       const result = await build({
         stdin: {
           contents: `import { components } from "./schema.ts"; import { examplesFor } from "./examples.ts";
-export const pages = components.filter(component => component.packageName === "@mash/ui").map(component => ({ component, variants: examplesFor(component) }));`,
+export const pages = components.map(component => ({ component, variants: examplesFor(component) }));`,
           resolveDir: sourceRoot,
           sourcefile: "catalogue-data.ts",
           loader: "ts",
@@ -39,7 +39,7 @@ export const pages = components.filter(component => component.packageName === "@
         for (const variant of page.variants) {
           variant.elements = [
             ...new Set(
-              `${variant.code}\n${variant.script ?? ""}`.match(/ui-[a-z][a-z0-9-]+/g) ?? [],
+              `${variant.code}\n${variant.script ?? ""}`.match(/(?:ui|sh)-[a-z][a-z0-9-]+/g) ?? [],
             ),
           ].filter((tag) => known.has(tag));
         }
@@ -59,7 +59,11 @@ export const pages = components.filter(component => component.packageName === "@
       if (!id.startsWith("\0virtual:mash/")) return;
       const pages = await read();
       if (id === `\0${indexId}`) {
-        return `export const catalogue = [${pages.map(({ component }) => `{tagName:${JSON.stringify(component.tagName)},summary:${JSON.stringify(component.summary ?? "")},load:()=>import(${JSON.stringify(pagePrefix + component.tagName)})}`).join(",")}];`;
+        const visible = pages.filter(
+          ({ component }) =>
+            component.packageName === "@mash/ui" || component.tagName === "sh-tree",
+        );
+        return `export const catalogue = [${visible.map(({ component }) => `{tagName:${JSON.stringify(component.tagName)},summary:${JSON.stringify(component.summary ?? "")},load:()=>import(${JSON.stringify(pagePrefix + component.tagName)})}`).join(",")}];`;
       }
       if (id === `\0${loadersId}`) {
         return `export const elementLoaders = {${pages
@@ -68,7 +72,7 @@ export const pages = components.filter(component => component.packageName === "@
               ?.replace(/^dist\//, "")
               .replace(/\/register\.js$/, "");
             if (!path) throw new Error(`No public registration module for ${component.tagName}`);
-            return `${JSON.stringify(component.tagName)}:()=>import(${JSON.stringify(`@mash/ui/${path}`)})`;
+            return `${JSON.stringify(component.tagName)}:()=>import(${JSON.stringify(`${component.packageName}/${path}`)})`;
           })
           .join(",")}};`;
       }
@@ -112,6 +116,7 @@ export const pages = components.filter(component => component.packageName === "@
         resolve(sourceRoot, "examples.ts"),
         resolve(sourceRoot, "schema.ts"),
         resolve(sourceRoot, "../../../packages/components/custom-elements.json"),
+        resolve(sourceRoot, "../../../packages/shrine-components/custom-elements.json"),
       ]);
     },
     handleHotUpdate(context) {

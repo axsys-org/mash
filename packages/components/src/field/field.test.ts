@@ -13,6 +13,72 @@ import "../textarea/register.js";
 import "./register.js";
 
 describe("ui-field", () => {
+  it("labels an already-upgraded input whose empty default label has reflected", async () => {
+    const form = await fixture<HTMLFormElement>(`
+      <form><ui-input name="existing" placeholder="existing type" value="Existing value" required></ui-input></form>
+    `);
+    const input = form.querySelector<UIInput>("ui-input")!;
+    const control = input.control!;
+    expect(input.getAttribute("label")).toBe("");
+    const field = document.createElement("ui-field") as UIField;
+    field.setAttribute("label", "Existing visible label");
+    field.setAttribute("description", "Authored supporting text");
+    field.setAttribute("required", "");
+    input.before(field);
+    input.slot = "control";
+    field.append(input);
+    await settled(form);
+
+    expect(control.getAttribute("aria-label")).toBe("Existing visible label");
+    expect(control.getAttribute("aria-description")).toBe("Authored supporting text");
+    expect(control.required).toBe(true);
+    expect(input.control).toBe(control);
+    expect(new FormData(form).get("existing")).toBe("Existing value");
+    inShadow<HTMLLabelElement>(field, '[part="label"]').click();
+    expect(input.shadowRoot!.activeElement).toBe(control);
+    const parent = form.parentElement!;
+    form.remove();
+    parent.append(form);
+    await settled(form);
+    expect(control.getAttribute("aria-label")).toBe("Existing visible label");
+  });
+
+  it("updates only labels supplied by this field, never a nonempty authored label", async () => {
+    const field = await fixture<UIField>(`
+      <ui-field label="First label"><ui-input slot="control" value="Draft"></ui-input></ui-field>
+    `);
+    const input = field.querySelector<UIInput>("ui-input")!;
+    const control = input.control!;
+    input.focus();
+    control.setSelectionRange(1, 4);
+    field.label = "Changed label";
+    await settled(field);
+    expect(control.getAttribute("aria-label")).toBe("Changed label");
+    expect(input.control).toBe(control);
+    expect(input.shadowRoot!.activeElement).toBe(control);
+    expect([control.selectionStart, control.selectionEnd]).toEqual([1, 4]);
+
+    input.label = "Authored input label";
+    field.label = "Another field label";
+    await settled(field);
+    expect(control.getAttribute("aria-label")).toBe("Authored input label");
+    field.label = "Still field-owned visible text";
+    await settled(field);
+    expect(control.getAttribute("aria-label")).toBe("Authored input label");
+  });
+
+  it("preserves an initially authored nonempty control label", async () => {
+    const field = await fixture<UIField>(`
+      <ui-field label="Visible field label"><ui-input slot="control" label="Authored input name"></ui-input></ui-field>
+    `);
+    const input = field.querySelector<UIInput>("ui-input")!;
+    expect(input.control!.getAttribute("aria-label")).toBe("Authored input name");
+    field.label = "Updated visible field label";
+    await settled(field);
+    expect(input.label).toBe("Authored input name");
+    expect(input.control!.getAttribute("aria-label")).toBe("Authored input name");
+  });
+
   it("uses an authored label and mirrors validation requirements", async () => {
     const field = await fixture<UIField>(`
       <ui-field label="Fallback" invalid required>

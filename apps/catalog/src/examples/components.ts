@@ -164,6 +164,31 @@ export const componentExamples: Record<string, CatalogExample[]> = {
   ],
   "ui-accordion": [
     sample(
+      "Quiet sections",
+      `<ui-accordion mode="multiple" size="compact" variant="quiet">
+  <ui-accordion-item title="Saved" value="saved" heading-level="2" open>
+    <ui-icon slot="disclosure" name="navigation.disclosure" size="small" label=""></ui-icon>
+    <ui-icon slot="prefix" name="object.bookmark" size="small" label=""></ui-icon>
+    <span slot="suffix">2 pages</span>
+    <ui-link href="/components/ui-tree" variant="quiet" size="small">Namespace tree</ui-link>
+    <ui-link href="/components/ui-path" variant="quiet" size="small">Path reference</ui-link>
+  </ui-accordion-item>
+  <ui-accordion-item title="Recent" value="recent" heading-level="2">
+    <ui-icon slot="disclosure" name="navigation.disclosure" size="small" label=""></ui-icon>
+    <ui-icon slot="prefix" name="object.clock" size="small" label=""></ui-icon>
+    <span slot="suffix">1 path</span>
+    <ui-link href="/components/ui-menu" variant="quiet" size="small">Navigation menu</ui-link>
+  </ui-accordion-item>
+  <ui-accordion-item title="Tree" value="tree" heading-level="2" open>
+    <ui-icon slot="disclosure" name="navigation.disclosure" size="small" label=""></ui-icon>
+    <ui-icon slot="prefix" name="object.tree" size="small" label=""></ui-icon>
+    <span slot="suffix">40 of 10000 names</span>
+    <div class="mash-stack"><ui-input size="small" label="Filter names" placeholder="Filter names…"></ui-input><ui-checkbox checked>Follow the current path</ui-checkbox></div>
+  </ui-accordion-item>
+</ui-accordion>`,
+      "Independent, seamless sections with real links and persistent body controls. Tab reaches headers and expanded content; Enter or Space toggles a header. Counts remain meaningful when they wrap in a narrow rail.",
+    ),
+    sample(
       "Accordion",
       `<ui-accordion mode="single">
   <ui-accordion-item title="What is Mash?" value="about" open>A library of composable web components.</ui-accordion-item>
@@ -174,7 +199,7 @@ export const componentExamples: Record<string, CatalogExample[]> = {
     {
       ...sample(
         "Interactive panels",
-        `<ui-accordion mode="multiple" bordered><ui-accordion-item title="What can a panel contain?" value="content" open><div class="mash-stack"><p>Panels can contain inputs, independent controls, nested disclosures, or a composed preview. These controls keep their values when the panel closes.</p><ui-input id="panel-title" label="Preview title" value="Weekly review"></ui-input><ui-switch id="panel-details" checked>Show the description</ui-switch><ui-checkbox id="panel-notify" checked>Notify collaborators</ui-checkbox><ui-card><strong slot="title" id="panel-preview-title">Weekly review</strong><p id="panel-preview-description">A focused place to review the work with your team.</p><output slot="footer" id="panel-preview-state" aria-live="polite">Collaborators will be notified.</output></ui-card></div></ui-accordion-item><ui-accordion-item title="Does closing a panel reset the form?" value="persistence"><p>No. Collapse changes visibility, while your authored content and its state stay in place. Edit the title above, close its panel, and reopen it.</p></ui-accordion-item><ui-accordion-item title="Can I use the keyboard?" value="keyboard"><p>Tab into a header and press Enter or Space to toggle it. Arrow keys move between headers; Tab reaches the controls in an expanded panel.</p></ui-accordion-item></ui-accordion>`,
+        `<ui-accordion mode="multiple" bordered><ui-accordion-item title="What can a panel contain?" value="content" open><div class="mash-stack"><p>Panels can contain inputs, independent controls, nested disclosures, or a composed preview. These controls keep their values when the panel closes.</p><ui-input id="panel-title" label="Preview title" value="Weekly review"></ui-input><ui-switch id="panel-details" checked>Show the description</ui-switch><ui-checkbox id="panel-notify" checked>Notify collaborators</ui-checkbox><ui-card><strong slot="title" id="panel-preview-title">Weekly review</strong><p id="panel-preview-description">A focused place to review the work with your team.</p><output slot="footer" id="panel-preview-state" aria-live="polite">Collaborators will be notified.</output></ui-card></div></ui-accordion-item><ui-accordion-item title="Does closing a panel reset the form?" value="persistence"><p>No. Collapse changes visibility, while your authored content and its state stay in place. Edit the title above, close its panel, and reopen it.</p></ui-accordion-item><ui-accordion-item title="Can I use the keyboard?" value="keyboard"><p>Tab into a header and press Enter or Space to toggle it. Tab reaches the controls in an expanded panel.</p></ui-accordion-item></ui-accordion>`,
         "Use the controls to update the preview, then close and reopen the panel to verify its state stays intact.",
       ),
       script: `document.querySelector("#panel-title").addEventListener("input", event => {

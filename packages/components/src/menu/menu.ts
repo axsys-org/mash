@@ -42,7 +42,11 @@ export type MenuSizing = "content" | "fixed" | "stretch";
  * @csspart popup - The semantic menu surface.
  * @csspart material - The isolated visual material layer behind menu content.
  * @csspart header - The authored persistent content before the command viewport.
- * @csspart viewport - The natively scrollable command viewport.
+ * @csspart scroll-area - The composed Mash scroll controller.
+ * @csspart viewport - The native viewport owned by that scroll controller.
+ * @csspart block-scrollbar - The activity-revealed vertical scroll control.
+ * @csspart block-track - The vertical scroll track.
+ * @csspart block-thumb - The vertical scroll indicator.
  * @csspart actions - The authored menu commands.
  * @csspart footer - The authored persistent content after the command viewport.
  * @csspart close - The authored close action realization.
@@ -154,9 +158,17 @@ export class UIMenu extends UIAnchoredOverlay {
       <div part="header" role="presentation">
         <slot name="header" @slotchange=${this.#onChromeSlotChange}></slot>
       </div>
-      <div part="viewport">
+      <ui-scroll-area
+        part="scroll-area"
+        orientation="vertical"
+        mode="scrolling"
+        size="medium"
+        viewport-tabindex="-1"
+        viewport-role="presentation"
+        exportparts="root:scroll-root,viewport:viewport,block-scrollbar:block-scrollbar,block-track:block-track,block-thumb:block-thumb,inline-scrollbar:inline-scrollbar,corner:scroll-corner"
+      >
         <div part="actions"><slot></slot></div>
-      </div>
+      </ui-scroll-area>
       <div part="footer" role="presentation">
         <slot name="footer" @slotchange=${this.#onChromeSlotChange}></slot>
       </div>

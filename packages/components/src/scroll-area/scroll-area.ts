@@ -1,4 +1,5 @@
 import { LitElement, css, html, type PropertyValues, type TemplateResult } from "lit";
+import { ifDefined } from "lit/directives/if-defined.js";
 
 import { baseStyles } from "../internal/base-styles.js";
 
@@ -149,6 +150,8 @@ export class UIScrollArea extends LitElement {
     gutter: { type: String, reflect: true },
     snap: { type: String, reflect: true },
     idleDelay: { type: Number, attribute: "idle-delay", reflect: true },
+    viewportTabIndex: { type: Number, attribute: "viewport-tabindex", reflect: true },
+    viewportRole: { type: String, attribute: "viewport-role", reflect: true },
     _metrics: { state: true },
   };
 
@@ -166,6 +169,10 @@ export class UIScrollArea extends LitElement {
   declare snap: ScrollSnapMode;
   /** Milliseconds that activity-revealed scrollbars remain visible after scrolling stops. */
   declare idleDelay: number;
+  /** Native viewport Tab policy; -1 lets a composite such as a menu own roving focus. */
+  declare viewportTabIndex: number;
+  /** Composite controls supply their own semantics; standalone scroll areas are labelled regions. */
+  declare viewportRole: "region" | "presentation";
   declare private _metrics: ScrollMetrics;
 
   readonly #internals: ElementInternals;
@@ -176,6 +183,7 @@ export class UIScrollArea extends LitElement {
   #visibilityTimer: number | undefined;
   #activeUntil = 0;
   #hovered = false;
+  #scrollbarHovered = false;
   #focused = false;
   #dragging = false;
   #activeDetent: HTMLElement | undefined;
@@ -189,6 +197,8 @@ export class UIScrollArea extends LitElement {
     this.gutter = "none";
     this.snap = "none";
     this.idleDelay = defaultIdleDelay;
+    this.viewportTabIndex = 0;
+    this.viewportRole = "region";
     this._metrics = emptyMetrics();
     this.#internals = this.attachInternals();
   }
@@ -331,10 +341,16 @@ export class UIScrollArea extends LitElement {
     const visible =
       this.mode === "always" ||
       this.#dragging ||
-      this.#focused ||
+      (this.#focused &&
+        (this.mode !== "scrolling" ||
+          Boolean(
+            this.renderRoot.querySelector(
+              '[role="scrollbar"]:focus-visible, [part="viewport"]:focus-visible',
+            ),
+          ))) ||
       (this.mode === "hover" && this.#hovered) ||
       this.#activeUntil > now ||
-      (this.mode === "scrolling" && this.#hovered && this.#visible);
+      (this.mode === "scrolling" && this.#scrollbarHovered && this.#visible);
     this.#visible = visible;
     this.#setState("visible", visible);
     this.#setState("idle", !active);
@@ -373,6 +389,16 @@ export class UIScrollArea extends LitElement {
 
   #onPointerLeave = (): void => {
     this.#hovered = false;
+    this.#refreshVisibility();
+  };
+
+  #onScrollbarPointerEnter = (): void => {
+    this.#scrollbarHovered = true;
+    this.#refreshVisibility();
+  };
+
+  #onScrollbarPointerLeave = (): void => {
+    this.#scrollbarHovered = false;
     this.#refreshVisibility();
   };
 
@@ -639,6 +665,9 @@ export class UIScrollArea extends LitElement {
     }
     if (next === undefined) return;
     event.preventDefault();
+    // An enclosing composite must not reinterpret an already handled arrow
+    // or End key as item navigation after the scrollbar moved.
+    event.stopPropagation();
     this.#setPosition(axis, next);
   };
 
@@ -750,6 +779,8 @@ export class UIScrollArea extends LitElement {
         tabindex=${metrics.maximum > 0 ? "0" : "-1"}
         ?hidden=${metrics.maximum <= 0}
         @keydown=${this.#onScrollbarKeydown}
+        @pointerenter=${this.#onScrollbarPointerEnter}
+        @pointerleave=${this.#onScrollbarPointerLeave}
       >
         <span
           part=${`${prefix}-track`}
@@ -818,9 +849,9 @@ export class UIScrollArea extends LitElement {
         <div
           part="viewport"
           id=${this.#viewportId}
-          role="region"
-          aria-label=${this.label}
-          tabindex="0"
+          role=${this.viewportRole}
+          aria-label=${ifDefined(this.viewportRole === "region" ? this.label : undefined)}
+          tabindex=${this.viewportTabIndex}
         >
           <div part="content">
             <slot name="content"><slot></slot></slot>

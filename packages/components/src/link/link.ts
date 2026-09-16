@@ -5,6 +5,9 @@ import { baseStyles } from "../internal/base-styles.js";
 /** The link's visual role in surrounding content. */
 export type LinkVariant = "standalone" | "inline" | "quiet";
 
+/** Physical scale of a navigation action; inline prose always inherits its text. */
+export type LinkSize = "inherit" | "default" | "compact" | "small" | "medium" | "large";
+
 /**
  * An unstyled navigation action.
  *
@@ -52,6 +55,8 @@ export type LinkVariant = "standalone" | "inline" | "quiet";
  * @mashnode suffix suffix control
  * @mashnode path path control
  * @mashnode variant variant control
+ * @mashnode size size control
+ * @mashaxis size control-size
  * @mashnode current current control
  * @mashnode disabled disabled control
  * @mashnode activate activate control
@@ -69,6 +74,7 @@ export class UILink extends LitElement {
     href: { type: String, reflect: true },
     label: { type: String, reflect: true },
     variant: { type: String, reflect: true },
+    size: { type: String, reflect: true },
     current: { type: Boolean, reflect: true },
     disabled: { type: Boolean, reflect: true },
     _hasPrefix: { type: Boolean, state: true },
@@ -81,6 +87,8 @@ export class UILink extends LitElement {
   declare label: string;
   /** Presentation role: separate action, prose link, or low-emphasis navigation. */
   declare variant: LinkVariant;
+  /** Inherits the surrounding control scale unless an explicit size is authored. */
+  declare size: LinkSize;
   /** Marks this destination as the current page. */
   declare current: boolean;
   /** Prevents pointer and keyboard activation. */
@@ -95,6 +103,7 @@ export class UILink extends LitElement {
     this.href = "";
     this.label = "";
     this.variant = "standalone";
+    this.size = "inherit";
     this.current = false;
     this.disabled = false;
     this._hasPrefix = false;

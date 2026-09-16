@@ -10,6 +10,10 @@
       "$value": "{color.reference.neutral.950}",
       "$description": "Mash background; dark theme."
     },
+    "tooltipSurface": {
+      "$value": "{color.reference.neutral.800}",
+      "$description": "Raised charcoal help-tag surface, distinct from the dark canvas."
+    },
     "surfaceRaised": {
       "$value": "{color.reference.neutral.950}",
       "$description": "Mash popover.background; dark theme."

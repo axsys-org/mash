@@ -100,7 +100,9 @@ describe("Mash catalogue", () => {
     const itemControl = inShadow<HTMLElement>(item, '[part="control"]');
 
     expect(menu.getAttribute("density")).toBe("regular");
-    expect(getComputedStyle(itemControl).blockSize).toBe("26px");
+    expect(getComputedStyle(itemControl).blockSize).toBe(
+      matchMedia("(pointer: coarse)").matches ? "44px" : "26px",
+    );
     expect(getComputedStyle(keyRoot).borderTopWidth).toBe("0px");
     expect(getComputedStyle(keyRoot).backgroundColor).toBe("rgba(0, 0, 0, 0)");
     expect(getComputedStyle(keyRoot).boxShadow).toBe("none");
@@ -118,7 +120,9 @@ describe("Mash catalogue", () => {
     const itemControl = inShadow<HTMLElement>(item, '[part="control"]');
 
     expect(menu.getAttribute("density")).toBe("regular");
-    expect(getComputedStyle(itemControl).blockSize).toBe("26px");
+    expect(getComputedStyle(itemControl).blockSize).toBe(
+      matchMedia("(pointer: coarse)").matches ? "44px" : "26px",
+    );
   });
 
   it("opens menus instantly and closes root menus with an optical transient", async () => {
@@ -145,14 +149,16 @@ describe("Mash catalogue", () => {
     await menu.updateComplete;
     const exitMotion = getComputedStyle(popup);
     const materialMotion = getComputedStyle(inShadow<HTMLElement>(menu, '[part="material"]'));
-    const viewportMotion = getComputedStyle(inShadow<HTMLElement>(menu, '[part="viewport"]'));
+    const viewportMotion = getComputedStyle(
+      inShadow<HTMLElement>(inShadow(menu, "ui-scroll-area"), '[part="viewport"]'),
+    );
 
     expect(menu.matches(":state(exiting)")).toBe(true);
-    expect(exitMotion.animationName).toBe("mash-menu-presence-closeout");
+    expect(exitMotion.animationName).toBe("mash-menu-closeout");
     expect(exitMotion.animationDuration).toBe("0.12s");
     expect(exitMotion.willChange).not.toContain("opacity");
     expect(materialMotion.animationName).toBe("mash-menu-closeout");
-    expect(viewportMotion.animationName).toBe("mash-menu-closeout");
+    expect(viewportMotion.animationName).toBe("none");
   });
 
   it("removes nested menu exits immediately during pointer leafing", async () => {
@@ -445,7 +451,9 @@ describe("Mash catalogue", () => {
     expect(menu.matches(":state(has-footer)")).toBe(false);
     expect(getComputedStyle(header).display).toBe("contents");
     expect(getComputedStyle(footer).display).toBe("contents");
-    expect(getComputedStyle(itemControl).blockSize).toBe("20px");
+    expect(getComputedStyle(itemControl).blockSize).toBe(
+      matchMedia("(pointer: coarse)").matches ? "44px" : "20px",
+    );
     expect(getComputedStyle(itemControl).borderTopLeftRadius).toBe("4px");
     expect(getComputedStyle(itemControl).fontWeight).toBe("400");
     expect(getComputedStyle(labelRoot).paddingInlineStart).toBe("8px");
@@ -469,7 +477,7 @@ describe("Mash catalogue", () => {
         <ui-menu-item value="reset" tone="critical">Reset layout</ui-menu-item>
       </ui-menu>
     `);
-    const viewport = inShadow<HTMLElement>(menu, '[part="viewport"]');
+    const viewport = inShadow<HTMLElement>(inShadow(menu, "ui-scroll-area"), '[part="viewport"]');
 
     expect(viewport.scrollHeight).toBeLessThanOrEqual(viewport.clientHeight);
   });

@@ -9,7 +9,7 @@ export { UICalendar } from "./calendar/calendar.js";
 export type { CalendarChangeDetail, CalendarMode } from "./calendar/calendar.js";
 export type { AvatarSize } from "./avatar/avatar.js";
 export { UIAccordion } from "./accordion/accordion.js";
-export type { AccordionMode } from "./accordion/accordion.js";
+export type { AccordionMode, AccordionVariant } from "./accordion/accordion.js";
 export { UIAccordionItem } from "./accordion-item/accordion-item.js";
 export { UIAlertDialog } from "./alert-dialog/alert-dialog.js";
 export { UIAutocomplete } from "./autocomplete/autocomplete.js";
@@ -130,6 +130,7 @@ export type {
   InputType,
 } from "./input/input.js";
 export { UIInputGroup } from "./input-group/input-group.js";
+export type { InputGroupTypography } from "./input-group/input-group.js";
 export { UIIcon, hasIcon, iconNames, registerIcon, unregisterIcon } from "./icon/icon.js";
 export type { IconName, IconSize, IconSource } from "./icon/icon.js";
 export { UIImage } from "./image/image.js";
@@ -148,6 +149,7 @@ export type {
   IntlFormatterStyle,
 } from "./intl-formatter/intl-formatter.js";
 export { UILink } from "./link/link.js";
+export type { LinkSize, LinkVariant } from "./link/link.js";
 export { UILabel } from "./label/label.js";
 export type { LabelAlign, LabelHighlightMatch, LabelSize } from "./label/label.js";
 export { UIKbd } from "./kbd/kbd.js";
@@ -267,7 +269,7 @@ export { UITooltip } from "./tooltip/tooltip.js";
 export type { TooltipTrigger } from "./tooltip/tooltip.js";
 export { UITree } from "./tree/tree.js";
 export { UITreeItem } from "./tree-item/tree-item.js";
-export type { TreeItemKind, TreeItemSize } from "./tree-item/tree-item.js";
+export type { TreeItemKind, TreeItemSize, TreeItemActionsDisplay } from "./tree-item/tree-item.js";
 export { UIVirtualItem, UIVirtualList } from "./virtual-list/virtual-list.js";
 export type {
   VirtualListAlignment,

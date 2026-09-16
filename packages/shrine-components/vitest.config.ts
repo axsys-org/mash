@@ -35,7 +35,9 @@ export default defineConfig({
     setupFiles: ["./src/test-support/setup.ts"],
     browser: {
       enabled: true,
-      provider: playwright(),
+      provider: playwright({
+        contextOptions: { hasTouch: process.env.POINTER === "coarse" },
+      }),
       headless: true,
       screenshotFailures: false,
       instances: browsers.filter(isSupported).map((browser) => ({ browser })),

@@ -5,6 +5,8 @@ import type { UIAccordionItem } from "../accordion-item/accordion-item.js";
 
 /** Open-state policy for an accordion. */
 export type AccordionMode = "single" | "multiple";
+/** Visual treatment interpreted by the active catalogue. */
+export type AccordionVariant = "default" | "quiet";
 
 /**
  * Coordinates related `ui-accordion-item` disclosures.
@@ -12,6 +14,10 @@ export type AccordionMode = "single" | "multiple";
  * Single mode (the default) leaves at most one item open; multiple mode lets
  * each item remain independently expanded. The parent owns that policy while
  * the item remains an accessible disclosure primitive in any renderer.
+ * Quiet presentation removes item surfaces and body padding without changing
+ * the open policy. Put non-interactive icon/title/count content in item slots;
+ * controls and links belong in the persistent body. Native Tab, Enter and Space
+ * provide keyboard access. Programmatic `.open` changes do not emit user events.
  *
  * @tag ui-accordion
  * @summary Coordinates a set of labelled disclosure items.
@@ -35,6 +41,7 @@ export type AccordionMode = "single" | "multiple";
  * @mashnode children children root
  * @mashnode disabled disabled root
  * @mashnode size size root
+ * @mashnode variant variant root
  * @mashrole slot default children children
  */
 export class UIAccordion extends LitElement {
@@ -43,6 +50,7 @@ export class UIAccordion extends LitElement {
     disabled: { type: Boolean, reflect: true },
     bordered: { type: Boolean, reflect: true },
     size: { type: String, reflect: true },
+    variant: { type: String, reflect: true },
   };
 
   /** Whether one or many items can remain open. */
@@ -53,6 +61,8 @@ export class UIAccordion extends LitElement {
   declare bordered: boolean;
   /** Disclosure spacing and text size; inherit follows the composition context. */
   declare size: "inherit" | "default" | "compact" | "xsmall" | "small" | "medium" | "large";
+  /** Default disclosure surfaces or quiet, unpadded sections. */
+  declare variant: AccordionVariant;
 
   readonly #childDisabled = new WeakMap<UIAccordionItem, boolean>();
   readonly #internals: ElementInternals;
@@ -63,6 +73,7 @@ export class UIAccordion extends LitElement {
     this.disabled = false;
     this.bordered = false;
     this.size = "inherit";
+    this.variant = "default";
     this.#internals = this.attachInternals();
   }
 

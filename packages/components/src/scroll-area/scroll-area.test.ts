@@ -9,6 +9,20 @@ afterEach(() => {
 });
 
 describe("ui-scroll-area", () => {
+  it("declares presentation-only scrolling without stealing composite focus", async () => {
+    const area = await fixture<UIScrollArea>(
+      `<ui-scroll-area viewport-role="presentation" viewport-tabindex="-1">Commands</ui-scroll-area>`,
+    );
+    const viewport = inShadow<HTMLElement>(area, '[part="viewport"]');
+    expect(viewport.getAttribute("role")).toBe("presentation");
+    expect(viewport.hasAttribute("aria-label")).toBe(false);
+    expect(viewport.tabIndex).toBe(-1);
+    area.viewportRole = "region";
+    area.viewportTabIndex = 0;
+    await settled(area);
+    expect(viewport.getAttribute("role")).toBe("region");
+    expect(viewport.tabIndex).toBe(0);
+  });
   it("registers a labelled native viewport", async () => {
     const area = await fixture<UIScrollArea>(
       `<ui-scroll-area label="Project activity">Activity</ui-scroll-area>`,
@@ -149,10 +163,19 @@ describe("ui-scroll-area", () => {
     expect(area.mode).toBe("scrolling");
     expect(area.matches(":state(visible)")).toBe(false);
     vi.useFakeTimers();
+    root.dispatchEvent(new PointerEvent("pointerenter"));
+    expect(area.matches(":state(visible)")).toBe(false);
     viewport.dispatchEvent(new Event("scroll"));
     expect(area.matches(":state(visible)")).toBe(true);
-    root.dispatchEvent(new PointerEvent("pointerleave"));
     await vi.advanceTimersByTimeAsync(area.idleDelay + 1);
+    expect(area.matches(":state(hovered)")).toBe(true);
+    expect(area.matches(":state(visible)")).toBe(false);
+    viewport.dispatchEvent(new Event("scroll"));
+    const bar = inShadow<HTMLElement>(area, '[part="block-scrollbar"]');
+    bar.dispatchEvent(new PointerEvent("pointerenter"));
+    await vi.advanceTimersByTimeAsync(area.idleDelay + 1);
+    expect(area.matches(":state(visible)")).toBe(true);
+    bar.dispatchEvent(new PointerEvent("pointerleave"));
     expect(area.matches(":state(visible)")).toBe(false);
     vi.useRealTimers();
 

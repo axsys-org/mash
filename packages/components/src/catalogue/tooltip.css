@@ -1,15 +1,17 @@
 @layer mash.catalogue {
   :where([data-mash-catalogue="mash"]) ui-tooltip::part(popup) {
     pointer-events: auto;
-    max-inline-size: min(24rem, calc(100vw - var(--space-container-inline) * 2));
-    padding: var(--space-control-block) var(--space-control-inline);
-    border: 0;
-    border-radius: var(--radius-control);
-    background: var(--color-surface-inverse);
-    color: var(--_mash-component-inverse-label);
-    font-family: var(--type-label-font-family);
-    font-size: var(--mash-size-body, var(--type-scale-default-body));
-    line-height: var(--type-label-line-height);
+    max-inline-size: min(20rem, calc(100vw - var(--space-container-inline) * 2));
+    padding: var(--space-control-block-small) var(--space-tooltip-inline);
+    border: var(--border-hairline) solid var(--_mash-component-boundary);
+    border-radius: var(--radius-tooltip);
+    background: var(--color-tooltip-surface);
+    color: var(--color-text);
+    box-shadow: 0 2px 4px var(--_mash-component-shadow);
+    font-family: var(--type-tooltip-font-family);
+    font-size: var(--type-tooltip-font-size);
+    font-weight: var(--type-tooltip-font-weight);
+    line-height: var(--type-tooltip-line-height);
     overflow-wrap: anywhere;
   }
   :where([data-mash-catalogue="mash"]) ui-tooltip::part(description) {
@@ -22,11 +24,19 @@
     animation: mash-overlay-exit var(--duration-fast-exit) var(--easing-control) both;
     pointer-events: none;
   }
+  :where([data-mash-catalogue="mash"]) ui-tooltip ui-kbd {
+    display: inline-flex;
+    font: inherit;
+  }
   :where([data-mash-catalogue="mash"]) ui-tooltip ui-kbd::part(root) {
+    font: inherit;
     color: inherit;
     background: transparent;
   }
   :where([data-mash-catalogue="mash"]) ui-tooltip ui-kbd::part(value) {
     gap: var(--space-control-block-small);
+  }
+  :where([data-mash-catalogue="mash"]) ui-tooltip ui-kbd::part(glyph) {
+    font-size: inherit;
   }
 }

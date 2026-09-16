@@ -1,0 +1,84 @@
+/* Quiet scrolling through a composition's public parts. No DOM enhancement or
+   app-owned visibility timers. Other compositions can opt in with
+   mash-scroll-composition and export the same scroll-area/viewport/track parts. */
+@layer mash.catalogue {
+  @scope (:where([data-mash-catalogue="mash"]) :is(ui-menu, ui-context-menu, .mash-scroll-composition)) {
+    :scope::part(scroll-area) {
+      position: relative;
+      z-index: var(--layer-raised);
+      --_composed-scroll-opacity: 0;
+      --_composed-scroll-pointer: none;
+      --_composed-scroll-thumb: var(--scrollbar-track-medium);
+      --_composed-scroll-ink: color-mix(in srgb, var(--color-text) 22%, transparent);
+    }
+    :scope::part(scroll-area):state(visible) {
+      --_composed-scroll-opacity: 1;
+      --_composed-scroll-pointer: auto;
+    }
+    :scope::part(scroll-area):state(dragging) {
+      --_composed-scroll-thumb: var(--scrollbar-track-large);
+    }
+    :scope::part(viewport) {
+      scrollbar-width: none;
+      scrollbar-gutter: auto;
+      overscroll-behavior: contain;
+    }
+    :scope::part(viewport)::-webkit-scrollbar {
+      display: none;
+    }
+    :scope::part(block-scrollbar) {
+      position: absolute;
+      z-index: var(--layer-raised);
+      inset-block: var(--space-control-block-small);
+      inset-inline-end: var(--layout-dimension-zero);
+      inline-size: var(--scrollbar-hit-area-medium);
+      border-radius: var(--radius-pill);
+      opacity: var(--_composed-scroll-opacity);
+      pointer-events: var(--_composed-scroll-pointer);
+      transition: opacity var(--duration-control) var(--easing-control);
+    }
+    :scope::part(block-track) {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: transparent;
+    }
+    :scope::part(block-thumb) {
+      position: absolute;
+      inset-inline-end: var(--space-control-block-small);
+      inline-size: var(--_composed-scroll-thumb);
+      min-block-size: var(--scrollbar-thumb-minimum);
+      border-radius: inherit;
+      background: var(--_composed-scroll-ink);
+    }
+    :scope::part(block-scrollbar):is(:hover, :focus-visible) {
+      --_composed-scroll-thumb: var(--scrollbar-track-large);
+      --_composed-scroll-ink: color-mix(in srgb, var(--color-text) 38%, transparent);
+    }
+    :scope::part(block-scrollbar):focus-visible {
+      outline: var(--border-focus-ring) solid var(--color-focus-ring);
+      outline-offset: calc(-1 * var(--border-focus-ring));
+    }
+    :scope::part(inline-scrollbar),
+    :scope::part(scroll-corner) {
+      display: none;
+    }
+    @media (hover: none) and (pointer: coarse), (forced-colors: active) {
+      :scope::part(viewport) {
+        scrollbar-width: auto;
+        scrollbar-color: auto;
+      }
+      :scope::part(viewport)::-webkit-scrollbar {
+        display: initial;
+      }
+      :scope::part(block-scrollbar) {
+        display: none;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      :scope::part(block-scrollbar) {
+        transition: none;
+      }
+    }
+  }
+}

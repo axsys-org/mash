@@ -55,6 +55,7 @@ describe("ui-button: attribute and property reflection", () => {
     expect(button.loading).toBe(false);
     expect(button.selected).toBe(false);
     expect(button.compact).toBe(false);
+    expect(button.iconOnly).toBe(false);
     expect(button.outline).toBe(false);
     expect(button.dropdownCaret).toBe(false);
     expect(button.type).toBe("button");
@@ -613,4 +614,51 @@ it("forwards disclosure state changes and removes the state for ordinary buttons
   button.removeAttribute("aria-expanded");
   await settled(button);
   expect(control(button).hasAttribute("aria-expanded")).toBe(false);
+});
+
+it.each(["false", "true", "mixed"])(
+  "forwards authored aria-pressed=%s to the native control",
+  async (state) => {
+    const button = await fixture<UIButton>(`<ui-button aria-pressed="${state}">Pin</ui-button>`);
+
+    expect(button.ariaPressed).toBe(state);
+    expect(control(button).getAttribute("aria-pressed")).toBe(state);
+  },
+);
+
+it("reacts to toggle state changes and removal through attributes and properties", async () => {
+  const button = await fixture<UIButton>(`<ui-button aria-pressed="false">Pin</ui-button>`);
+
+  button.ariaPressed = "true";
+  await settled(button);
+  expect(button.getAttribute("aria-pressed")).toBe("true");
+  expect(control(button).getAttribute("aria-pressed")).toBe("true");
+
+  button.setAttribute("aria-pressed", "mixed");
+  await settled(button);
+  expect(button.ariaPressed).toBe("mixed");
+  expect(control(button).getAttribute("aria-pressed")).toBe("mixed");
+
+  button.removeAttribute("aria-pressed");
+  await settled(button);
+  expect(control(button).hasAttribute("aria-pressed")).toBe(false);
+
+  button.ariaPressed = "false";
+  await settled(button);
+  expect(control(button).getAttribute("aria-pressed")).toBe("false");
+  button.ariaPressed = null;
+  await settled(button);
+  expect(button.hasAttribute("aria-pressed")).toBe(false);
+  expect(control(button).hasAttribute("aria-pressed")).toBe(false);
+});
+
+it("does not turn ordinary buttons into toggles when visually selected or physically pressed", async () => {
+  const button = await fixture<UIButton>(`<ui-button selected>Open</ui-button>`);
+
+  expect(control(button).hasAttribute("aria-pressed")).toBe(false);
+  control(button).dispatchEvent(new PointerEvent("pointerdown"));
+  expect(button.matches(":state(pressed)")).toBe(true);
+  expect(control(button).hasAttribute("aria-pressed")).toBe(false);
+  control(button).dispatchEvent(new PointerEvent("pointerup"));
+  expect(button.matches(":state(pressed)")).toBe(false);
 });

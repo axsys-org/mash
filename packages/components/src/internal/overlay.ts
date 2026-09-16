@@ -69,8 +69,16 @@ export abstract class UIOverlay extends LitElement {
     open: { type: Boolean, reflect: true },
     label: { type: String, reflect: true },
     disabled: { type: Boolean, reflect: true },
-    closeOnEscape: { type: Boolean, attribute: "close-on-escape", reflect: true },
-    closeOnOutside: { type: Boolean, attribute: "close-on-outside", reflect: true },
+    closeOnEscape: {
+      type: Boolean,
+      attribute: "close-on-escape",
+      reflect: true,
+    },
+    closeOnOutside: {
+      type: Boolean,
+      attribute: "close-on-outside",
+      reflect: true,
+    },
     overlayPresent: { state: true },
   };
 
@@ -210,6 +218,12 @@ export abstract class UIOverlay extends LitElement {
     this.#positioner.queue();
   }
 
+  /** Supplies or clears a pointer anchor for a composite-owned context menu. */
+  protected setContextPoint(point: { x: number; y: number } | null): void {
+    this.#contextPoint = point;
+    this.#positioner.queue();
+  }
+
   protected overlayPositionSnapshot(): AnchoredPositionSnapshot | null {
     return this.#positioner.snapshot;
   }
@@ -248,6 +262,16 @@ export abstract class UIOverlay extends LitElement {
       this.#openReason = reason;
       this.#initialFocus = initialFocus;
       this.#returnFocusForOpen = returnFocus;
+    } else if (reason === "escape" && this.movesFocus) {
+      // Pointer opening suppresses pointer-close focus return, not keyboard
+      // dismissal. Escape returns to the remembered invoker or its anchor,
+      // including composite-owned submenu anchors. This is an internal input
+      // policy; non-focus-moving surfaces and Tab's release remain untouched.
+      this.#returnFocus ??= this.positionAnchor();
+      if (this.#returnFocus) {
+        this.#movedFocusForOpen = true;
+        this.#returnFocusForOpen = true;
+      }
     }
     this.open = open;
     this.emitOpenChange(open, reason);
@@ -381,7 +405,10 @@ export abstract class UIOverlay extends LitElement {
   }
 
   #rememberFocus(): void {
-    const active = document.activeElement;
+    let active = document.activeElement;
+    // Preserve the invoker itself, not a focus-delegating host that may later
+    // prefer a descendant inside this overlay's now-inert closing content.
+    while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
     this.#returnFocus =
       active instanceof HTMLElement ? active : (this.#triggerElements()[0] ?? null);
   }
@@ -622,12 +649,16 @@ export abstract class UIOverlay extends LitElement {
                     ${this.rendersActions ? html`<slot name="actions"></slot>` : nothing}
                     ${
                       this.rendersCancel
-                        ? html`<div part="cancel"><slot name="cancel"></slot></div>`
+                        ? html`<div part="cancel">
+                            <slot name="cancel"></slot>
+                          </div>`
                         : nothing
                     }
                     ${
                       this.rendersConfirm
-                        ? html`<div part="confirm"><slot name="confirm"></slot></div>`
+                        ? html`<div part="confirm">
+                            <slot name="confirm"></slot>
+                          </div>`
                         : nothing
                     }
                   </div>`
@@ -664,7 +695,11 @@ export abstract class UIAnchoredOverlay extends UIOverlay {
     placement: { type: String, reflect: true },
     align: { type: String, reflect: true },
     offset: { type: Number, reflect: true },
-    collisionPadding: { type: Number, attribute: "collision-padding", reflect: true },
+    collisionPadding: {
+      type: Number,
+      attribute: "collision-padding",
+      reflect: true,
+    },
   };
 
   /** Preferred side of the popup before collision handling. */

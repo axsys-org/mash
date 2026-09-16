@@ -94,6 +94,10 @@
       "$value": "{space.reference.5}",
       "$description": "20px outside offset for top or bottom bubble reactions."
     },
+    "tooltipInline": {
+      "$value": "{space.reference.1p5}",
+      "$description": "6px inline padding for compact passive help tags."
+    },
     "menuShell": {
       "$value": "{space.reference.1}",
       "$description": "4px inset around a popup menu item stack."

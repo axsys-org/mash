@@ -42,7 +42,11 @@ describe("ui-resizable", () => {
     group.addEventListener("ui-resizable-change", onChange);
 
     inShadow(handle, `[role="separator"]`).dispatchEvent(
-      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, composed: true }),
+      new KeyboardEvent("keydown", {
+        key: "ArrowRight",
+        bubbles: true,
+        composed: true,
+      }),
     );
     await settled(group);
 
@@ -51,6 +55,40 @@ describe("ui-resizable", () => {
     expect(onChange).toHaveBeenCalled();
     expect(handle.matches(":state(resizing)")).toBe(false);
     expect(inShadow(handle, `[role="separator"]`).getAttribute("aria-valuenow")).toBe("220");
+  });
+
+  it("announces a following inspector panel while arrow movement remains spatial", async () => {
+    const group = await fixture<UIResizable>(`
+      <ui-resizable>
+        <ui-resizable-panel size="400" min="240">Workspace</ui-resizable-panel>
+        <ui-resizable-handle label="Resize inspector" primary-panel="next" step="8"></ui-resizable-handle>
+        <ui-resizable-panel size="280" min="200" max="420">Inspector</ui-resizable-panel>
+      </ui-resizable>
+    `);
+    const [workspace, inspector] = Array.from(
+      group.querySelectorAll<UIResizablePanel>("ui-resizable-panel"),
+    );
+    const handle = group.querySelector<UIResizableHandle>("ui-resizable-handle")!;
+    const control = inShadow(handle, '[role="separator"]');
+    expect(control.getAttribute("aria-valuenow")).toBe("280");
+    expect(control.getAttribute("aria-valuemin")).toBe("200");
+    expect(control.getAttribute("aria-valuemax")).toBe("420");
+    expect(control.getAttribute("aria-controls")).toBe(inspector!.id);
+    control.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ArrowLeft",
+        bubbles: true,
+        composed: true,
+      }),
+    );
+    await settled(group);
+    expect(inspector!.size).toBe(288);
+    expect(workspace!.size).toBe(392);
+    expect(control.getAttribute("aria-valuenow")).toBe("288");
+    handle.primaryPanel = "previous";
+    await settled(group);
+    expect(control.getAttribute("aria-controls")).toBe(workspace!.id);
+    expect(control.getAttribute("aria-valuenow")).toBe("392");
   });
 
   it("exposes a CSS fallback grip and semantic boundary states", async () => {

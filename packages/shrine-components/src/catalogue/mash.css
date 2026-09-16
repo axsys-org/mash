@@ -28,6 +28,9 @@
   :where([data-mash-catalogue="mash"]) sh-locator::part(root),
   :where([data-mash-catalogue="mash"]) sh-myth::part(title),
   :where([data-mash-catalogue="mash"]) sh-myth::part(path),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(description),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(meta),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(annotation),
   :where([data-mash-catalogue="mash"]) sh-slot::part(root),
   :where([data-mash-catalogue="mash"]) sh-pail::part(root),
   :where([data-mash-catalogue="mash"]) shrine-confirm::part(title),
@@ -38,6 +41,288 @@
 
   :where([data-mash-catalogue="mash"]) sh-locator {
     display: block;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-locator::part(root) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-locator::part(context) {
+    grid-column: 1 / -1;
+    color: var(--color-text-muted);
+    font: var(--type-label-small-font-size) / var(--type-label-line-height)
+      var(--type-label-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-locator::part(content) {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-locator::part(actions) {
+    display: flex;
+    gap: var(--space-control-gap);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-sidebar {
+    display: block;
+    block-size: 100%;
+    min-inline-size: 0;
+    min-block-size: 0;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(root) {
+    display: flex;
+    flex-direction: column;
+    block-size: 100%;
+    overflow: hidden;
+    background: var(--_mash-component-surface-sunken);
+    color: var(--color-text);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(locator),
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(search),
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(shortcuts),
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(views),
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(footer) {
+    flex: none;
+    padding: var(--space-control-block) var(--space-container-inline);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(footer) {
+    border-block-start: var(--border-hairline) solid var(--_mash-component-divider);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(body) {
+    display: block;
+    flex: 1;
+    min-block-size: 0;
+    overflow: hidden;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(scroll-root),
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(viewport) {
+    block-size: 100%;
+    min-block-size: 0;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-sidebar::part(content) {
+    padding: var(--space-control-block) var(--space-container-inline);
+  }
+
+  /* A path is a destination, not a tree item. Its independent preview keeps
+     authored prose intact and never expands the anchor's hit area. */
+  :where([data-mash-catalogue="mash"]) sh-path-row {
+    display: block;
+    container: shrine-path-row / inline-size;
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(root) {
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(row) {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-control-block);
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(link) {
+    display: flex;
+    align-items: flex-start;
+    flex: 1 1 auto;
+    gap: var(--space-control-block);
+    min-inline-size: var(--layout-dimension-zero);
+    min-block-size: var(--layout-size-compact-control);
+    padding: var(--space-control-block);
+    border: 0;
+    border-radius: var(--radius-menu-item);
+    background: transparent;
+    color: var(--color-text);
+    font: var(--type-label-font-weight) var(--type-scale-compact-body) /
+      var(--type-label-line-height) var(--type-label-font-family);
+    text-align: start;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(label) {
+    flex: 1 1 auto;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row:state(has-meta)::part(label) {
+    /* Authored help must not squeeze a short identifier into a vertical word. */
+    flex: 0 0 auto;
+    max-inline-size: 70%;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(label),
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(meta) {
+    min-inline-size: var(--layout-dimension-zero);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(meta) {
+    display: grid;
+    flex: 1 1 auto;
+    gap: var(--space-control-block);
+    color: var(--color-text-muted);
+    font: var(--type-body-font-weight) var(--type-scale-compact-caption) /
+      var(--type-label-line-height) var(--type-label-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(icon) {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--layout-size-default-icon);
+    block-size: var(--layout-size-default-icon);
+    color: var(--color-text-muted);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(toggle) {
+    display: inline-flex;
+    flex: none;
+  }
+
+  /* Composed controls live behind this component's shadow boundary, so these
+     exported native parts deliberately own the complete Mash interpretation. */
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(toggle-control) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--layout-size-compact-control);
+    min-inline-size: var(--layout-size-compact-control);
+    block-size: var(--layout-size-compact-control);
+    min-block-size: var(--layout-size-compact-control);
+    margin: 0;
+    border: 0;
+    border-radius: var(--radius-menu-item);
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--color-text-muted);
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(link):hover,
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(toggle-control):hover:not(:disabled) {
+    background: var(--color-surface-hover);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(link):active,
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(toggle-control):active:not(:disabled) {
+    background: var(--color-neutral-pressed);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(link):focus-visible,
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(toggle-control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(disclosure),
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(disclosure-root),
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(disclosure-glyph),
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(disclosure-source) {
+    display: inline-flex;
+    inline-size: var(--layout-size-default-icon);
+    block-size: var(--layout-size-default-icon);
+    fill: currentColor;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(disclosure) {
+    transform: rotate(0deg);
+    transition: transform var(--duration-control) var(--easing-control);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row:dir(rtl)::part(disclosure) {
+    transform: rotate(180deg);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row[open]::part(disclosure) {
+    transform: rotate(90deg);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-path-row::part(guide) {
+    min-inline-size: var(--layout-dimension-zero);
+    margin-inline-start: calc(var(--layout-size-compact-control) / 2);
+    border-inline-start: var(--border-hairline) solid var(--_mash-component-divider);
+    padding-block: var(--space-control-block);
+    padding-inline: calc(3 * var(--space-control-block)) var(--layout-dimension-zero);
+  }
+
+  @container shrine-path-row (max-width: 28rem) {
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(link) {
+      display: grid;
+      grid-template-columns: minmax(var(--layout-dimension-zero), 1fr);
+    }
+    :where([data-mash-catalogue="mash"]) sh-path-row:state(has-icon)::part(link) {
+      grid-template-columns: var(--layout-size-default-icon) minmax(
+          var(--layout-dimension-zero),
+          1fr
+        );
+    }
+    :where([data-mash-catalogue="mash"]) sh-path-row:state(has-meta)::part(label) {
+      max-inline-size: 100%;
+    }
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(meta) {
+      grid-column: 1 / -1;
+    }
+    :where([data-mash-catalogue="mash"]) sh-path-row:state(has-icon)::part(meta) {
+      grid-column: 2;
+    }
+  }
+
+  @media (pointer: coarse) {
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(link) {
+      min-block-size: var(--layout-dimension-control-touch);
+      min-inline-size: var(--layout-dimension-control-touch);
+    }
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(toggle-control) {
+      inline-size: var(--layout-dimension-control-touch);
+      min-inline-size: var(--layout-dimension-control-touch);
+      block-size: var(--layout-dimension-control-touch);
+      min-block-size: var(--layout-dimension-control-touch);
+    }
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(guide) {
+      margin-inline-start: calc(var(--layout-dimension-control-touch) / 2);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(disclosure) {
+      transition: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(link) {
+      color: LinkText;
+    }
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(meta),
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(icon) {
+      color: CanvasText;
+    }
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(toggle-control) {
+      color: ButtonText;
+    }
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(guide) {
+      border-inline-start-color: GrayText;
+    }
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(link):focus-visible,
+    :where([data-mash-catalogue="mash"]) sh-path-row::part(toggle-control):focus-visible {
+      outline-color: Highlight;
+    }
   }
 
   :where([data-mash-catalogue="mash"]) sh-tree {
@@ -145,6 +430,402 @@
 
   :where([data-mash-catalogue="mash"]) sh-tree[variant="inline"]::part(tree) {
     padding-inline-start: 0;
+  }
+
+  /* Namespace containment is the real nested ui-tree, not a revision graph.
+     The same quiet guide continues alongside expanded data and child names. */
+  :where([data-mash-catalogue="mash"]) sh-tree[variant="namespace"]::part(root) {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-tree[variant="namespace"]::part(tree) {
+    padding-inline-start: 0;
+  }
+
+  /* The owned ui-tree is the scope root. Preview compositions and independent
+     nested trees are scope limits, not more namespace rows. Explicit :scope
+     keeps this recipe authoritative over earlier generic tree bundles. */
+  @scope (:where([data-mash-catalogue="mash"]) sh-tree[variant="namespace"] > ui-tree[slot="tree"]) to (ui-tree, sh-tree, [slot="preview"]) {
+    :scope,
+    :scope ui-tree-item {
+      --_namespace-disclosure-size: var(--layout-size-default-icon);
+      display: block;
+      min-inline-size: var(--layout-dimension-zero);
+    }
+
+    :scope::part(root) {
+      grid-template-columns: minmax(var(--layout-dimension-zero), 1fr);
+      gap: var(--border-hairline);
+      padding: var(--layout-dimension-zero);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    :scope ui-tree-item::part(root) {
+      --_tree-row-surface: var(--_mash-component-surface);
+      display: flex;
+      align-items: center;
+      gap: var(--space-control-gap);
+      min-inline-size: var(--layout-dimension-zero);
+    }
+
+    :scope ui-tree-item::part(control) {
+      display: flex;
+      flex: 1 1 auto;
+      align-items: center;
+      gap: var(--space-control-gap);
+      min-inline-size: var(--layout-dimension-zero);
+      min-block-size: var(--layout-dimension-control-small);
+      inline-size: 100%;
+      margin-inline-start: var(--layout-dimension-zero);
+      border: 0;
+      border-radius: var(--radius-control);
+      padding: var(--space-control-block-small) var(--space-control-block);
+      background: transparent;
+      box-shadow: none;
+      color: var(--color-text);
+      font: var(--type-label-font-weight) var(--type-scale-compact-body) /
+        var(--type-label-line-height) var(--type-label-font-family);
+      text-align: start;
+    }
+
+    :scope ui-tree-item::part(control):hover:not(:disabled) {
+      background: transparent;
+    }
+
+    :scope ui-tree-item[selected]::part(control) {
+      background: var(--color-selection);
+      color: var(--color-on-selection);
+    }
+
+    :scope ui-tree-item[selected]::part(control):hover:not(:disabled) {
+      background: var(--color-selection);
+    }
+
+    :scope ui-tree-item[current]::part(control) {
+      background: var(--color-surface-hover);
+    }
+
+    :scope ui-tree-item[current][selected]::part(control) {
+      background: var(--color-selection);
+      color: var(--color-on-selection);
+    }
+
+    :scope ui-tree-item[current]::part(control):hover:not(:disabled) {
+      background: var(--color-surface-hover);
+    }
+
+    :scope ui-tree-item[current]::part(root) {
+      --_tree-row-surface: var(--color-surface-hover);
+    }
+
+    :scope ui-tree-item[selected]::part(root) {
+      --_tree-row-surface: var(--color-selection);
+    }
+
+    :scope ui-tree-item[current][selected]::part(control):hover:not(:disabled) {
+      background: var(--color-selection);
+    }
+
+    :scope ui-tree-item::part(control):focus-visible {
+      outline: var(--border-focus-ring) solid var(--color-focus-ring);
+      outline-offset: calc(-1 * var(--border-focus-ring));
+    }
+
+    :scope ui-tree-item[disabled]::part(control) {
+      color: var(--color-text-disabled);
+      opacity: var(--effect-opacity-disabled);
+      cursor: not-allowed;
+    }
+
+    :scope ui-tree-item:state(branch)::part(disclosure) {
+      display: inline-flex;
+      flex: 0 0 var(--layout-size-default-icon);
+      align-items: center;
+      justify-content: center;
+      inline-size: var(--layout-size-default-icon);
+      block-size: var(--layout-size-default-icon);
+      color: var(--color-text-muted);
+    }
+
+    :scope ui-tree-item:not(:state(branch))::part(disclosure) {
+      display: none;
+    }
+
+    :scope ui-tree-item::part(icon) {
+      display: inline-flex;
+      flex: none;
+      align-items: center;
+      margin: var(--layout-dimension-zero);
+      color: var(--color-text-muted);
+    }
+
+    :scope ui-tree-item:not(:has(> [slot="icon"]:not([hidden])))::part(icon),
+    :scope ui-tree-item:not(:has(> [slot="meta"]:not([hidden])))::part(meta),
+    :scope ui-tree-item:not(:has(> [slot="actions"]:not([hidden])))::part(actions) {
+      display: none;
+    }
+
+    :scope ui-tree-item::part(label) {
+      flex: 0 1 auto;
+      min-inline-size: var(--layout-dimension-zero);
+      max-inline-size: 70%;
+      overflow: hidden;
+    }
+
+    :scope ui-tree-item:not(:has(> [slot="meta"]:not([hidden])))::part(label) {
+      flex: 1 1 auto;
+      max-inline-size: none;
+    }
+
+    :scope ui-tree-item::part(meta) {
+      flex: 1 1 30%;
+      min-inline-size: var(--layout-dimension-zero);
+      margin: var(--layout-dimension-zero);
+      overflow: hidden;
+      color: var(--color-text-muted);
+      font: var(--type-label-small-font-weight) var(--type-scale-compact-caption) /
+        var(--type-label-small-line-height) var(--type-label-small-font-family);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    :scope ui-tree-item > [slot="meta"] {
+      display: block;
+      min-inline-size: var(--layout-dimension-zero);
+      max-inline-size: none;
+      overflow: hidden;
+      color: inherit;
+      font: inherit;
+      text-overflow: ellipsis;
+      white-space: inherit;
+    }
+
+    :scope ui-tree-item > ui-path:is([slot="label"], [slot="meta"])::part(root) {
+      min-inline-size: var(--layout-dimension-zero);
+      padding: var(--layout-dimension-zero);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+    }
+
+    :scope ui-tree-item > ui-path[slot="meta"] {
+      inline-size: 100%;
+    }
+
+    :scope ui-tree-item > ui-path[slot="meta"]::part(root) {
+      inline-size: 100%;
+    }
+
+    :scope ui-tree-item > ui-path[slot="meta"]::part(segments) {
+      font: inherit;
+    }
+
+    :scope ui-tree-item > ui-icon:is([slot="icon"], [slot="disclosure"]) {
+      inline-size: var(--layout-size-default-icon);
+      block-size: var(--layout-size-default-icon);
+      color: inherit;
+    }
+
+    :scope ui-tree-item[current]::part(icon) {
+      color: inherit;
+    }
+
+    /* Only the authored right-facing glyph rotates; the compatibility text
+       fallback already changes from right to down in ui-tree-item. */
+    :scope ui-tree-item > ui-icon[slot="disclosure"] {
+      rotate: 0deg;
+      transition: rotate var(--duration-control) var(--easing-control);
+    }
+
+    :scope ui-tree-item:dir(rtl) > ui-icon[slot="disclosure"] {
+      rotate: 180deg;
+    }
+
+    :scope ui-tree-item[expanded] > ui-icon[slot="disclosure"] {
+      rotate: 90deg;
+    }
+
+    :scope ui-tree-item::part(children),
+    :scope ui-tree-item::part(preview) {
+      min-inline-size: var(--layout-dimension-zero);
+      margin-inline-start: calc(var(--space-control-block) + var(--_namespace-disclosure-size) / 2);
+      /* A child's first lane starts at its parent's identity lane. The guide
+         bisects the disclosure, while leaves spend no phantom toggle width. */
+      padding-inline-start: calc(
+        var(--_namespace-disclosure-size) / 2 + var(--space-control-gap) -
+          var(--space-control-block) - var(--border-hairline)
+      );
+      border-inline-start: var(--border-hairline) solid
+        color-mix(in srgb, var(--_mash-component-divider) 64%, transparent);
+    }
+
+    :scope ui-tree-item::part(children) {
+      grid-template-columns: minmax(var(--layout-dimension-zero), 1fr);
+      gap: var(--border-hairline);
+    }
+
+    :scope ui-tree-item::part(preview) {
+      padding-block: var(--space-control-block-small);
+      overflow-wrap: anywhere;
+    }
+
+    :scope ui-tree-item::part(actions) {
+      display: inline-flex;
+      flex: none;
+      align-self: center;
+      align-items: center;
+      gap: var(--space-control-gap);
+      opacity: 0;
+      pointer-events: none;
+      /* Keep actions reachable by Tab. Focus reveals them before activation. */
+      visibility: visible;
+      transition: opacity var(--duration-control) var(--easing-control);
+    }
+
+    :scope
+      ui-tree-item:not([actions-display="overlay"]):is(
+        :hover,
+        :focus-within,
+        [current],
+        [preview-open]:not([preview-open="false"])
+      )::part(actions) {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      :scope ui-tree-item::part(actions) {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+
+    /* Overlay actions belong to the row, not its descendants. CSS hover/focus
+       and the existing Mash button own the interaction; no app listener or
+       permanent action-width reservation is required. */
+    :scope ui-tree-item[actions-display="overlay"]::part(root) {
+      position: relative;
+      --_tree-actions-opacity: 0;
+      --_tree-actions-pointer: none;
+    }
+
+    :scope ui-tree-item[actions-display="overlay"]::part(root):is(:hover, :focus-within) {
+      --_tree-actions-opacity: 1;
+      --_tree-actions-pointer: auto;
+    }
+
+    :scope ui-tree-item[actions-display="overlay"]::part(actions) {
+      position: absolute;
+      inset-inline-end: var(--space-control-block);
+      inset-block: 0;
+      opacity: var(--_tree-actions-opacity);
+      pointer-events: var(--_tree-actions-pointer);
+      padding-inline-start: var(--space-container-inline);
+      background: linear-gradient(
+        to right,
+        transparent,
+        var(--_tree-row-surface) var(--space-container-inline)
+      );
+    }
+
+    :scope ui-tree-item[actions-display="overlay"]:dir(rtl)::part(actions) {
+      background: linear-gradient(
+        to left,
+        transparent,
+        var(--_tree-row-surface) var(--space-container-inline)
+      );
+    }
+
+    @media (hover: none), (pointer: coarse), (forced-colors: active) {
+      :scope ui-tree-item[actions-display="overlay"]::part(root) {
+        --_tree-actions-opacity: 1;
+        --_tree-actions-pointer: auto;
+      }
+      :scope ui-tree-item[actions-display="overlay"]::part(actions) {
+        position: static;
+        padding-inline-start: 0;
+        background: none;
+      }
+    }
+
+    @media (pointer: coarse) {
+      :scope ui-tree-item {
+        --_namespace-disclosure-size: var(--layout-dimension-control-touch);
+      }
+      :scope ui-tree-item::part(control) {
+        min-inline-size: var(--layout-dimension-control-touch);
+        min-block-size: var(--layout-dimension-control-touch);
+        padding-block: var(--layout-dimension-zero);
+      }
+
+      :scope ui-tree-item:state(branch)::part(disclosure) {
+        flex-basis: var(--layout-dimension-control-touch);
+        inline-size: var(--layout-dimension-control-touch);
+        block-size: var(--layout-dimension-control-touch);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :scope ui-tree-item > ui-icon[slot="disclosure"],
+      :scope ui-tree-item::part(actions) {
+        transition: none;
+      }
+    }
+
+    @media (forced-colors: active) {
+      :scope ui-tree-item::part(control) {
+        forced-color-adjust: none;
+        color: CanvasText;
+        background: Canvas;
+      }
+
+      :scope ui-tree-item[selected]::part(control) {
+        color: HighlightText;
+        background: Highlight;
+      }
+
+      :scope ui-tree-item:not([selected])::part(control):hover:not(:disabled) {
+        color: CanvasText;
+        background: Canvas;
+      }
+
+      :scope ui-tree-item[selected]::part(control):hover:not(:disabled) {
+        color: HighlightText;
+        background: Highlight;
+      }
+
+      :scope ui-tree-item[current][selected]::part(control) {
+        color: HighlightText;
+        background: Highlight;
+      }
+
+      :scope ui-tree-item::part(control):focus-visible {
+        outline-color: Highlight;
+      }
+
+      :scope ui-tree-item[selected]::part(control):focus-visible {
+        outline-color: HighlightText;
+      }
+
+      :scope ui-tree-item[disabled]::part(control) {
+        color: GrayText;
+        opacity: 1;
+      }
+
+      :scope ui-tree-item::part(icon),
+      :scope ui-tree-item[current]::part(icon),
+      :scope ui-tree-item:state(branch)::part(disclosure),
+      :scope ui-tree-item::part(meta) {
+        color: inherit;
+      }
+    }
   }
 
   :where([data-mash-catalogue="mash"]) sh-tree[variant="inline"]::part(node-anchor) {
@@ -263,21 +944,107 @@
   }
 
   :where([data-mash-catalogue="mash"]) sh-triptych {
+    --sh-triptych-sidebar-width: 15rem;
+    --sh-triptych-inspector-width: 20rem;
     display: block;
     block-size: 100dvh;
   }
 
   :where([data-mash-catalogue="mash"]) sh-triptych::part(shell) {
     display: grid;
-    grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr) minmax(16rem, 20rem);
+    grid-template-columns:
+      minmax(12rem, var(--sh-triptych-sidebar-width, 15rem)) minmax(0, 1fr)
+      minmax(16rem, var(--sh-triptych-inspector-width, 20rem));
     block-size: 100%;
     overflow: hidden;
     background: var(--color-canvas);
     color: var(--color-text);
   }
 
+  /* Compose the primitive without adding boxes or secondary scroll owners. */
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(panels),
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(panel-content) {
+    display: contents;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych:state(resizable)::part(shell) {
+    display: flex;
+    gap: 0;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych:state(resizable)::part(sidebar),
+  :where([data-mash-catalogue="mash"]) sh-triptych:state(resizable)::part(inspector) {
+    flex: 0 0 auto;
+    block-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych:state(resizable)::part(main) {
+    flex: 1 1 0;
+    block-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar-resizer),
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector-resizer) {
+    --_sh-triptych-resizer-hit: 8px;
+    position: relative;
+    /* The separator owns an edge, not a column of either pane. */
+    display: block;
+    flex: 0 0 0;
+    inline-size: 0;
+    min-inline-size: 0;
+    min-block-size: 0;
+    overflow: visible;
+    /* Above pane content so both halves of the boundary remain draggable. */
+    z-index: var(--layer-raised);
+    cursor: col-resize;
+    touch-action: none;
+    user-select: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(resizer-control) {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: calc(var(--_sh-triptych-resizer-hit) / -2);
+    display: grid;
+    inline-size: var(--_sh-triptych-resizer-hit);
+    block-size: 100%;
+    place-items: center;
+    border-radius: 0;
+    background: transparent;
+    outline: none;
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(resizer-grip) {
+    display: none;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(resizer-control):focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: calc(var(--border-focus-ring) * -1);
+  }
+
+  @media (pointer: coarse) {
+    :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar-resizer),
+    :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector-resizer) {
+      --_sh-triptych-resizer-hit: 12px;
+    }
+  }
+
   :where([data-mash-catalogue="mash"]) sh-triptych:not([inspector-open])::part(shell) {
-    grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr);
+    grid-template-columns:
+      minmax(12rem, var(--sh-triptych-sidebar-width, 15rem))
+      minmax(0, 1fr);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych:not([sidebar-open])::part(shell) {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, var(--sh-triptych-inspector-width, 20rem));
+  }
+
+  :where([data-mash-catalogue="mash"])
+    sh-triptych:not([sidebar-open]):not([inspector-open])::part(shell) {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar) {
@@ -302,6 +1069,15 @@
   :where([data-mash-catalogue="mash"]) sh-triptych::part(inspector) {
     border-inline-start: var(--border-hairline) solid var(--_mash-component-divider);
     background: var(--_mash-component-surface-sunken);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(main) {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-triptych::part(main-footer) {
+    min-inline-size: 0;
+    min-block-size: 0;
   }
 
   :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar-body),
@@ -351,6 +1127,17 @@
       grid-template-rows: minmax(8rem, 0.8fr) minmax(12rem, 2fr);
     }
 
+    :where([data-mash-catalogue="mash"]) sh-triptych:not([sidebar-open])::part(shell) {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(12rem, 2fr) minmax(8rem, 0.8fr);
+    }
+
+    :where([data-mash-catalogue="mash"])
+      sh-triptych:not([sidebar-open]):not([inspector-open])::part(shell) {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
+    }
+
     :where([data-mash-catalogue="mash"]) sh-triptych::part(sidebar) {
       border-inline-end: 0;
       border-block-end: var(--border-hairline) solid var(--_mash-component-divider);
@@ -363,8 +1150,12 @@
   }
 
   :where([data-mash-catalogue="mash"]) sh-myth {
+    --_sh-record-font-size: var(--type-body-font-size);
+    --_sh-record-row-inset: var(--space-control-block-large);
     display: block;
+    min-inline-size: var(--layout-dimension-zero);
     inline-size: min(100%, var(--layout-dimension-record));
+    container: shrine-record / inline-size;
   }
 
   :where([data-mash-catalogue="mash"]) sh-myth::part(root) {
@@ -382,8 +1173,8 @@
   }
 
   :where([data-mash-catalogue="mash"]) sh-myth::part(card-header) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    display: flex;
+    flex-wrap: wrap;
     align-items: start;
     gap: var(--space-container-gap);
     padding: var(--space-container-block) var(--space-container-inline);
@@ -391,6 +1182,7 @@
 
   :where([data-mash-catalogue="mash"]) sh-myth::part(identity) {
     display: grid;
+    flex: 1 1 var(--layout-dimension-compact);
     min-inline-size: var(--layout-dimension-zero);
     gap: var(--space-control-gap);
   }
@@ -398,12 +1190,16 @@
   :where([data-mash-catalogue="mash"]) sh-myth::part(card-title),
   :where([data-mash-catalogue="mash"]) sh-myth::part(card-description),
   :where([data-mash-catalogue="mash"]) sh-myth::part(card-value),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(card-meta),
   :where([data-mash-catalogue="mash"]) sh-myth::part(card-actions) {
     min-inline-size: var(--layout-dimension-zero);
+    max-inline-size: 100%;
   }
 
   :where([data-mash-catalogue="mash"]) sh-myth::part(title),
-  :where([data-mash-catalogue="mash"]) sh-myth::part(path) {
+  :where([data-mash-catalogue="mash"]) sh-myth::part(path),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(description),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(meta) {
     min-inline-size: var(--layout-dimension-zero);
     margin: 0;
     overflow-wrap: anywhere;
@@ -415,10 +1211,42 @@
       var(--type-heading-line-height) var(--type-heading-font-family);
   }
 
+  :where([data-mash-catalogue="mash"]) sh-myth > [slot="title"] {
+    display: flex;
+    align-items: center;
+    gap: var(--space-control-gap);
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth > [slot="title"] > ui-icon {
+    flex: 0 0 auto;
+  }
+
   :where([data-mash-catalogue="mash"]) sh-myth::part(path) {
     color: var(--color-text-muted);
     font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
       var(--type-code-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(summary) {
+    display: grid;
+    gap: var(--space-control-block);
+    min-inline-size: var(--layout-dimension-zero);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(description),
+  :where([data-mash-catalogue="mash"]) sh-myth::part(meta) {
+    color: var(--color-text-muted);
+    font: var(--type-body-font-weight) var(--_sh-record-font-size) / var(--type-body-line-height)
+      var(--type-body-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(actions) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-control-block);
+    min-inline-size: var(--layout-dimension-zero);
   }
 
   :where([data-mash-catalogue="mash"]) sh-myth::part(kind) {
@@ -440,54 +1268,88 @@
     white-space: nowrap;
   }
 
-  :where([data-mash-catalogue="mash"]) sh-myth::part(limbs) {
-    display: grid;
-    gap: var(--space-control-gap);
+  /* Record-wide context is static supporting copy, not authored lore, a count,
+     or the live status of an individual value. Empty annotations reserve no row. */
+  :where([data-mash-catalogue="mash"]) sh-myth::part(annotation) {
+    display: block;
+    min-inline-size: var(--layout-dimension-zero);
+    margin: 0 0 var(--space-control-block);
+    color: var(--color-text-muted);
+    font: var(--type-body-font-weight) var(--type-scale-compact-caption) /
+      var(--type-body-line-height) var(--type-body-font-family);
+    overflow-wrap: anywhere;
   }
 
-  /* A Myth preview is the compact Shrine pronunciation used inside transient
-     overlays and menu leaves. The overlay owns its material surface; the Myth
-     keeps only identity, limbs, and actions so the two components do not draw
-     nested cards. */
-  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"] {
+  :where([data-mash-catalogue="mash"]) sh-myth > [slot="annotation"] {
+    margin: 0;
+    color: inherit;
+    font: inherit;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth::part(limbs) {
+    display: grid;
+    min-inline-size: var(--layout-dimension-zero);
+    gap: 0;
+  }
+
+  /* Embedded records retain all fields; previews are authored excerpts. Their
+     parent owns the material surface, so neither draws another nested card.
+     The existing Mash size context scales body versus caption typography. */
+  :where([data-mash-catalogue="mash"]) sh-myth:is([variant="embedded"], [variant="preview"]) {
     inline-size: 100%;
   }
 
-  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(root) {
+  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"] {
+    --_sh-record-font-size: var(--type-label-small-font-size);
+    --_sh-record-row-inset: var(--space-control-block);
+  }
+
+  :where([data-mash-catalogue="mash"])
+    sh-myth:is([variant="embedded"], [variant="preview"])::part(root) {
     border: 0;
     border-radius: 0;
     background: transparent;
     box-shadow: none;
   }
 
-  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(card-header) {
-    grid-template-columns: minmax(0, 1fr) auto;
+  :where([data-mash-catalogue="mash"])
+    sh-myth:is([variant="embedded"], [variant="preview"])::part(card-header) {
     gap: var(--space-control-gap);
     padding: 0;
   }
 
-  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(identity) {
-    gap: var(--space-control-block-small);
+  :where([data-mash-catalogue="mash"])
+    sh-myth:is([variant="embedded"], [variant="preview"])::part(identity) {
+    gap: var(--space-control-block);
   }
 
-  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(title) {
+  :where([data-mash-catalogue="mash"])
+    sh-myth:is([variant="embedded"], [variant="preview"])::part(title) {
     font: var(--type-label-font-weight) var(--type-label-font-size) / var(--type-label-line-height)
       var(--type-label-font-family);
   }
 
-  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(path) {
-    font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
+  :where([data-mash-catalogue="mash"])
+    sh-myth:is([variant="embedded"], [variant="preview"])::part(path) {
+    font: var(--type-code-font-weight) var(--_sh-record-font-size) / var(--type-code-line-height)
       var(--type-code-font-family);
   }
 
-  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(kind-content) {
+  :where([data-mash-catalogue="mash"])
+    sh-myth:is([variant="embedded"], [variant="preview"])::part(kind-content) {
     padding: var(--space-control-block-small) var(--space-control-inline-small);
     letter-spacing: 0;
     text-transform: none;
+    background: var(--_mash-component-surface-sunken);
+    color: var(--color-text-muted);
+    font-size: var(--type-label-small-font-size);
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
-  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(card-content) {
-    padding: var(--space-control-block) 0 0;
+  :where([data-mash-catalogue="mash"])
+    sh-myth:is([variant="embedded"], [variant="preview"])::part(card-content) {
+    padding: var(--_sh-record-row-inset) 0 0;
   }
 
   :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(card-actions) {
@@ -495,28 +1357,56 @@
   }
 
   :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(card-footer) {
-    padding: var(--space-control-block-small) 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-control-block) var(--space-control-gap);
+    padding: var(--space-control-block) 0 0;
     border: 0;
   }
 
-  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(limbs) {
-    gap: var(--space-control-block-small);
+  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"]::part(actions) {
+    margin-inline-start: auto;
   }
 
-  :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"] sh-limb::part(root) {
-    grid-template-columns: 4.5rem minmax(0, 1fr);
-    gap: var(--space-control-gap);
+  :where([data-mash-catalogue="mash"]) sh-myth sh-limb::part(root) {
+    /* Ordinary keys share the compact measure. An intrinsically wider key
+       takes the room it needs, wrapping its value onto the next line instead
+       of becoming a fixed-width tower. Neither column is text-truncated. */
+    display: flex;
+    flex-wrap: wrap;
+    padding-block: var(--_sh-record-row-inset);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth sh-limb::part(label) {
+    flex: 0 1 auto;
+    inline-size: max-content;
+    min-inline-size: min(100%, var(--layout-dimension-compact));
+    max-inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth sh-limb::part(value) {
+    flex: 1 1 var(--layout-dimension-panel);
+    max-inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-myth sh-limb + sh-limb::part(root) {
+    border-block-start: var(--border-hairline) solid var(--_mash-component-boundary);
   }
 
   :where([data-mash-catalogue="mash"]) sh-limb {
     display: block;
+    min-inline-size: var(--layout-dimension-zero);
   }
 
   :where([data-mash-catalogue="mash"]) sh-limb::part(root) {
     display: grid;
-    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
-    align-items: baseline;
-    gap: var(--space-control-inline);
+    grid-template-columns:
+      minmax(0, min(35%, var(--layout-dimension-compact)))
+      minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-control-gap);
   }
 
   :where([data-mash-catalogue="mash"]) sh-limb::part(label),
@@ -533,15 +1423,152 @@
   }
 
   :where([data-mash-catalogue="mash"]) sh-slot::part(root) {
+    display: block;
     color: var(--color-text-muted);
-    font: var(--type-code-font-weight) var(--type-code-font-size) / var(--type-code-line-height)
-      var(--type-code-font-family);
+    font: var(--type-code-font-weight) var(--_sh-record-font-size, var(--type-code-font-size)) /
+      var(--type-code-line-height) var(--type-code-font-family);
   }
 
   :where([data-mash-catalogue="mash"]) sh-pail::part(root) {
+    display: block;
     color: var(--color-text);
-    font: var(--type-body-font-weight) var(--type-body-font-size) / var(--type-body-line-height)
-      var(--type-body-font-family);
+    font: var(--type-code-font-weight) var(--_sh-record-font-size, var(--type-body-font-size)) /
+      var(--type-code-line-height) var(--type-code-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-pail::part(annotation) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-control-block) var(--space-control-gap);
+    min-inline-size: var(--layout-dimension-zero);
+    margin-block-start: var(--space-control-block);
+    color: var(--color-text-muted);
+    font: var(--type-body-font-weight) var(--type-label-small-font-size) /
+      var(--type-body-line-height) var(--type-body-font-family);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-pail::part(status) {
+    flex: 0 1 auto;
+    min-inline-size: var(--layout-dimension-zero);
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-pail::part(actions) {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-control-block);
+    min-inline-size: var(--layout-dimension-zero);
+    max-inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-pail > [slot="status"] {
+    margin: 0;
+    color: inherit;
+    font: inherit;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-pail > ui-button[slot="actions"],
+  :where([data-mash-catalogue="mash"]) sh-pail > [slot="actions"] ui-button {
+    max-inline-size: 100%;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-pail > ui-button[slot="actions"]::part(control),
+  :where([data-mash-catalogue="mash"]) sh-pail > [slot="actions"] ui-button::part(control) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: var(--type-label-small-line-height);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-pail > ui-button[slot="actions"]::part(label),
+  :where([data-mash-catalogue="mash"]) sh-pail > [slot="actions"] ui-button::part(label) {
+    overflow: visible;
+    white-space: inherit;
+    overflow-wrap: inherit;
+  }
+
+  /* Rich field values and definition actions keep their complete authored
+     content. A consumer may supply a bounded Mash scroll area, not a clamp. */
+  :where([data-mash-catalogue="mash"]) sh-pail pre {
+    margin: 0;
+    /* A nested scroll area's foundation uses body type, so the authored value
+       needs its data typography explicitly even after viewport promotion. */
+    font: var(--type-code-font-weight) var(--_sh-record-font-size, var(--type-body-font-size)) /
+      var(--type-code-line-height) var(--type-code-font-family);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-pail a {
+    color: var(--color-text);
+    font: var(--type-code-font-weight) var(--_sh-record-font-size, var(--type-body-font-size)) /
+      var(--type-code-line-height) var(--type-code-font-family);
+    text-decoration: underline;
+    text-decoration-color: var(--color-text-muted);
+    text-underline-offset: var(--border-strong);
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-pail a:focus-visible {
+    outline: var(--border-focus-ring) solid var(--color-focus-ring);
+    outline-offset: var(--border-focus-ring-offset);
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-slot ui-button[variant="text"] {
+    max-inline-size: 100%;
+    font: inherit;
+    color: inherit;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-slot ui-button[variant="text"]::part(control) {
+    min-block-size: var(--layout-dimension-zero);
+    block-size: auto;
+    max-inline-size: 100%;
+    padding: 0;
+    border: 0;
+    justify-content: start;
+    text-align: start;
+    font: inherit;
+    color: inherit;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  :where([data-mash-catalogue="mash"]) sh-slot ui-button[variant="text"]::part(label) {
+    overflow: visible;
+    white-space: inherit;
+    overflow-wrap: inherit;
+  }
+
+  @media (any-pointer: coarse) {
+    :where([data-mash-catalogue="mash"]) sh-slot ui-button[variant="text"]::part(control),
+    :where([data-mash-catalogue="mash"]) sh-pail > ui-button[slot="actions"]::part(control),
+    :where([data-mash-catalogue="mash"]) sh-pail > [slot="actions"] ui-button::part(control) {
+      min-block-size: var(--layout-dimension-control-touch);
+      min-inline-size: var(--layout-dimension-control-touch);
+    }
+  }
+
+  /* Below this measure there is not enough room for both a useful path key
+     and a readable value. Query the record, not the viewport: inspectors and
+     tree previews must respond even on a wide desktop. */
+  @container shrine-record (max-width: 28rem) {
+    :where([data-mash-catalogue="mash"]) sh-myth sh-limb::part(root),
+    :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"] sh-limb::part(root) {
+      /* Match the legacy preview variant's specificity: a progressively
+         enhanced client may still load its fixed two-column recipe first. */
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-control-block);
+    }
+
+    :where([data-mash-catalogue="mash"]) sh-myth sh-limb::part(label),
+    :where([data-mash-catalogue="mash"]) sh-myth[variant="preview"] sh-limb::part(label) {
+      inline-size: auto;
+      min-inline-size: var(--layout-dimension-zero);
+    }
   }
 
   :where([data-mash-catalogue="mash"]) shrine-confirm {
@@ -660,7 +1687,9 @@
   }
 
   @media (max-width: 520px) {
-    :where([data-mash-catalogue="mash"]) sh-limb::part(root) {
+    /* Records use their own inline-size container, independent of the page.
+       Retain the viewport fallback only for a standalone authored limb. */
+    :where([data-mash-catalogue="mash"]) sh-limb:not(sh-myth sh-limb)::part(root) {
       grid-template-columns: minmax(0, 1fr);
       gap: var(--space-control-gap);
     }

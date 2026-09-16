@@ -2,10 +2,119 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fixture, inShadow, settled, shadow } from "../test-support/fixture.js";
 import { UITree } from "./tree.js";
+import type { UITreeItem } from "../tree-item/tree-item.js";
 import "../tree-item/register.js";
 import "./register.js";
 
 describe("ui-tree", () => {
+  it("keeps a preview tree's expansion, selection and roving focus independent", async () => {
+    const outer = await fixture<UITree>(`
+      <ui-tree selection-mode="single">
+        <ui-tree-item value="outer" title="Outer" kind="folder" preview-open>
+          <button slot="actions">Outer action</button>
+          <ui-tree slot="preview" label="Inner" selection-mode="single">
+            <ui-tree-item value="inner" title="Inner branch" kind="folder" activation="split"></ui-tree-item>
+            <ui-tree-item value="inner-next" title="Inner next"></ui-tree-item>
+          </ui-tree>
+        </ui-tree-item>
+        <ui-tree-item value="outer-next" title="Outer next"></ui-tree-item>
+      </ui-tree>
+    `);
+    const inner = outer.querySelector<UITree>("ui-tree")!;
+    const branch = inner.querySelector<UITreeItem>("ui-tree-item")!;
+    const next = inner.querySelector<UITreeItem>('[value="inner-next"]')!;
+    const outerBranch = outer.querySelector<UITreeItem>("ui-tree-item")!;
+    const outerNext = outer.querySelector<UITreeItem>('[value="outer-next"]')!;
+    const toggles: EventTarget[] = [];
+    const selections: EventTarget[] = [];
+    outer.addEventListener("ui-tree-toggle", (event) => {
+      toggles.push(event.target!);
+      if (event.target === inner) branch.expanded = (event as CustomEvent).detail.expanded;
+    });
+    outer.addEventListener("ui-tree-select", (event) => selections.push(event.target!));
+    await settled(outer);
+    const control = inShadow<HTMLButtonElement>(branch, '[part="control"]');
+    control.focus();
+    expect(inner.matches(":state(focused)")).toBe(true);
+    expect(outer.matches(":state(focused)")).toBe(false);
+    expect(control.tabIndex).toBe(0);
+    outerNext.focusControl();
+    expect(outer.matches(":state(focused)")).toBe(true);
+    expect(inner.matches(":state(focused)")).toBe(false);
+    outerBranch.querySelector<HTMLButtonElement>('button[slot="actions"]')!.focus();
+    expect(outer.matches(":state(focused)")).toBe(true);
+    control.focus();
+    expect(outer.matches(":state(focused)")).toBe(false);
+    expect(inner.matches(":state(focused)")).toBe(true);
+    inShadow<HTMLElement>(branch, '[part="disclosure"]').click();
+    await settled(outer);
+    expect(toggles).toEqual([inner]);
+    expect(branch.expanded).toBe(true);
+    expect(outerBranch.expanded).toBe(false);
+    control.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ArrowDown",
+        bubbles: true,
+        composed: true,
+      }),
+    );
+    await settled(outer);
+    expect(shadow(next).activeElement).toBe(inShadow(next, '[part="control"]'));
+    expect(inner.selectedValues).toEqual(["inner-next"]);
+    expect(outer.selectedValues).toEqual([]);
+    expect(selections).toEqual([inner]);
+    expect(inShadow<HTMLButtonElement>(branch, '[part="control"]').tabIndex).toBe(-1);
+    expect(inShadow<HTMLButtonElement>(next, '[part="control"]').tabIndex).toBe(0);
+    expect(inShadow<HTMLButtonElement>(outerBranch, '[part="control"]').tabIndex).toBe(0);
+    outer.focusItem("outer-next", false);
+    inShadow<HTMLButtonElement>(outerNext, '[part="control"]').dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ArrowDown",
+        bubbles: true,
+        composed: true,
+      }),
+    );
+    expect(shadow(outerBranch).activeElement).toBe(inShadow(outerBranch, '[part="control"]'));
+    expect(inner.selectedValues).toEqual(["inner-next"]);
+    expect(outer.selectedValues).toEqual(["outer"]);
+  });
+
+  it("resolves imperative identities only within the owning tree", async () => {
+    const outer = await fixture<UITree>(`
+      <ui-tree>
+        <ui-tree-item value="outer" title="Outer" preview-open>
+          <ui-tree slot="preview">
+            <ui-tree-item value="shared" title="Inner shared"></ui-tree-item>
+            <ui-tree-item value="inner-only" title="Inner only"></ui-tree-item>
+          </ui-tree>
+        </ui-tree-item>
+        <ui-tree-item value="shared" title="Outer shared"></ui-tree-item>
+      </ui-tree>
+    `);
+    const inner = outer.querySelector<UITree>("ui-tree")!;
+    const innerShared = inner.querySelector<UITreeItem>('[value="shared"]')!;
+    const outerShared = outer.querySelector<UITreeItem>(':scope > [value="shared"]')!;
+    const innerScroll = vi.fn();
+    const outerScroll = vi.fn();
+    innerShared.scrollIntoView = innerScroll;
+    outerShared.scrollIntoView = outerScroll;
+    const reveals: unknown[] = [];
+    outer.addEventListener("ui-tree-reveal", (event) =>
+      reveals.push((event as CustomEvent).detail),
+    );
+    expect(outer.revealItem("inner-only")).toBe(false);
+    expect(outer.scrollToItem("inner-only")).toBe(false);
+    expect(outer.indexOf("inner-only")).toBe(-1);
+    expect(outer.focusItem("inner-only")).toBe(false);
+    expect(outer.revealItem("shared", "center")).toBe(true);
+    expect(reveals).toEqual([{ value: "shared", ancestors: [], alignment: "center" }]);
+    expect(outerScroll).toHaveBeenCalledExactlyOnceWith({
+      block: "center",
+      inline: "nearest",
+    });
+    expect(innerScroll).not.toHaveBeenCalled();
+  });
+
   it("registers, upgrades and exposes a labelled tree landmark", async () => {
     expect(customElements.get("ui-tree")).toBe(UITree);
 
@@ -32,7 +141,11 @@ describe("ui-tree", () => {
 
     control.focus();
     control.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
+      new KeyboardEvent("keydown", {
+        key: "ArrowDown",
+        bubbles: true,
+        composed: true,
+      }),
     );
 
     expect(shadow(app!).activeElement).toBe(inShadow(app!, '[part="control"]'));
@@ -78,7 +191,11 @@ describe("ui-tree", () => {
     });
 
     control.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, composed: true }),
+      new KeyboardEvent("keydown", {
+        key: "ArrowRight",
+        bubbles: true,
+        composed: true,
+      }),
     );
 
     expect(requests).toEqual([true]);
@@ -109,7 +226,11 @@ describe("ui-tree", () => {
 
     inShadow<HTMLButtonElement>(alpha!, '[part="control"]').focus();
     inShadow<HTMLButtonElement>(alpha!, '[part="control"]').dispatchEvent(
-      new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true, composed: true }),
+      new KeyboardEvent("keydown", {
+        key: "ArrowUp",
+        bubbles: true,
+        composed: true,
+      }),
     );
 
     expect(shadow(billing!).activeElement).toBe(inShadow(billing!, '[part="control"]'));
@@ -132,7 +253,11 @@ describe("ui-tree", () => {
 
     action.focus();
     action.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
+      new KeyboardEvent("keydown", {
+        key: "ArrowDown",
+        bubbles: true,
+        composed: true,
+      }),
     );
 
     expect(document.activeElement).toBe(action);
@@ -163,7 +288,10 @@ describe("ui-tree", () => {
     expect(tree.revealItem("leaf", "center")).toBe(true);
     expect(toggleRequests).toEqual([true]);
     expect(reveals).toEqual([{ value: "leaf", ancestors: ["root"], alignment: "center" }]);
-    expect(scrollIntoView).toHaveBeenCalledWith({ block: "center", inline: "nearest" });
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      block: "center",
+      inline: "nearest",
+    });
     expect(root!.hasAttribute("expanded")).toBe(false);
   });
 
@@ -206,7 +334,11 @@ describe("controlled tree expansion", () => {
     expect(branch!.expanded).toBe(true);
     expect(inShadow<HTMLButtonElement>(leaf!, '[part="control"]').tabIndex).toBe(-1);
     control.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, composed: true }),
+      new KeyboardEvent("keydown", {
+        key: "ArrowRight",
+        bubbles: true,
+        composed: true,
+      }),
     );
     await settled(tree);
     expect(root!.expanded).toBe(true);
@@ -230,7 +362,11 @@ describe("controlled tree expansion", () => {
     const rootControl = inShadow<HTMLButtonElement>(root, '[part="control"]');
     rootControl.focus();
     rootControl.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, composed: true }),
+      new KeyboardEvent("keydown", {
+        key: "ArrowRight",
+        bubbles: true,
+        composed: true,
+      }),
     );
     expect(leaf.shadowRoot!.activeElement).toBe(inShadow(leaf, '[part="control"]'));
     root.expanded = false;

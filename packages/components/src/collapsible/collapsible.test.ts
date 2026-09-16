@@ -6,6 +6,25 @@ import type { UICollapsible } from "./collapsible.js";
 import "./register.js";
 
 describe("ui-collapsible", () => {
+  it("shows an open section moved while its initial parent was hidden", async () => {
+    const parent = await fixture<HTMLElement>(
+      `<div hidden><div id="first"><ui-collapsible open style="--duration-surface: 120ms"><span slot="trigger">Tree</span><div style="height: 96px">Namespace children</div></ui-collapsible></div><div id="second"></div></div>`,
+    );
+    const collapsible = parent.querySelector<UICollapsible>("ui-collapsible")!;
+    const reveal = inShadow<UIReveal>(collapsible, "ui-reveal");
+    await reveal.updateComplete;
+    parent.querySelector("#second")!.append(collapsible);
+    parent.hidden = false;
+    await settled(parent);
+    await expect.poll(() => reveal.matches(":state(active)")).toBe(true);
+    expect(inShadow<HTMLElement>(reveal, '[part="content"]').getBoundingClientRect().height).toBe(
+      96,
+    );
+    expect(inShadow<HTMLButtonElement>(collapsible, "button").getAttribute("aria-expanded")).toBe(
+      "true",
+    );
+  });
+
   it("uses reveal for measured disclosure presence without losing trigger semantics", async () => {
     const collapsible = await fixture<UICollapsible>(`
       <ui-collapsible>

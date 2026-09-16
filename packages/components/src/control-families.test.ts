@@ -482,7 +482,7 @@ describe("Control families", () => {
     expect(first?.shadowRoot?.activeElement).toBe(inShadow(first!, "button"));
   });
 
-  it("supports trigger arrows, typeahead, native viewport anatomy, and Tab dismissal", async () => {
+  it("supports trigger arrows, typeahead, composed scrolling, and Tab dismissal", async () => {
     const menu = await fixture<UIMenu>(`
       <ui-menu label="Actions">
         <button slot="trigger">Actions</button>
@@ -502,7 +502,8 @@ describe("Control families", () => {
 
     expect(menu.open).toBe(true);
     expect(items.at(-1)?.shadowRoot?.activeElement).toBe(inShadow(items.at(-1)!, "button"));
-    expect(inShadow(menu, '[part="viewport"]')).toBeInstanceOf(HTMLElement);
+    const scroll = inShadow(menu, "ui-scroll-area");
+    expect(inShadow(scroll, '[part="viewport"]')).toBeInstanceOf(HTMLElement);
 
     inShadow<HTMLButtonElement>(items.at(-1)!, "button").dispatchEvent(
       new KeyboardEvent("keydown", { key: "s", bubbles: true, composed: true }),
@@ -555,7 +556,8 @@ describe("Control families", () => {
         </${tag}>
       `);
       const header = inShadow<HTMLElement>(menu, '[part="header"]');
-      const viewport = inShadow<HTMLElement>(menu, '[part="viewport"]');
+      const scroll = inShadow<HTMLElement>(menu, "ui-scroll-area");
+      const viewport = inShadow<HTMLElement>(scroll, '[part="viewport"]');
       const actions = inShadow<HTMLElement>(menu, '[part="actions"]');
       const footer = inShadow<HTMLElement>(menu, '[part="footer"]');
       const firstItem = menu.querySelector<UIMenuItem>("ui-menu-item")!;
@@ -566,9 +568,11 @@ describe("Control families", () => {
       expect(footer.querySelector("slot")?.assignedElements()[0]?.textContent).toBe("9 projects");
       expect(menu.matches(":state(has-header)")).toBe(true);
       expect(menu.matches(":state(has-footer)")).toBe(true);
-      expect(viewport.contains(actions)).toBe(true);
-      expect(viewport.contains(header)).toBe(false);
-      expect(viewport.contains(footer)).toBe(false);
+      expect(
+        viewport.querySelector<HTMLSlotElement>("slot:not([name])")?.assignedElements(),
+      ).toContain(actions);
+      expect(scroll.contains(header)).toBe(false);
+      expect(scroll.contains(footer)).toBe(false);
 
       inShadow<HTMLElement>(menu, "[part=popup]").dispatchEvent(
         new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, composed: true }),
