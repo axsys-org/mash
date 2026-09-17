@@ -57,9 +57,6 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
     devDependencies:
-      '@carbon/icons':
-        specifier: 11.86.0
-        version: 11.86.0
       '@custom-elements-manifest/analyzer':
         specifier: 0.11.0
         version: 0.11.0
@@ -78,6 +75,9 @@ importers:
       concurrently:
         specifier: 10.0.5
         version: 10.0.5
+      lucide-static:
+        specifier: 1.46.0
+        version: 1.46.0
       playwright:
         specifier: 1.62.1
         version: 1.62.1
@@ -192,9 +192,6 @@ packages:
 
   '@bundled-es-modules/memfs@4.17.0':
     resolution: {integrity: sha512-ykdrkEmQr9BV804yd37ikXfNnvxrwYfY9Z2/EtMHFEFadEjsQXJ1zL9bVZrKNLDtm91UdUOEHso6Aweg93K6xQ==}
-
-  '@carbon/icons@11.86.0':
-    resolution: {integrity: sha512-EWrCD+58w3BSzwB2wFG3sk5Dzm09oZHNX0N0CKgnmMx/rPHY5jO1/Zdue04h6oL53y3iSYPtv31BtHNYpatsgw==}
 
   '@custom-elements-manifest/analyzer@0.11.0':
     resolution: {integrity: sha512-F2jQFk6igV5vrTZYDBLVr0GDQF3cTJ2VwwzPdsmkzUE+SHiYAQNKYebIq8qphZdJeTcZtVhvw336FQVZsMqh4A==}
@@ -370,10 +367,6 @@ packages:
 
   '@github/catalyst@1.8.1':
     resolution: {integrity: sha512-dnN4WWpbeuQvA17LvsGdlXEueJdBk9y+I+WO5pdNpoHNOXPsFcz3hJrq1iRmdsNgQOf4S8e83axtwIxvG62eWA==}
-
-  '@ibm/telemetry-js@1.11.0':
-    resolution: {integrity: sha512-RO/9j+URJnSfseWg9ZkEX9p+a3Ousd33DBU7rOafoZB08RqdzxFVYJ2/iM50dkBuD0o7WX7GYt1sLbNgCoE+pA==}
-    hasBin: true
 
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
@@ -1590,6 +1583,9 @@ packages:
     resolution: {integrity: sha512-4pfM1Ff0x50o0tQwb5ucw/RzNyD0/YJME6IVcStalZuMWxdt3sR3huStTtxz4PUmvZfRguvDejasvQ2kifR11g==}
     engines: {node: 20 || >=22}
 
+  lucide-static@1.46.0:
+    resolution: {integrity: sha512-kq1lP/78BxG28VG3Ut2FxMeQElereTrrRwTBeXH7+olxATGcDbsuKRB/v/VKLhPrEu8BvNi6Uh2GvbH3pQcYhg==}
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -2133,10 +2129,6 @@ snapshots:
       stream: 0.0.3
       util: 0.12.5
 
-  '@carbon/icons@11.86.0':
-    dependencies:
-      '@ibm/telemetry-js': 1.11.0
-
   '@custom-elements-manifest/analyzer@0.11.0':
     dependencies:
       '@custom-elements-manifest/find-dependencies': 0.0.7
@@ -2250,8 +2242,6 @@ snapshots:
     optional: true
 
   '@github/catalyst@1.8.1': {}
-
-  '@ibm/telemetry-js@1.11.0': {}
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
@@ -3252,6 +3242,8 @@ snapshots:
   lodash.camelcase@4.3.0: {}
 
   lru-cache@11.5.2: {}
+
+  lucide-static@1.46.0: {}
 
   magic-string@0.30.21:
     dependencies:

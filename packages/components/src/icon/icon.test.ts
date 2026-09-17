@@ -5,15 +5,18 @@ import { hasIcon, registerIcon, UIIcon, unregisterIcon } from "./icon.js";
 import "./register.js";
 
 describe("ui-icon", () => {
-  it("realizes a semantic Carbon icon without exposing the source name", async () => {
+  it("realizes a semantic Lucide icon without exposing the source name", async () => {
     const icon = await fixture<UIIcon>(`<ui-icon name="action.search" label="Search"></ui-icon>`);
     const root = inShadow<HTMLElement>(icon, '[part="root"]');
     const source = inShadow<SVGElement>(icon, 'svg[part="source"]');
 
     expect(root.getAttribute("role")).toBe("img");
     expect(root.getAttribute("aria-label")).toBe("Search");
-    expect(source.getAttribute("viewBox")).toBe("0 0 32 32");
-    expect(icon.shadowRoot?.textContent).not.toContain("carbon");
+    expect(source.getAttribute("viewBox")).toBe("0 0 24 24");
+    expect(source.getAttribute("fill")).toBe("none");
+    expect(source.getAttribute("stroke")).toBe("currentColor");
+    expect(source.getAttribute("stroke-width")).toBe("2");
+    expect(icon.shadowRoot?.textContent).not.toContain("lucide");
   });
 
   it("is decorative without a label and lets authored layers replace its anatomy", async () => {
@@ -35,6 +38,19 @@ describe("ui-icon", () => {
     expect(inShadow<HTMLSlotElement>(icon, 'slot[name="badge"]').assignedElements()).toHaveLength(
       1,
     );
+  });
+
+  it("distinguishes a link action from a connection action", async () => {
+    const link = await fixture<UIIcon>(`<ui-icon name="action.link" label="Copy link"></ui-icon>`);
+    const connect = await fixture<UIIcon>(
+      `<ui-icon name="action.connect" label="Connect"></ui-icon>`,
+    );
+
+    expect(hasIcon("action.link")).toBe(true);
+    expect(inShadow(link, 'svg[part="source"]').innerHTML).not.toBe(
+      inShadow(connect, 'svg[part="source"]').innerHTML,
+    );
+    expect(inShadow(link, '[part="root"]').getAttribute("aria-label")).toBe("Copy link");
   });
 
   it("supports application-provided semantic sources without widening the component API", async () => {

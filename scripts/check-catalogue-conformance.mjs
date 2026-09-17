@@ -17,7 +17,7 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const EXAMPLES_PATH = "apps/catalog/src/examples.ts";
 const STAGE_PATH = "apps/catalog/src/fixture-stage.ts";
 const SHOWCASE_PATH = "apps/catalog/src/showcase.ts";
-const ICONS_PATH = "packages/components/src/icon/carbon-icons.generated.ts";
+const ICONS_PATH = "packages/components/src/icon/lucide-icons.generated.ts";
 
 function lineAt(source, index) {
   return source.slice(0, index).split("\n").length;

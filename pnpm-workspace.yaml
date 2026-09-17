@@ -4,9 +4,6 @@ packages:
   - "tests/*"
 
 allowBuilds:
-  # Carbon ships its generated SVG assets in the package. Its postinstall only
-  # reports optional IBM telemetry and is not required to generate Mash icons.
-  "@carbon/icons": false
   esbuild: true
   rs-module-lexer: true
 

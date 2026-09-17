@@ -237,7 +237,6 @@
     display: inline-flex;
     inline-size: var(--layout-size-default-icon);
     block-size: var(--layout-size-default-icon);
-    fill: currentColor;
   }
 
   :where([data-mash-catalogue="mash"]) sh-path-row::part(disclosure) {

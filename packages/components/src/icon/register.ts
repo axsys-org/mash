@@ -1,7 +1,7 @@
-import { installCarbonIcons } from "./carbon.js";
+import { installLucideIcons } from "./lucide.js";
 import { UIIcon } from "./icon.js";
 
-installCarbonIcons();
+installLucideIcons();
 
 if (!customElements.get("ui-icon")) {
   customElements.define("ui-icon", UIIcon);
@@ -17,4 +17,4 @@ export { UIIcon };
 
 export * from "./icon.js";
 
-export * from "./carbon.js";
+export * from "./lucide.js";

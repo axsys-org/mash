@@ -659,7 +659,7 @@
       "types": "./dist/icon/register.d.ts",
       "import": "./dist/icon/register.js"
     },
-    "./icon/carbon": {
+    "./icon/lucide": {
       "types": "./dist/icon/register.d.ts",
       "import": "./dist/icon/register.js"
     },
@@ -783,7 +783,7 @@
     "build:js": "tsc -p tsconfig.build.json",
     "build:manifest": "cem analyze --config custom-elements-manifest.config.mjs && pnpm run build:tailwind",
     "build:tailwind": "node ../../scripts/build-tailwind-components.mjs",
-    "generate:icons": "node scripts/generate-carbon-icons.mjs",
+    "generate:icons": "node scripts/generate-lucide-icons.mjs",
     "check:types": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -797,13 +797,13 @@
     "lit": "3.3.3"
   },
   "devDependencies": {
-    "@carbon/icons": "11.86.0",
     "@custom-elements-manifest/analyzer": "0.11.0",
     "@mash/tokens": "workspace:*",
     "@types/node": "26.2.0",
     "@vitest/browser": "4.1.10",
     "@vitest/browser-playwright": "4.1.10",
     "concurrently": "10.0.5",
+    "lucide-static": "1.46.0",
     "playwright": "1.62.1",
     "typescript": "7.0.2",
     "vite": "8.2.1",
