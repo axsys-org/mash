@@ -25,6 +25,16 @@ afterEach(() => {
 });
 
 describe("sh-path-row semantics", () => {
+  it("preserves the stock disclosure glyph's unfilled stroke", async () => {
+    const row = await mount();
+    const disclosure = part(row, "disclosure");
+    await settled(disclosure);
+    const source = inShadow<SVGElement>(disclosure, 'svg[part="source"]');
+
+    expect(getComputedStyle(source).fill).toBe("none");
+    expect(getComputedStyle(source).stroke).toBe(getComputedStyle(source).color);
+  });
+
   it("is a plain native link until previewability is explicitly enabled", async () => {
     const row = await mount("", "");
     expect(row.previewable).toBe(false);

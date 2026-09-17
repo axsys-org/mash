@@ -19,13 +19,13 @@ export type { IconSize, IconSource };
 /**
  * Realizes a semantic icon name through Mash's current glyph source.
  *
- * Carbon is the bundled source today, but authored layers and the registration
+ * Lucide is the bundled source today, but authored layers and the registration
  * API keep that choice outside the public component contract.
  *
  * @tag ui-icon
  * @summary Displays a semantic glyph with replaceable layered anatomy.
  *
- * @example Carbon semantics and authored anatomy
+ * @example Lucide semantics and authored anatomy
  * <div class="demo button-showcase-row">
  *   <ui-icon name="action.search" label="Search"></ui-icon>
  *   <ui-icon name="object.folder" label="Folder"></ui-icon>
@@ -43,7 +43,7 @@ export type { IconSize, IconSource };
  * @csspart secondary - The optional secondary glyph layer.
  * @csspart badge - The optional overlay layer.
  * @csspart fallback - The unavailable-glyph fallback.
- * @csspart source - The generated Carbon SVG source.
+ * @csspart source - The generated Lucide SVG source.
  *
  * @mashnode root icon
  * @mashnode glyph glyph root
