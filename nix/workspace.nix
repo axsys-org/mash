@@ -63,7 +63,27 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook preInstall
     mkdir -p "$out"
     cp -a . "$out/"
+    # pnpm's bin shims embed NODE_PATH entries rooted in the build directory.
+    # Relocate them, and discard timestamped, machine-local install caches.
+    while IFS= read -r -d "" script; do
+      substituteInPlace "$script" --replace-quiet "$PWD" "$out"
+    done < <(find "$out" -type f -path '*/node_modules/.bin/*' -print0)
+    rm "$out/node_modules/.modules.yaml" \
+      "$out/node_modules/.pnpm-workspace-state-v1.json"
     runHook postInstall
+  '';
+
+  doInstallCheck = true;
+  installCheckPhase = ''
+    runHook preInstallCheck
+    pnpm --dir "$out" --filter @mash/visual-tests exec playwright --version
+    node --input-type=module - "$out" <<'JS'
+    import { createRequire } from 'node:module';
+    const require = createRequire(process.argv[2] + '/apps/catalog/package.json');
+    require('esbuild').buildSync({stdin: {contents: 'export const ready = true'}, write: false});
+    JS
+    test ! -e "$out/node_modules/.pnpm-workspace-state-v1.json"
+    runHook postInstallCheck
   '';
 
   # Keep the workspace links and platform-specific Node addons intact.
