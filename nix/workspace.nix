@@ -33,6 +33,11 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
 
   preBuild = lib.optionalString stdenv.hostPlatform.isLinux ''
+    # rs-module-lexer ships a musl optional dependency without libc metadata,
+    # so pnpm also installs it on glibc hosts. Only the GNU variant can load
+    # into our Node; remove unused musl packages before checking ELF linkage.
+    find node_modules/.pnpm -maxdepth 1 -type d -name '*-linux-*-musl@*' \
+      -exec rm -rf {} +
     autoPatchelf node_modules
   '';
 

@@ -45,7 +45,14 @@ Pin a reviewed Mash commit as an input and expose its workspace and tools:
 
 ```nix
 {
-  inputs.mash.url = "github:axsys-org/mash/<reviewed-commit>";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+  inputs.mash = {
+    type = "git";
+    url = "https://github.com/axsys-org/mash.git";
+    rev = "<reviewed-commit>";
+    allRefs = true;
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   outputs = { nixpkgs, mash, ... }: {
     devShells.aarch64-darwin.default =
@@ -60,8 +67,9 @@ Pin a reviewed Mash commit as an input and expose its workspace and tools:
 }
 ```
 
-Use the relevant system instead of `aarch64-darwin`. Consumers may make
-`mash.inputs.nixpkgs.follows = "nixpkgs"` to share a compatible nixpkgs pin.
+Use the relevant system instead of `aarch64-darwin`. Mash is private, so
+Git must already have access to the repository; the Git input uses its
+credential helper. The example shares the consumer's compatible nixpkgs pin.
 The workspace is immutable: read its assets and resolve its dependencies,
 rather than running `pnpm install` or rebuilding in its store directory.
 
