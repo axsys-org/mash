@@ -38,6 +38,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # into our Node; remove unused musl packages before checking ELF linkage.
     find node_modules/.pnpm -maxdepth 1 -type d -name '*-linux-*-musl@*' \
       -exec rm -rf {} +
+    find node_modules -type l -name '*-linux-*-musl' -delete
     autoPatchelf node_modules
   '';
 
