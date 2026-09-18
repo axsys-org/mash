@@ -6,3 +6,4 @@ pnpm-lock.yaml
 # create spurious diffs on every build.
 packages/tokens/dist/
 packages/components/custom-elements.json
+packages/components/src/icon/lucide-icons.generated.ts

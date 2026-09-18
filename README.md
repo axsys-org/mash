@@ -42,8 +42,13 @@ development catalog.
 
 ## Quick start
 
+With Nix, `nix develop` supplies Node 22 and the exact pnpm version from
+`package.json`. Enter the shell before running the commands below. See
+[Nix builds and downstream use](nix/README.md) for the reproducible workspace
+package and flake checks.
+
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
 ```bash
