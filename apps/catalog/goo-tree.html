@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Goo tree — Web Awesome interactions, Goo-owned HTML</title>
+    <style>
+      body {
+        margin: 32px auto;
+        padding: 0 24px;
+        max-width: 1050px;
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+        background: #f7f9fc;
+        color: #233046;
+      }
+      h1 {
+        margin-bottom: 8px;
+      }
+      .intro {
+        max-width: 75ch;
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin: 24px 0;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+      button,
+      select {
+        padding: 5px 10px;
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+        gap: 20px;
+      }
+      goo-tree,
+      aside {
+        padding: 20px;
+        background: white;
+        border: 1px solid #d2dae5;
+        border-radius: 12px;
+      }
+      wa-tree {
+        --indent-guide-width: 1px;
+      }
+      wa-tree-item::part(label) {
+        padding: 7px 0;
+      }
+      .row {
+        display: inline-flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .badge {
+        border-radius: 12px;
+        padding: 1px 8px;
+        background: #e9eef5;
+        font-size: 12px;
+      }
+      output {
+        display: block;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      aside h2 {
+        font-size: 16px;
+        margin-top: 0;
+      }
+      #events {
+        margin-top: 12px;
+        font:
+          12px/1.6 ui-monospace,
+          monospace;
+      }
+      @media (max-width: 700px) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Web Awesome interactions. Goo-owned HTML.</h1>
+    <p class="intro">
+      One nested DOM hierarchy. Web Awesome supplies disclosure, keyboard traversal, focus, and
+      selection mechanics. Goo supplies subjects, content, membership, and durable state.
+    </p>
+    <div class="controls">
+      <label
+        >Selection
+        <select id="selection">
+          <option>single</option>
+          <option>multiple</option>
+          <option>none</option>
+        </select></label
+      >
+      <button id="toggle-node">Add/remove item</button>
+      <button id="render-selection">Render cards selected</button>
+      <button id="complete-lazy" disabled>Materialize pending folder</button>
+      <button id="empty-lazy" disabled>Complete with no children</button>
+    </div>
+    <div class="workspace">
+      <goo-tree id="demo" selection="single">
+        <wa-tree aria-label="Application namespaces">
+          <wa-tree-item subject="/app" branch expanded>
+            <span class="row"><strong>/app</strong><span class="badge">namespace</span></span>
+            <wa-tree-item subject="/app/srs" branch>
+              <span class="row"
+                ><strong>Spaced repetition</strong><span class="badge">2 members</span></span
+              >
+              <wa-tree-item subject="/app/srs/cards">
+                <article class="row">
+                  <strong>/app/srs/cards</strong><span>37 children</span
+                  ><button id="inspect">Inspect</button>
+                </article>
+              </wa-tree-item>
+              <wa-tree-item subject="/app/srs/review">Review queue</wa-tree-item>
+            </wa-tree-item>
+            <wa-tree-item subject="/app/library" branch lazy>
+              <span class="row"
+                ><strong>Library</strong><span class="badge">load on expansion</span></span
+              >
+            </wa-tree-item>
+            <wa-tree-item subject="/app/empty" branch>Empty folder — no lazy request</wa-tree-item>
+            <wa-tree-item subject="/app/note">
+              <label class="row"
+                >Draft <input aria-label="Draft note" value="An unsaved note"
+              /></label>
+            </wa-tree-item>
+            <wa-tree-item subject="/app/docs">
+              <a
+                href="https://webawesome.com/docs/components/tree/"
+                target="_blank"
+                rel="noreferrer"
+                >Web Awesome tree documentation</a
+              >
+            </wa-tree-item>
+          </wa-tree-item>
+        </wa-tree>
+      </goo-tree>
+      <aside>
+        <h2>Caller-side event log</h2>
+        <output id="status" aria-live="polite"
+          >Try the twisties, arrow keys, and controls inside rows.</output
+        >
+        <output id="events"></output>
+        <p>
+          The lazy completion buttons stand in for a Goo render. The component makes no network
+          requests and stores no tree-data model.
+        </p>
+      </aside>
+    </div>
+    <script type="module" src="/src/goo-tree-demo.ts"></script>
+  </body>
+</html>

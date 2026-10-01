@@ -18,7 +18,8 @@
     "./dist/**/register.js",
     "./dist/register.js",
     "./dist/tailwind.css",
-    "./src/catalogue/*.css"
+    "./src/catalogue/*.css",
+    "./src/goo-tree/theme.css"
   ],
   "exports": {
     ".": {
@@ -784,7 +785,16 @@
     "./goo-tidy-tree/register": {
       "types": "./dist/goo-tidy-tree/register.d.ts",
       "import": "./dist/goo-tidy-tree/register.js"
-    }
+    },
+    "./goo-tree": {
+      "types": "./dist/goo-tree/register.d.ts",
+      "import": "./dist/goo-tree/register.js"
+    },
+    "./goo-tree/register": {
+      "types": "./dist/goo-tree/register.d.ts",
+      "import": "./dist/goo-tree/register.js"
+    },
+    "./goo-tree/theme.css": "./src/goo-tree/theme.css"
   },
   "scripts": {
     "build": "pnpm run build:js && pnpm run build:manifest",
@@ -801,6 +811,7 @@
     "clean": "rm -rf dist custom-elements.json *.tsbuildinfo"
   },
   "dependencies": {
+    "@awesome.me/webawesome": "3.14.0",
     "d3-flextree": "^2.1.2",
     "d3-hierarchy": "^3.1.2",
     "d3-selection": "^3.0.0",

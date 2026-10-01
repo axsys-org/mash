@@ -44,6 +44,7 @@ export default defineConfig({
         fixture: resolve(import.meta.dirname, "fixture.html"),
         sharedFixture: resolve(import.meta.dirname, "shared-fixture.html"),
         gooTidyTree: resolve(import.meta.dirname, "goo-tidy-tree.html"),
+        gooTree: resolve(import.meta.dirname, "goo-tree.html"),
       },
     },
   },

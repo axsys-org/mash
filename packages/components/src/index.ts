@@ -327,3 +327,11 @@ export type {
 
 export { GooTidyTree, GooTreeNode } from "./goo-tidy-tree/goo-tidy-tree.js";
 export type { TreeDirection } from "./goo-tidy-tree/geometry.js";
+
+export { GooTree } from "./goo-tree/goo-tree.js";
+export type {
+  GooTreeSelection,
+  GooTreeToggleDetail,
+  GooTreeSelectDetail,
+  GooTreeLazyLoadDetail,
+} from "./goo-tree/goo-tree.js";

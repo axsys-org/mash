@@ -111,3 +111,5 @@ import "./dock-panel/register.js";
 import "./sidebar/register.js";
 
 import "./goo-tidy-tree/register.js";
+
+import "./goo-tree/register.js";
