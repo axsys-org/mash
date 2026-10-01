@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Goo tidy tree — ordinary HTML, spatial layout</title>
+    <style>
+      body {
+        margin: 32px;
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+        color: #253247;
+        background: #f6f8fb;
+      }
+      h1 {
+        margin-bottom: 8px;
+      }
+      p {
+        max-width: 70ch;
+      }
+      goo-tidy-tree {
+        border: 1px solid #ccd4df;
+        border-radius: 12px;
+        background: white;
+        margin: 16px 0 32px;
+      }
+      #tiny {
+        height: 180px;
+      }
+      #demo {
+        height: 580px;
+      }
+      goo-tree-node article {
+        padding: 16px;
+        border: 1px solid #c9d4e5;
+        border-radius: 10px;
+        background: #f8fbff;
+        max-width: 280px;
+      }
+      goo-tree-node p {
+        margin: 8px 0;
+      }
+      button,
+      select,
+      input {
+        font: inherit;
+      }
+      button,
+      select {
+        padding: 6px 10px;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+      }
+      output {
+        display: block;
+        min-height: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Ordinary HTML, arranged as a tree</h1>
+    <p>
+      Goo owns the content and parent relations. The component measures and positions the existing
+      boxes.
+    </p>
+    <h2>A tiny tree</h2>
+    <goo-tidy-tree id="tiny">
+      <goo-tree-node subject="hello"
+        ><article><strong>Hello</strong></article></goo-tree-node
+      >
+      <goo-tree-node subject="html" parent="hello"
+        ><article>Still ordinary HTML.</article></goo-tree-node
+      >
+    </goo-tidy-tree>
+    <h2>Interactive content, variable sizes</h2>
+    <p>
+      Drag or scroll the background to pan or zoom. Text, buttons, links, and inputs inside nodes
+      keep their native behavior.
+    </p>
+    <div class="controls">
+      <label
+        >Direction
+        <select id="direction">
+          <option>right</option>
+          <option>left</option>
+          <option>down</option>
+          <option>up</option>
+        </select></label
+      >
+      <button id="fit">Fit tree</button>
+      <button id="center">Center cards</button>
+      <button id="toggle">Add/remove a node</button>
+      <button id="resize">Change content size</button>
+    </div>
+    <output id="status" aria-live="polite">Try Inspect, edit the note, or select some text.</output>
+    <goo-tidy-tree id="demo" direction="right" zoom fit>
+      <goo-tree-node subject="/app"
+        ><article>
+          <strong>/app</strong>
+          <p>A visible slice of the application.</p>
+          <label>Note <input value="Keep this draft" /></label></article
+      ></goo-tree-node>
+      <goo-tree-node subject="/app/srs" parent="/app"
+        ><article>
+          <strong>Spaced repetition</strong>
+          <p>Practice a little each day.</p>
+        </article></goo-tree-node
+      >
+      <goo-tree-node subject="/app/srs/cards" parent="/app/srs"
+        ><article>
+          <strong>/app/srs/cards</strong>
+          <div>37 children</div>
+          <button id="inspect">Inspect</button>
+        </article></goo-tree-node
+      >
+      <goo-tree-node subject="/app/srs/review" parent="/app/srs"
+        ><article>
+          <strong>Review queue</strong>
+          <p id="resizable-content">Three cards ready.</p>
+          <label><input type="checkbox" /> Include examples</label>
+        </article></goo-tree-node
+      >
+      <goo-tree-node subject="/app/docs" parent="/app"
+        ><article>
+          <strong>Documents</strong>
+          <p>Text can wrap across several lines, making this box much taller than its siblings.</p>
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components"
+            target="_blank"
+            rel="noreferrer"
+            >About web components</a
+          >
+        </article></goo-tree-node
+      >
+      <goo-tree-node subject="/app/settings" parent="/app"
+        ><article>
+          <strong>Settings</strong>
+          <details>
+            <summary>Show preferences</summary>
+            <label
+              >Language
+              <select>
+                <option>English</option>
+                <option>Español</option>
+              </select></label
+            >
+            <p>Opening this native disclosure changes the node’s size.</p>
+          </details>
+        </article></goo-tree-node
+      >
+    </goo-tidy-tree>
+    <script type="module" src="/src/goo-tidy-tree-demo.ts"></script>
+  </body>
+</html>

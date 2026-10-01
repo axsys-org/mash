@@ -62,7 +62,9 @@ async function main() {
       partCount += parts.length;
       components.set(declaration.tagName, partNames);
 
-      if (parts.length === 0) {
+      // This marker has no shadow DOM: the host and its content are caller-owned
+      // HTML, styled directly. Inventing a shadow part would break that contract.
+      if (parts.length === 0 && declaration.tagName !== "goo-tree-node") {
         problems.push(`${declaration.tagName} exposes no CSS parts`);
       }
 

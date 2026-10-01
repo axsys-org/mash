@@ -776,6 +776,14 @@
     "./message-composer": {
       "types": "./dist/message-composer/register.d.ts",
       "import": "./dist/message-composer/register.js"
+    },
+    "./goo-tidy-tree": {
+      "types": "./dist/goo-tidy-tree/register.d.ts",
+      "import": "./dist/goo-tidy-tree/register.js"
+    },
+    "./goo-tidy-tree/register": {
+      "types": "./dist/goo-tidy-tree/register.d.ts",
+      "import": "./dist/goo-tidy-tree/register.js"
     }
   },
   "scripts": {
@@ -793,12 +801,20 @@
     "clean": "rm -rf dist custom-elements.json *.tsbuildinfo"
   },
   "dependencies": {
+    "d3-flextree": "^2.1.2",
+    "d3-hierarchy": "^3.1.2",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "^3.0.0",
     "echarts": "6.0.0",
     "lit": "3.3.3"
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "0.11.0",
     "@mash/tokens": "workspace:*",
+    "@types/d3-flextree": "^2.1.4",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/d3-selection": "^3.0.12",
+    "@types/d3-zoom": "^3.0.9",
     "@types/node": "26.2.0",
     "@vitest/browser": "4.1.10",
     "@vitest/browser-playwright": "4.1.10",

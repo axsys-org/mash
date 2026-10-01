@@ -109,3 +109,5 @@ import "./stepper/register.js";
 import "./dock/register.js";
 import "./dock-panel/register.js";
 import "./sidebar/register.js";
+
+import "./goo-tidy-tree/register.js";

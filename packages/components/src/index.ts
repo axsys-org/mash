@@ -324,3 +324,6 @@ export type {
   MessageComposerOptions,
   MessageComposerEvents,
 } from "./message-composer/message-composer.js";
+
+export { GooTidyTree, GooTreeNode } from "./goo-tidy-tree/goo-tidy-tree.js";
+export type { TreeDirection } from "./goo-tidy-tree/geometry.js";
