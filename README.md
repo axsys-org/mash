@@ -2,6 +2,10 @@
 
 A standards-oriented Web Components design system.
 
+For Goo, Mash provides a pinned server renderer profile. See the
+[Goo ownership contract and profile workflow](docs/goo-profile.md) for server
+measurement, portable prepared output and paired Reaver updates.
+
 The goal is a design language that machines can read without scraping documentation prose. Two
 generated schemas carry it:
 

@@ -43,6 +43,12 @@ jobs:
       - name: Build tokens
         run: pnpm run tokens
 
+      - name: Build Goo renderer profile
+        run: pnpm run goo:profile
+
+      - name: Check Goo profile contract
+        run: pnpm run check:goo-profile
+
       - name: Build components
         run: pnpm run components
 
@@ -92,7 +98,7 @@ jobs:
               -not -path '*/node_modules/*' | sort | xargs sha256sum
           }
           before=$(hash_generated)
-          pnpm run tokens && pnpm run components && pnpm run cem
+          pnpm run tokens && pnpm run goo:profile && pnpm run components && pnpm run cem
           after=$(hash_generated)
           if [ "$before" != "$after" ]; then
             echo "::error::Rebuilding changed the generated output. It must be deterministic."

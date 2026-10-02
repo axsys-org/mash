@@ -23,7 +23,7 @@
     "preview:catalog": "pnpm --filter @mash/catalog run preview",
     "//dev": "Build once so nothing starts against a missing dist/, then watch tokens, components and the manifest alongside the catalog.",
     "dev": "pnpm run build && pnpm -r --parallel run dev",
-    "check": "pnpm run check:format && pnpm run check:types && pnpm run check:lint && pnpm run check:exports && pnpm run check:parts && pnpm run check:catalogue && pnpm run check:tokens && pnpm run check:ontology && pnpm run check:foundations",
+    "check": "pnpm run check:format && pnpm run check:types && pnpm run check:lint && pnpm run check:exports && pnpm run check:parts && pnpm run check:catalogue && pnpm run check:tokens && pnpm run check:ontology && pnpm run check:foundations && pnpm run check:goo-profile",
     "check:types": "pnpm -r --parallel run check:types",
     "check:lint": "oxlint",
     "check:format": "prettier --check .",
@@ -47,7 +47,9 @@
     "dev:catalog": "pnpm --filter @mash/tokens --filter @mash/ui --filter @mash/catalog --parallel run dev",
     "build:preview": "pnpm build && pnpm --filter @mash/catalog run build:site",
     "test:stories": "pnpm --filter @mash/visual-tests exec playwright test specs/stories-shell.spec.ts specs/desktop-story.spec.ts specs/studio-story.spec.ts specs/studio-model.spec.ts specs/documents-story.spec.ts specs/connected-documents.spec.ts specs/projects-launcher-story.spec.ts specs/community-story.spec.ts specs/characters-story.spec.ts specs/study-story.spec.ts specs/study-model.spec.ts --workers=1",
-    "test:catalogue:full": "MASH_FULL_CATALOGUE=1 pnpm run test:catalogue"
+    "test:catalogue:full": "MASH_FULL_CATALOGUE=1 pnpm run test:catalogue",
+    "goo:profile": "pnpm --filter @mash/goo-profile run build",
+    "check:goo-profile": "pnpm --filter @mash/goo-profile run test"
   },
   "devDependencies": {
     "@vercel/blob": "^2.8.0",

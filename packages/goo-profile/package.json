@@ -1,0 +1,37 @@
+{
+  "name": "@mash/goo-profile",
+  "version": "0.1.0",
+  "description": "Pinned typography and server measurement profile for Goo renderers.",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    "./profile.json": "./dist/profile.json",
+    "./profile.css": "./dist/profile.css",
+    "./profile.schema.json": "./dist/profile.schema.json",
+    "./assets.json": "./dist/assets.json",
+    "./metrics.json": "./dist/metrics.json",
+    "./package.json": "./package.json",
+    "./fonts/goo-Sans400.ttf": "./dist/goo-Sans400.ttf",
+    "./fonts/goo-Sans520.ttf": "./dist/goo-Sans520.ttf",
+    "./fonts/goo-Sans550.ttf": "./dist/goo-Sans550.ttf",
+    "./fonts/goo-Sans620.ttf": "./dist/goo-Sans620.ttf",
+    "./fonts/goo-Sans650.ttf": "./dist/goo-Sans650.ttf",
+    "./fonts/goo-Sans750.ttf": "./dist/goo-Sans750.ttf",
+    "./fonts/goo-Mono400.ttf": "./dist/goo-Mono400.ttf",
+    "./fonts/goo-Italic400.ttf": "./dist/goo-Italic400.ttf"
+  },
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "validate": "node scripts/build.mjs --validate",
+    "check:types": "node scripts/build.mjs --validate",
+    "test": "node --test test/*.test.mjs",
+    "clean": "rm -rf dist"
+  }
+}

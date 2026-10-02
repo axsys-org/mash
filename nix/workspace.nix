@@ -20,7 +20,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     inherit (finalAttrs) pname version src;
     inherit pnpm;
     fetcherVersion = 3;
-    hash = "sha256-1P9AJuF+2hpJi8sCSP0PIr08r+sh1hjM98mA0qyd5BU=";
+    hash = "sha256-v6Nf3KTB/1JkdPcI4A8FqQvcfxYMtw9351j9l3Vlw58=";
   };
 
   nativeBuildInputs = [
@@ -55,7 +55,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook preCheck
     pnpm run check:types
     pnpm run check:exports
+    pnpm run check:goo-profile
+    node packages/goo-profile/scripts/build.mjs --check
     test -s apps/catalog/dist/mash.js
+    test -s packages/goo-profile/dist/assets.json
     runHook postCheck
   '';
 

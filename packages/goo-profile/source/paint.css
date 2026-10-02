@@ -1,0 +1,125 @@
+/* Paint only. Typography, control padding and measured geometry are generated. */
+.goo-surface {
+  color: #182c30;
+}
+.goo-surface .goo-node.highlight {
+  outline: 2px solid #688b43;
+  outline-offset: 3px;
+}
+.goo-surface .goo-subtitle {
+  color: #5f726b;
+}
+.goo-surface .goo-label {
+  color: #3c5750;
+}
+.goo-surface .goo-body {
+  color: #425650;
+}
+.goo-surface .goo-summary {
+  color: #5b6d65;
+}
+.goo-surface .goo-hint {
+  color: #7a847a;
+}
+.goo-surface .goo-caption {
+  color: #556e61;
+}
+.goo-surface .goo-credit {
+  color: #7f887e;
+}
+.goo-surface .goo-provenance {
+  color: #68796b;
+}
+.goo-surface .goo-unit,
+.goo-surface .goo-qualifier {
+  color: #697d6c;
+}
+.goo-surface .goo-metadata,
+.goo-surface .goo-author,
+.goo-surface .goo-timestamp {
+  color: #7a887b;
+}
+.goo-surface .goo-status {
+  color: #45674a;
+}
+.goo-surface .goo-error {
+  color: #9f4c36;
+}
+.goo-surface .goo-diagnostic {
+  color: #587441;
+}
+.goo-surface .goo-output {
+  color: #405f50;
+}
+.goo-surface .goo-quote {
+  color: #526954;
+}
+.goo-surface .goo-attribution {
+  color: #6b7b6c;
+}
+.goo-surface .goo-icon {
+  color: #5c7e52;
+}
+.goo-surface .goo-avatar:not(.goo-text) {
+  border-radius: 50%;
+  background: #dce8d4;
+  color: #405b40;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+}
+.goo-surface .goo-presence:not(.goo-text) {
+  border-radius: 50%;
+  background: #65894d;
+}
+.goo-surface .goo-badge {
+  background: #eaf1e3;
+  color: #537243;
+  border-color: #d8e2cd;
+  border-radius: 4px;
+}
+.goo-surface .goo-input:not(.goo-text) {
+  border-color: #bdcaba;
+  border-radius: 5px;
+  background: #fffefa;
+  color: #354e41;
+  display: block;
+}
+.goo-surface .goo-button:not(.goo-text) {
+  border-color: #c6d0bf;
+  border-radius: 5px;
+  background: transparent;
+  white-space: nowrap;
+  display: block;
+  cursor: pointer;
+}
+.goo-surface .goo-button:not(.goo-text).primary {
+  background: #34573e;
+  color: #fffef6;
+  border-color: #34573e;
+}
+.goo-surface .goo-button:not(.goo-text).destructive {
+  color: #9a4938;
+  border-color: #ddbdac;
+}
+.goo-surface .goo-code:not(.goo-text) {
+  background: #f0f3e9;
+  border-color: #dce3d0;
+  border-radius: 5px;
+  color: #526347;
+}
+.goo-surface .goo-media:not(.goo-text) {
+  background: linear-gradient(138deg, #cddcc4, #819977);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.goo-surface .goo-bar:not(.goo-text) {
+  background: linear-gradient(to right, #76965e 73%, #e4ead8 73%);
+  border-radius: 10px;
+}
+.goo-surface .goo-button:not(.goo-text):focus-visible,
+.goo-surface .goo-input:not(.goo-text):focus-visible {
+  outline: 3px solid #6b8dba;
+  outline-offset: 3px;
+}
