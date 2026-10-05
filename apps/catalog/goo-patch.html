@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Goo patch fixture harness</title>
+  </head>
+  <body>
+    <h1>Goo patch fixture harness</h1>
+    <p>
+      Simulated authority. Server geometry from the bundled contract fixture. Operations do not edit
+      a real domain.
+    </p>
+    <form id="delivery">
+      <label>Scene sequence <input id="seq" type="number" min="1" value="2" /></label
+      ><label>Delta base (blank for full) <input id="base" type="number" min="1" /></label
+      ><label>Covered operation IDs <input id="covered" /></label
+      ><button>Deliver projection</button>
+    </form>
+    <form id="receipt">
+      <label>Operation ID <input id="operation" /></label
+      ><label
+        >Outcome
+        <select id="outcome">
+          <option>accepted</option>
+          <option>rejected</option>
+          <option>unknown</option>
+        </select></label
+      ><button>Deliver receipt</button
+      ><button type="button" id="delayed">Deliver after 500 ms</button>
+    </form>
+    <p id="message" role="status"></p>
+    <main id="fixture"></main>
+    <details open>
+      <summary>Captured intents and queries</summary>
+      <pre id="log"></pre>
+    </details>
+    <script type="module" src="/src/goo-patch-demo.ts"></script>
+  </body>
+</html>

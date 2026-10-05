@@ -2,6 +2,10 @@ import type { ComponentBlockIntegration } from "@mash/ui/block";
 
 /** How each Shrine composition participates in a block renderer. */
 export const shrineComponentBlockIntegration = Object.freeze({
+  "goo-patch": "container",
+  "goo-patch-node": "container",
+  "goo-patch-port": "inline",
+  "goo-patch-connection": "container",
   "sh-limb": "container",
   "sh-locator": "container",
   "sh-myth": "container",

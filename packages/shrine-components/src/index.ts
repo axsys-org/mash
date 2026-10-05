@@ -21,3 +21,11 @@ export { ShrineSlot } from "./slot/slot.js";
 export { ShrinePail } from "./pail/pail.js";
 export { ShrineTree } from "./tree/tree.js";
 export type { ShrineTreeVariant } from "./tree/tree.js";
+
+export { GooPatch, GooPatchNode, GooPatchPort, GooPatchConnection } from "./patch/register.js";
+export type {
+  PatchSurfaceAPI,
+  SceneSnapshot,
+  PatchIntent,
+  ProjectionAdmission,
+} from "./patch/contract.js";

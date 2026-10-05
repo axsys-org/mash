@@ -1,0 +1,227 @@
+{
+  "device": {
+    "cpu": "Apple M5 Pro",
+    "arch": "arm64",
+    "platform": "darwin",
+    "release": "25.3.0",
+    "memoryGB": 48
+  },
+  "engines": [
+    {
+      "name": "chromium",
+      "version": "151.0.7922.34",
+      "nativeInputPreservation": {
+        "deferred": "deferred",
+        "before": 1,
+        "after": 2,
+        "same": true,
+        "value": "unsaved \u65e5\u672c\u8a9e",
+        "start": 2,
+        "end": 5,
+        "focused": true,
+        "anchor": {
+          "x": 240,
+          "y": 180
+        },
+        "arrangement": true
+      },
+      "interactionChecks": 5,
+      "benchmarks": [
+        {
+          "nodes": 100,
+          "connections": 200,
+          "installMs": 11,
+          "domCount": 3325,
+          "panMs": {
+            "p50": 0,
+            "p95": 0,
+            "max": 0.10000002384185791
+          },
+          "pointerHandlerMs": {
+            "p50": 0,
+            "p95": 0.10000002384185791,
+            "max": 0.10000002384185791
+          },
+          "gestureFrameMs": {
+            "p50": 0.19999992847442627,
+            "p95": 0.6999999284744263,
+            "max": 0.7000000476837158
+          },
+          "cameraOnly": true,
+          "retainedPending": 0
+        },
+        {
+          "nodes": 1000,
+          "connections": 2000,
+          "installMs": 106.5,
+          "domCount": 33025,
+          "panMs": {
+            "p50": 0,
+            "p95": 0,
+            "max": 0.10000002384185791
+          },
+          "pointerHandlerMs": {
+            "p50": 0,
+            "p95": 0.10000002384185791,
+            "max": 0.10000002384185791
+          },
+          "gestureFrameMs": {
+            "p50": 0.10000002384185791,
+            "p95": 0.30000007152557373,
+            "max": 0.3999999761581421
+          },
+          "cameraOnly": true,
+          "retainedPending": 0
+        }
+      ],
+      "memory": {
+        "mounted": {
+          "JSEventListeners": 41,
+          "Nodes": 51242,
+          "JSHeapUsedSize": 7615688
+        },
+        "afterRetirementAndGC": {
+          "JSEventListeners": 26,
+          "Nodes": 12,
+          "JSHeapUsedSize": 2879972
+        }
+      }
+    },
+    {
+      "name": "firefox",
+      "version": "153.0",
+      "nativeInputPreservation": {
+        "deferred": "deferred",
+        "before": 1,
+        "after": 2,
+        "same": true,
+        "value": "unsaved \u65e5\u672c\u8a9e",
+        "start": 2,
+        "end": 5,
+        "focused": true,
+        "anchor": {
+          "x": 240,
+          "y": 180
+        },
+        "arrangement": true
+      },
+      "interactionChecks": 5,
+      "benchmarks": [
+        {
+          "nodes": 100,
+          "connections": 200,
+          "installMs": 92,
+          "domCount": 3325,
+          "panMs": {
+            "p50": 0,
+            "p95": 0,
+            "max": 0
+          },
+          "pointerHandlerMs": {
+            "p50": 0,
+            "p95": 1,
+            "max": 1
+          },
+          "gestureFrameMs": {
+            "p50": 1,
+            "p95": 3,
+            "max": 22
+          },
+          "cameraOnly": true,
+          "retainedPending": 0
+        },
+        {
+          "nodes": 1000,
+          "connections": 2000,
+          "installMs": 686,
+          "domCount": 33025,
+          "panMs": {
+            "p50": 0,
+            "p95": 0,
+            "max": 0
+          },
+          "pointerHandlerMs": {
+            "p50": 0,
+            "p95": 1,
+            "max": 3
+          },
+          "gestureFrameMs": {
+            "p50": 1,
+            "p95": 4,
+            "max": 7
+          },
+          "cameraOnly": true,
+          "retainedPending": 0
+        }
+      ]
+    },
+    {
+      "name": "webkit",
+      "version": "26.5",
+      "nativeInputPreservation": {
+        "deferred": "deferred",
+        "before": 1,
+        "after": 2,
+        "same": true,
+        "value": "unsaved \u65e5\u672c\u8a9e",
+        "start": 2,
+        "end": 5,
+        "focused": true,
+        "anchor": {
+          "x": 240,
+          "y": 180
+        },
+        "arrangement": true
+      },
+      "interactionChecks": 5,
+      "benchmarks": [
+        {
+          "nodes": 100,
+          "connections": 200,
+          "installMs": 116,
+          "domCount": 3325,
+          "panMs": {
+            "p50": 0,
+            "p95": 0,
+            "max": 1
+          },
+          "pointerHandlerMs": {
+            "p50": 0,
+            "p95": 1,
+            "max": 1
+          },
+          "gestureFrameMs": {
+            "p50": 1,
+            "p95": 3,
+            "max": 3
+          },
+          "cameraOnly": true,
+          "retainedPending": 0
+        },
+        {
+          "nodes": 1000,
+          "connections": 2000,
+          "installMs": 1387,
+          "domCount": 33025,
+          "panMs": {
+            "p50": 0,
+            "p95": 0,
+            "max": 1
+          },
+          "pointerHandlerMs": {
+            "p50": 0,
+            "p95": 1,
+            "max": 1
+          },
+          "gestureFrameMs": {
+            "p50": 1,
+            "p95": 3,
+            "max": 7
+          },
+          "cameraOnly": true,
+          "retainedPending": 0
+        }
+      ]
+    }
+  ]
+}

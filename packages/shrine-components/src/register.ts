@@ -14,3 +14,5 @@ import "./myth/register.js";
 import "./tree/register.js";
 import "./sidebar/register.js";
 import "./path-row/register.js";
+
+import "./patch/register.js";

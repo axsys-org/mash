@@ -116,7 +116,27 @@
       "import": "./dist/tree/register.js"
     },
     "./custom-elements.json": "./custom-elements.json",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./patch": {
+      "types": "./dist/patch/register.d.ts",
+      "import": "./dist/patch/register.js"
+    },
+    "./patch/register": {
+      "types": "./dist/patch/register.d.ts",
+      "import": "./dist/patch/register.js"
+    },
+    "./patch/goo-adapter": {
+      "types": "./dist/patch/integration/goo-adapter.d.ts",
+      "import": "./dist/patch/integration/goo-adapter.js"
+    },
+    "./patch/emitter": {
+      "types": "./dist/patch/backend/emitter.d.ts",
+      "import": "./dist/patch/backend/emitter.js"
+    },
+    "./patch/fixtures": {
+      "types": "./dist/patch/fixtures/index.d.ts",
+      "import": "./dist/patch/fixtures/index.js"
+    }
   },
   "scripts": {
     "build": "pnpm run build:js && pnpm run build:manifest",
